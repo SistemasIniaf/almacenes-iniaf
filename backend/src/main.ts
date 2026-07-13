@@ -15,15 +15,15 @@ async function main() {
   const apiPrefix = configService.get<string>('API_PREFIX') || 'api/v1';
   app.setGlobalPrefix(apiPrefix);
 
-  // Validación global de DTOs
+  // Validación global de DTOs.
+  // NO se usa enableImplicitConversion: coacciona mal los booleanos de query
+  // (Boolean('false') === true e invierte los filtros). Se usa @Type()/@Transform
+  // explicitos en los DTOs.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
     }),
   );
 

@@ -21,5 +21,14 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "experimentalResolver": true,
+    "compilerOptions": {
+      "module": "CommonJS",
+      "moduleResolution": "node",
+      "resolvePackageJsonExports": false
+    }
   }
 }

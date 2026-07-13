@@ -1,7 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Sistema de Almacenes (multi-almacen) — Institucion Publica
+// Paso 2 del roadmap: catalogo y usuarios. NO incluye aun stock/ingresos/egresos/kardex.
+// Docs: ver CLAUDE.md en la raiz del repo.
 
 generator client {
   provider     = "prisma-client"
@@ -13,14 +12,61 @@ datasource db {
   provider = "postgresql"
 }
 
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
 enum Rol {
-  administrador
-  responsable_almacen
+  super_admin
+  admin
   solicitador
   aprobador
+  responsable_almacen
+  central
   observador_almacen
 }
 
+// ---------------------------------------------------------------------------
+// Entidades
+// ---------------------------------------------------------------------------
+
+/// Area administrativa (ej. Unidad de Planificacion).
+model Unidad {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
+  sigla  String  @unique
+  activo Boolean @default(true)
+
+  usuarios Usuario[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("unidades")
+}
+
+/// Almacen fisico. La institucion tiene 9+.
+model Almacen {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
+  activo Boolean @default(true)
+
+  usuarios     Usuario[]
+  observadores UsuarioAlmacenObservado[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("almacenes")
+}
+
+/// Usuario del sistema. Se crea solo desde el modulo usuarios (no hay registro publico).
+/// unidadId y almacenId son independientes entre si y opcionales segun el rol:
+///   - super_admin / admin: sin unidad ni almacen.
+///   - solicitador: unidad + almacen requeridos.
+///   - aprobador: unidad requerida (unico activo por unidad).
+///   - responsable_almacen / central: almacen requerido (unico activo por almacen).
+///   - observador_almacen: sin almacen fijo (usa UsuarioAlmacenObservado).
 model Usuario {
   id       Int     @id @default(autoincrement())
   nombre   String
@@ -29,8 +75,79 @@ model Usuario {
   rol      Rol
   activo   Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  unidadId  Int?     @map("unidad_id")
+  unidad    Unidad?  @relation(fields: [unidadId], references: [id])
+  almacenId Int?     @map("almacen_id")
+  almacen   Almacen? @relation(fields: [almacenId], references: [id])
 
-  @@map("usuario")
+  almacenesObservados UsuarioAlmacenObservado[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([unidadId])
+  @@index([almacenId])
+  @@map("usuarios")
+}
+
+/// Tabla intermedia (muchos-a-muchos) para los almacenes que un observador_almacen puede ver.
+model UsuarioAlmacenObservado {
+  id        Int @id @default(autoincrement())
+  usuarioId Int @map("usuario_id")
+  almacenId Int @map("almacen_id")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  almacen Almacen @relation(fields: [almacenId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([usuarioId, almacenId])
+  @@index([almacenId])
+  @@map("usuario_almacen_observado")
+}
+
+/// Clasificador por Objeto del Gasto (jerarquico, hasta 5 niveles).
+/// NO se crea a mano: se importa/semilla desde el documento oficial (ver prisma/seed.ts).
+/// nivel = 5 - (cantidad de ceros finales del codigo de 5 digitos).
+/// seleccionable = true SOLO en nodos hoja (los unicos asignables a un Item).
+model Partida {
+  id                Int     @id @default(autoincrement())
+  codigo            String  @unique
+  denominacion      String
+  nivel             Int
+  seleccionable     Boolean @default(false)
+  activo            Boolean @default(true)
+  ultimoCorrelativo Int     @default(0) @map("ultimo_correlativo")
+
+  padreId Int?      @map("padre_id")
+  padre   Partida?  @relation("PartidaJerarquia", fields: [padreId], references: [id])
+  hijos   Partida[] @relation("PartidaJerarquia")
+
+  items Item[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([padreId])
+  @@map("partidas")
+}
+
+/// Item real de almacen (catalogo compartido entre todos los almacenes).
+/// codigo autogenerado al crear: {partida.codigo}-{correlativo padStart(6)} (ej. "39700-000001").
+/// El stock NO vive aqui (ira en StockAlmacen, fase posterior).
+model Item {
+  id           Int     @id @default(autoincrement())
+  codigo       String  @unique
+  descripcion  String
+  unidadMedida String  @map("unidad_medida")
+  activo       Boolean @default(true)
+
+  partidaId Int     @map("partida_id")
+  partida   Partida @relation(fields: [partidaId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([partidaId])
+  @@map("items")
 }

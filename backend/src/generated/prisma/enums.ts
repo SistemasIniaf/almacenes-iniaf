@@ -10,10 +10,12 @@
 */
 
 export const Rol = {
-  administrador: 'administrador',
-  responsable_almacen: 'responsable_almacen',
+  super_admin: 'super_admin',
+  admin: 'admin',
   solicitador: 'solicitador',
   aprobador: 'aprobador',
+  responsable_almacen: 'responsable_almacen',
+  central: 'central',
   observador_almacen: 'observador_almacen'
 } as const
 

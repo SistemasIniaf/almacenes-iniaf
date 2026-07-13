@@ -8,5 +8,10 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Unidad.js'
+export type * from './models/Almacen.js'
 export type * from './models/Usuario.js'
+export type * from './models/UsuarioAlmacenObservado.js'
+export type * from './models/Partida.js'
+export type * from './models/Item.js'
 export type * from './commonInputTypes.js'

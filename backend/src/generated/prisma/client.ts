@@ -29,8 +29,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Usuarios
- * const usuarios = await prisma.usuario.findMany()
+ * // Fetch zero or more Unidads
+ * const unidads = await prisma.unidad.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -40,7 +40,43 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
+ * Model Unidad
+ * Area administrativa (ej. Unidad de Planificacion).
+ */
+export type Unidad = Prisma.UnidadModel
+/**
+ * Model Almacen
+ * Almacen fisico. La institucion tiene 9+.
+ */
+export type Almacen = Prisma.AlmacenModel
+/**
  * Model Usuario
- * 
+ * Usuario del sistema. Se crea solo desde el modulo usuarios (no hay registro publico).
+ * unidadId y almacenId son independientes entre si y opcionales segun el rol:
+ * - super_admin / admin: sin unidad ni almacen.
+ * - solicitador: unidad + almacen requeridos.
+ * - aprobador: unidad requerida (unico activo por unidad).
+ * - responsable_almacen / central: almacen requerido (unico activo por almacen).
+ * - observador_almacen: sin almacen fijo (usa UsuarioAlmacenObservado).
  */
 export type Usuario = Prisma.UsuarioModel
+/**
+ * Model UsuarioAlmacenObservado
+ * Tabla intermedia (muchos-a-muchos) para los almacenes que un observador_almacen puede ver.
+ */
+export type UsuarioAlmacenObservado = Prisma.UsuarioAlmacenObservadoModel
+/**
+ * Model Partida
+ * Clasificador por Objeto del Gasto (jerarquico, hasta 5 niveles).
+ * NO se crea a mano: se importa/semilla desde el documento oficial (ver prisma/seed.ts).
+ * nivel = 5 - (cantidad de ceros finales del codigo de 5 digitos).
+ * seleccionable = true SOLO en nodos hoja (los unicos asignables a un Item).
+ */
+export type Partida = Prisma.PartidaModel
+/**
+ * Model Item
+ * Item real de almacen (catalogo compartido entre todos los almacenes).
+ * codigo autogenerado al crear: {partida.codigo}-{correlativo padStart(6)} (ej. "39700-000001").
+ * El stock NO vive aqui (ira en StockAlmacen, fase posterior).
+ */
+export type Item = Prisma.ItemModel

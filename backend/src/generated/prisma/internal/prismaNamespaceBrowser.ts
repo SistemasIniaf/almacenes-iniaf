@@ -51,7 +51,12 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Usuario: 'Usuario'
+  Unidad: 'Unidad',
+  Almacen: 'Almacen',
+  Usuario: 'Usuario',
+  UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
+  Partida: 'Partida',
+  Item: 'Item'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -70,6 +75,29 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UnidadScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  sigla: 'sigla',
+  activo: 'activo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UnidadScalarFieldEnum = (typeof UnidadScalarFieldEnum)[keyof typeof UnidadScalarFieldEnum]
+
+
+export const AlmacenScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  activo: 'activo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlmacenScalarFieldEnum = (typeof AlmacenScalarFieldEnum)[keyof typeof AlmacenScalarFieldEnum]
+
+
 export const UsuarioScalarFieldEnum = {
   id: 'id',
   nombre: 'nombre',
@@ -77,11 +105,53 @@ export const UsuarioScalarFieldEnum = {
   password: 'password',
   rol: 'rol',
   activo: 'activo',
+  unidadId: 'unidadId',
+  almacenId: 'almacenId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type UsuarioScalarFieldEnum = (typeof UsuarioScalarFieldEnum)[keyof typeof UsuarioScalarFieldEnum]
+
+
+export const UsuarioAlmacenObservadoScalarFieldEnum = {
+  id: 'id',
+  usuarioId: 'usuarioId',
+  almacenId: 'almacenId',
+  createdAt: 'createdAt'
+} as const
+
+export type UsuarioAlmacenObservadoScalarFieldEnum = (typeof UsuarioAlmacenObservadoScalarFieldEnum)[keyof typeof UsuarioAlmacenObservadoScalarFieldEnum]
+
+
+export const PartidaScalarFieldEnum = {
+  id: 'id',
+  codigo: 'codigo',
+  denominacion: 'denominacion',
+  nivel: 'nivel',
+  seleccionable: 'seleccionable',
+  activo: 'activo',
+  ultimoCorrelativo: 'ultimoCorrelativo',
+  padreId: 'padreId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PartidaScalarFieldEnum = (typeof PartidaScalarFieldEnum)[keyof typeof PartidaScalarFieldEnum]
+
+
+export const ItemScalarFieldEnum = {
+  id: 'id',
+  codigo: 'codigo',
+  descripcion: 'descripcion',
+  unidadMedida: 'unidadMedida',
+  activo: 'activo',
+  partidaId: 'partidaId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ItemScalarFieldEnum = (typeof ItemScalarFieldEnum)[keyof typeof ItemScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -98,4 +168,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
