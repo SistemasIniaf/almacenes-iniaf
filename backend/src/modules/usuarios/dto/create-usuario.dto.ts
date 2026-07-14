@@ -20,20 +20,20 @@ import { Rol } from '../../../generated/prisma/enums';
 export class CreateUsuarioDto {
   @IsString()
   @IsNotEmpty({ message: 'El nombre es requerido' })
-  nombre: string;
+  nombre!: string;
 
   @IsString()
   @IsNotEmpty({ message: 'El usuario (username) es requerido' })
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
-  usuario: string;
+  usuario!: string;
 
   @IsString()
   @IsNotEmpty({ message: 'La contrasena es requerida' })
   @MinLength(6, { message: 'La contrasena debe tener al menos 6 caracteres' })
-  password: string;
+  password!: string;
 
   @IsEnum(Rol, { message: 'El rol no es valido' })
-  rol: Rol;
+  rol!: Rol;
 
   @IsOptional()
   @IsBoolean()

@@ -10,12 +10,12 @@ export class CreateUnidadDto {
   @IsString()
   @IsNotEmpty({ message: 'El nombre es requerido' })
   @MaxLength(150)
-  nombre: string;
+  nombre!: string;
 
   @IsString()
   @IsNotEmpty({ message: 'La sigla es requerida' })
   @MaxLength(20)
-  sigla: string;
+  sigla!: string;
 
   @IsOptional()
   @IsBoolean()

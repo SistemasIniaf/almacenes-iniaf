@@ -98,7 +98,10 @@ export class UnidadesService {
       throw new NotFoundException(`No existe la unidad con id ${id}`);
     }
     if (existente.activo) {
-      await this.prisma.unidad.update({ where: { id }, data: { activo: false } });
+      await this.prisma.unidad.update({
+        where: { id },
+        data: { activo: false },
+      });
     }
     return this.findOne(id);
   }
@@ -117,7 +120,9 @@ export class UnidadesService {
         select: { id: true },
       });
       if (existe) {
-        throw new ConflictException(`Ya existe una unidad con el nombre "${nombre}"`);
+        throw new ConflictException(
+          `Ya existe una unidad con el nombre "${nombre}"`,
+        );
       }
     }
 
@@ -127,7 +132,9 @@ export class UnidadesService {
         select: { id: true },
       });
       if (existe) {
-        throw new ConflictException(`Ya existe una unidad con la sigla "${sigla}"`);
+        throw new ConflictException(
+          `Ya existe una unidad con la sigla "${sigla}"`,
+        );
       }
     }
   }
