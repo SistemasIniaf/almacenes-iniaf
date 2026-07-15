@@ -1,0 +1,331 @@
+{
+  "info": {
+    "name": "Almacenes INIAF - API",
+    "description": "Coleccion de la API del Sistema de Almacenes.\n\nBASE: http://localhost:3000/api/v1\n\nUSO RAPIDO:\n1. Corre el backend (pnpm start:dev) y el seed (pnpm prisma db seed).\n2. Ejecuta 'Auth > Login' con el usuario admin/admin123. El accessToken y refreshToken se guardan solos en las variables de la coleccion (script en la pestana Tests del request).\n3. El resto de requests ya mandan 'Authorization: Bearer {{accessToken}}' heredado a nivel de coleccion.\n\nVariables editables en la pestana 'Variables' de la coleccion.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "usuario", "value": "admin" },
+    { "key": "password", "value": "admin123" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"{{usuario}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', res.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+                  "  console.log('Tokens guardados. Rol:', res.user && res.user.rol);",
+                  "}",
+                  "pm.test('login 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', res.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (perfil)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar (paginado)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/usuarios?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "rol", "value": "solicitador", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true },
+                { "key": "unidadId", "value": "1", "disabled": true },
+                { "key": "almacenId", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] }
+          }
+        },
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nuevo Solicitador\",\n  \"usuario\": \"solic_test\",\n  \"password\": \"password123\",\n  \"rol\": \"solicitador\",\n  \"unidadId\": 1,\n  \"almacenId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nombre Editado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Desactivar (baja logica)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/usuarios/1", "host": ["{{baseUrl}}"], "path": ["usuarios", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unidades",
+      "item": [
+        {
+          "name": "Listar (paginado)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/unidades?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["unidades"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/unidades/1", "host": ["{{baseUrl}}"], "path": ["unidades", "1"] }
+          }
+        },
+        {
+          "name": "Crear (solo super_admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/unidades", "host": ["{{baseUrl}}"], "path": ["unidades"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Unidad de Prueba\",\n  \"sigla\": \"UP-TEST\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar (solo super_admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/unidades/1", "host": ["{{baseUrl}}"], "path": ["unidades", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Unidad Editada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Desactivar (solo super_admin)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/unidades/1", "host": ["{{baseUrl}}"], "path": ["unidades", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Almacenes",
+      "item": [
+        {
+          "name": "Listar (paginado)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/almacenes?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["almacenes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/almacenes/1", "host": ["{{baseUrl}}"], "path": ["almacenes", "1"] }
+          }
+        },
+        {
+          "name": "Crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/almacenes", "host": ["{{baseUrl}}"], "path": ["almacenes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Almacen de Prueba\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/almacenes/1", "host": ["{{baseUrl}}"], "path": ["almacenes", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Almacen Editado\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Desactivar (baja logica)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/almacenes/1", "host": ["{{baseUrl}}"], "path": ["almacenes", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partidas",
+      "item": [
+        {
+          "name": "Listar plano (paginado + filtros)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/partidas?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["partidas"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "39700", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true },
+                { "key": "seleccionable", "value": "true", "disabled": true },
+                { "key": "nivel", "value": "1", "disabled": true },
+                { "key": "padreId", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Arbol jerarquico",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/partidas/arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["partidas", "arbol"],
+              "query": [{ "key": "soloActivas", "value": "true", "disabled": true }]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/partidas/1", "host": ["{{baseUrl}}"], "path": ["partidas", "1"] }
+          }
+        },
+        {
+          "name": "Activar (solo super_admin)",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/partidas/1/activar", "host": ["{{baseUrl}}"], "path": ["partidas", "1", "activar"] }
+          }
+        },
+        {
+          "name": "Desactivar (solo super_admin)",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/partidas/1/desactivar", "host": ["{{baseUrl}}"], "path": ["partidas", "1", "desactivar"] }
+          }
+        }
+      ]
+    }
+  ]
+}
