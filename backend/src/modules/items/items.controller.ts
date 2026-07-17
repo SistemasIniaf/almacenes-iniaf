@@ -8,10 +8,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '../../generated/prisma/enums';
+import { imageUploadMulterOptions } from '../../common/uploads/uploads.config';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemsService } from './items.service';
 import { QueryItemsDto } from './dto/query-items.dto';
@@ -48,6 +52,27 @@ export class ItemsController {
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateItemDto) {
     return this.itemsService.update(id, dto);
+  }
+
+  /**
+   * Sube/reemplaza la imagen referencial del item (campo multipart `imagen`).
+   * Se procesa a WebP y se guarda en filesystem; la DB solo guarda la ruta.
+   */
+  @Roles(Rol.super_admin, Rol.admin)
+  @Post(':id/imagen')
+  @UseInterceptors(FileInterceptor('imagen', imageUploadMulterOptions))
+  uploadImagen(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.itemsService.setImagen(id, file);
+  }
+
+  /** Quita la imagen del item. */
+  @Roles(Rol.super_admin, Rol.admin)
+  @Delete(':id/imagen')
+  removeImagen(@Param('id', ParseIntPipe) id: number) {
+    return this.itemsService.removeImagen(id);
   }
 
   /** Baja logica (desactiva). */

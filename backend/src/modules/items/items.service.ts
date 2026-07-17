@@ -1,10 +1,22 @@
+import { randomUUID } from 'node:crypto';
+import { basename, join } from 'node:path';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import sharp from 'sharp';
 
 import { paginated } from '../../common/dto/paginated-result';
+import {
+  IMAGE_MAX_SIDE,
+  IMAGE_WEBP_QUALITY,
+  ITEMS_IMAGE_DIR,
+  ITEMS_IMAGE_SUBDIR,
+  UPLOAD_PUBLIC_PREFIX,
+} from '../../common/uploads/uploads.config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { QueryItemsDto } from './dto/query-items.dto';
@@ -150,6 +162,87 @@ export class ItemsService {
     });
 
     return this.findOne(id);
+  }
+
+  /**
+   * Reemplaza la imagen referencial del item. El original subido nunca toca
+   * disco crudo: se re-procesa con sharp (redimensiona sin ampliar + WebP) y
+   * recien el resultado se escribe. Si ya habia imagen, se borra la anterior.
+   * El nombre lleva un sufijo aleatorio para que la URL publica no sea adivinable.
+   */
+  async setImagen(id: number, file: Express.Multer.File) {
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('No se recibio ninguna imagen');
+    }
+
+    const item = await this.prisma.item.findUnique({
+      where: { id },
+      select: { id: true, imagenUrl: true },
+    });
+    if (!item) {
+      throw new NotFoundException(`No existe el item con id ${id}`);
+    }
+
+    let procesada: Buffer;
+    try {
+      procesada = await sharp(file.buffer)
+        .rotate() // respeta la orientacion EXIF antes de descartar metadatos
+        .resize(IMAGE_MAX_SIDE, IMAGE_MAX_SIDE, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: IMAGE_WEBP_QUALITY })
+        .toBuffer();
+    } catch {
+      throw new BadRequestException(
+        'El archivo no es una imagen valida o esta corrupto',
+      );
+    }
+
+    await mkdir(ITEMS_IMAGE_DIR, { recursive: true });
+    const filename = `${id}-${randomUUID().slice(0, 8)}.webp`;
+    await writeFile(join(ITEMS_IMAGE_DIR, filename), procesada);
+
+    const imagenUrl = `${UPLOAD_PUBLIC_PREFIX}/${ITEMS_IMAGE_SUBDIR}/${filename}`;
+    await this.prisma.item.update({ where: { id }, data: { imagenUrl } });
+
+    // Borra la imagen anterior despues de commitear la nueva (best-effort).
+    await this.borrarArchivoImagen(item.imagenUrl);
+
+    return this.findOne(id);
+  }
+
+  /** Quita la imagen del item (borra el archivo y limpia la ruta en la DB). */
+  async removeImagen(id: number) {
+    const item = await this.prisma.item.findUnique({
+      where: { id },
+      select: { id: true, imagenUrl: true },
+    });
+    if (!item) {
+      throw new NotFoundException(`No existe el item con id ${id}`);
+    }
+    if (item.imagenUrl) {
+      await this.prisma.item.update({
+        where: { id },
+        data: { imagenUrl: null },
+      });
+      await this.borrarArchivoImagen(item.imagenUrl);
+    }
+    return this.findOne(id);
+  }
+
+  /**
+   * Borra del disco el archivo de una imagen a partir de su ruta publica.
+   * Best-effort: un fallo (archivo ya inexistente) no debe romper la operacion,
+   * la fuente de verdad es la DB. Solo actua dentro de ITEMS_IMAGE_DIR.
+   */
+  private async borrarArchivoImagen(imagenUrl: string | null) {
+    if (!imagenUrl) return;
+    try {
+      await rm(join(ITEMS_IMAGE_DIR, basename(imagenUrl)), { force: true });
+    } catch {
+      // Se ignora: la ruta ya quedo desvinculada en la DB.
+    }
   }
 
   /** Baja logica (desactiva). No se borra para preservar el historial de movimientos. */

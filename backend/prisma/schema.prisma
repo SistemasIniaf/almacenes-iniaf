@@ -140,6 +140,9 @@ model Item {
   codigo       String  @unique
   descripcion  String
   unidadMedida String  @map("unidad_medida")
+  // Ruta publica relativa de la imagen referencial (ej. "/uploads/items/12-a3f9.webp").
+  // Null = sin imagen. El binario vive en el filesystem, no en la DB.
+  imagenUrl    String? @map("imagen_url")
   activo       Boolean @default(true)
 
   partidaId Int     @map("partida_id")

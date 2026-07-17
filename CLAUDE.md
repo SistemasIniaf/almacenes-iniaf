@@ -42,7 +42,7 @@ almacenes-institucion/
   - `central`: almacén requerido, único ACTIVO por almacén (CORREGIDO: ya no es único institucional, ahora es un central por cada almacén, mismo patrón que responsable_almacen).
   - `observador_almacen`: sin almacén fijo — usa tabla intermedia `UsuarioAlmacenObservado` (relación muchos-a-muchos, selecciona qué almacenes puede ver, para auditoría).
 - **Partida** (reemplaza al concepto anterior de "Material"): catálogo oficial del Clasificador por Objeto del Gasto (Ministerio de Economía y Finanzas Públicas, Bolivia, publicado por gestión/año fiscal). NO se crea libremente en el sistema — se importa/semilla desde el documento oficial. Es **jerárquica** (auto-referenciada, hasta 5 niveles: Grupo → Subgrupo → Partida → Subpartida → Sub-subpartida), porque el clasificador real tiene profundidad variable por rama. Campos: codigo (string, ej. "39700"), denominacion, nivel (1-5, calculado por cantidad de ceros finales del código), padreId (auto-referencia), `seleccionable` (boolean — SOLO true en los nodos hoja, es decir códigos sin hijos; son los únicos que se pueden asignar a un Ítem), activo, `ultimoCorrelativo` (contador para generar códigos de Ítem, solo relevante si `seleccionable=true`). Un solo catálogo vigente, SIN versionado histórico por gestión (se actualiza in-place si el Ministerio publica cambios; poco frecuente). Alcance actual del seed: SOLO grupos `20000` (Servicios No Personales) y `30000` (Materiales y Suministros) — no se cargan otros grupos del clasificador por ahora.
-- **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, activo, `partida_id`.
+- **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
 - **StockAlmacen**: `item_id` + `almacen_id` + `stock_fisico` + `stock_reservado` (disponible = físico − reservado). Aquí vive el stock real, NO en Item.
 - **Proveedor**: nombre, nit, teléfono, contacto.
 - **Ingreso**: `almacen_id`, correlativo POR ALMACÉN, proveedor, fecha, detalle (ítem + cantidad + costo). Registrado directo por `responsable_almacen` de ESE almacén — **sin aprobación**.
@@ -122,6 +122,19 @@ Un Egreso `APROBADO` se puede anular:
 ## Autenticación — sin registro público
 
 **No existe pantalla de registro (`/register`).** Los usuarios se crean exclusivamente desde el módulo `usuarios` (por `super_admin`/`admin`), con username/password asignados ahí. El frontend solo tiene pantalla de **login** — no hay flujo de auto-registro, recuperación de cuenta por "crear cuenta nueva", ni endpoint público de `POST /auth/register`. La creación de usuarios es siempre una acción administrativa autenticada (`POST /usuarios`, protegido por rol), nunca un endpoint público.
+
+## Imágenes de Ítems (subida de archivos)
+
+Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decisiones tomadas (confirmadas con el usuario):
+
+- **Cardinalidad**: 1 imagen por ítem (campo `imagenUrl String?` en `Item`, NO tabla `ItemImagen`). Si en el futuro se necesitan varias, migrar a tabla 1-a-N es barato; no se sobre-construye ahora.
+- **Almacenamiento**: **filesystem**, NO en la DB. El binario vive en `backend/uploads/items/` (en `.gitignore`); la DB guarda solo la ruta pública relativa (ej. `/uploads/items/3-8eeae5d8.webp`). El nombre lleva un sufijo aleatorio (`{itemId}-{uuid8}.webp`) para que la URL no sea adivinable.
+- **Procesamiento**: la imagen subida NUNCA toca disco cruda. Se re-procesa con **`sharp`** (redimensiona a máx. `1024px` lado mayor sin ampliar + convierte a **WebP** calidad 80) y recién el resultado se escribe. Límites: máx. 5 MB de entrada, MIME permitidos `image/jpeg|png|webp`.
+- **Servido**: **estáticas públicas** bajo `/uploads` vía `app.useStaticAssets` en `main.ts`. Quedan **FUERA** del prefijo global de la API y del `JwtAuthGuard` global — decisión deliberada para poder usarlas con `<img src>` directo. Trade-off aceptado: son adivinables solo por fuerza bruta (mitigado por el sufijo aleatorio); son fotos referenciales no sensibles.
+- **Endpoints** (solo `super_admin`/`admin`): `POST /items/:id/imagen` (campo multipart `imagen`; reemplaza y borra la anterior del disco) y `DELETE /items/:id/imagen` (limpia archivo + pone `imagenUrl=null`). El CRUD normal (`PATCH`) NO toca la imagen.
+- **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre el service de items y `main.ts`).
+- **Pendiente frontend**: falta el componente `ImageField` (subida con preview) para cuando se arme la feature de ítems en el front — ver convención de sufijo `*Field` más abajo.
+- **Pendiente despliegue**: en `docker-compose.prod.yml`, montar `uploads/` como **volumen** para que las imágenes sobrevivan a reconstrucciones del contenedor.
 
 ## Roadmap de construcción actual
 

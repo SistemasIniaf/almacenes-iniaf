@@ -10,10 +10,13 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "fileBaseUrl", "value": "http://localhost:3000" },
     { "key": "usuario", "value": "admin" },
     { "key": "password", "value": "admin123" },
     { "key": "accessToken", "value": "" },
-    { "key": "refreshToken", "value": "" }
+    { "key": "refreshToken", "value": "" },
+    { "key": "itemId", "value": "" },
+    { "key": "imagenUrl", "value": "" }
   ],
   "item": [
     {
@@ -323,6 +326,129 @@
           "request": {
             "method": "PATCH",
             "url": { "raw": "{{baseUrl}}/partidas/1/desactivar", "host": ["{{baseUrl}}"], "path": ["partidas", "1", "desactivar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Items",
+      "description": "Catalogo compartido por todos los almacenes. Escritura solo super_admin/admin; lectura para cualquier autenticado.\n\nIMAGEN (1 por item, filesystem): usar 'Subir/Reemplazar imagen' con body form-data, campo 'imagen' de tipo File. Se procesa a WebP y se guarda en /uploads/items. La respuesta trae 'imagenUrl' (ej. /uploads/items/3-8eeae5d8.webp), servible como estatica publica (sin token) en {{fileBaseUrl}}{{imagenUrl}}.",
+      "item": [
+        {
+          "name": "Listar (paginado + filtros)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/items?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["items"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "39700", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true },
+                { "key": "partidaId", "value": "4", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/items/1", "host": ["{{baseUrl}}"], "path": ["items", "1"] }
+          }
+        },
+        {
+          "name": "Crear (solo super_admin/admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/items", "host": ["{{baseUrl}}"], "path": ["items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Item de prueba\",\n  \"unidadMedida\": \"UNIDAD\",\n  \"partidaId\": 4\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) {",
+                  "  pm.collectionVariables.set('itemId', res.id);",
+                  "  console.log('itemId guardado:', res.id, res.codigo);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar (solo super_admin/admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Descripcion editada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Subir/Reemplazar imagen (form-data)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/items/{{itemId}}/imagen", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}", "imagen"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "imagen", "type": "file", "src": [], "description": "Archivo JPEG/PNG/WebP, max 5 MB. Se convierte a WebP <=1024px." }
+              ]
+            },
+            "description": "Elige un archivo en la pestana Body > form-data, campo 'imagen' (tipo File). NO poner Content-Type manual: Postman arma el multipart boundary solo. La respuesta trae 'imagenUrl'."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.imagenUrl) {",
+                  "  pm.collectionVariables.set('imagenUrl', res.imagenUrl);",
+                  "  console.log('imagenUrl:', res.imagenUrl, '-> abrir en', pm.collectionVariables.get('fileBaseUrl') + res.imagenUrl);",
+                  "}",
+                  "pm.test('subida 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver imagen (estatica publica, sin token)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{fileBaseUrl}}{{imagenUrl}}", "host": ["{{fileBaseUrl}}{{imagenUrl}}"] },
+            "description": "Sirve el archivo directo desde /uploads (fuera del JWT). Usa la variable imagenUrl que dejo la subida. En un navegador o <img src> se ve igual."
+          }
+        },
+        {
+          "name": "Quitar imagen",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/items/{{itemId}}/imagen", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}", "imagen"] }
+          }
+        },
+        {
+          "name": "Desactivar (baja logica)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/items/{{itemId}}", "host": ["{{baseUrl}}"], "path": ["items", "{{itemId}}"] }
           }
         }
       ]

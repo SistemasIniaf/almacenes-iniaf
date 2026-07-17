@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# Archivos subidos por usuarios (imagenes de items). En prod es un volumen.
+/uploads
+
 # Logs
 logs
 *.log
