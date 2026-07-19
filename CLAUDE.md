@@ -152,11 +152,115 @@ Fase en curso: construir todo lo que NO depende de las reglas de Ingreso/Egreso 
 9. proveedores (CRUD simple) — YA HECHO
 ```
 
-Con el paso 9 termina todo el backend que NO depende de reglas pendientes. El siguiente frente
-es la **integración del frontend** (hoy es UI estática: no hay cliente HTTP, ni TanStack Query,
-ni store de auth, ni rutas protegidas; el `LoginForm` hace `console.log`). Orden sugerido:
-`lib/api.ts` (axios + refresh en 401) → provider de TanStack Query + auth store → `ProtectedRoute`
-+ login real → features de dominio (unidades → almacenes → usuarios → partidas → items).
+Con el paso 9 termina todo el backend que NO depende de reglas pendientes.
+
+**Integración del frontend — infraestructura de auth YA HECHA**:
+- `src/lib/token-storage.ts`: tokens en `localStorage`, fuera de React (los lee el interceptor).
+- `src/lib/api.ts`: instancia de axios + `Authorization` automático + **refresh en 401 con
+  single-flight** (varias peticiones que fallan a la vez comparten una sola llamada a
+  `/auth/refresh`). Expone `getApiErrorMessage()` (normaliza el `message` string|array de NestJS)
+  y `setSesionExpiradaHandler()` (el interceptor avisa al AuthProvider cuando la sesión murió).
+- `src/lib/query-client.ts`: `QueryClient` que NO reintenta errores 4xx.
+- `src/features/auth/`: `AuthProvider` (rehidrata la sesión con `GET /auth/me` al montar),
+  hook `useAuth`, `useLogin`, tipos espejo del backend (`Rol`, `AuthUser`) y `auth-storage.ts`.
+- `src/routes/ProtectedRoute.tsx`: `ProtectedRoute` (privadas, recuerda el `from`) y
+  `PublicOnlyRoute` (el login no se ve con sesión abierta).
+
+Nota: `GET /auth/me` devuelve el contenido del token y NO incluye `nombre` (solo llega en el
+login), por eso el usuario se cachea en `localStorage` — la fuente de verdad sigue siendo
+`/auth/me`, del cache solo se conserva `nombre`. Si algún día se agrega `nombre` a
+`AuthenticatedUser` en el backend, ese cache (`auth-storage.ts`) se puede borrar.
+
+**Piezas compartidas ya construidas** (reutilizarlas en cada CRUD nuevo, no reinventarlas):
+- `features/auth/lib/permisos.ts`: mapa `PERMISOS` que **espeja los `@Roles(...)` de cada
+  controlador** + helper `tienePermiso(user, permiso)`. La UI solo OCULTA; quien autoriza es el
+  backend. Si cambia un `@Roles` allá, hay que actualizar este archivo.
+- `components/data/DataPagination.tsx`: pie de paginación de los listados (no usa
+  `ui/pagination` de shadcn porque ese renderiza `<a href>` y la página es estado local).
+  El tamaño de página es **`PAGE_SIZE` de `lib/types.ts` (10)**, compartido por todos los
+  listados — cambiarlo ahí lo cambia en todos lados. El backend sigue con `pageSize=20` por
+  defecto para quien consuma la API directo; el frontend siempre lo manda explícito.
+- `hooks/use-debounced-value.ts`: para los buscadores (no una petición por tecla).
+- `components/ui/sonner.tsx` + `<Toaster>` en `main.tsx` para feedback de mutaciones. OJO: el
+  generador de shadcn lo trae importando `useTheme` de `next-themes`; se reconectó al
+  `ThemeProvider` propio y se desinstaló `next-themes`. Si se regenera, revisar ese import.
+
+**Módulo `unidades` — YA HECHO** (plantilla a copiar para el resto): `unidades.types.ts`,
+`unidades.schema.ts` (zod espejo del DTO), `unidades.api.ts`, `useUnidades.ts` (queries +
+mutations con toast e invalidación), `UnidadFormDialog.tsx` (crear/editar en un solo diálogo),
+`UnidadesPage.tsx` (buscador + filtro de estado + tabla + baja lógica con confirmación).
+Detalle de permisos: unidades es el único módulo donde `admin` **lee pero no escribe**, así que
+la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol.
+
+**Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`. Los tres siguen la misma
+plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*FormDialog.tsx`,
+`*Page.tsx`). Notas propias de `usuarios` (el más complejo):
+- El schema de Zod es una **función** `usuarioSchema(esEdicion)`: al crear, la contraseña es
+  obligatoria; al editar, vacía significa "no cambiar" y no viaja en el PATCH.
+- Los campos unidad / almacén / almacenes observados se muestran según el rol, replicando
+  `ROLES_CON_UNIDAD` y `ROLES_CON_ALMACEN` del service (ver `usuarios.types.ts`).
+- El payload se arma **según el rol**, no según lo que quedó en el formulario: si el usuario
+  eligió un rol, cargó una unidad y después cambió de rol, ese valor viejo no se envía (el
+  backend responde 400 si llega una unidad para un rol que no la lleva).
+- La UI NO valida unicidad de roles (un aprobador activo por unidad, etc.): eso lo resuelve el
+  backend con mensajes claros que se muestran como toast.
+- No se puede desactivar la propia cuenta (el botón queda deshabilitado).
+- `useUnidadesActivas()` / `useAlmacenesActivos()` (en los features respectivos) alimentan los
+  selectores del formulario.
+
+Notas propias de `partidas` (no sigue la plantilla: es solo lectura + activar/desactivar):
+- **No usa el endpoint paginado ni paginación**: el catálogo entero son ~120 nodos (~29 KB), así
+  que se trae el árbol completo con `GET /partidas/arbol` una sola vez y **el filtrado es local**
+  (`partidas.filtros.ts`). Eso permite conservar los ancestros de cada coincidencia, cosa que un
+  listado plano paginado no puede hacer. Si el catálogo creciera mucho (otros grupos del
+  clasificador), habría que rever esta decisión.
+- El filtro local normaliza acentos en JS igual que `f_unaccent` en el servidor.
+- Al haber filtro activo se expande todo el árbol; si no, las coincidencias quedarían escondidas
+  dentro de nodos colapsados y parecería que no hay resultados.
+- Desactivar **no** cascadea a los hijos (así funciona el service); el diálogo de confirmación lo
+  dice explícitamente cuando el nodo tiene hijos.
+
+Notas propias de `items`:
+- **`lib/api.ts` NO fija un `Content-Type` por defecto**, a propósito. Axios lo infiere del cuerpo
+  (`application/json` para objetos, `multipart/form-data` con boundary para `FormData`). Si se
+  volviera a poner el default JSON, axios convertiría el `FormData` a JSON (`formDataToJSON`) y
+  la subida de imágenes se rompería **en silencio**.
+- `lib/files.ts`: las imágenes se sirven fuera del prefijo de la API, así que la URL se arma
+  contra el **origen** del backend (`new URL(VITE_API_URL).origin`), no contra `VITE_API_URL`.
+  Ahí también viven los límites (5 MB, JPG/PNG/WebP) que espejan `uploads.config.ts`.
+- `ImageField` **no es un campo de react-hook-form** como el resto de los `*Field`: la imagen usa
+  endpoints propios y se aplica al instante, sin esperar al submit. Por eso recibe la URL actual
+  y dos callbacks en vez de `control`/`name`.
+- **Al crear se puede elegir la imagen**, aunque el endpoint necesite un id que todavía no existe:
+  el archivo se guarda dentro del formulario (campo `archivo` del schema, así `reset()` lo limpia
+  solo y no hace falta `useState`) y se sube en un segundo request después del POST. El
+  `ImageField` tiene por eso dos modos: `archivoPendiente` (preview local con `createObjectURL`,
+  creación) e `imagenUrl` (subida inmediata, edición).
+- **Si el ítem se crea pero la imagen falla**, el diálogo NO se cierra: llama a `onCreado(item)`,
+  la página pasa a editar ese ítem y el mismo diálogo se convierte en el de edición, donde
+  reintentar es un clic. Se avisa con un toast de advertencia que incluye el código generado.
+  El tamaño y el formato se validan **al elegir el archivo**, antes del POST, para que el caso
+  más probable de fallo no llegue a crear nada.
+- En edición la partida se muestra como texto, no como selector: el backend no admite cambiarla
+  (el código deriva de ella).
+- `ComboboxField` (nuevo, compartido) es el selector con buscador para listas largas — acá se usa
+  para las 90 partidas asignables. Su base `ui/command.tsx` se escribió a mano porque
+  `shadcn add command` exige sobrescribir `dialog.tsx`, que ya está en uso.
+
+Notas propias de `proveedores` (cierra el frontend de esta fase):
+- **Asimetría del NIT vacío**, verificada contra el backend: al CREAR hay que **omitir** los
+  opcionales vacíos (`CreateProveedorDto` marca el NIT con `@IsNotEmpty`, así que `""` da 400);
+  al EDITAR, en cambio, `""` es justamente lo que limpia el campo (el service lo normaliza a
+  `null`). Lo resuelve el helper `soloConValor()` del `ProveedorFormDialog`.
+- El **nombre se puede repetir a propósito** (la razón social se escribe de formas distintas) y
+  varios proveedores pueden no tener NIT; el único conflicto posible es un NIT repetido (409).
+- Es el único módulo que `responsable_almacen` ve: entra a leer (necesita el selector al
+  registrar un ingreso) pero no puede crear ni editar.
+
+**Estado**: con esto termina todo el frontend que NO depende de reglas pendientes. Lo que sigue
+(`stock`, `ingresos`, `egresos`, `kardex`, `reportes`) requiere primero confirmar las reglas de
+negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacenes.md`. Al agregar cada uno hay que sumar su entrada en
+`NavMain.tsx` (`ITEMS`) y en `SECCIONES` de `DashboardLayout.tsx`.
 
 NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egresos`, `kardex`, `reportes` — dependen de las reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
 
@@ -170,7 +274,8 @@ NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egre
 - Backend: un módulo NestJS por dominio (`auth`, `usuarios`, `unidades`, `almacenes`, `catalogo`, `stock`, `proveedores`, `ingresos`, `egresos`, `kardex`, `reportes`). Ver estructura completa en `docs/estructura-backend.md`.
   - **Ubicación de los módulos**: todos los módulos de dominio viven dentro de `src/modules/<modulo>/`. `src/prisma/` es infraestructura (no es módulo de dominio) y `src/common/` guarda lo compartido (ej. `common/dto/pagination-query.dto.ts`, `common/dto/paginated-result.ts`). El cliente Prisma generado está en `src/generated/prisma/`.
   - **Instalación de dependencias**: SIEMPRE correr `pnpm add`/`pnpm remove` DENTRO de `backend/` o `frontend/` (nunca en la raíz — no hay `package.json` ni workspace raíz; instalar ahí crea artefactos sueltos y provoca resolución de módulos duplicada).
-  - **Listados**: todo endpoint de listado (`GET`) devuelve paginado con la forma estándar `{ data, meta: { total, page, pageSize, totalPages } }`, usando el helper `paginated()`. El query DTO de cada módulo **extiende** `PaginationQueryDto` y agrega sus propios filtros + un buscador `q` según los campos de texto de su schema (ej. usuarios busca en `nombre`/`usuario`; unidades en `nombre`/`sigla`). Los DTO de update se definen explícitos (campos opcionales), no con `PartialType`/mapped-types, para no sumar dependencias.
+  - **Listados**: todo endpoint de listado (`GET`) devuelve paginado con la forma estándar `{ data, meta: { total, page, pageSize, totalPages } }`, usando el helper `paginated()`. **Orden: `[{ createdAt: 'desc' }, { id: 'desc' }]`** — lo más reciente primero. El desempate por `id` no es decorativo: varios registros pueden compartir `createdAt` (el seed inserta muchos en el mismo instante) y sin él la paginación puede repetir u omitir filas entre páginas. **Excepción: `partidas`**, que se ordena por `codigo asc` porque el código ES la jerarquía del clasificador. El query DTO de cada módulo **extiende** `PaginationQueryDto` y agrega sus propios filtros + un buscador `q` según los campos de texto de su schema (ej. usuarios busca en `nombre`/`usuario`; unidades en `nombre`/`sigla`). Los DTO de update se definen explícitos (campos opcionales), no con `PartialType`/mapped-types, para no sumar dependencias.
+  - **Buscador `q` (insensible a acentos)**: NO usar `contains` + `mode: 'insensitive'` de Prisma — eso ignora mayúsculas pero NO tildes, así que buscar "almacen" no encontraba "Almacén" (nadie escribe acentos al buscar). Todos los listados usan el helper `buscarIdsPorTexto()` de `common/search/busqueda-texto.ts`, que resuelve el filtro de texto con SQL crudo (`f_unaccent(col) ILIKE f_unaccent($1)`) y devuelve ids; el service los aplica como `id: { in: ids }` y conserva el resto de su lógica Prisma (filtros, orden, paginación, includes). Un array vacío significa "ninguna coincidencia", no "sin filtro". Apoyo en DB: extensiones `unaccent` + `pg_trgm`, función IMMUTABLE `f_unaccent` e índices GIN de trigramas, todo en la migración `20260719161128_busqueda_sin_acentos` (escrita a mano; Prisma no expresa `unaccent` en su DSL). **Al agregar un buscador a un módulo nuevo hay que crear también su índice GIN en una migración**, si no la búsqueda funciona pero hace scan secuencial.
   - **Booleanos en query**: usar el helper `toBoolean` de `common/dto/transforms.ts` con `@Transform`. El `ValidationPipe` global NO usa `enableImplicitConversion` (coacciona mal los booleanos: `Boolean('false') === true`); los numéricos de query llevan `@Type(() => Number)` explícito.
 - Frontend: organizado por `features/` (dominio), no por tipo de archivo. Componente `EgresoAprobacion` reutilizado por los 3 roles que aprueban (aprobador, responsable_almacen, central), variando solo qué acciones habilita.
   - **Estructura híbrida por módulo**: módulos simples (≤5 archivos: unidades, almacenes, proveedores) van planos dentro de `features/<modulo>/`. Módulos complejos (egresos, ingresos, reportes) usan subcarpetas `components/`, `hooks/`, `pages/` dentro de su propia carpeta de feature. No aplicar subcarpetas a todos los módulos por igual.
