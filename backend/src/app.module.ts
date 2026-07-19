@@ -10,6 +10,7 @@ import { AlmacenesModule } from './modules/almacenes/almacenes.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ItemsModule } from './modules/items/items.module';
 import { PartidasModule } from './modules/partidas/partidas.module';
+import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { UnidadesModule } from './modules/unidades/unidades.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 
@@ -23,6 +24,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     AlmacenesModule,
     PartidasModule,
     ItemsModule,
+    ProveedoresModule,
   ],
   controllers: [AppController],
   providers: [AppService],

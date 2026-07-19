@@ -44,7 +44,7 @@ almacenes-institucion/
 - **Partida** (reemplaza al concepto anterior de "Material"): catálogo oficial del Clasificador por Objeto del Gasto (Ministerio de Economía y Finanzas Públicas, Bolivia, publicado por gestión/año fiscal). NO se crea libremente en el sistema — se importa/semilla desde el documento oficial. Es **jerárquica** (auto-referenciada, hasta 5 niveles: Grupo → Subgrupo → Partida → Subpartida → Sub-subpartida), porque el clasificador real tiene profundidad variable por rama. Campos: codigo (string, ej. "39700"), denominacion, nivel (1-5, calculado por cantidad de ceros finales del código), padreId (auto-referencia), `seleccionable` (boolean — SOLO true en los nodos hoja, es decir códigos sin hijos; son los únicos que se pueden asignar a un Ítem), activo, `ultimoCorrelativo` (contador para generar códigos de Ítem, solo relevante si `seleccionable=true`). Un solo catálogo vigente, SIN versionado histórico por gestión (se actualiza in-place si el Ministerio publica cambios; poco frecuente). Alcance actual del seed: SOLO grupos `20000` (Servicios No Personales) y `30000` (Materiales y Suministros) — no se cargan otros grupos del clasificador por ahora.
 - **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
 - **StockAlmacen**: `item_id` + `almacen_id` + `stock_fisico` + `stock_reservado` (disponible = físico − reservado). Aquí vive el stock real, NO en Item.
-- **Proveedor**: nombre, nit, teléfono, contacto.
+- **Proveedor**: nombre (requerido, NO único — la razón social se escribe de formas distintas), `nit` (opcional pero `@unique`; Postgres admite varios NULL en un índice único, así que conviven proveedores sin NIT), telefono, `contacto` (nombre de la persona de contacto), direccion, activo. Baja lógica siempre: será referenciado por Ingreso y no se puede borrar sin romper el Kardex. Escritura para `super_admin` y `admin`; lectura además para `responsable_almacen` (necesita el selector de proveedor al registrar un Ingreso).
 - **Ingreso**: `almacen_id`, correlativo POR ALMACÉN, proveedor, fecha, detalle (ítem + cantidad + costo). Registrado directo por `responsable_almacen` de ESE almacén — **sin aprobación**.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
 - **EgresoDetalle**: ítem, cantidad_solicitada, cantidad_aprobada (puede ajustarse en cada nivel de aprobación).
@@ -149,8 +149,14 @@ Fase en curso: construir todo lo que NO depende de las reglas de Ingreso/Egreso 
 6. almacenes (CRUD simple)
 7. partidas (solo lectura del árbol jerárquico + activar/desactivar; NO se crean partidas a mano, vienen del seed)
 8. items (CRUD + generación automática de código {partida.codigo}-{correlativo})
-9. proveedores (CRUD simple)
+9. proveedores (CRUD simple) — YA HECHO
 ```
+
+Con el paso 9 termina todo el backend que NO depende de reglas pendientes. El siguiente frente
+es la **integración del frontend** (hoy es UI estática: no hay cliente HTTP, ni TanStack Query,
+ni store de auth, ni rutas protegidas; el `LoginForm` hace `console.log`). Orden sugerido:
+`lib/api.ts` (axios + refresh en 401) → provider de TanStack Query + auth store → `ProtectedRoute`
++ login real → features de dominio (unidades → almacenes → usuarios → partidas → items).
 
 NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egresos`, `kardex`, `reportes` — dependen de las reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
 

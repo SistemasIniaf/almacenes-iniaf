@@ -73,6 +73,14 @@ export type UsuarioAlmacenObservado = Prisma.UsuarioAlmacenObservadoModel
  */
 export type Partida = Prisma.PartidaModel
 /**
+ * Model Proveedor
+ * Proveedor de la institucion. Sera referenciado por Ingreso (fase posterior),
+ * por eso nunca se borra: baja logica via `activo`.
+ * nit es opcional (hay proveedores sin NIT) pero unico cuando existe:
+ * Postgres admite multiples NULL en un indice unico.
+ */
+export type Proveedor = Prisma.ProveedorModel
+/**
  * Model Item
  * Item real de almacen (catalogo compartido entre todos los almacenes).
  * codigo autogenerado al crear: {partida.codigo}-{correlativo padStart(6)} (ej. "39700-000001").

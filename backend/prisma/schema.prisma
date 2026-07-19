@@ -132,6 +132,26 @@ model Partida {
   @@map("partidas")
 }
 
+/// Proveedor de la institucion. Sera referenciado por Ingreso (fase posterior),
+/// por eso nunca se borra: baja logica via `activo`.
+/// nit es opcional (hay proveedores sin NIT) pero unico cuando existe:
+/// Postgres admite multiples NULL en un indice unico.
+model Proveedor {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  nit       String? @unique
+  telefono  String?
+  /// Nombre de la persona de contacto (ej. "Juan Perez, ejecutivo de ventas").
+  contacto  String?
+  direccion String?
+  activo    Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("proveedores")
+}
+
 /// Item real de almacen (catalogo compartido entre todos los almacenes).
 /// codigo autogenerado al crear: {partida.codigo}-{correlativo padStart(6)} (ej. "39700-000001").
 /// El stock NO vive aqui (ira en StockAlmacen, fase posterior).

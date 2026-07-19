@@ -495,10 +495,6 @@ export type ItemUncheckedUpdateManyWithoutPartidaNestedInput = {
   deleteMany?: Prisma.ItemScalarWhereInput | Prisma.ItemScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type ItemCreateWithoutPartidaInput = {
   codigo: string
   descripcion: string

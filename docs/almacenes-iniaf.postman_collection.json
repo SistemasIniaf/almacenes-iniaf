@@ -452,6 +452,95 @@
           }
         }
       ]
+    },
+    {
+      "name": "Proveedores",
+      "description": "Escritura solo super_admin/admin. Lectura tambien para responsable_almacen (selector de proveedor al registrar un Ingreso).",
+      "item": [
+        {
+          "name": "Listar (paginado + filtros)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/proveedores?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["proveedores"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "q", "value": "distribuidora", "disabled": true },
+                { "key": "activo", "value": "true", "disabled": true }
+              ]
+            },
+            "description": "q busca en nombre, nit y contacto."
+          }
+        },
+        {
+          "name": "Obtener por id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/proveedores/1", "host": ["{{baseUrl}}"], "path": ["proveedores", "1"] }
+          }
+        },
+        {
+          "name": "Crear (solo super_admin/admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/proveedores", "host": ["{{baseUrl}}"], "path": ["proveedores"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Distribuidora La Paz S.R.L.\",\n  \"nit\": \"1023456789\",\n  \"telefono\": \"22334455\",\n  \"contacto\": \"Juan Perez\",\n  \"direccion\": \"Av. Arce 1234, La Paz\"\n}"
+            },
+            "description": "Solo nombre es requerido (NO es unico: la razon social se escribe de formas distintas). nit es opcional pero unico si se envia; pueden convivir varios proveedores sin NIT."
+          }
+        },
+        {
+          "name": "Crear sin NIT (minimo)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/proveedores", "host": ["{{baseUrl}}"], "path": ["proveedores"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ferreteria del Sur\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar (solo super_admin/admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/proveedores/1", "host": ["{{baseUrl}}"], "path": ["proveedores", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Distribuidora La Paz S.R.L. (editado)\",\n  \"telefono\": \"22334466\",\n  \"contacto\": \"Maria Quispe\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Limpiar NIT (cadena vacia -> null)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/proveedores/1", "host": ["{{baseUrl}}"], "path": ["proveedores", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nit\": \"\"\n}"
+            },
+            "description": "Enviar el NIT como cadena vacia lo normaliza a null (libera el indice unico)."
+          }
+        },
+        {
+          "name": "Desactivar (baja logica)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/proveedores/1", "host": ["{{baseUrl}}"], "path": ["proveedores", "1"] },
+            "description": "Nunca se borra fisicamente: sera referenciado por Ingreso y romperia el Kardex."
+          }
+        }
+      ]
     }
   ]
 }

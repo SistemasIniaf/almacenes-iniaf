@@ -55,6 +55,7 @@ export const ModelName = {
   Usuario: 'Usuario',
   UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
   Partida: 'Partida',
+  Proveedor: 'Proveedor',
   Item: 'Item'
 } as const
 
@@ -137,6 +138,21 @@ export const PartidaScalarFieldEnum = {
 } as const
 
 export type PartidaScalarFieldEnum = (typeof PartidaScalarFieldEnum)[keyof typeof PartidaScalarFieldEnum]
+
+
+export const ProveedorScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  nit: 'nit',
+  telefono: 'telefono',
+  contacto: 'contacto',
+  direccion: 'direccion',
+  activo: 'activo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProveedorScalarFieldEnum = (typeof ProveedorScalarFieldEnum)[keyof typeof ProveedorScalarFieldEnum]
 
 
 export const ItemScalarFieldEnum = {
