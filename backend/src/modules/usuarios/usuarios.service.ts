@@ -7,6 +7,7 @@ import {
 import * as bcrypt from 'bcrypt';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import { Rol } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
@@ -93,26 +94,29 @@ export class UsuariosService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
+    // Busqueda sin acentos: se resuelve en SQL crudo y vuelve como lista de ids.
+    const idsBusqueda = query.q
+      ? await buscarIdsPorTexto(
+          this.prisma,
+          'usuarios',
+          ['nombre', 'usuario'],
+          query.q,
+        )
+      : null;
+
     const where = {
       ...(query.rol ? { rol: query.rol } : {}),
       ...(query.activo !== undefined ? { activo: query.activo } : {}),
       ...(query.unidadId ? { unidadId: query.unidadId } : {}),
       ...(query.almacenId ? { almacenId: query.almacenId } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { nombre: { contains: query.q, mode: 'insensitive' as const } },
-              { usuario: { contains: query.q, mode: 'insensitive' as const } },
-            ],
-          }
-        : {}),
+      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
     const [data, total] = await Promise.all([
       this.prisma.usuario.findMany({
         where,
         select: usuarioSelect,
-        orderBy: { nombre: 'asc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

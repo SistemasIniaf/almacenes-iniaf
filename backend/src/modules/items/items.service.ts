@@ -10,6 +10,7 @@ import {
 import sharp from 'sharp';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import {
   IMAGE_MAX_SIDE,
   IMAGE_WEBP_QUALITY,
@@ -91,22 +92,20 @@ export class ItemsService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
+    // Busqueda sin acentos: se resuelve en SQL crudo y vuelve como lista de ids.
+    const idsBusqueda = query.q
+      ? await buscarIdsPorTexto(
+          this.prisma,
+          'items',
+          ['codigo', 'descripcion'],
+          query.q,
+        )
+      : null;
+
     const where = {
       ...(query.activo !== undefined ? { activo: query.activo } : {}),
       ...(query.partidaId !== undefined ? { partidaId: query.partidaId } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { codigo: { contains: query.q, mode: 'insensitive' as const } },
-              {
-                descripcion: {
-                  contains: query.q,
-                  mode: 'insensitive' as const,
-                },
-              },
-            ],
-          }
-        : {}),
+      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
     const [data, total] = await Promise.all([
@@ -115,7 +114,7 @@ export class ItemsService {
         include: {
           partida: { select: { id: true, codigo: true, denominacion: true } },
         },
-        orderBy: { codigo: 'asc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

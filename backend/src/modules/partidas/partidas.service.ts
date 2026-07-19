@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Partida } from '../../generated/prisma/client';
 import { QueryArbolDto } from './dto/query-arbol.dto';
@@ -18,6 +19,16 @@ export class PartidasService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
+    // Busqueda sin acentos: se resuelve en SQL crudo y vuelve como lista de ids.
+    const idsBusqueda = query.q
+      ? await buscarIdsPorTexto(
+          this.prisma,
+          'partidas',
+          ['codigo', 'denominacion'],
+          query.q,
+        )
+      : null;
+
     const where = {
       ...(query.activo !== undefined ? { activo: query.activo } : {}),
       ...(query.seleccionable !== undefined
@@ -25,19 +36,7 @@ export class PartidasService {
         : {}),
       ...(query.nivel !== undefined ? { nivel: query.nivel } : {}),
       ...(query.padreId !== undefined ? { padreId: query.padreId } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { codigo: { contains: query.q, mode: 'insensitive' as const } },
-              {
-                denominacion: {
-                  contains: query.q,
-                  mode: 'insensitive' as const,
-                },
-              },
-            ],
-          }
-        : {}),
+      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
     const [data, total] = await Promise.all([

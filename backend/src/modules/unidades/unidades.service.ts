@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { QueryUnidadesDto } from './dto/query-unidades.dto';
@@ -29,22 +30,25 @@ export class UnidadesService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
+    // Busqueda sin acentos: se resuelve en SQL crudo y vuelve como lista de ids.
+    const idsBusqueda = query.q
+      ? await buscarIdsPorTexto(
+          this.prisma,
+          'unidades',
+          ['nombre', 'sigla'],
+          query.q,
+        )
+      : null;
+
     const where = {
       ...(query.activo !== undefined ? { activo: query.activo } : {}),
-      ...(query.q
-        ? {
-            OR: [
-              { nombre: { contains: query.q, mode: 'insensitive' as const } },
-              { sigla: { contains: query.q, mode: 'insensitive' as const } },
-            ],
-          }
-        : {}),
+      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
     const [data, total] = await Promise.all([
       this.prisma.unidad.findMany({
         where,
-        orderBy: { nombre: 'asc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

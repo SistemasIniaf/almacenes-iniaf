@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAlmacenDto } from './dto/create-almacen.dto';
 import { QueryAlmacenesDto } from './dto/query-almacenes.dto';
@@ -28,19 +29,20 @@ export class AlmacenesService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
 
+    // Busqueda sin acentos: se resuelve en SQL crudo y vuelve como lista de ids.
+    const idsBusqueda = query.q
+      ? await buscarIdsPorTexto(this.prisma, 'almacenes', ['nombre'], query.q)
+      : null;
+
     const where = {
       ...(query.activo !== undefined ? { activo: query.activo } : {}),
-      ...(query.q
-        ? {
-            nombre: { contains: query.q, mode: 'insensitive' as const },
-          }
-        : {}),
+      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
     const [data, total] = await Promise.all([
       this.prisma.almacen.findMany({
         where,
-        orderBy: { nombre: 'asc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
