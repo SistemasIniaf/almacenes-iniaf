@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
+import { useLocation, useNavigate } from "react-router-dom"
 import { loginSchema } from "../lib/login.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,13 +11,22 @@ import { Field, FieldDescription, FieldGroup } from "@/components/ui/field"
 
 import { InputField } from "@/components/form/InputField"
 import { InputPasswordField } from "@/components/form/InputPasswordField"
-import type { LoginFormInput } from "../lib/login.schema"
+import { useLogin } from "../hooks/useLogin"
+import type { LoginFormOutput } from "../lib/login.schema"
+
+interface LocationState {
+  from?: { pathname: string }
+}
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { control, handleSubmit } = useForm<LoginFormInput>({
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { mutateAsync, isPending, mensajeError } = useLogin()
+
+  const { control, handleSubmit } = useForm<LoginFormOutput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       usuario: "",
@@ -23,8 +34,15 @@ export function LoginForm({
     },
   })
 
-  function onSubmit(data: LoginFormInput) {
-    console.log(data)
+  async function onSubmit(data: LoginFormOutput) {
+    try {
+      await mutateAsync(data)
+      // Vuelve a la ruta que se intento abrir sin sesion, o al inicio.
+      const destino = (location.state as LocationState | null)?.from?.pathname
+      navigate(destino ?? "/", { replace: true })
+    } catch {
+      // El mensaje ya queda en `mensajeError`; no hay nada mas que hacer aqui.
+    }
   }
 
   return (
@@ -40,16 +58,35 @@ export function LoginForm({
                 </p>
               </div>
 
-              <InputField name="usuario" label="Usuario" control={control} />
+              {mensajeError && (
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                >
+                  {mensajeError}
+                </div>
+              )}
+
+              <InputField
+                name="usuario"
+                label="Usuario"
+                control={control}
+                autoComplete="username"
+                disabled={isPending}
+              />
 
               <InputPasswordField
                 name="password"
                 label="Contraseña"
                 control={control}
+                disabled={isPending}
               />
 
               <Field className="mt-4">
-                <Button type="submit">Iniciar sesión</Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
+                  {isPending ? "Ingresando..." : "Iniciar sesión"}
+                </Button>
               </Field>
 
               <FieldDescription className="text-center">

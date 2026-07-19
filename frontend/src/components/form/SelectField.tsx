@@ -87,7 +87,7 @@ export function SelectField<T extends FieldValues>({
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 
-            <SelectContent alignItemWithTrigger={false}>
+            <SelectContent>
               {defaultOption && (
                 <>
                   <SelectItem value={defaultOption.value}>

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
 
 import { AppSidebar } from "@/features/dashboard/components/AppSidebar"
 import {
@@ -16,7 +16,20 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 
+/** Titulo de la seccion actual para el breadcrumb (se amplia con cada modulo). */
+const SECCIONES: Record<string, string> = {
+  unidades: "Unidades",
+  almacenes: "Almacenes",
+  usuarios: "Usuarios",
+  partidas: "Partidas",
+  items: "Ítems",
+  proveedores: "Proveedores",
+}
+
 export const DashboardLayout = () => {
+  const { pathname } = useLocation()
+  const seccion = SECCIONES[pathname.split("/")[1] ?? ""]
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -32,14 +45,18 @@ export const DashboardLayout = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Build Your Application
+                  <BreadcrumbLink asChild>
+                    <Link to="/">Almacenes INIAF</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
+                {seccion && (
+                  <>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>{seccion}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

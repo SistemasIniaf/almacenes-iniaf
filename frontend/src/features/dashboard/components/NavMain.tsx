@@ -1,67 +1,108 @@
-import { ChevronRight, type LucideIcon } from "lucide-react"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  Building2,
+  LayoutDashboard,
+  ListTree,
+  Package,
+  Truck,
+  Users,
+  Warehouse,
+} from "lucide-react"
+import { NavLink } from "react-router-dom"
+
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { tienePermiso } from "@/features/auth/lib/permisos"
+
+import type { LucideIcon } from "lucide-react"
+import type { Permiso } from "@/features/auth/lib/permisos"
+
+interface ItemMenu {
+  titulo: string
+  url: string
+  icono: LucideIcon
+  /** Sin permiso, el item ni se renderiza. `undefined` = visible para todos. */
+  permiso?: Permiso
+}
+
+/**
+ * Menu real del sistema. Se agregan entradas a medida que se construye cada
+ * feature — NO listar modulos sin ruta todavia (quedarian como enlaces muertos).
+ * Pendientes: stock, ingresos, egresos, kardex y reportes (dependen de reglas
+ * de negocio todavia sin confirmar — ver CLAUDE.md).
+ */
+const ITEMS: ItemMenu[] = [
+  { titulo: "Inicio", url: "/", icono: LayoutDashboard },
+  {
+    titulo: "Unidades",
+    url: "/unidades",
+    icono: Building2,
+    permiso: "unidadesLeer",
+  },
+  {
+    titulo: "Almacenes",
+    url: "/almacenes",
+    icono: Warehouse,
+    permiso: "almacenesLeer",
+  },
+  {
+    titulo: "Usuarios",
+    url: "/usuarios",
+    icono: Users,
+    permiso: "usuariosLeer",
+  },
+  {
+    titulo: "Partidas",
+    url: "/partidas",
+    icono: ListTree,
+    permiso: "partidasLeer",
+  },
+  {
+    titulo: "Ítems",
+    url: "/items",
+    icono: Package,
+    permiso: "itemsLeer",
+  },
+  {
+    titulo: "Proveedores",
+    url: "/proveedores",
+    icono: Truck,
+    permiso: "proveedoresLeer",
+  },
+]
+
+export function NavMain() {
+  const { user } = useAuth()
+
+  const visibles = ITEMS.filter(
+    (item) => !item.permiso || tienePermiso(user, item.permiso)
+  )
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>Administración</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible
-            key={item.title}
-            asChild
-            defaultOpen={item.isActive}
-            className="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </a>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
-          </Collapsible>
+        {visibles.map((item) => (
+          <SidebarMenuItem key={item.url}>
+            <SidebarMenuButton asChild tooltip={item.titulo}>
+              {/* `end` en "/" para que el inicio no quede activo en toda ruta hija. */}
+              <NavLink to={item.url} end={item.url === "/"}>
+                {({ isActive }) => (
+                  <>
+                    <item.icono />
+                    <span className={isActive ? "font-medium" : undefined}>
+                      {item.titulo}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
