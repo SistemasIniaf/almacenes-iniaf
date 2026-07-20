@@ -45,6 +45,7 @@ export class ItemsService {
           codigo: true,
           activo: true,
           seleccionable: true,
+          padreId: true,
         },
       });
 
@@ -63,6 +64,24 @@ export class ItemsService {
         throw new BadRequestException(
           `La partida ${partida.codigo} esta inactiva`,
         );
+      }
+
+      // "Activo efectivo": la hoja solo es asignable si ella Y toda su cadena de
+      // ancestros estan activos. Desactivar un grupo (o cualquier nodo padre)
+      // inhabilita toda su rama sin tocar el estado individual de las hojas.
+      let padreId = partida.padreId;
+      while (padreId != null) {
+        const ancestro = await tx.partida.findUnique({
+          where: { id: padreId },
+          select: { codigo: true, activo: true, padreId: true },
+        });
+        if (!ancestro) break;
+        if (!ancestro.activo) {
+          throw new BadRequestException(
+            `La partida ${partida.codigo} pertenece a la rama de ${ancestro.codigo}, que esta inactiva`,
+          );
+        }
+        padreId = ancestro.padreId;
       }
 
       const { ultimoCorrelativo } = await tx.partida.update({

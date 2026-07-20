@@ -26,9 +26,14 @@ export function useArbolPartidas() {
 }
 
 /**
- * Partidas ACTIVAS y SELECCIONABLES (hojas del clasificador), aplanadas para
- * poblar el selector del formulario de items — son las unicas a las que el
- * backend permite asignar un item.
+ * Partidas SELECCIONABLES (hojas del clasificador) con "activo efectivo",
+ * aplanadas para poblar el selector del formulario de items — son las unicas a
+ * las que el backend permite asignar un item.
+ *
+ * "Activo efectivo": una hoja aparece solo si ella Y toda su cadena de
+ * ancestros estan activas. Asi, desactivar un grupo (o cualquier nodo padre)
+ * inhabilita toda su rama, sin tocar el estado individual de las hojas. El
+ * backend valida lo mismo al crear (ver items.service.ts).
  *
  * Reutiliza la query del arbol, asi que no dispara una peticion extra.
  */
@@ -39,13 +44,14 @@ export function usePartidasSeleccionables() {
     staleTime: 10 * 60_000,
     select: (arbol) => {
       const hojas: Partida[] = []
-      const recorrer = (nodos: PartidaArbol[]) => {
+      const recorrer = (nodos: PartidaArbol[], ancestrosActivos: boolean) => {
         for (const nodo of nodos) {
-          if (nodo.seleccionable && nodo.activo) hojas.push(nodo)
-          recorrer(nodo.hijos)
+          const activoEfectivo = ancestrosActivos && nodo.activo
+          if (nodo.seleccionable && activoEfectivo) hojas.push(nodo)
+          recorrer(nodo.hijos, activoEfectivo)
         }
       }
-      recorrer(arbol)
+      recorrer(arbol, true)
       return hojas
     },
   })

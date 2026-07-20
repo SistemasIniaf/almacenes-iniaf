@@ -21,11 +21,12 @@ import { PrismaClient } from '../src/generated/prisma/client';
  * Es idempotente (upsert por codigo). Al re-ejecutar NO pisa `ultimoCorrelativo`
  * (para no perder la numeracion de Items ya generados).
  *
- * Alcance: solo grupos 20000 (Servicios No Personales) y 30000 (Materiales y Suministros).
+ * Alcance: los 9 grupos del Clasificador por Objeto del Gasto (10000 a 90000).
+ * Los grupos que la institucion no usa se dejan desactivados desde la UI.
  */
 
 const CSV_PATH = join(__dirname, 'data', 'clasificador.csv');
-const GRUPOS_PERMITIDOS = ['2', '3'];
+const GRUPOS_PERMITIDOS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 interface FilaClasificador {
   codigo: string;
@@ -110,7 +111,7 @@ function validar(filas: FilaClasificador[]): FilaClasificador[] {
     }
     if (!GRUPOS_PERMITIDOS.includes(fila.codigo[0])) {
       errores.push(
-        `Codigo fuera de alcance (solo grupos 20000/30000): "${fila.codigo}"`,
+        `Codigo fuera de alcance (grupos 10000 a 90000): "${fila.codigo}"`,
       );
       continue;
     }

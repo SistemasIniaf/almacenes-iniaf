@@ -213,7 +213,7 @@ export function UsuarioFormDialog({
                 className="sm:col-span-2"
                 options={unidades.map((unidad) => ({
                   value: String(unidad.id),
-                  label: `${unidad.sigla} — ${unidad.nombre}`,
+                  label: unidad.nombre,
                 }))}
                 description={
                   rol === "aprobador"

@@ -191,7 +191,6 @@ export function ItemFormDialog({
               name="descripcion"
               label="Descripción"
               control={control}
-              placeholder="Papel bond tamaño carta 75 g"
               disabled={guardando}
             />
 

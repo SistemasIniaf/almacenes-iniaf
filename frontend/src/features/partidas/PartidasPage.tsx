@@ -197,9 +197,10 @@ export function PartidasPage() {
               {aDesactivar && aDesactivar.hijos.length > 0 && (
                 <>
                   {" "}
-                  Sus {aDesactivar.hijos.length} partidas hijas{" "}
-                  <strong>no</strong> se desactivan: cada nodo se gestiona por
-                  separado.
+                  Sus {aDesactivar.hijos.length} partidas hijas conservan su
+                  estado, pero <strong>toda la rama</strong> quedará inhabilitada
+                  para asignar ítems mientras este nodo esté inactivo. Se
+                  rehabilitan al reactivarlo.
                 </>
               )}
             </AlertDialogDescription>
