@@ -7,9 +7,10 @@ arranca de cero, la base se llena corriendo las migraciones y el seed.
 ## Pasos
 
 ```bash
-# 1. Traer el código
-git pull                       # o git clone ...
-git checkout feat/frontend-integracion
+# 1. Traer el código (todo está en main)
+git clone git@github.com:SistemasIniaf/almacenes-iniaf.git
+cd almacenes-iniaf
+# (si ya lo tenías clonado, alcanza con: git pull origin main)
 
 # 2. Variables de entorno (los .env NO se versionan; se copian del ejemplo)
 cp backend/.env.example  backend/.env
