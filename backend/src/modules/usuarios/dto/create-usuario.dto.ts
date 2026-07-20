@@ -44,7 +44,7 @@ export class CreateUsuarioDto {
   @IsInt({ message: 'unidadId debe ser un entero' })
   unidadId?: number | null;
 
-  // Requerido para solicitador/responsable_almacen/central; prohibido para el resto.
+  // Requerido para solicitador/aprobador/responsable_almacen/central; prohibido para el resto.
   @IsOptional()
   @IsInt({ message: 'almacenId debe ser un entero' })
   almacenId?: number | null;

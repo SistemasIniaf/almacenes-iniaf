@@ -32,6 +32,7 @@ import {
   useCrearUsuario,
 } from "@/features/usuarios/useUsuarios"
 
+import type { Rol } from "@/features/auth/lib/auth.types"
 import type { UsuarioFormValues } from "@/features/usuarios/usuarios.schema"
 import type {
   CreateUsuarioPayload,
@@ -60,6 +61,14 @@ const OPCIONES_ROL = ROLES.map((rol) => ({
   value: rol,
   label: ROL_LABEL[rol],
 }))
+
+/** Ayuda del campo Almacén según el rol (solo se muestra para los que lo llevan). */
+const DESC_ALMACEN: Partial<Record<Rol, string>> = {
+  solicitador: "Es el almacén destino fijo de sus egresos.",
+  aprobador: "Almacén al que queda asociado el aprobador.",
+  responsable_almacen: "Solo puede haber un responsable activo por almacén.",
+  central: "Solo puede haber un central activo por almacén.",
+}
 
 export function UsuarioFormDialog({
   open,
@@ -168,11 +177,7 @@ export function UsuarioFormDialog({
                   value: String(almacen.id),
                   label: almacen.nombre,
                 }))}
-                description={
-                  rol === "solicitador"
-                    ? "Es el almacén destino fijo de sus egresos."
-                    : "Solo puede haber uno activo por almacén para este rol."
-                }
+                description={DESC_ALMACEN[rol]}
               />
             )}
 

@@ -37,7 +37,7 @@ almacenes-institucion/
   - `super_admin`: sin unidad ni almacén. Acceso total.
   - `admin`: sin unidad ni almacén. Igual que super_admin salvo que NO gestiona Unidades ni Partidas.
   - `solicitador`: unidad y almacén requeridos (fijo, destino de sus egresos). Varios por unidad.
-  - `aprobador`: unidad requerida, único ACTIVO por unidad.
+  - `aprobador`: unidad Y almacén requeridos (igual que `solicitador`). Único ACTIVO por unidad; el almacén NO es único (varios aprobadores pueden compartir almacén).
   - `responsable_almacen`: almacén requerido, único ACTIVO por almacén.
   - `central`: almacén requerido, único ACTIVO por almacén (CORREGIDO: ya no es único institucional, ahora es un central por cada almacén, mismo patrón que responsable_almacen).
   - `observador_almacen`: sin almacén fijo — usa tabla intermedia `UsuarioAlmacenObservado` (relación muchos-a-muchos, selecciona qué almacenes puede ver, para auditoría).

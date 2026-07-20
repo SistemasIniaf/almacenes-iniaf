@@ -15,9 +15,12 @@ import { QueryUsuariosDto } from './dto/query-usuarios.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 // Reglas de campos por rol.
+// aprobador lleva unidad Y almacen (igual que solicitador). Sigue siendo unico
+// por UNIDAD (un aprobador activo por unidad); su almacen NO es unico.
 const ROLES_CON_UNIDAD: Rol[] = [Rol.solicitador, Rol.aprobador];
 const ROLES_CON_ALMACEN: Rol[] = [
   Rol.solicitador,
+  Rol.aprobador,
   Rol.responsable_almacen,
   Rol.central,
 ];

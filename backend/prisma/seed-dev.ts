@@ -45,11 +45,11 @@ interface UsuarioDev {
 const usuarios: UsuarioDev[] = [
   { usuario: 'admin2', nombre: 'Admin Secundario', rol: Rol.admin },
 
-  // Un aprobador activo por unidad.
-  { usuario: 'aprob_up', nombre: 'Aprobador Planificación', rol: Rol.aprobador, unidad: 'UP' },
-  { usuario: 'aprob_uaf', nombre: 'Aprobador Administrativo', rol: Rol.aprobador, unidad: 'UAF' },
-  { usuario: 'aprob_urh', nombre: 'Aprobador RR.HH.', rol: Rol.aprobador, unidad: 'URH' },
-  { usuario: 'aprob_uj', nombre: 'Aprobador Jurídico', rol: Rol.aprobador, unidad: 'UJ' },
+  // Un aprobador activo por unidad. Lleva unidad Y almacen (igual que solicitador).
+  { usuario: 'aprob_up', nombre: 'Aprobador Planificación', rol: Rol.aprobador, unidad: 'UP', almacen: 'Almacén Central' },
+  { usuario: 'aprob_uaf', nombre: 'Aprobador Administrativo', rol: Rol.aprobador, unidad: 'UAF', almacen: 'Almacén Central' },
+  { usuario: 'aprob_urh', nombre: 'Aprobador RR.HH.', rol: Rol.aprobador, unidad: 'URH', almacen: 'Almacén de Materiales' },
+  { usuario: 'aprob_uj', nombre: 'Aprobador Jurídico', rol: Rol.aprobador, unidad: 'UJ', almacen: 'Almacén de Suministros' },
 
   // Solicitadores (requieren unidad + almacen). Varios por unidad permitido.
   { usuario: 'solic_up1', nombre: 'Solicitador Planificación 1', rol: Rol.solicitador, unidad: 'UP', almacen: 'Almacén Central' },

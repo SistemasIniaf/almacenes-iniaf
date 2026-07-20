@@ -46,8 +46,11 @@ export type UpdateUsuarioPayload = Partial<CreateUsuarioPayload>
 
 export const ROLES_CON_UNIDAD: Rol[] = ["solicitador", "aprobador"]
 
+// aprobador lleva unidad Y almacén, igual que solicitador (sigue siendo único
+// por unidad; su almacén no es único).
 export const ROLES_CON_ALMACEN: Rol[] = [
   "solicitador",
+  "aprobador",
   "responsable_almacen",
   "central",
 ]
