@@ -120,7 +120,7 @@
           }
         },
         {
-          "name": "Crear",
+          "name": "Crear (solicitador: unidad + almacén)",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -128,7 +128,21 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombre\": \"Nuevo Solicitador\",\n  \"usuario\": \"solic_test\",\n  \"password\": \"password123\",\n  \"rol\": \"solicitador\",\n  \"unidadId\": 1,\n  \"almacenId\": 1\n}"
-            }
+            },
+            "description": "Campos requeridos por rol (validado en el service): solicitador -> unidad + almacen; aprobador -> unidad + almacen (unico por unidad); responsable_almacen y central -> almacen (unico por almacen); observador_almacen -> almacenesObservados; admin/super_admin -> ninguno. Mandar un campo que el rol no lleva devuelve 400."
+          }
+        },
+        {
+          "name": "Crear (aprobador: unidad + almacén)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nuevo Aprobador\",\n  \"usuario\": \"aprob_test\",\n  \"password\": \"password123\",\n  \"rol\": \"aprobador\",\n  \"unidadId\": 1,\n  \"almacenId\": 1\n}"
+            },
+            "description": "El aprobador ahora requiere unidad Y almacen (igual que solicitador). Sin almacenId responde 400 'El rol aprobador requiere un almacen'. Sigue siendo unico por unidad: un segundo aprobador activo en la misma unidad responde 409."
           }
         },
         {
