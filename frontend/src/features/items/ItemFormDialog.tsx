@@ -150,7 +150,7 @@ export function ItemFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{esEdicion ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
           <DialogDescription>
@@ -178,7 +178,6 @@ export function ItemFormDialog({
                 disabled={guardando}
                 placeholder="Buscá por código o denominación"
                 vacio="No hay partidas asignables."
-                description="Solo se listan las partidas activas de último nivel."
                 options={partidas.map((partida) => ({
                   value: String(partida.id),
                   label: partida.codigo,
@@ -200,7 +199,6 @@ export function ItemFormDialog({
               name="unidadMedida"
               label="Unidad de medida"
               control={control}
-              placeholder="Resma"
               disabled={guardando}
             />
 

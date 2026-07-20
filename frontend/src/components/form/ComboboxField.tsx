@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { Controller } from "react-hook-form"
 import { Check, ChevronsUpDown } from "lucide-react"
 
@@ -41,6 +41,7 @@ interface ComboboxFieldProps<T extends FieldValues> {
   description?: string
   disabled?: boolean
   required?: boolean
+  className?: string
 }
 
 /**
@@ -61,9 +62,35 @@ export function ComboboxField<T extends FieldValues>({
   description,
   disabled = false,
   required = true,
+  className,
 }: ComboboxFieldProps<T>) {
   const [abierto, setAbierto] = useState(false)
   const fieldId = id || `field-${name}`
+  const limpiarWheel = useRef<(() => void) | null>(null)
+
+  // Dentro de un Dialog, el popover se portaliza a `body`, fuera del bloqueo de
+  // scroll (`react-remove-scroll`) del diálogo: la barra funciona pero la rueda
+  // del mouse no desplaza la lista. Se engancha un listener `wheel` NATIVO
+  // no-pasivo directo sobre la lista al montarse (callback ref: corre justo
+  // cuando el nodo existe, sin timing). React marca su `onWheel` como passive y
+  // ahí `preventDefault` no corre; hacerlo nosotros evita también el
+  // doble-scroll fuera de un diálogo.
+  const refLista = useCallback((lista: HTMLDivElement | null) => {
+    limpiarWheel.current?.()
+    limpiarWheel.current = null
+    if (!lista) return
+    const onWheel = (evento: WheelEvent) => {
+      evento.preventDefault()
+      // `deltaMode`: 0 = píxeles, 1 = líneas (Firefox suele reportar ~3 por
+      // muesca), 2 = páginas. Sin escalar, en líneas el scroll es imperceptible.
+      const factor =
+        evento.deltaMode === 1 ? 16 : evento.deltaMode === 2 ? lista.clientHeight : 1
+      lista.scrollTop += evento.deltaY * factor
+    }
+    lista.addEventListener("wheel", onWheel, { passive: false })
+    limpiarWheel.current = () =>
+      lista.removeEventListener("wheel", onWheel)
+  }, [])
 
   return (
     <Controller
@@ -75,7 +102,10 @@ export function ComboboxField<T extends FieldValues>({
         )
 
         return (
-          <Field data-invalid={fieldState.invalid} className="gap-2">
+          <Field
+            data-invalid={fieldState.invalid}
+            className={cn("gap-2", className)}
+          >
             <FieldLabel htmlFor={fieldId}>
               {label}
               {required && <span className="text-red-500">*</span>}
@@ -98,7 +128,11 @@ export function ComboboxField<T extends FieldValues>({
                       !seleccionada && "text-muted-foreground"
                     )}
                   >
-                    {seleccionada ? seleccionada.label : placeholder}
+                    {seleccionada
+                      ? seleccionada.descripcion
+                        ? `${seleccionada.label} — ${seleccionada.descripcion}`
+                        : seleccionada.label
+                      : placeholder}
                   </span>
                   <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
                 </Button>
@@ -120,7 +154,7 @@ export function ComboboxField<T extends FieldValues>({
                   }}
                 >
                   <CommandInput placeholder="Buscar..." />
-                  <CommandList>
+                  <CommandList ref={refLista}>
                     <CommandEmpty>{vacio}</CommandEmpty>
                     <CommandGroup>
                       {options.map((opcion) => (
@@ -145,14 +179,15 @@ export function ComboboxField<T extends FieldValues>({
                                 : "opacity-0"
                             )}
                           />
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate">{opcion.label}</span>
+                          <span className="min-w-0 truncate">
+                            {opcion.label}
                             {opcion.descripcion && (
-                              <span className="truncate text-xs text-muted-foreground group-data-[selected=true]/opcion:text-accent-foreground">
-                                {opcion.descripcion}
+                              <span className="text-muted-foreground group-data-[selected=true]/opcion:text-accent-foreground">
+                                {" "}
+                                — {opcion.descripcion}
                               </span>
                             )}
-                          </div>
+                          </span>
                         </CommandItem>
                       ))}
                     </CommandGroup>

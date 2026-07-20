@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { CheckboxField } from "@/components/form/CheckboxField"
+import { ComboboxField } from "@/components/form/ComboboxField"
 import { InputField } from "@/components/form/InputField"
 import { InputPasswordField } from "@/components/form/InputPasswordField"
 import { SelectField } from "@/components/form/SelectField"
@@ -166,11 +167,12 @@ export function UsuarioFormDialog({
               observados, activo y footer) ocupan el ancho completo. */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {requiereAlmacen(rol) && (
-              <SelectField
+              <ComboboxField
                 name="almacenId"
                 label="Almacén"
                 control={control}
                 placeholder="Seleccioná un almacén"
+                vacio="No se encontró ningún almacén."
                 disabled={guardando}
                 className="sm:col-span-2"
                 options={almacenes.map((almacen) => ({
@@ -201,11 +203,12 @@ export function UsuarioFormDialog({
             />
 
             {requiereUnidad(rol) && (
-              <SelectField
+              <ComboboxField
                 name="unidadId"
                 label="Unidad"
                 control={control}
                 placeholder="Seleccioná una unidad"
+                vacio="No se encontró ninguna unidad."
                 disabled={guardando}
                 className="sm:col-span-2"
                 options={unidades.map((unidad) => ({
