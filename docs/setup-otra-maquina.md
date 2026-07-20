@@ -1,10 +1,10 @@
 # Levantar el proyecto en otra computadora
 
-Git trae el **código**, las **migraciones** y los **seeds**, pero NO trae los
-**datos** de la base ni las **imágenes** de ítems (la DB vive en el volumen de
-Docker y `backend/uploads/` está en `.gitignore`). Por eso hay dos caminos.
+Git trae el **código**, las **migraciones** y los **seeds**, pero NO los **datos**
+de la base (viven en el volumen de Docker, propio de cada máquina). Como se
+arranca de cero, la base se llena corriendo las migraciones y el seed.
 
-## 0. Común a ambos caminos
+## Pasos
 
 ```bash
 # 1. Traer el código
@@ -21,42 +21,23 @@ cd frontend && pnpm install && cd ..
 
 # 4. Postgres (Docker)
 docker compose up -d postgres
-```
 
-## Camino A — quiero MIS datos actuales (los de esta compu)
-
-Reproduce exactamente lo que tenés hoy: unidades renombradas, usuarios, ítems, etc.
-
-```bash
-# Restaurar el respaldo (incluye esquema + historial de migraciones + datos).
-# El archivo dumps/almacenes_db.sql viaja por git.
-docker exec -i almacenes_db_dev psql -U postgres -d almacenes_db < dumps/almacenes_db.sql
-```
-
-Las imágenes de ítems (`backend/uploads/items/*.webp`) también se versionaron con
-`git add -f`, así que ya quedan en su lugar tras el `git pull`. Si en algún
-momento las sacás del control de versiones, hay que copiar esa carpeta a mano.
-
-**NO corras las migraciones ni el seed en este camino**: el dump ya trae todo y
-volver a sembrar duplicaría o chocaría con los datos.
-
-### Regenerar el respaldo (cuando cambien los datos)
-
-```bash
-docker exec almacenes_db_dev pg_dump -U postgres --clean --if-exists almacenes_db > dumps/almacenes_db.sql
-```
-
-## Camino B — arranco de cero con datos de ejemplo
-
-No trae tus ediciones manuales; deja la base con el catálogo oficial y usuarios
-de prueba.
-
-```bash
+# 5. Base: migraciones + seed (SOLO admin + partidas)
 cd backend
 pnpm prisma migrate deploy      # aplica las migraciones versionadas
-pnpm seed                       # partidas (clasificador) + usuario admin inicial
-pnpm seed:dev                   # usuarios de prueba (clave: password123)
+pnpm seed                       # carga las partidas del clasificador y crea el admin
+cd ..
 ```
+
+`pnpm seed` deja la base con:
+- El **catálogo de Partidas** (grupos 20000 y 30000 del clasificador).
+- El usuario **admin** inicial (`admin` / `admin123`).
+
+Nada más: sin unidades, almacenes, ítems ni usuarios de prueba. Todo eso se carga
+después desde la aplicación.
+
+> `pnpm seed` es idempotente: si lo corrés de nuevo, no duplica partidas ni crea
+> un segundo admin.
 
 ## Arrancar
 
@@ -65,9 +46,14 @@ cd backend  && pnpm dev         # http://localhost:3000
 cd frontend && pnpm dev         # http://localhost:5173
 ```
 
-Login inicial: usuario `admin`, contraseña `admin123` (definido en
-`SEED_ADMIN_USER` / `SEED_ADMIN_PASSWORD` del `.env`).
+Login: usuario `admin`, contraseña `admin123` (definidos en `SEED_ADMIN_USER` /
+`SEED_ADMIN_PASSWORD` del `.env`).
 
-> Nota: `dumps/almacenes_db.sql` y las imágenes versionadas son una comodidad
-> puntual para mover de máquina. No es un mecanismo de respaldo continuo; si el
-> repo se comparte con más gente, conviene sacarlos del control de versiones.
+## ¿Y si quisiera cargar datos de prueba?
+
+Opcional, solo para no arrancar tan vacío. Crea usuarios de ejemplo de todos los
+roles (clave `password123`), con sus unidades y almacenes:
+
+```bash
+cd backend && pnpm seed:dev
+```
