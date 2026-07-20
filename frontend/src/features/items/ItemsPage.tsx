@@ -38,7 +38,7 @@ import { ItemFormDialog } from "@/features/items/ItemFormDialog"
 import { useDesactivarItem, useItems } from "@/features/items/useItems"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
-import { PAGE_SIZE } from "@/lib/types"
+import { usePagination } from "@/hooks/use-pagination"
 import { urlArchivo } from "@/lib/files"
 
 import type { Item } from "@/features/items/items.types"
@@ -49,7 +49,7 @@ export function ItemsPage() {
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "itemsEscribir")
 
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const busquedaDiferida = useDebouncedValue(busqueda)
@@ -62,14 +62,14 @@ export function ItemsPage() {
 
   const { data, isPending, isError, error } = useItems({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     q: busquedaDiferida || undefined,
     activo: estado === "todos" ? undefined : estado === "activos",
   })
 
   function cambiarFiltro(accion: () => void) {
     accion()
-    setPage(1)
+    resetPage()
   }
 
   function abrirCreacion() {
@@ -258,6 +258,7 @@ export function ItemsPage() {
         <DataPagination
           meta={data.meta}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           entidad="ítems"
         />
       )}

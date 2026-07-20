@@ -176,10 +176,13 @@ login), por eso el usuario se cachea en `localStorage` — la fuente de verdad s
   controlador** + helper `tienePermiso(user, permiso)`. La UI solo OCULTA; quien autoriza es el
   backend. Si cambia un `@Roles` allá, hay que actualizar este archivo.
 - `components/data/DataPagination.tsx`: pie de paginación de los listados (no usa
-  `ui/pagination` de shadcn porque ese renderiza `<a href>` y la página es estado local).
-  El tamaño de página es **`PAGE_SIZE` de `lib/types.ts` (10)**, compartido por todos los
-  listados — cambiarlo ahí lo cambia en todos lados. El backend sigue con `pageSize=20` por
-  defecto para quien consuma la API directo; el frontend siempre lo manda explícito.
+  `ui/pagination` de shadcn porque ese renderiza `<a href>` y la página es estado local). Trae
+  selector de **filas por página** (10/20/30/50) y **números de página con elipsis** (siempre
+  primera + última + ventana alrededor de la actual). El estado (página + tamaño) lo maneja el
+  hook `hooks/use-pagination.ts`, compartido por los 5 listados: cambiar el tamaño o cualquier
+  filtro reinicia a la página 1 (`resetPage`), porque los índices anteriores dejan de valer. El
+  tamaño inicial es **`PAGE_SIZE` de `lib/types.ts` (10)**. El backend sigue con `pageSize=20`
+  por defecto para quien consuma la API directo; el frontend siempre lo manda explícito.
 - `hooks/use-debounced-value.ts`: para los buscadores (no una petición por tecla).
 - `components/ui/sonner.tsx` + `<Toaster>` en `main.tsx` para feedback de mutaciones. OJO: el
   generador de shadcn lo trae importando `useTheme` de `next-themes`; se reconectó al

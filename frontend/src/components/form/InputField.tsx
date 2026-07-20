@@ -2,6 +2,7 @@ import { Controller } from "react-hook-form"
 
 import { Input } from "@/components/ui/input"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { cn } from "@/lib/utils"
 
 import type { Control, FieldValues, Path } from "react-hook-form"
 
@@ -17,6 +18,8 @@ interface InputFieldProps<T extends FieldValues> {
   readOnly?: boolean
   description?: string
   required?: boolean
+  /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
+  className?: string
 }
 
 export function InputField<T extends FieldValues>({
@@ -31,6 +34,7 @@ export function InputField<T extends FieldValues>({
   readOnly = false,
   description,
   required = true,
+  className,
 }: InputFieldProps<T>) {
   const fieldId = id || `field-${name}`
 
@@ -39,14 +43,14 @@ export function InputField<T extends FieldValues>({
       name={name}
       control={control}
       render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid} className="gap-2">
+        <Field
+          data-invalid={fieldState.invalid}
+          className={cn("gap-2", className)}
+        >
           <FieldLabel htmlFor={fieldId}>
             {label}
             {required && <span className="text-red-500">*</span>}
           </FieldLabel>
-          {description && (
-            <p className="mb-2 text-sm text-muted-foreground">{description}</p>
-          )}
           <Input
             {...field}
             id={fieldId}
@@ -58,6 +62,9 @@ export function InputField<T extends FieldValues>({
             readOnly={readOnly}
             value={field.value ?? ""}
           />
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>
       )}

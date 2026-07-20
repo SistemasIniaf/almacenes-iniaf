@@ -41,7 +41,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
-import { PAGE_SIZE } from "@/lib/types"
+import { usePagination } from "@/hooks/use-pagination"
 
 import type { Almacen } from "@/features/almacenes/almacenes.types"
 
@@ -52,7 +52,7 @@ export function AlmacenesPage() {
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "almacenesEscribir")
 
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const busquedaDiferida = useDebouncedValue(busqueda)
@@ -67,7 +67,7 @@ export function AlmacenesPage() {
 
   const { data, isPending, isError, error } = useAlmacenes({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     q: busquedaDiferida || undefined,
     activo: estado === "todos" ? undefined : estado === "activos",
   })
@@ -75,7 +75,7 @@ export function AlmacenesPage() {
   /** Cualquier cambio de filtro invalida la pagina actual: hay que volver a la 1. */
   function cambiarFiltro(accion: () => void) {
     accion()
-    setPage(1)
+    resetPage()
   }
 
   function abrirCreacion() {
@@ -238,6 +238,7 @@ export function AlmacenesPage() {
         <DataPagination
           meta={data.meta}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           entidad="almacenes"
         />
       )}

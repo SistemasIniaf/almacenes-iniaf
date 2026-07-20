@@ -41,7 +41,7 @@ import {
 } from "@/features/proveedores/useProveedores"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
-import { PAGE_SIZE } from "@/lib/types"
+import { usePagination } from "@/hooks/use-pagination"
 
 import type { Proveedor } from "@/features/proveedores/proveedores.types"
 
@@ -53,7 +53,7 @@ export function ProveedoresPage() {
   // proveedor al registrar un ingreso, pero no puede crearlos ni editarlos.
   const puedeEscribir = tienePermiso(user, "proveedoresEscribir")
 
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const busquedaDiferida = useDebouncedValue(busqueda)
@@ -66,14 +66,14 @@ export function ProveedoresPage() {
 
   const { data, isPending, isError, error } = useProveedores({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     q: busquedaDiferida || undefined,
     activo: estado === "todos" ? undefined : estado === "activos",
   })
 
   function cambiarFiltro(accion: () => void) {
     accion()
-    setPage(1)
+    resetPage()
   }
 
   function abrirCreacion() {
@@ -251,6 +251,7 @@ export function ProveedoresPage() {
         <DataPagination
           meta={data.meta}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           entidad="proveedores"
         />
       )}

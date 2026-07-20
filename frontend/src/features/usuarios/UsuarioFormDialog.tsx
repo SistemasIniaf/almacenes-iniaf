@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldError, FieldLabel, FieldGroup } from "@/components/ui/field"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { CheckboxField } from "@/components/form/CheckboxField"
 import { InputField } from "@/components/form/InputField"
 import { InputPasswordField } from "@/components/form/InputPasswordField"
@@ -113,7 +113,9 @@ export function UsuarioFormDialog({
       rol: valores.rol,
       activo: valores.activo,
       unidadId: requiereUnidad(valores.rol) ? Number(valores.unidadId) : null,
-      almacenId: requiereAlmacen(valores.rol) ? Number(valores.almacenId) : null,
+      almacenId: requiereAlmacen(valores.rol)
+        ? Number(valores.almacenId)
+        : null,
       almacenesObservados: permiteObservados(valores.rol)
         ? valores.almacenesObservados
         : [],
@@ -140,7 +142,7 @@ export function UsuarioFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {esEdicion ? "Editar usuario" : "Nuevo usuario"}
@@ -151,21 +153,73 @@ export function UsuarioFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
+          {/* Dos columnas en pantallas medianas; los bloques anchos (lista de
+              observados, activo y footer) ocupan el ancho completo. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {requiereAlmacen(rol) && (
+              <SelectField
+                name="almacenId"
+                label="Almacén"
+                control={control}
+                placeholder="Seleccioná un almacén"
+                disabled={guardando}
+                className="sm:col-span-2"
+                options={almacenes.map((almacen) => ({
+                  value: String(almacen.id),
+                  label: almacen.nombre,
+                }))}
+                description={
+                  rol === "solicitador"
+                    ? "Es el almacén destino fijo de sus egresos."
+                    : "Solo puede haber uno activo por almacén para este rol."
+                }
+              />
+            )}
+
+            <SelectField
+              name="rol"
+              label="Rol"
+              control={control}
+              options={OPCIONES_ROL}
+              placeholder="Seleccioná un rol"
+              disabled={guardando}
+              className="sm:col-span-2"
+            />
+
             <InputField
               name="nombre"
               label="Nombre completo"
               control={control}
               placeholder="Juan Pérez"
               disabled={guardando}
+              className="sm:col-span-2"
             />
+
+            {requiereUnidad(rol) && (
+              <SelectField
+                name="unidadId"
+                label="Unidad"
+                control={control}
+                placeholder="Seleccioná una unidad"
+                disabled={guardando}
+                className="sm:col-span-2"
+                options={unidades.map((unidad) => ({
+                  value: String(unidad.id),
+                  label: `${unidad.sigla} — ${unidad.nombre}`,
+                }))}
+                description={
+                  rol === "aprobador"
+                    ? "Solo puede haber un aprobador activo por unidad."
+                    : undefined
+                }
+              />
+            )}
 
             <InputField
               name="usuario"
               label="Usuario"
               control={control}
               placeholder="jperez"
-              description="Con este nombre inicia sesión. No es un correo."
               autoComplete="off"
               disabled={guardando}
             />
@@ -184,59 +238,15 @@ export function UsuarioFormDialog({
               }
             />
 
-            <SelectField
-              name="rol"
-              label="Rol"
-              control={control}
-              options={OPCIONES_ROL}
-              placeholder="Seleccioná un rol"
-              disabled={guardando}
-            />
-
-            {requiereUnidad(rol) && (
-              <SelectField
-                name="unidadId"
-                label="Unidad"
-                control={control}
-                placeholder="Seleccioná una unidad"
-                disabled={guardando}
-                options={unidades.map((unidad) => ({
-                  value: String(unidad.id),
-                  label: `${unidad.sigla} — ${unidad.nombre}`,
-                }))}
-                description={
-                  rol === "aprobador"
-                    ? "Solo puede haber un aprobador activo por unidad."
-                    : undefined
-                }
-              />
-            )}
-
-            {requiereAlmacen(rol) && (
-              <SelectField
-                name="almacenId"
-                label="Almacén"
-                control={control}
-                placeholder="Seleccioná un almacén"
-                disabled={guardando}
-                options={almacenes.map((almacen) => ({
-                  value: String(almacen.id),
-                  label: almacen.nombre,
-                }))}
-                description={
-                  rol === "solicitador"
-                    ? "Es el almacén destino fijo de sus egresos."
-                    : "Solo puede haber uno activo por almacén para este rol."
-                }
-              />
-            )}
-
             {permiteObservados(rol) && (
               <Controller
                 name="almacenesObservados"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-2">
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="gap-2 sm:col-span-2"
+                  >
                     <FieldLabel>
                       Almacenes que observa
                       <span className="text-red-500">*</span>
@@ -286,9 +296,10 @@ export function UsuarioFormDialog({
               required={false}
               disabled={guardando}
               description="Un usuario inactivo no puede iniciar sesión y libera su cupo de rol único."
+              className="sm:col-span-2"
             />
 
-            <DialogFooter className="mt-2">
+            <DialogFooter className="mt-2 sm:col-span-2">
               <Button
                 type="button"
                 variant="outline"
@@ -302,7 +313,7 @@ export function UsuarioFormDialog({
                 {esEdicion ? "Guardar cambios" : "Crear usuario"}
               </Button>
             </DialogFooter>
-          </FieldGroup>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

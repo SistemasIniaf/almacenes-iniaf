@@ -3,11 +3,9 @@ import { Warehouse } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import { NavMain } from "@/features/dashboard/components/NavMain"
-import { NavUser } from "@/features/dashboard/components/NavUser"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -37,9 +35,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
     </Sidebar>
   )
 }

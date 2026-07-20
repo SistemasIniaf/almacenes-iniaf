@@ -80,12 +80,6 @@ export function ComboboxField<T extends FieldValues>({
               {label}
               {required && <span className="text-red-500">*</span>}
             </FieldLabel>
-            {description && (
-              <p className="mb-2 text-sm text-muted-foreground">
-                {description}
-              </p>
-            )}
-
             <Popover open={abierto} onOpenChange={setAbierto}>
               <PopoverTrigger asChild>
                 <Button
@@ -132,6 +126,10 @@ export function ComboboxField<T extends FieldValues>({
                       {options.map((opcion) => (
                         <CommandItem
                           key={opcion.value}
+                          // `group/opcion` permite que la descripcion (muted)
+                          // cambie de color cuando la fila queda resaltada, si no
+                          // se pierde sobre el fondo de seleccion.
+                          className="group/opcion"
                           // cmdk busca sobre este string, no sobre el JSX.
                           value={`${opcion.busqueda ?? ""} ${opcion.label} ${opcion.descripcion ?? ""}`}
                           onSelect={() => {
@@ -150,7 +148,7 @@ export function ComboboxField<T extends FieldValues>({
                           <div className="flex min-w-0 flex-col">
                             <span className="truncate">{opcion.label}</span>
                             {opcion.descripcion && (
-                              <span className="truncate text-xs text-muted-foreground">
+                              <span className="truncate text-xs text-muted-foreground group-data-[selected=true]/opcion:text-accent-foreground">
                                 {opcion.descripcion}
                               </span>
                             )}
@@ -163,6 +161,9 @@ export function ComboboxField<T extends FieldValues>({
               </PopoverContent>
             </Popover>
 
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )

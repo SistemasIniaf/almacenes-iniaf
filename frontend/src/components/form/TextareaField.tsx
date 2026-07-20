@@ -46,12 +46,6 @@ export function TextareaField<T extends FieldValues>({
               {label}
               {required && <span className="ml-1 text-red-500">*</span>}
             </FieldLabel>
-            {description && (
-              <p className="mb-2 text-sm text-muted-foreground">
-                {description}
-              </p>
-            )}
-
             <Textarea
               {...field}
               id={fieldId}
@@ -62,6 +56,9 @@ export function TextareaField<T extends FieldValues>({
               disabled={disabled}
               maxLength={maxLength}
             />
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )

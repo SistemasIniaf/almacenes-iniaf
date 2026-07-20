@@ -37,6 +37,8 @@ interface SelectFieldProps<T extends FieldValues> {
   disabled?: boolean
   defaultOption?: SelectOption
   required?: boolean
+  /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
+  className?: string
 }
 
 export function SelectField<T extends FieldValues>({
@@ -52,6 +54,7 @@ export function SelectField<T extends FieldValues>({
   disabled = false,
   defaultOption,
   required = true,
+  className,
 }: SelectFieldProps<T>) {
   const fieldId = id || `field-${name}`
 
@@ -63,16 +66,12 @@ export function SelectField<T extends FieldValues>({
         <Field
           orientation={orientation}
           data-invalid={fieldState.invalid}
-          className="gap-2"
+          className={cn("gap-2", className)}
         >
           <FieldLabel htmlFor={fieldId}>
             {label}
             {required && <span className="ml-1 text-red-500">*</span>}
           </FieldLabel>
-          {description && (
-            <p className="mb-2 text-sm text-muted-foreground">{description}</p>
-          )}
-
           <Select
             name={field.name}
             value={field.value ?? ""}
@@ -87,7 +86,7 @@ export function SelectField<T extends FieldValues>({
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent position="popper">
               {defaultOption && (
                 <>
                   <SelectItem value={defaultOption.value}>
@@ -115,6 +114,9 @@ export function SelectField<T extends FieldValues>({
             </SelectContent>
           </Select>
 
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>
       )}

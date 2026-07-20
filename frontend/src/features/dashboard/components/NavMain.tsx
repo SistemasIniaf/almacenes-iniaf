@@ -7,7 +7,7 @@ import {
   Users,
   Warehouse,
 } from "lucide-react"
-import { NavLink } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import {
   SidebarGroup,
@@ -29,6 +29,15 @@ interface ItemMenu {
   /** Sin permiso, el item ni se renderiza. `undefined` = visible para todos. */
   permiso?: Permiso
 }
+
+/**
+ * Estado activo con el color primario del tema (más notorio que el
+ * `bg-sidebar-accent` tenue que trae `SidebarMenuButton` por defecto). Se usa la
+ * variante `data-[active=true]:` porque ese selector gana en especificidad al
+ * estilo base del componente.
+ */
+const CLASE_ACTIVO =
+  "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90 data-[active=true]:hover:text-primary-foreground"
 
 /**
  * Menu real del sistema. Se agregan entradas a medida que se construye cada
@@ -78,10 +87,22 @@ const ITEMS: ItemMenu[] = [
 
 export function NavMain() {
   const { user } = useAuth()
+  const { pathname } = useLocation()
 
   const visibles = ITEMS.filter(
     (item) => !item.permiso || tienePermiso(user, item.permiso)
   )
+
+  /**
+   * Inicio ("/") solo está activo en la raíz exacta; el resto también cuando la
+   * ruta actual es una subruta suya (ej. /items/algo). El `isActive` se calcula
+   * acá y se pasa a `SidebarMenuButton` para que pinte el ítem entero (fondo),
+   * no solo el texto.
+   */
+  function estaActivo(url: string): boolean {
+    if (url === "/") return pathname === "/"
+    return pathname === url || pathname.startsWith(`${url}/`)
+  }
 
   return (
     <SidebarGroup>
@@ -89,18 +110,16 @@ export function NavMain() {
       <SidebarMenu>
         {visibles.map((item) => (
           <SidebarMenuItem key={item.url}>
-            <SidebarMenuButton asChild tooltip={item.titulo}>
-              {/* `end` en "/" para que el inicio no quede activo en toda ruta hija. */}
-              <NavLink to={item.url} end={item.url === "/"}>
-                {({ isActive }) => (
-                  <>
-                    <item.icono />
-                    <span className={isActive ? "font-medium" : undefined}>
-                      {item.titulo}
-                    </span>
-                  </>
-                )}
-              </NavLink>
+            <SidebarMenuButton
+              asChild
+              isActive={estaActivo(item.url)}
+              tooltip={item.titulo}
+              className={CLASE_ACTIVO}
+            >
+              <Link to={item.url}>
+                <item.icono />
+                <span>{item.titulo}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

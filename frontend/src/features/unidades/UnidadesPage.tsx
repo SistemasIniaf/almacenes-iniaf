@@ -41,7 +41,7 @@ import {
 } from "@/features/unidades/useUnidades"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
-import { PAGE_SIZE } from "@/lib/types"
+import { usePagination } from "@/hooks/use-pagination"
 
 import type { Unidad } from "@/features/unidades/unidades.types"
 
@@ -52,7 +52,7 @@ export function UnidadesPage() {
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "unidadesEscribir")
 
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const busquedaDiferida = useDebouncedValue(busqueda)
@@ -65,7 +65,7 @@ export function UnidadesPage() {
 
   const { data, isPending, isError, error } = useUnidades({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     q: busquedaDiferida || undefined,
     activo: estado === "todos" ? undefined : estado === "activas",
   })
@@ -73,7 +73,7 @@ export function UnidadesPage() {
   /** Cualquier cambio de filtro invalida la pagina actual: hay que volver a la 1. */
   function cambiarFiltro(accion: () => void) {
     accion()
-    setPage(1)
+    resetPage()
   }
 
   function abrirCreacion() {
@@ -233,6 +233,7 @@ export function UnidadesPage() {
         <DataPagination
           meta={data.meta}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           entidad="unidades"
         />
       )}

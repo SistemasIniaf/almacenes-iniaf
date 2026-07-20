@@ -46,10 +46,6 @@ export function InputPasswordField<T extends FieldValues>({
             {required && <span className="text-red-500">*</span>}
           </FieldLabel>
 
-          {description && (
-            <p className="mb-2 text-sm text-muted-foreground">{description}</p>
-          )}
-
           <div className="relative">
             <Input
               {...field}
@@ -74,6 +70,9 @@ export function InputPasswordField<T extends FieldValues>({
             </button>
           </div>
 
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>
       )}

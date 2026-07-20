@@ -56,10 +56,6 @@ export function DatePickerField<T extends FieldValues>({
             {label}
             {required && <span className="ml-1 text-red-500">*</span>}
           </FieldLabel>
-          {description && (
-            <p className="mb-2 text-sm text-muted-foreground">{description}</p>
-          )}
-
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger>
               <Button
@@ -96,6 +92,9 @@ export function DatePickerField<T extends FieldValues>({
             </PopoverContent>
           </Popover>
 
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         </Field>
       )}

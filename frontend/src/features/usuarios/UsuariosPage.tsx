@@ -42,7 +42,7 @@ import {
 } from "@/features/usuarios/useUsuarios"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
-import { PAGE_SIZE } from "@/lib/types"
+import { usePagination } from "@/hooks/use-pagination"
 
 import type { Rol } from "@/features/auth/lib/auth.types"
 import type { Usuario } from "@/features/usuarios/usuarios.types"
@@ -70,7 +70,7 @@ export function UsuariosPage() {
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "usuariosEscribir")
 
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const [rol, setRol] = useState<FiltroRol>("todos")
@@ -86,7 +86,7 @@ export function UsuariosPage() {
 
   const { data, isPending, isError, error } = useUsuarios({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     q: busquedaDiferida || undefined,
     activo: estado === "todos" ? undefined : estado === "activos",
     rol: rol === "todos" ? undefined : rol,
@@ -94,7 +94,7 @@ export function UsuariosPage() {
 
   function cambiarFiltro(accion: () => void) {
     accion()
-    setPage(1)
+    resetPage()
   }
 
   function abrirCreacion() {
@@ -290,6 +290,7 @@ export function UsuariosPage() {
         <DataPagination
           meta={data.meta}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           entidad="usuarios"
         />
       )}
