@@ -15,3 +15,12 @@ build/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Archivos temporales de Office (se crean al abrir un .docx)
+~$*
+
+# Volcados del sistema anterior: pesan ~86 MB y la tabla `personal` guarda
+# contrasenas en texto plano. Se analizan fuera del repo (ver
+# docs/analisis-sistema-anterior.md).
+*.sql.gz
+semilla*.sql

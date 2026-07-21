@@ -98,14 +98,38 @@ APROBADO (ejecutado)
 
 **Cambio 2026-07-21**: el circuito era de 3 niveles y terminaba en un `central` por almacén. Se eliminó ese rol: ahora el `responsable_almacen` es quien ejecuta la salida. **Queda pendiente redefinir el control de stock** (ver sección siguiente): la reserva progresiva existía porque había dos pasos entre la aprobación y la salida física, y ahora ese hueco desapareció.
 
-## Control de stock (Opción B — reserva progresiva)
+## Control de stock — REDEFINIDO el 2026-07-21 (por LOTE)
 
-Dos cifras por ítem y almacén: `stock_fisico` (real) y `stock_reservado` (comprometido). `stock_disponible = stock_fisico - stock_reservado`.
-- La reserva se crea cuando el `aprobador` (nivel 1) aprueba.
-- El descuento físico definitivo ocurre cuando el `responsable_almacen` (nivel 2, último) aprueba: `stock_fisico -= cantidad_final` y se libera la reserva.
-- Cualquier rechazo posterior a la reserva debe liberarla.
+> ⚠️ El modelo que se describía antes acá (`StockAlmacen` con `stock_fisico` /
+> `stock_reservado`, un saldo agregado por ítem y almacén) **quedó sin efecto**.
+> Se relevó el sistema anterior del INIAF y se confirmó con el encargado otro
+> modelo. Detalle completo en `docs/decisiones-ingresos.md` y
+> `docs/analisis-sistema-anterior.md`.
 
-**A CONFIRMAR con el encargado de almacenes**: al eliminarse `central`, el esquema de reserva quedó con un solo paso intermedio. Puede que ya no haga falta `stock_reservado` y alcance con descontar directo al aprobar el responsable. No implementar stock hasta resolverlo.
+**El stock se lleva por LOTE**: cada línea de ingreso conserva su cantidad, su
+precio unitario y su saldo. El stock de un ítem no es un número, es la suma de
+los saldos de sus lotes. Cada salida se descuenta de lotes concretos y se
+valoriza al precio de ese lote (así el kardex da el costo real, no un promedio).
+
+**Y se separa por FUENTE DE FINANCIAMIENTO** (Recursos Específicos, Banco
+Mundial, COSUDE, DANIDA, programas TGN…): el mismo ítem comprado con dos fuentes
+son dos saldos distintos, porque cada financiador exige rendición de su plata.
+Es un CRUD propio; una sola fuente por ingreso (va en la cabecera).
+
+Por qué así: es como opera el INIAF hoy. Datos verificados sobre 11 gestiones —
+el 41% de los ítems se compró a más de un precio en la misma gestión y el 35%
+con más de una fuente.
+
+Aprendizaje del sistema anterior: su campo de saldo por lote (`SALDOCANTIDAD`)
+está desincronizado en el **59%** de los lotes y tiene saldos negativos, porque
+se actualizaba fuera de transacción. Acá el saldo del lote se modifica **dentro
+de la transacción** que lo mueve, y toda la historia queda en la tabla de
+movimientos para poder recalcularlo.
+
+**Sigue pendiente**: si hace falta reservar stock entre la aprobación del
+aprobador y la entrega del responsable, y quién elige de qué lote sale el
+material al entregar (propuesta: el sistema sugiere lo más antiguo primero y el
+responsable puede cambiarlo).
 
 ## Anulación / reversión
 
@@ -267,7 +291,7 @@ Notas propias de `proveedores` (cierra el frontend de esta fase):
 negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacenes.md`. Al agregar cada uno hay que sumar su entrada en
 `NavMain.tsx` (`ITEMS`) y en `SECCIONES` de `DashboardLayout.tsx`.
 
-NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egresos`, `kardex`, `reportes` — dependen de las reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
+NO construir todavía: `stock`, `ingresos`, `egresos`, `kardex`, `reportes` — dependen de las reglas de negocio aún pendientes de confirmar (ver sección de pendientes). **Ingresos ya está casi definido**: leer `docs/decisiones-ingresos.md` antes de empezar.
 
 ## Alcance NO incluido (por ahora)
 
@@ -296,18 +320,35 @@ NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egre
   - Falta construir un wrapper sobre `useFieldArray` para las líneas dinámicas de `EgresoDetalle`/`IngresoDetalle` (agregar/quitar ítems), compartido entre `EgresoForm` e `IngresoForm`.
 - Validación con Zod; el schema de cada formulario debe reflejar el DTO/`class-validator` del backend correspondiente, para no duplicar reglas desalineadas entre frontend y backend.
 
+## Documentos de análisis y decisiones (leer antes de tocar ingresos/egresos/stock)
+
+| Archivo | Qué contiene |
+|---|---|
+| `docs/decisiones-ingresos.md` | **Lo decidido y lo pendiente de ingresos.** Fuente de verdad del módulo. |
+| `docs/analisis-sistema-anterior.md` | Cómo opera hoy el INIAF: relevamiento del sistema viejo con cifras verificadas sobre su base (11 gestiones). |
+| `docs/preguntas-encargado-almacenes.docx` | Cuestionario para la reunión con el encargado (24 preguntas). |
+| `tools/analisis-legacy/` | Scripts que producen las cifras del análisis. |
+
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
 
+**Ingresos** — ver la lista completa en `docs/decisiones-ingresos.md`. En resumen: formato visible del número, si se puede anular un ingreso con movimientos, alcance de la lista de "responsable", y la vía de carga inicial del arranque.
+
+**Egresos y stock**:
 - Reglas exactas de rechazo por nivel (¿siempre vuelve a BORRADOR o a veces un nivel atrás?).
 - SLA / tiempos de espera por nivel.
 - Cancelación del egreso por el propio solicitador antes de aprobación.
 - Egresos que saltan niveles por monto/cantidad bajo.
-- Qué pasa si al llegar a Central ya no hay stock físico suficiente.
+- Qué pasa si al entregar ya no hay stock físico suficiente.
+- **Quién elige de qué lote y de qué fuente de financiamiento sale el material** (propuesta: sugerencia automática de lo más antiguo, modificable por el responsable).
+- Si hace falta reservar stock entre la aprobación y la entrega.
 - Reglas de anulación: quién autoriza, plazo límite, motivo obligatorio.
-- Cierre de gestión anual (bloqueo de movimientos retroactivos, reinicio de correlativos).
-- Reportes específicos requeridos.
 - Manejo de ausencia/suplencia de aprobador o responsable_almacen.
+- Si el Egreso debe registrar la actividad/destino (el sistema anterior lo exige: campo obligatorio de 200 caracteres + categoría).
 - Confirmar si el Egreso también necesita reportar/agrupar por Partida (ej. para reportes de ejecución presupuestaria por objeto del gasto), o si la Partida solo importa a nivel de catálogo/Ingreso.
-- Ancho del padding del correlativo de Ítem: se asumió 6 dígitos (`000001`), confirmar o ajustar.
 
-Ver detalle completo de estas preguntas en `docs/preguntas-encargado-almacenes.md`.
+**Otros**:
+- Reportes específicos requeridos.
+- Ancho del padding del correlativo de Ítem: se asumió 6 dígitos (`000001`), confirmar o ajustar.
+- El catálogo real del INIAF tiene **23.005 ítems**: `ComboboxField` hoy trae la lista completa al navegador, así que para ítems habrá que pasar a búsqueda contra el servidor.
+
+**Ya resuelto (no volver a preguntar)**: cierre de gestión con arrastre automático de saldos · sin mínimos/máximos por ítem · stock por lote · separación por fuente de financiamiento · sin migración de históricos.
