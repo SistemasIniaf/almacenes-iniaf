@@ -32,15 +32,15 @@ almacenes-institucion/
 
 - **Unidad**: nombre, sigla, activo. Área administrativa (ej. Unidad de Planificación).
 - **Almacen**: nombre, activo. Cada institución tiene 9+.
-- **Usuario**: username (no email), password (hash bcrypt), nombre, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados).
-- **Roles**: `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `central`, `observador_almacen`.
-  - `super_admin`: sin unidad ni almacén. Acceso total.
-  - `admin`: sin unidad ni almacén. Igual que super_admin salvo que NO gestiona Unidades ni Partidas.
+- **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir (prop `mayusculas`, transforma el valor real, no con `text-transform` de CSS) y el service lo normaliza igual, porque la API es la fuente de verdad. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
+- **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
+  - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total.
+  - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que NO gestiona Unidades ni Partidas.
   - `solicitador`: unidad y almacén requeridos (fijo, destino de sus egresos). Varios por unidad.
   - `aprobador`: unidad Y almacén requeridos (igual que `solicitador`). Único ACTIVO por unidad; el almacén NO es único (varios aprobadores pueden compartir almacén).
-  - `responsable_almacen`: almacén requerido, único ACTIVO por almacén.
-  - `central`: almacén requerido, único ACTIVO por almacén (CORREGIDO: ya no es único institucional, ahora es un central por cada almacén, mismo patrón que responsable_almacen).
+  - `responsable_almacen`: unidad Y almacén requeridos (la unidad se agregó el 2026-07-21; antes no la llevaba). Único ACTIVO por almacén.
   - `observador_almacen`: sin almacén fijo — usa tabla intermedia `UsuarioAlmacenObservado` (relación muchos-a-muchos, selecciona qué almacenes puede ver, para auditoría).
+  - **`central` fue ELIMINADO** el 2026-07-21 (confirmado con el encargado de almacenes): el circuito de egresos pasó de 3 a 2 niveles de aprobación. Ver la migración `20260721180000_quita_rol_central`.
 - **Partida** (reemplaza al concepto anterior de "Material"): catálogo oficial del Clasificador por Objeto del Gasto (Ministerio de Economía y Finanzas Públicas, Bolivia, publicado por gestión/año fiscal). NO se crea libremente en el sistema — se importa/semilla desde el documento oficial. Es **jerárquica** (auto-referenciada, hasta 5 niveles: Grupo → Subgrupo → Partida → Subpartida → Sub-subpartida), porque el clasificador real tiene profundidad variable por rama. Campos: codigo (string, ej. "39700"), denominacion, nivel (1-5, calculado por cantidad de ceros finales del código), padreId (auto-referencia), `seleccionable` (boolean — SOLO true en los nodos hoja, es decir códigos sin hijos; son los únicos que se pueden asignar a un Ítem), activo, `ultimoCorrelativo` (contador para generar códigos de Ítem, solo relevante si `seleccionable=true`). Un solo catálogo vigente, SIN versionado histórico por gestión (se actualiza in-place si el Ministerio publica cambios; poco frecuente). Alcance del seed: **los 9 grupos completos** del Clasificador por Objeto del Gasto (`10000` a `90000`, ~505 partidas), extraídos del PDF oficial (gestión 2026). Los grupos `20000` (Servicios No Personales) y `30000` (Materiales y Suministros) son los relevantes para el almacén y están curados a mano; el resto se extrajo del PDF y la institución los deja desactivados desde la UI si no los usa (el "activo efectivo" inhabilita toda la rama). El seed valida grupos `1`-`9` (ver `GRUPOS_PERMITIDOS` en `prisma/seed.ts`).
 - **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
 - **StockAlmacen**: `item_id` + `almacen_id` + `stock_fisico` + `stock_reservado` (disponible = físico − reservado). Aquí vive el stock real, NO en Item.
@@ -65,11 +65,9 @@ WHERE rol = 'aprobador' AND activo = true;
 CREATE UNIQUE INDEX uq_responsable_por_almacen
 ON usuarios (almacen_id)
 WHERE rol = 'responsable_almacen' AND activo = true;
-
-CREATE UNIQUE INDEX uq_central_por_almacen
-ON usuarios (almacen_id)
-WHERE rol = 'central' AND activo = true;
 ```
+
+**OJO al tocar el enum `Rol`**: el predicado de estos índices castea al tipo (`rol = 'aprobador'::"Rol"`), así que cualquier migración que recree el enum tiene que **dropearlos antes y recrearlos después**; si no, el `ALTER COLUMN ... TYPE` falla con `operator does not exist: "Rol_new" = "Rol"`. Está resuelto así en `20260721180000_quita_rol_central`.
 
 Complementar SIEMPRE con validación en el service (mensaje de error claro antes de que falle el índice: ej. "La unidad ya tiene un aprobador asignado"). `observador_almacen` NO lleva índice único — puede repetirse (varios observadores por almacén, varios almacenes por observador) vía la tabla `UsuarioAlmacenObservado`.
 
@@ -87,29 +85,27 @@ PENDIENTE_APROBADOR   (aprobador de la unidad del solicitante)
    │ aprueba (puede ajustar cantidad) ──► PENDIENTE_RESPONSABLE_ALMACEN
    │ rechaza ──────────────────────────► BORRADOR
    ▼
-PENDIENTE_RESPONSABLE_ALMACEN   (responsable del almacén del solicitante)
-   │ aprueba (puede ajustar cantidad) ──► PENDIENTE_CENTRAL
-   │    → SE RESERVA stock: stock_reservado += cantidad_aprobada
-   │ rechaza ──────────────────────────► BORRADOR
-   ▼
-PENDIENTE_CENTRAL   (usuario con rol=central del almacén del egreso — uno por almacén)
+PENDIENTE_RESPONSABLE_ALMACEN   (responsable del almacén del solicitante — último nivel)
    │ aprueba (puede ajustar cantidad final)
    │    → stock_fisico -= cantidad_final
-   │    → stock_reservado -= cantidad_aprobada (libera la reserva)
    │    → genera movimiento de salida en Kardex
-   │ rechaza ──────────────────────────► BORRADOR + libera la reserva
+   │ rechaza ──────────────────────────► BORRADOR
    ▼
 APROBADO (ejecutado)
 ```
 
-**Regla clave**: un rechazo en CUALQUIER nivel (aprobador, responsable_almacen o central) regresa el Egreso al estado `BORRADOR` (nivel 1, el solicitador), nunca al nivel anterior. El solicitador corrige y reenvía desde el inicio.
+**Regla clave**: un rechazo en CUALQUIER nivel (aprobador o responsable_almacen) regresa el Egreso al estado `BORRADOR` (nivel 1, el solicitador), nunca al nivel anterior. El solicitador corrige y reenvía desde el inicio.
+
+**Cambio 2026-07-21**: el circuito era de 3 niveles y terminaba en un `central` por almacén. Se eliminó ese rol: ahora el `responsable_almacen` es quien ejecuta la salida. **Queda pendiente redefinir el control de stock** (ver sección siguiente): la reserva progresiva existía porque había dos pasos entre la aprobación y la salida física, y ahora ese hueco desapareció.
 
 ## Control de stock (Opción B — reserva progresiva)
 
 Dos cifras por ítem y almacén: `stock_fisico` (real) y `stock_reservado` (comprometido). `stock_disponible = stock_fisico - stock_reservado`.
-- La reserva se crea cuando `responsable_almacen` aprueba.
-- El descuento físico definitivo ocurre solo cuando `central` aprueba.
+- La reserva se crea cuando el `aprobador` (nivel 1) aprueba.
+- El descuento físico definitivo ocurre cuando el `responsable_almacen` (nivel 2, último) aprueba: `stock_fisico -= cantidad_final` y se libera la reserva.
 - Cualquier rechazo posterior a la reserva debe liberarla.
+
+**A CONFIRMAR con el encargado de almacenes**: al eliminarse `central`, el esquema de reserva quedó con un solo paso intermedio. Puede que ya no haga falta `stock_reservado` y alcance con descontar directo al aprobar el responsable. No implementar stock hasta resolverlo.
 
 ## Anulación / reversión
 
@@ -144,7 +140,7 @@ Fase en curso: construir todo lo que NO depende de las reglas de Ingreso/Egreso 
 1. Setup del monorepo + docker-compose (Postgres) — YA HECHO (cascarón del proyecto ya existe)
 2. schema.prisma (Unidad, Almacen, Usuario, UsuarioAlmacenObservado, Partida, Item) + migración + seed de partidas
 3. auth (JWT + guards) — solo login, sin registro público
-4. usuarios (CRUD + validaciones de unicidad por rol: aprobador único por unidad, responsable_almacen y central únicos por almacén)
+4. usuarios (CRUD + validaciones de unicidad por rol: aprobador único por unidad, responsable_almacen único por almacén)
 5. unidades (CRUD simple)
 6. almacenes (CRUD simple)
 7. partidas (solo lectura del árbol jerárquico + activar/desactivar; NO se crean partidas a mano, vienen del seed)
@@ -286,7 +282,7 @@ NO construir todavía: `stock` (lógica de reserva/descuento), `ingresos`, `egre
   - **Listados**: todo endpoint de listado (`GET`) devuelve paginado con la forma estándar `{ data, meta: { total, page, pageSize, totalPages } }`, usando el helper `paginated()`. **Orden: `[{ createdAt: 'desc' }, { id: 'desc' }]`** — lo más reciente primero. El desempate por `id` no es decorativo: varios registros pueden compartir `createdAt` (el seed inserta muchos en el mismo instante) y sin él la paginación puede repetir u omitir filas entre páginas. **Excepción: `partidas`**, que se ordena por `codigo asc` porque el código ES la jerarquía del clasificador. El query DTO de cada módulo **extiende** `PaginationQueryDto` y agrega sus propios filtros + un buscador `q` según los campos de texto de su schema (ej. usuarios busca en `nombre`/`usuario`; unidades en `nombre`/`sigla`). Los DTO de update se definen explícitos (campos opcionales), no con `PartialType`/mapped-types, para no sumar dependencias.
   - **Buscador `q` (insensible a acentos)**: NO usar `contains` + `mode: 'insensitive'` de Prisma — eso ignora mayúsculas pero NO tildes, así que buscar "almacen" no encontraba "Almacén" (nadie escribe acentos al buscar). Todos los listados usan el helper `buscarIdsPorTexto()` de `common/search/busqueda-texto.ts`, que resuelve el filtro de texto con SQL crudo (`f_unaccent(col) ILIKE f_unaccent($1)`) y devuelve ids; el service los aplica como `id: { in: ids }` y conserva el resto de su lógica Prisma (filtros, orden, paginación, includes). Un array vacío significa "ninguna coincidencia", no "sin filtro". Apoyo en DB: extensiones `unaccent` + `pg_trgm`, función IMMUTABLE `f_unaccent` e índices GIN de trigramas, todo en la migración `20260719161128_busqueda_sin_acentos` (escrita a mano; Prisma no expresa `unaccent` en su DSL). **Al agregar un buscador a un módulo nuevo hay que crear también su índice GIN en una migración**, si no la búsqueda funciona pero hace scan secuencial.
   - **Booleanos en query**: usar el helper `toBoolean` de `common/dto/transforms.ts` con `@Transform`. El `ValidationPipe` global NO usa `enableImplicitConversion` (coacciona mal los booleanos: `Boolean('false') === true`); los numéricos de query llevan `@Type(() => Number)` explícito.
-- Frontend: organizado por `features/` (dominio), no por tipo de archivo. Componente `EgresoAprobacion` reutilizado por los 3 roles que aprueban (aprobador, responsable_almacen, central), variando solo qué acciones habilita.
+- Frontend: organizado por `features/` (dominio), no por tipo de archivo. Componente `EgresoAprobacion` reutilizado por los 2 roles que aprueban (aprobador, responsable_almacen), variando solo qué acciones habilita.
   - **Estructura híbrida por módulo**: módulos simples (≤5 archivos: unidades, almacenes, proveedores) van planos dentro de `features/<modulo>/`. Módulos complejos (egresos, ingresos, reportes) usan subcarpetas `components/`, `hooks/`, `pages/` dentro de su propia carpeta de feature. No aplicar subcarpetas a todos los módulos por igual.
 - Guards de NestJS deben validar scope: `responsable_almacen` solo puede actuar sobre egresos/ingresos de SU `almacen_id`; `aprobador` solo sobre egresos de SU `unidad_id`.
 - Nunca borrar registros de Ingreso/Egreso — siempre baja lógica + reversión, con historial.

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Pencil, Plus, PowerOff, Search } from "lucide-react"
+import { Pencil, Plus, PowerOff, Search, Warehouse } from "lucide-react"
 
 import {
   AlertDialog,
@@ -33,7 +33,11 @@ import {
 import { DataPagination } from "@/components/data/DataPagination"
 import { IconAction } from "@/components/data/IconAction"
 import { useAuth } from "@/features/auth/hooks/useAuth"
-import { ROLES, ROL_LABEL } from "@/features/auth/lib/auth.types"
+import {
+  ROLES,
+  ROL_BADGE_CLASS,
+  ROL_LABEL,
+} from "@/features/auth/lib/auth.types"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { UsuarioFormDialog } from "@/features/usuarios/UsuarioFormDialog"
 import {
@@ -51,19 +55,20 @@ type FiltroEstado = "todos" | "activos" | "inactivos"
 /** "todos" no es un Rol valido: se usa solo como marca de "sin filtro". */
 type FiltroRol = Rol | "todos"
 
-/** Ambito del usuario segun su rol: unidad, almacen, almacenes observados o nada. */
-function describirAmbito(usuario: Usuario): string {
-  if (usuario.unidad && usuario.almacen) {
-    return `${usuario.unidad.sigla} · ${usuario.almacen.nombre}`
-  }
-  if (usuario.unidad) return usuario.unidad.sigla
+/**
+ * Almacen al que pertenece el usuario, para mostrarlo junto al rol. El
+ * `observador_almacen` no tiene uno fijo: observa varios (tabla intermedia),
+ * asi que se listan todos separados por coma. `null` = el rol no lleva almacen
+ * (super_admin / admin) y la linea no se dibuja.
+ */
+function describirAlmacen(usuario: Usuario): string | null {
   if (usuario.almacen) return usuario.almacen.nombre
   if (usuario.almacenesObservados.length > 0) {
     return usuario.almacenesObservados
       .map((observado) => observado.almacen.nombre)
       .join(", ")
   }
-  return "—"
+  return null
 }
 
 export function UsuariosPage() {
@@ -119,7 +124,7 @@ export function UsuariosPage() {
   }
 
   const usuarios = data?.data ?? []
-  const columnas = puedeEscribir ? 7 : 6
+  const columnas = puedeEscribir ? 5 : 4
 
   return (
     <div className="flex flex-col gap-4">
@@ -162,7 +167,7 @@ export function UsuariosPage() {
           <SelectTrigger className="sm:w-56" aria-label="Filtrar por rol">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="todos">Todos los roles</SelectItem>
             {ROLES.map((valor) => (
               <SelectItem key={valor} value={valor}>
@@ -181,7 +186,7 @@ export function UsuariosPage() {
           <SelectTrigger className="sm:w-40" aria-label="Filtrar por estado">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="todos">Todos</SelectItem>
             <SelectItem value="activos">Solo activos</SelectItem>
             <SelectItem value="inactivos">Solo inactivos</SelectItem>
@@ -193,11 +198,9 @@ export function UsuariosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Cargo</TableHead>
               <TableHead>Usuario</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Unidad / Almacén</TableHead>
+              <TableHead>Nombre y cargo</TableHead>
+              <TableHead>Rol / Almacén</TableHead>
               <TableHead>Estado</TableHead>
               {puedeEscribir && (
                 <TableHead className="text-right">Acciones</TableHead>
@@ -247,19 +250,33 @@ export function UsuariosPage() {
               usuarios.map((usuario) => (
                 <TableRow key={usuario.id}>
                   <TableCell className="font-medium">
-                    {usuario.nombre}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {usuario.cargo || "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
                     {usuario.usuario}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{ROL_LABEL[usuario.rol]}</Badge>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{usuario.nombre}</span>
+                      {usuario.cargo && (
+                        <span className="text-xs text-muted-foreground">
+                          {usuario.cargo}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {describirAmbito(usuario)}
+                  <TableCell>
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge
+                        variant="outline"
+                        className={ROL_BADGE_CLASS[usuario.rol]}
+                      >
+                        {ROL_LABEL[usuario.rol]}
+                      </Badge>
+                      {describirAlmacen(usuario) && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Warehouse className="size-3 shrink-0" />
+                          {describirAlmacen(usuario)}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={usuario.activo ? "default" : "destructive"}>

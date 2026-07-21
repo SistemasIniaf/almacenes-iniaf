@@ -18,6 +18,13 @@ interface InputFieldProps<T extends FieldValues> {
   readOnly?: boolean
   description?: string
   required?: boolean
+  /**
+   * Fuerza el valor a MAYUSCULAS mientras se escribe (ej. nombre y cargo de un
+   * usuario, que asi figuran en los documentos oficiales). Convierte el valor
+   * real del formulario, no solo lo que se ve: el `text-transform` de CSS es
+   * puro maquillaje y enviaria minusculas al backend.
+   */
+  mayusculas?: boolean
   /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
   className?: string
 }
@@ -34,6 +41,7 @@ export function InputField<T extends FieldValues>({
   readOnly = false,
   description,
   required = true,
+  mayusculas = false,
   className,
 }: InputFieldProps<T>) {
   const fieldId = id || `field-${name}`
@@ -61,6 +69,12 @@ export function InputField<T extends FieldValues>({
             disabled={disabled}
             readOnly={readOnly}
             value={field.value ?? ""}
+            onChange={
+              mayusculas
+                ? (evento) =>
+                    field.onChange(evento.target.value.toLocaleUpperCase())
+                : field.onChange
+            }
           />
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>

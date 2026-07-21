@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import { FieldGroup } from "@/components/ui/field"
 import { CheckboxField } from "@/components/form/CheckboxField"
+import { ComboboxField } from "@/components/form/ComboboxField"
 import { InputField } from "@/components/form/InputField"
-import { SelectField } from "@/components/form/SelectField"
 import {
   padreIdToForm,
   padreIdToPayload,
@@ -97,12 +97,20 @@ export function UnidadFormDialog({
   // Opciones del selector de padre. Excluir la unidad actual y sus descendientes
   // para evitar ciclos (en edicion).
   const opcionesPadre = useMemo(() => {
-    return unidadesParaSelector
-      .filter((u) => !esEdicion || u.id !== unidad?.id)
-      .map((u) => ({
-        value: String(u.id),
-        label: `${u.nombreIndentado} (${u.sigla})`,
-      }))
+    return [
+      // Sin padre = unidad de primer nivel. Va como una opcion mas del
+      // combobox (no hay `defaultOption` como en SelectField).
+      { value: "", label: "Oficina Inicial (raiz)" },
+      ...unidadesParaSelector
+        .filter((u) => !esEdicion || u.id !== unidad?.id)
+        .map((u) => ({
+          value: String(u.id),
+          label: `${u.nombreIndentado} (${u.sigla})`,
+          // La sigla ya esta en el label, pero el nombre indentado trae guiones
+          // de jerarquia: se repite para que la busqueda por sigla sea directa.
+          busqueda: u.sigla,
+        })),
+    ]
   }, [unidadesParaSelector, esEdicion, unidad])
 
   async function onSubmit(values: UnidadFormValues) {
@@ -128,7 +136,7 @@ export function UnidadFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>
             {esEdicion ? "Editar unidad" : "Nueva unidad"}
@@ -140,15 +148,15 @@ export function UnidadFormDialog({
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup>
-            <SelectField
+            <ComboboxField
               name="padreId"
               label="Depende de"
               control={control}
               options={opcionesPadre}
               placeholder="Seleccionar unidad padre..."
+              vacio="No hay unidades que coincidan."
               disabled={guardando || cargandoUnidades}
               required={false}
-              defaultOption={{ value: "", label: "Oficina Inicial (raiz)" }}
             />
 
             <InputField

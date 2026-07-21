@@ -15,17 +15,34 @@ import { QueryUsuariosDto } from './dto/query-usuarios.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
 // Reglas de campos por rol.
-// aprobador lleva unidad Y almacen (igual que solicitador). Sigue siendo unico
-// por UNIDAD (un aprobador activo por unidad); su almacen NO es unico.
-const ROLES_CON_UNIDAD: Rol[] = [Rol.solicitador, Rol.aprobador];
+// Los tres roles del circuito de egresos (solicitador -> aprobador ->
+// responsable_almacen) llevan unidad Y almacen. La unicidad no va junta con eso:
+// el aprobador es unico por UNIDAD y el responsable, unico por ALMACEN.
+const ROLES_CON_UNIDAD: Rol[] = [
+  Rol.solicitador,
+  Rol.aprobador,
+  Rol.responsable_almacen,
+];
 const ROLES_CON_ALMACEN: Rol[] = [
   Rol.solicitador,
   Rol.aprobador,
   Rol.responsable_almacen,
-  Rol.central,
 ];
 const ROLES_UNICOS_POR_UNIDAD: Rol[] = [Rol.aprobador];
-const ROLES_UNICOS_POR_ALMACEN: Rol[] = [Rol.responsable_almacen, Rol.central];
+const ROLES_UNICOS_POR_ALMACEN: Rol[] = [Rol.responsable_almacen];
+
+// Los dos roles administrativos no ocupan un puesto en el organigrama, asi que
+// son los unicos sin cargo. Para el resto es obligatorio.
+const ROLES_SIN_CARGO: Rol[] = [Rol.super_admin, Rol.admin];
+
+/**
+ * `nombre` y `cargo` se guardan en MAYUSCULAS (pedido de la institucion: es como
+ * figuran en los documentos oficiales). El frontend ademas lo fuerza al escribir,
+ * pero se normaliza aca tambien porque la API es la fuente de verdad.
+ */
+function aMayusculas(texto: string): string {
+  return texto.trim().toUpperCase();
+}
 
 // Campos que se devuelven al cliente (nunca el password).
 const usuarioSelect = {
@@ -61,6 +78,7 @@ export class UsuariosService {
 
     const activo = dto.activo ?? true;
     const campos = this.resolverCamposPorRol(dto.rol, dto, null);
+    const cargo = this.resolverCargo(dto.rol, dto.cargo, null);
 
     await this.validarReferencias(campos);
     await this.validarUnicidadRol(dto.rol, campos, activo);
@@ -70,8 +88,8 @@ export class UsuariosService {
     const id = await this.prisma.$transaction(async (tx) => {
       const usuario = await tx.usuario.create({
         data: {
-          nombre: dto.nombre,
-          cargo: dto.cargo ?? null,
+          nombre: aMayusculas(dto.nombre),
+          cargo,
           usuario: dto.usuario,
           password,
           rol: dto.rol,
@@ -162,6 +180,7 @@ export class UsuariosService {
       almacenId: existente.almacenId,
       observados: existente.almacenesObservados.map((o) => o.almacenId),
     });
+    const cargo = this.resolverCargo(rolFinal, dto.cargo, existente.cargo);
 
     await this.validarReferencias(campos);
     await this.validarUnicidadRol(rolFinal, campos, activoFinal, id);
@@ -174,8 +193,12 @@ export class UsuariosService {
       await tx.usuario.update({
         where: { id },
         data: {
-          ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
-          ...(dto.cargo !== undefined ? { cargo: dto.cargo } : {}),
+          ...(dto.nombre !== undefined
+            ? { nombre: aMayusculas(dto.nombre) }
+            : {}),
+          // `cargo` se recalcula siempre: al cambiar de rol puede pasar a ser
+          // requerido (o dejar de serlo) sin que el cliente lo mande.
+          cargo,
           ...(dto.usuario !== undefined ? { usuario: dto.usuario } : {}),
           ...(password ? { password } : {}),
           rol: rolFinal,
@@ -229,6 +252,25 @@ export class UsuariosService {
     if (existe) {
       throw new ConflictException(`El usuario "${usuario}" ya esta en uso`);
     }
+  }
+
+  /**
+   * Cargo final del usuario, ya en mayusculas. Es obligatorio para todos los
+   * roles operativos; los administrativos (super_admin/admin) pueden no tenerlo.
+   * En update, `undefined` significa "no lo mandaron" y se conserva el existente.
+   */
+  private resolverCargo(
+    rol: Rol,
+    entrada: string | null | undefined,
+    existente: string | null,
+  ): string | null {
+    const valor = entrada !== undefined ? entrada : existente;
+    const cargo = valor ? aMayusculas(valor) : null;
+
+    if (!cargo && !ROLES_SIN_CARGO.includes(rol)) {
+      throw new BadRequestException(`El rol ${rol} requiere un cargo`);
+    }
+    return cargo;
   }
 
   /**
@@ -340,8 +382,8 @@ export class UsuariosService {
 
   /**
    * Unicidad de roles (complementa los indices unicos parciales de la BD):
-   * un aprobador activo por unidad; un responsable_almacen y un central activos
-   * por almacen. Solo aplica cuando el usuario queda ACTIVO.
+   * un aprobador activo por unidad y un responsable_almacen activo por almacen.
+   * Solo aplica cuando el usuario queda ACTIVO.
    */
   private async validarUnicidadRol(
     rol: Rol,

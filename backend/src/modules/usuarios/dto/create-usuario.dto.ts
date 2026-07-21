@@ -22,9 +22,11 @@ export class CreateUsuarioDto {
   @IsNotEmpty({ message: 'El nombre es requerido' })
   nombre!: string;
 
+  // Obligatorio salvo para super_admin/admin (lo valida el service, porque
+  // depende del rol). Se guarda en MAYUSCULAS.
   @IsOptional()
   @IsString()
-  cargo?: string;
+  cargo?: string | null;
 
   @IsString()
   @IsNotEmpty({ message: 'El usuario (username) es requerido' })
@@ -43,12 +45,13 @@ export class CreateUsuarioDto {
   @IsBoolean()
   activo?: boolean;
 
-  // Requerido para solicitador/aprobador; prohibido para el resto (validado en el service).
+  // Requerido para solicitador/aprobador/responsable_almacen; prohibido para el
+  // resto (validado en el service).
   @IsOptional()
   @IsInt({ message: 'unidadId debe ser un entero' })
   unidadId?: number | null;
 
-  // Requerido para solicitador/aprobador/responsable_almacen/central; prohibido para el resto.
+  // Requerido para solicitador/aprobador/responsable_almacen; prohibido para el resto.
   @IsOptional()
   @IsInt({ message: 'almacenId debe ser un entero' })
   almacenId?: number | null;

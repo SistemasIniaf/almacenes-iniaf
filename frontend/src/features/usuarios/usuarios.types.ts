@@ -46,16 +46,27 @@ export type UpdateUsuarioPayload = Partial<CreateUsuarioPayload>
 // del backend (usuarios.service.ts). Si cambian alla, cambiar aca.
 // ---------------------------------------------------------------------------
 
-export const ROLES_CON_UNIDAD: Rol[] = ["solicitador", "aprobador"]
+// Los tres roles del circuito de egresos (solicitador → aprobador →
+// responsable_almacen) llevan unidad Y almacén. La unicidad es otra cosa: el
+// aprobador es único por unidad y el responsable, único por almacén.
+export const ROLES_CON_UNIDAD: Rol[] = [
+  "solicitador",
+  "aprobador",
+  "responsable_almacen",
+]
 
-// aprobador lleva unidad Y almacén, igual que solicitador (sigue siendo único
-// por unidad; su almacén no es único).
 export const ROLES_CON_ALMACEN: Rol[] = [
   "solicitador",
   "aprobador",
   "responsable_almacen",
-  "central",
 ]
+
+/** Roles sin cargo obligatorio — espejo de ROLES_SIN_CARGO del service. */
+export const ROLES_SIN_CARGO: Rol[] = ["super_admin", "admin"]
+
+export function requiereCargo(rol: Rol): boolean {
+  return !ROLES_SIN_CARGO.includes(rol)
+}
 
 export function requiereUnidad(rol: Rol): boolean {
   return ROLES_CON_UNIDAD.includes(rol)
@@ -72,5 +83,5 @@ export function permiteObservados(rol: Rol): boolean {
 
 /** Roles que solo puede haber uno ACTIVO por unidad o por almacén. */
 export function esRolUnico(rol: Rol): boolean {
-  return rol === "aprobador" || rol === "responsable_almacen" || rol === "central"
+  return rol === "aprobador" || rol === "responsable_almacen"
 }

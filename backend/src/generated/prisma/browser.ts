@@ -33,11 +33,14 @@ export type Almacen = Prisma.AlmacenModel
  * Model Usuario
  * Usuario del sistema. Se crea solo desde el modulo usuarios (no hay registro publico).
  * unidadId y almacenId son independientes entre si y opcionales segun el rol:
- * - super_admin / admin: sin unidad ni almacen.
+ * - super_admin / admin: sin unidad ni almacen, y sin cargo obligatorio.
  * - solicitador: unidad + almacen requeridos.
- * - aprobador: unidad requerida (unico activo por unidad).
- * - responsable_almacen / central: almacen requerido (unico activo por almacen).
+ * - aprobador: unidad + almacen requeridos (unico activo por unidad).
+ * - responsable_almacen: unidad + almacen requeridos (unico activo por almacen).
  * - observador_almacen: sin almacen fijo (usa UsuarioAlmacenObservado).
+ * `cargo` es opcional en la BD porque los dos roles administrativos no lo
+ * llevan; para el resto lo exige el service.
+ * `nombre` y `cargo` se guardan SIEMPRE en MAYUSCULAS (normalizado en el service).
  */
 export type Usuario = Prisma.UsuarioModel
 /**

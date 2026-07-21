@@ -15,7 +15,6 @@ export const Rol = {
   solicitador: 'solicitador',
   aprobador: 'aprobador',
   responsable_almacen: 'responsable_almacen',
-  central: 'central',
   observador_almacen: 'observador_almacen'
 } as const
 

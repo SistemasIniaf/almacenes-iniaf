@@ -4,6 +4,7 @@ import { ROLES } from "@/features/auth/lib/auth.types"
 import {
   permiteObservados,
   requiereAlmacen,
+  requiereCargo,
   requiereUnidad,
 } from "@/features/usuarios/usuarios.types"
 
@@ -47,6 +48,16 @@ export function usuarioSchema(esEdicion: boolean) {
           message: "La contraseña debe tener al menos 6 caracteres",
         })
       }
+    }
+
+    // El cargo es obligatorio salvo para los roles administrativos, que no
+    // ocupan un puesto en el organigrama.
+    if (requiereCargo(valores.rol) && !valores.cargo) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cargo"],
+        message: "El cargo es requerido",
+      })
     }
 
     if (requiereUnidad(valores.rol) && !valores.unidadId) {

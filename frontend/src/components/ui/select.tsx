@@ -57,10 +57,18 @@ function SelectTrigger({
   )
 }
 
+/**
+ * El default de shadcn es `position="item-aligned"`: el panel se superpone al
+ * trigger y se reposiciona para dejar la opcion elegida bajo el cursor, asi que
+ * el listado "salta" segun que filtro este activo. Para los filtros de las
+ * tablas se prefiere `popper`, que abre el panel ANCLADO abajo del trigger y
+ * siempre en el mismo lugar. Se cambia el default aca (y no en cada llamada)
+ * para que cualquier Select nuevo lo herede.
+ */
 function SelectContent({
   className,
   children,
-  position = "item-aligned",
+  position = "popper",
   align = "center",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {

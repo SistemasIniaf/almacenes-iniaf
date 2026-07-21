@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -26,6 +25,7 @@ import { usuarioSchema } from "@/features/usuarios/usuarios.schema"
 import {
   permiteObservados,
   requiereAlmacen,
+  requiereCargo,
   requiereUnidad,
 } from "@/features/usuarios/usuarios.types"
 import {
@@ -69,7 +69,6 @@ const DESC_ALMACEN: Partial<Record<Rol, string>> = {
   solicitador: "Es el almacén destino fijo de sus egresos.",
   aprobador: "Almacén al que queda asociado el aprobador.",
   responsable_almacen: "Solo puede haber un responsable activo por almacén.",
-  central: "Solo puede haber un central activo por almacén.",
 }
 
 export function UsuarioFormDialog({
@@ -155,14 +154,11 @@ export function UsuarioFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             {esEdicion ? "Editar usuario" : "Nuevo usuario"}
           </DialogTitle>
-          <DialogDescription>
-            Los usuarios se crean únicamente desde acá: no hay registro público.
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -177,7 +173,7 @@ export function UsuarioFormDialog({
                 placeholder="Seleccioná un almacén"
                 vacio="No se encontró ningún almacén."
                 disabled={guardando}
-                className="sm:col-span-2"
+
                 options={almacenes.map((almacen) => ({
                   value: String(almacen.id),
                   label: almacen.nombre,
@@ -193,24 +189,6 @@ export function UsuarioFormDialog({
               options={OPCIONES_ROL}
               placeholder="Seleccioná un rol"
               disabled={guardando}
-              className="sm:col-span-2"
-            />
-
-            <InputField
-              name="nombre"
-              label="Nombre completo"
-              control={control}
-              placeholder="Juan Pérez"
-              disabled={guardando}
-            />
-
-            <InputField
-              name="cargo"
-              label="Cargo"
-              control={control}
-              placeholder="Jefe de Unidad"
-              disabled={guardando}
-              required={false}
             />
 
             {requiereUnidad(rol) && (
@@ -235,6 +213,23 @@ export function UsuarioFormDialog({
             )}
 
             <InputField
+              name="nombre"
+              label="Nombre completo"
+              control={control}
+              disabled={guardando}
+              mayusculas
+            />
+
+            <InputField
+              name="cargo"
+              label="Cargo"
+              control={control}
+              disabled={guardando}
+              required={requiereCargo(rol)}
+              mayusculas
+            />
+
+            <InputField
               name="usuario"
               label="Usuario"
               control={control}
@@ -253,7 +248,7 @@ export function UsuarioFormDialog({
               description={
                 esEdicion
                   ? "Dejala vacía para no cambiar la contraseña actual."
-                  : "Mínimo 6 caracteres."
+                  : ""
               }
             />
 
