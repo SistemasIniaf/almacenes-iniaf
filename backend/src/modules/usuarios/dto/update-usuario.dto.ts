@@ -27,6 +27,10 @@ export class UpdateUsuarioDto {
 
   @IsOptional()
   @IsString()
+  cargo?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
   usuario?: string;
 

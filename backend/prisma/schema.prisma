@@ -31,17 +31,25 @@ enum Rol {
 // ---------------------------------------------------------------------------
 
 /// Area administrativa (ej. Unidad de Planificacion).
+/// Jerarquica: cada unidad puede tener un padre (sin limite de niveles).
+/// Si padreId es null, es una Oficina Inicial (raiz).
 model Unidad {
   id     Int     @id @default(autoincrement())
   nombre String  @unique
   sigla  String  @unique
   activo Boolean @default(true)
 
+  // Jerarquia auto-referenciada (similar a Partida pero sin limite de niveles).
+  padreId Int?     @map("padre_id")
+  padre   Unidad?  @relation("UnidadJerarquia", fields: [padreId], references: [id])
+  hijos   Unidad[] @relation("UnidadJerarquia")
+
   usuarios Usuario[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([padreId])
   @@map("unidades")
 }
 
@@ -70,6 +78,7 @@ model Almacen {
 model Usuario {
   id       Int     @id @default(autoincrement())
   nombre   String
+  cargo    String?
   usuario  String  @unique
   password String
   rol      Rol

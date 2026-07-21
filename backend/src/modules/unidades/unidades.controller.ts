@@ -13,6 +13,7 @@ import {
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '../../generated/prisma/enums';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
+import { QueryArbolUnidadesDto } from './dto/query-arbol-unidades.dto';
 import { QueryUnidadesDto } from './dto/query-unidades.dto';
 import { UpdateUnidadDto } from './dto/update-unidad.dto';
 import { UnidadesService } from './unidades.service';
@@ -35,6 +36,12 @@ export class UnidadesController {
   @Get()
   findAll(@Query() query: QueryUnidadesDto) {
     return this.unidadesService.findAll(query);
+  }
+
+  /** Arbol jerarquico completo de unidades (para la vista de arbol). */
+  @Get('arbol')
+  arbol(@Query() query: QueryArbolUnidadesDto) {
+    return this.unidadesService.arbol(query);
   }
 
   @Get(':id')

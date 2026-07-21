@@ -49,6 +49,7 @@ interface UsuarioFormDialogProps {
 
 const VALORES_INICIALES: UsuarioFormValues = {
   nombre: "",
+  cargo: "",
   usuario: "",
   password: "",
   rol: "solicitador",
@@ -98,6 +99,7 @@ export function UsuarioFormDialog({
       usuario
         ? {
             nombre: usuario.nombre,
+            cargo: usuario.cargo ?? "",
             usuario: usuario.usuario,
             password: "",
             rol: usuario.rol,
@@ -118,6 +120,7 @@ export function UsuarioFormDialog({
     // valores viejos de un rol elegido antes.
     const payload: CreateUsuarioPayload = {
       nombre: valores.nombre,
+      cargo: valores.cargo || null,
       usuario: valores.usuario,
       password: valores.password,
       rol: valores.rol,
@@ -199,7 +202,15 @@ export function UsuarioFormDialog({
               control={control}
               placeholder="Juan Pérez"
               disabled={guardando}
-              className="sm:col-span-2"
+            />
+
+            <InputField
+              name="cargo"
+              label="Cargo"
+              control={control}
+              placeholder="Jefe de Unidad"
+              disabled={guardando}
+              required={false}
             />
 
             {requiereUnidad(rol) && (

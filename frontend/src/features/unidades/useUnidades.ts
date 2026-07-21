@@ -11,12 +11,14 @@ import {
   crearUnidad,
   desactivarUnidad,
   listarUnidades,
+  obtenerArbolUnidades,
 } from "@/features/unidades/unidades.api"
 import { getApiErrorMessage } from "@/lib/api"
 
 import type {
   CreateUnidadPayload,
   QueryUnidades,
+  UnidadArbol,
   UpdateUnidadPayload,
 } from "@/features/unidades/unidades.types"
 
@@ -24,6 +26,8 @@ import type {
 export const unidadesKeys = {
   all: ["unidades"] as const,
   lista: (query: QueryUnidades) => ["unidades", "lista", query] as const,
+  arbol: (soloActivas?: boolean) => ["unidades", "arbol", soloActivas] as const,
+  selector: () => ["unidades", "selector"] as const,
 }
 
 export function useUnidades(query: QueryUnidades) {
@@ -32,6 +36,15 @@ export function useUnidades(query: QueryUnidades) {
     queryFn: () => listarUnidades(query),
     // Mantiene la pagina anterior visible mientras carga la nueva (sin parpadeo).
     placeholderData: keepPreviousData,
+  })
+}
+
+/** Arbol jerarquico completo de unidades (para la vista de arbol). */
+export function useArbolUnidades(soloActivas?: boolean) {
+  return useQuery({
+    queryKey: unidadesKeys.arbol(soloActivas),
+    queryFn: () => obtenerArbolUnidades({ soloActivas }),
+    staleTime: 5 * 60_000, // 5 min
   })
 }
 
@@ -46,6 +59,44 @@ export function useUnidadesActivas() {
     select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
   })
+}
+
+/** Unidades activas en formato plano con indentacion para el selector de padre. */
+export function useUnidadesParaSelector() {
+  return useQuery({
+    queryKey: unidadesKeys.selector(),
+    queryFn: async () => {
+      const arbol = await obtenerArbolUnidades({ soloActivas: true })
+      return aplanarArbolConIndentacion(arbol, 0)
+    },
+    staleTime: 5 * 60_000,
+  })
+}
+
+interface UnidadParaSelector {
+  id: number
+  nombre: string
+  sigla: string
+  /** Nombre con indentacion visual para mostrar la jerarquia. */
+  nombreIndentado: string
+}
+
+/** Aplana el arbol en una lista ordenada con indentacion visual. */
+function aplanarArbolConIndentacion(
+  nodos: UnidadArbol[],
+  nivel: number
+): UnidadParaSelector[] {
+  const resultado: UnidadParaSelector[] = []
+  for (const nodo of nodos) {
+    resultado.push({
+      id: nodo.id,
+      nombre: nodo.nombre,
+      sigla: nodo.sigla,
+      nombreIndentado: "—".repeat(nivel) + (nivel > 0 ? " " : "") + nodo.nombre,
+    })
+    resultado.push(...aplanarArbolConIndentacion(nodo.hijos, nivel + 1))
+  }
+  return resultado
 }
 
 /** Invalida TODO el arbol de unidades: cualquier filtro/pagina queda obsoleto. */

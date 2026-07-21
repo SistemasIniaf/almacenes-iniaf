@@ -31,6 +31,7 @@ const ROLES_UNICOS_POR_ALMACEN: Rol[] = [Rol.responsable_almacen, Rol.central];
 const usuarioSelect = {
   id: true,
   nombre: true,
+  cargo: true,
   usuario: true,
   rol: true,
   activo: true,
@@ -70,6 +71,7 @@ export class UsuariosService {
       const usuario = await tx.usuario.create({
         data: {
           nombre: dto.nombre,
+          cargo: dto.cargo ?? null,
           usuario: dto.usuario,
           password,
           rol: dto.rol,
@@ -173,6 +175,7 @@ export class UsuariosService {
         where: { id },
         data: {
           ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
+          ...(dto.cargo !== undefined ? { cargo: dto.cargo } : {}),
           ...(dto.usuario !== undefined ? { usuario: dto.usuario } : {}),
           ...(password ? { password } : {}),
           rol: rolFinal,

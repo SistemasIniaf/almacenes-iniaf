@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -23,4 +24,9 @@ export class UpdateUnidadDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  /** null = mover a raiz; number = cambiar padre. */
+  @IsOptional()
+  @IsInt({ message: 'El padre debe ser un id de unidad valido' })
+  padreId?: number | null;
 }

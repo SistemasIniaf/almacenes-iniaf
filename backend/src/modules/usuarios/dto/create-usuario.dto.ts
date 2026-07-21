@@ -22,6 +22,10 @@ export class CreateUsuarioDto {
   @IsNotEmpty({ message: 'El nombre es requerido' })
   nombre!: string;
 
+  @IsOptional()
+  @IsString()
+  cargo?: string;
+
   @IsString()
   @IsNotEmpty({ message: 'El usuario (username) es requerido' })
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })

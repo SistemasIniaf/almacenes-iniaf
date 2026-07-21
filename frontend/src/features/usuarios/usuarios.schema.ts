@@ -17,6 +17,7 @@ import {
  */
 const base = z.object({
   nombre: z.string().trim().min(1, "El nombre es requerido"),
+  cargo: z.string().trim(),
   usuario: z
     .string()
     .trim()

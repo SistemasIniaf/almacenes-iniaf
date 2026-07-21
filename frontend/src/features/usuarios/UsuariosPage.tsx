@@ -119,7 +119,7 @@ export function UsuariosPage() {
   }
 
   const usuarios = data?.data ?? []
-  const columnas = puedeEscribir ? 6 : 5
+  const columnas = puedeEscribir ? 7 : 6
 
   return (
     <div className="flex flex-col gap-4">
@@ -194,6 +194,7 @@ export function UsuariosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
+              <TableHead>Cargo</TableHead>
               <TableHead>Usuario</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Unidad / Almacén</TableHead>
@@ -247,6 +248,9 @@ export function UsuariosPage() {
                 <TableRow key={usuario.id}>
                   <TableCell className="font-medium">
                     {usuario.nombre}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {usuario.cargo || "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {usuario.usuario}

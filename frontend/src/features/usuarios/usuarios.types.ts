@@ -5,6 +5,7 @@ import type { PaginationQuery } from "@/lib/types"
 export interface Usuario {
   id: number
   nombre: string
+  cargo: string | null
   usuario: string
   rol: Rol
   activo: boolean
@@ -27,6 +28,7 @@ export interface QueryUsuarios extends PaginationQuery {
 
 export interface CreateUsuarioPayload {
   nombre: string
+  cargo?: string | null
   usuario: string
   password: string
   rol: Rol

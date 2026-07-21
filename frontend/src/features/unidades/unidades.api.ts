@@ -5,6 +5,7 @@ import type {
   CreateUnidadPayload,
   QueryUnidades,
   Unidad,
+  UnidadArbol,
   UpdateUnidadPayload,
 } from "@/features/unidades/unidades.types"
 
@@ -15,6 +16,14 @@ export async function listarUnidades(
     // axios omite los `undefined`, asi que los filtros vacios no viajan.
     params: query,
   })
+  return data
+}
+
+/** Arbol jerarquico completo de unidades. */
+export async function obtenerArbolUnidades(params?: {
+  soloActivas?: boolean
+}): Promise<UnidadArbol[]> {
+  const { data } = await api.get<UnidadArbol[]>("/unidades/arbol", { params })
   return data
 }
 

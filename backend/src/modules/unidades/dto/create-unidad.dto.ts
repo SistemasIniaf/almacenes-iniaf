@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -20,4 +21,9 @@ export class CreateUnidadDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  /** Id de la unidad padre. null/omitido = raiz (Oficina Inicial). */
+  @IsOptional()
+  @IsInt({ message: 'El padre debe ser un id de unidad valido' })
+  padreId?: number;
 }
