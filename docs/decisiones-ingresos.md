@@ -123,8 +123,8 @@ desaparecen por diseño:
 | Proceso Nº / C31 | **Sí** | |
 | Fuente de financiamiento | **Sí** | Selector |
 | Certificación | **Sí** | |
-| Informe y/o acta de conformidad | **Sí** ⟵ *confirmar* | Antes se llamaba «solicitud» |
-| Responsable | **Sí** | Ver punto 5 |
+| Informe y/o acta de conformidad | **Sí** | Antes se llamaba «solicitud» |
+| Responsable de conformidad | **Sí** | Usuario con rol `solicitador` — ver punto 5 |
 | Unidad solicitante | **Sí** | Solo para reportes; no afecta el stock |
 | Nº de factura | No | |
 | Observación | No | |
@@ -147,19 +147,17 @@ de factura útil.
 funcionarios**; se usaron 1.326 responsables distintos. No son usuarios del
 sistema.
 
-**✅ Decidido.** Sale de los **usuarios con rol `solicitador`**, porque todos los
-funcionarios van a tener ese rol. Así no hace falta un catálogo aparte de
-personal.
+**✅ Decidido.** Sale de los **usuarios con rol `solicitador`**, y **solo de
+ellos**, porque todos los funcionarios van a tener ese rol. Así no hace falta un
+catálogo aparte de personal.
 
-**⏳ Abierto.**
+Consecuencia asumida: los jefes de unidad (rol `aprobador`) y los responsables de
+almacén **no aparecen** en esa lista, porque un usuario tiene un solo rol. Si
+alguna vez el acta la firma un jefe de unidad, habrá que ampliar la lista a todos
+los usuarios activos — es un cambio de una línea, sin impacto en los datos.
 
-- **El nombre del campo.** «Responsable» se confunde con el rol
-  `responsable_almacen`. Propuesta: **«Responsable de conformidad»** o «Firma el
-  acta de conformidad».
-- **El alcance de la lista.** Un usuario tiene un solo rol, así que en esa lista
-  **no van a aparecer** los jefes de unidad (rol `aprobador`) ni los responsables
-  de almacén. Si el acta la puede firmar un jefe de unidad, la lista debería ser
-  «todos los usuarios activos».
+**Etiqueta en el formulario:** «Responsable de conformidad», para no confundirlo
+con el rol `responsable_almacen`.
 
 ---
 
@@ -273,10 +271,10 @@ calcula; no se agregan campos por las dudas.
 **✅ Decidido.** La hace el **`responsable_almacen`**, con motivo obligatorio.
 Nunca se borra el registro.
 
-**⏳ Abierto.** ¿Puede anular un ingreso del que **ya salió material**? Si el
-lote ya se usó para entregas, anularlo dejaría esas salidas apuntando a un lote
-inexistente. Propuesta: **bloquear la anulación si el lote tiene movimientos** y
-exigir que primero se anulen esos egresos.
+**✅ Decidido.** **No se puede anular un ingreso del que ya salió material.** Si
+alguno de sus lotes tiene movimientos, el sistema bloquea la anulación y hay que
+anular primero esos egresos. Así ninguna salida queda apuntando a un lote
+inexistente y el kardex no puede quedar inconsistente.
 
 ---
 
@@ -310,11 +308,16 @@ responsable pueda cambiarlo.
 
 ## Resumen de lo que falta para escribir el schema
 
-1. Si se puede anular un ingreso con movimientos (propuesta: no).
-2. Si el «responsable» son solo los solicitadores o todos los usuarios activos.
-3. Si el «informe y/o acta de conformidad» es obligatorio.
-4. La vía de carga inicial para el arranque.
-5. Campos del catálogo de fuentes de financiamiento.
+Queda **una sola cosa**, y va con el encargado junto al corte de gestión:
 
-Las 1 a 3 y la 5 se pueden decidir internamente; la 4 va con el encargado, junto
-al corte de gestión.
+- **La vía de carga inicial del arranque** (punto 13). Todos los campos
+  obligatorios sirven para una compra, pero los saldos que se traigan del sistema
+  anterior no tienen proveedor real, ni C31, ni certificación.
+
+Y un detalle menor que se puede asumir si nadie opina distinto: los **campos del
+catálogo de fuentes de financiamiento**. Propuesta: `nombre` (único), `codigo`
+(opcional, por si el área financiera maneja uno) y `activo`. Sin versionado por
+gestión: si una fuente deja de usarse se desactiva, y los lotes viejos la
+conservan.
+
+Con eso, **el módulo de ingresos está listo para escribir el schema.**
