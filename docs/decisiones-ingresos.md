@@ -36,8 +36,18 @@ consolidada, hay que elegir una fuente para poder ver el kardex.
 anterior). Es un **CRUD propio** y **una sola fuente por ingreso** (va en la
 cabecera, no por línea).
 
-**⏳ Abierto.** Qué campos lleva el catálogo además del nombre: ¿código?,
-¿vigencia por gestión?
+**✅ Decidido — el catálogo.** Campos:
+
+| Campo | Notas |
+|---|---|
+| `nombre` | Único. Ej. «Banco Mundial», «TGN Programa Trigo» |
+| `codigo` | Opcional, por si el área financiera maneja uno propio |
+| `activo` | Baja lógica |
+
+**Sin versionado por gestión**: si una fuente deja de usarse se desactiva, y los
+lotes viejos la conservan igual. Baja lógica siempre — una fuente va a estar
+referenciada por lotes históricos y borrarla rompería el kardex, igual que pasa
+con los proveedores.
 
 ---
 
@@ -314,10 +324,6 @@ Queda **una sola cosa**, y va con el encargado junto al corte de gestión:
   obligatorios sirven para una compra, pero los saldos que se traigan del sistema
   anterior no tienen proveedor real, ni C31, ni certificación.
 
-Y un detalle menor que se puede asumir si nadie opina distinto: los **campos del
-catálogo de fuentes de financiamiento**. Propuesta: `nombre` (único), `codigo`
-(opcional, por si el área financiera maneja uno) y `activo`. Sin versionado por
-gestión: si una fuente deja de usarse se desactiva, y los lotes viejos la
-conservan.
-
-Con eso, **el módulo de ingresos está listo para escribir el schema.**
+Todo lo demás está definido: **el módulo de ingresos está listo para escribir el
+schema.** Se puede avanzar con el CRUD de fuentes de financiamiento y con el
+ingreso completo; la carga inicial es una vía aparte que no bloquea nada de eso.
