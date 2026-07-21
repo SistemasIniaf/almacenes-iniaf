@@ -207,12 +207,18 @@ Filtra **solo por unidad**: ni gestión ni tipo. Consecuencias medidas:
 El número solo se imprime en el documento; no interviene en ningún cálculo.
 
 **✅ Decidido.** Reinicia **cada gestión y por almacén**, generado **dentro de la
-transacción** (imposible duplicar).
+transacción** (imposible duplicar). Formato visible: **`001/2026`** — correlativo
+con ceros a la izquierda hasta 3 dígitos, barra, gestión de 4 dígitos.
 
-**⏳ Abierto.** El formato visible, que va impreso en documentos: `001/2026`,
-`CENTRAL-2026-0001`, u otro. Ojo que ahora hay varios almacenes, así que el
-número solo no alcanza para identificar un ingreso: el «Nº 5» existiría en los
-10 almacenes.
+Dos precisiones que quedan asentadas acá:
+
+- **Si un almacén pasa de 999 ingresos en una gestión**, el número sigue creciendo
+  a 4 dígitos (`1000/2026`); no se trunca ni se reinicia. Hoy no debería pasar: el
+  almacén más movido del sistema anterior registró 468 ingresos en una gestión.
+- **El número se repite entre almacenes**: el `001/2026` del Almacén Central y el
+  del Almacén Regional son ingresos distintos. Es único por almacén + gestión. En
+  los documentos impresos conviene que el nombre del almacén figure en el
+  encabezado para que no haya ambigüedad.
 
 ---
 
@@ -304,12 +310,11 @@ responsable pueda cambiarlo.
 
 ## Resumen de lo que falta para escribir el schema
 
-1. Formato visible del número de ingreso.
-2. Si se puede anular un ingreso con movimientos (propuesta: no).
-3. Si el «responsable» son solo los solicitadores o todos los usuarios activos.
-4. Si el «informe y/o acta de conformidad» es obligatorio.
-5. La vía de carga inicial para el arranque.
-6. Campos del catálogo de fuentes de financiamiento.
+1. Si se puede anular un ingreso con movimientos (propuesta: no).
+2. Si el «responsable» son solo los solicitadores o todos los usuarios activos.
+3. Si el «informe y/o acta de conformidad» es obligatorio.
+4. La vía de carga inicial para el arranque.
+5. Campos del catálogo de fuentes de financiamiento.
 
-Las 1 a 4 se pueden decidir internamente; la 5 va con el encargado, junto al
-corte de gestión.
+Las 1 a 3 y la 5 se pueden decidir internamente; la 4 va con el encargado, junto
+al corte de gestión.
