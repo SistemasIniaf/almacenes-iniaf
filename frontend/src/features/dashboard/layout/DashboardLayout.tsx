@@ -25,6 +25,7 @@ const SECCIONES: Record<string, string> = {
   partidas: "Partidas",
   items: "Ítems",
   proveedores: "Proveedores",
+  "fuentes-financiamiento": "Fuentes de financiamiento",
 }
 
 export const DashboardLayout = () => {

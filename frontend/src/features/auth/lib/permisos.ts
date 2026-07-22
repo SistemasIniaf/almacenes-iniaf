@@ -18,6 +18,11 @@ export const PERMISOS = {
   proveedoresLeer: ["super_admin", "admin", "responsable_almacen"],
   proveedoresEscribir: ["super_admin", "admin"],
 
+  /** Fuentes de financiamiento: escritura super_admin/admin; el
+   * responsable_almacen solo lee (elige la fuente en la cabecera del ingreso). */
+  fuentesLeer: ["super_admin", "admin", "responsable_almacen"],
+  fuentesEscribir: ["super_admin", "admin"],
+
   usuariosLeer: ["super_admin", "admin"],
   usuariosEscribir: ["super_admin", "admin"],
 

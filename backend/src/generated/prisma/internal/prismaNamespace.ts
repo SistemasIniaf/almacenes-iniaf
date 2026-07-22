@@ -390,6 +390,7 @@ export const ModelName = {
   UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
   Partida: 'Partida',
   Proveedor: 'Proveedor',
+  FuenteFinanciamiento: 'FuenteFinanciamiento',
   Item: 'Item'
 } as const
 
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "item"
+    modelProps: "unidad" | "almacen" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -854,6 +855,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FuenteFinanciamiento: {
+      payload: Prisma.$FuenteFinanciamientoPayload<ExtArgs>
+      fields: Prisma.FuenteFinanciamientoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FuenteFinanciamientoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FuenteFinanciamientoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        findFirst: {
+          args: Prisma.FuenteFinanciamientoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FuenteFinanciamientoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        findMany: {
+          args: Prisma.FuenteFinanciamientoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>[]
+        }
+        create: {
+          args: Prisma.FuenteFinanciamientoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        createMany: {
+          args: Prisma.FuenteFinanciamientoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FuenteFinanciamientoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>[]
+        }
+        delete: {
+          args: Prisma.FuenteFinanciamientoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        update: {
+          args: Prisma.FuenteFinanciamientoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        deleteMany: {
+          args: Prisma.FuenteFinanciamientoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FuenteFinanciamientoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FuenteFinanciamientoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>[]
+        }
+        upsert: {
+          args: Prisma.FuenteFinanciamientoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FuenteFinanciamientoPayload>
+        }
+        aggregate: {
+          args: Prisma.FuenteFinanciamientoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFuenteFinanciamiento>
+        }
+        groupBy: {
+          args: Prisma.FuenteFinanciamientoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FuenteFinanciamientoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FuenteFinanciamientoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FuenteFinanciamientoCountAggregateOutputType> | number
+        }
+      }
+    }
     Item: {
       payload: Prisma.$ItemPayload<ExtArgs>
       fields: Prisma.ItemFieldRefs
@@ -1047,6 +1122,18 @@ export const ProveedorScalarFieldEnum = {
 } as const
 
 export type ProveedorScalarFieldEnum = (typeof ProveedorScalarFieldEnum)[keyof typeof ProveedorScalarFieldEnum]
+
+
+export const FuenteFinanciamientoScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  codigo: 'codigo',
+  activo: 'activo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FuenteFinanciamientoScalarFieldEnum = (typeof FuenteFinanciamientoScalarFieldEnum)[keyof typeof FuenteFinanciamientoScalarFieldEnum]
 
 
 export const ItemScalarFieldEnum = {
@@ -1286,6 +1373,7 @@ export type GlobalOmitConfig = {
   usuarioAlmacenObservado?: Prisma.UsuarioAlmacenObservadoOmit
   partida?: Prisma.PartidaOmit
   proveedor?: Prisma.ProveedorOmit
+  fuenteFinanciamiento?: Prisma.FuenteFinanciamientoOmit
   item?: Prisma.ItemOmit
 }
 

@@ -1,5 +1,6 @@
 import {
   Building2,
+  Landmark,
   LayoutDashboard,
   ListTree,
   Package,
@@ -82,6 +83,12 @@ const ITEMS: ItemMenu[] = [
     url: "/proveedores",
     icono: Truck,
     permiso: "proveedoresLeer",
+  },
+  {
+    titulo: "Fuentes de financiamiento",
+    url: "/fuentes-financiamiento",
+    icono: Landmark,
+    permiso: "fuentesLeer",
   },
 ]
 

@@ -4,6 +4,7 @@ import { LoginPage } from "@/features/auth/pages/LoginPage"
 import { DashboardLayout } from "@/features/dashboard/layout/DashboardLayout"
 import { DashboardHomePage } from "@/features/dashboard/pages/DashboardHomePage"
 import { AlmacenesPage } from "@/features/almacenes/AlmacenesPage"
+import { FuentesFinanciamientoPage } from "@/features/fuentes-financiamiento/FuentesFinanciamientoPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
           {
             path: "proveedores",
             element: <ProveedoresPage />,
+          },
+          {
+            path: "fuentes-financiamiento",
+            element: <FuentesFinanciamientoPage />,
           },
         ],
       },

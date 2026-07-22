@@ -57,6 +57,7 @@ export const ModelName = {
   UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
   Partida: 'Partida',
   Proveedor: 'Proveedor',
+  FuenteFinanciamiento: 'FuenteFinanciamiento',
   Item: 'Item'
 } as const
 
@@ -156,6 +157,18 @@ export const ProveedorScalarFieldEnum = {
 } as const
 
 export type ProveedorScalarFieldEnum = (typeof ProveedorScalarFieldEnum)[keyof typeof ProveedorScalarFieldEnum]
+
+
+export const FuenteFinanciamientoScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  codigo: 'codigo',
+  activo: 'activo',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FuenteFinanciamientoScalarFieldEnum = (typeof FuenteFinanciamientoScalarFieldEnum)[keyof typeof FuenteFinanciamientoScalarFieldEnum]
 
 
 export const ItemScalarFieldEnum = {

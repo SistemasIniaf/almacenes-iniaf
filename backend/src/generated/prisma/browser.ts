@@ -65,6 +65,16 @@ export type Partida = Prisma.PartidaModel
  */
 export type Proveedor = Prisma.ProveedorModel
 /**
+ * Model FuenteFinanciamiento
+ * Fuente de financiamiento del Ingreso (Recursos Especificos, Banco Mundial,
+ * COSUDE, DANIDA, programas TGN...). Va en la CABECERA del Ingreso: una sola
+ * fuente por ingreso. El stock se separa por fuente porque cada financiador
+ * exige rendir cuentas de SU plata (ver docs/decisiones-ingresos.md, punto 1).
+ * Baja logica siempre: quedara referenciada por lotes historicos y borrarla
+ * romperia el kardex, igual que pasa con Proveedor.
+ */
+export type FuenteFinanciamiento = Prisma.FuenteFinanciamientoModel
+/**
  * Model Item
  * Item real de almacen (catalogo compartido entre todos los almacenes).
  * codigo autogenerado al crear: {partida.codigo}-{correlativo padStart(6)} (ej. "39700-000001").
