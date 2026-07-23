@@ -218,6 +218,7 @@ export type AlmacenWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Almacen"> | Date | string
   usuarios?: Prisma.UsuarioListRelationFilter
   observadores?: Prisma.UsuarioAlmacenObservadoListRelationFilter
+  unidades?: Prisma.AlmacenUnidadListRelationFilter
 }
 
 export type AlmacenOrderByWithRelationInput = {
@@ -228,6 +229,7 @@ export type AlmacenOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   usuarios?: Prisma.UsuarioOrderByRelationAggregateInput
   observadores?: Prisma.UsuarioAlmacenObservadoOrderByRelationAggregateInput
+  unidades?: Prisma.AlmacenUnidadOrderByRelationAggregateInput
 }
 
 export type AlmacenWhereUniqueInput = Prisma.AtLeast<{
@@ -241,6 +243,7 @@ export type AlmacenWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Almacen"> | Date | string
   usuarios?: Prisma.UsuarioListRelationFilter
   observadores?: Prisma.UsuarioAlmacenObservadoListRelationFilter
+  unidades?: Prisma.AlmacenUnidadListRelationFilter
 }, "id" | "nombre">
 
 export type AlmacenOrderByWithAggregationInput = {
@@ -274,6 +277,7 @@ export type AlmacenCreateInput = {
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateInput = {
@@ -284,6 +288,7 @@ export type AlmacenUncheckedCreateInput = {
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUpdateInput = {
@@ -293,6 +298,7 @@ export type AlmacenUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateInput = {
@@ -303,6 +309,7 @@ export type AlmacenUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateManyInput = {
@@ -360,14 +367,28 @@ export type AlmacenSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type AlmacenScalarRelationFilter = {
+  is?: Prisma.AlmacenWhereInput
+  isNot?: Prisma.AlmacenWhereInput
+}
+
 export type AlmacenNullableScalarRelationFilter = {
   is?: Prisma.AlmacenWhereInput | null
   isNot?: Prisma.AlmacenWhereInput | null
 }
 
-export type AlmacenScalarRelationFilter = {
-  is?: Prisma.AlmacenWhereInput
-  isNot?: Prisma.AlmacenWhereInput
+export type AlmacenCreateNestedOneWithoutUnidadesInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutUnidadesInput, Prisma.AlmacenUncheckedCreateWithoutUnidadesInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutUnidadesInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+}
+
+export type AlmacenUpdateOneRequiredWithoutUnidadesNestedInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutUnidadesInput, Prisma.AlmacenUncheckedCreateWithoutUnidadesInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutUnidadesInput
+  upsert?: Prisma.AlmacenUpsertWithoutUnidadesInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutUnidadesInput, Prisma.AlmacenUpdateWithoutUnidadesInput>, Prisma.AlmacenUncheckedUpdateWithoutUnidadesInput>
 }
 
 export type AlmacenCreateNestedOneWithoutUsuariosInput = {
@@ -400,12 +421,67 @@ export type AlmacenUpdateOneRequiredWithoutObservadoresNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutObservadoresInput, Prisma.AlmacenUpdateWithoutObservadoresInput>, Prisma.AlmacenUncheckedUpdateWithoutObservadoresInput>
 }
 
+export type AlmacenCreateWithoutUnidadesInput = {
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
+}
+
+export type AlmacenUncheckedCreateWithoutUnidadesInput = {
+  id?: number
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
+}
+
+export type AlmacenCreateOrConnectWithoutUnidadesInput = {
+  where: Prisma.AlmacenWhereUniqueInput
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutUnidadesInput, Prisma.AlmacenUncheckedCreateWithoutUnidadesInput>
+}
+
+export type AlmacenUpsertWithoutUnidadesInput = {
+  update: Prisma.XOR<Prisma.AlmacenUpdateWithoutUnidadesInput, Prisma.AlmacenUncheckedUpdateWithoutUnidadesInput>
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutUnidadesInput, Prisma.AlmacenUncheckedCreateWithoutUnidadesInput>
+  where?: Prisma.AlmacenWhereInput
+}
+
+export type AlmacenUpdateToOneWithWhereWithoutUnidadesInput = {
+  where?: Prisma.AlmacenWhereInput
+  data: Prisma.XOR<Prisma.AlmacenUpdateWithoutUnidadesInput, Prisma.AlmacenUncheckedUpdateWithoutUnidadesInput>
+}
+
+export type AlmacenUpdateWithoutUnidadesInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
+}
+
+export type AlmacenUncheckedUpdateWithoutUnidadesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
+}
+
 export type AlmacenCreateWithoutUsuariosInput = {
   nombre: string
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutUsuariosInput = {
@@ -415,6 +491,7 @@ export type AlmacenUncheckedCreateWithoutUsuariosInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutUsuariosInput = {
@@ -439,6 +516,7 @@ export type AlmacenUpdateWithoutUsuariosInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutUsuariosInput = {
@@ -448,6 +526,7 @@ export type AlmacenUncheckedUpdateWithoutUsuariosInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutObservadoresInput = {
@@ -456,6 +535,7 @@ export type AlmacenCreateWithoutObservadoresInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutObservadoresInput = {
@@ -465,6 +545,7 @@ export type AlmacenUncheckedCreateWithoutObservadoresInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutObservadoresInput = {
@@ -489,6 +570,7 @@ export type AlmacenUpdateWithoutObservadoresInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
@@ -498,6 +580,7 @@ export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 
@@ -508,11 +591,13 @@ export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
 export type AlmacenCountOutputType = {
   usuarios: number
   observadores: number
+  unidades: number
 }
 
 export type AlmacenCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   usuarios?: boolean | AlmacenCountOutputTypeCountUsuariosArgs
   observadores?: boolean | AlmacenCountOutputTypeCountObservadoresArgs
+  unidades?: boolean | AlmacenCountOutputTypeCountUnidadesArgs
 }
 
 /**
@@ -539,6 +624,13 @@ export type AlmacenCountOutputTypeCountObservadoresArgs<ExtArgs extends runtime.
   where?: Prisma.UsuarioAlmacenObservadoWhereInput
 }
 
+/**
+ * AlmacenCountOutputType without action
+ */
+export type AlmacenCountOutputTypeCountUnidadesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AlmacenUnidadWhereInput
+}
+
 
 export type AlmacenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -548,6 +640,7 @@ export type AlmacenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   usuarios?: boolean | Prisma.Almacen$usuariosArgs<ExtArgs>
   observadores?: boolean | Prisma.Almacen$observadoresArgs<ExtArgs>
+  unidades?: boolean | Prisma.Almacen$unidadesArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["almacen"]>
 
@@ -579,6 +672,7 @@ export type AlmacenOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type AlmacenInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   usuarios?: boolean | Prisma.Almacen$usuariosArgs<ExtArgs>
   observadores?: boolean | Prisma.Almacen$observadoresArgs<ExtArgs>
+  unidades?: boolean | Prisma.Almacen$unidadesArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AlmacenIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -589,6 +683,7 @@ export type $AlmacenPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     usuarios: Prisma.$UsuarioPayload<ExtArgs>[]
     observadores: Prisma.$UsuarioAlmacenObservadoPayload<ExtArgs>[]
+    unidades: Prisma.$AlmacenUnidadPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -992,6 +1087,7 @@ export interface Prisma__AlmacenClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   usuarios<T extends Prisma.Almacen$usuariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$usuariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   observadores<T extends Prisma.Almacen$observadoresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$observadoresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsuarioAlmacenObservadoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  unidades<T extends Prisma.Almacen$unidadesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$unidadesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlmacenUnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1464,6 +1560,30 @@ export type Almacen$observadoresArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.UsuarioAlmacenObservadoScalarFieldEnum | Prisma.UsuarioAlmacenObservadoScalarFieldEnum[]
+}
+
+/**
+ * Almacen.unidades
+ */
+export type Almacen$unidadesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AlmacenUnidad
+   */
+  select?: Prisma.AlmacenUnidadSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AlmacenUnidad
+   */
+  omit?: Prisma.AlmacenUnidadOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AlmacenUnidadInclude<ExtArgs> | null
+  where?: Prisma.AlmacenUnidadWhereInput
+  orderBy?: Prisma.AlmacenUnidadOrderByWithRelationInput | Prisma.AlmacenUnidadOrderByWithRelationInput[]
+  cursor?: Prisma.AlmacenUnidadWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AlmacenUnidadScalarFieldEnum | Prisma.AlmacenUnidadScalarFieldEnum[]
 }
 
 /**

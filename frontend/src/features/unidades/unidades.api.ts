@@ -27,6 +27,12 @@ export async function obtenerArbolUnidades(params?: {
   return data
 }
 
+/** Grupos existentes (distinct), para el selector al crear una unidad raíz. */
+export async function obtenerGruposUnidades(): Promise<string[]> {
+  const { data } = await api.get<string[]>("/unidades/grupos")
+  return data
+}
+
 export async function obtenerUnidad(id: number): Promise<Unidad> {
   const { data } = await api.get<Unidad>(`/unidades/${id}`)
   return data

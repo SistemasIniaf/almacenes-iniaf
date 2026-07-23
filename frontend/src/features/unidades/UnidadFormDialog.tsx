@@ -16,14 +16,18 @@ import { FieldGroup } from "@/components/ui/field"
 import { CheckboxField } from "@/components/form/CheckboxField"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { InputField } from "@/components/form/InputField"
+import { SelectField } from "@/components/form/SelectField"
 import {
+  NUEVO_GRUPO,
   padreIdToForm,
   padreIdToPayload,
+  resolverGrupo,
   unidadSchema,
 } from "@/features/unidades/unidades.schema"
 import {
   useActualizarUnidad,
   useCrearUnidad,
+  useGruposUnidades,
   useUnidadesParaSelector,
 } from "@/features/unidades/useUnidades"
 
@@ -42,6 +46,8 @@ const VALORES_INICIALES: UnidadFormValues = {
   sigla: "",
   activo: true,
   padreId: "",
+  grupo: "",
+  grupoNuevo: "",
 }
 
 export function UnidadFormDialog({
@@ -56,14 +62,23 @@ export function UnidadFormDialog({
 
   const { data: unidadesParaSelector = [], isLoading: cargandoUnidades } =
     useUnidadesParaSelector()
+  const { data: grupos = [] } = useGruposUnidades()
 
   const { control, handleSubmit, reset, watch, setValue } =
     useForm<UnidadFormValues>({
-      resolver: zodResolver(unidadSchema),
+      resolver: zodResolver(unidadSchema(esEdicion)),
       defaultValues: VALORES_INICIALES,
     })
 
   const padreIdSeleccionado = watch("padreId")
+  const grupoSeleccionado = watch("grupo")
+  const esRaiz = padreIdSeleccionado === ""
+
+  // Opciones del select de grupo: los existentes + "crear uno nuevo".
+  const opcionesGrupo = [
+    ...grupos.map((g) => ({ value: g, label: g })),
+    { value: NUEVO_GRUPO, label: "➕ Nuevo grupo…" },
+  ]
 
   // El dialogo se monta una sola vez: hay que recargar el formulario cada vez
   // que se abre, si no queda con los datos de la unidad editada anteriormente.
@@ -76,6 +91,8 @@ export function UnidadFormDialog({
             sigla: unidad.sigla,
             activo: unidad.activo,
             padreId: padreIdToForm(unidad.padreId),
+            grupo: unidad.grupo ?? "",
+            grupoNuevo: "",
           }
         : VALORES_INICIALES
     )
@@ -115,7 +132,7 @@ export function UnidadFormDialog({
 
   async function onSubmit(values: UnidadFormValues) {
     try {
-      const payload = {
+      const base = {
         nombre: values.nombre,
         sigla: values.sigla,
         activo: values.activo,
@@ -123,9 +140,13 @@ export function UnidadFormDialog({
       }
 
       if (esEdicion) {
-        await actualizar.mutateAsync({ id: unidad.id, ...payload })
+        // El grupo no se cambia en edición.
+        await actualizar.mutateAsync({ id: unidad.id, ...base })
       } else {
-        await crear.mutateAsync(payload)
+        // Solo la raíz manda grupo; el hijo lo hereda del padre en el backend.
+        await crear.mutateAsync(
+          esRaiz ? { ...base, grupo: resolverGrupo(values) } : base
+        )
       }
       onOpenChange(false)
     } catch {
@@ -158,6 +179,47 @@ export function UnidadFormDialog({
               disabled={guardando || cargandoUnidades}
               required={false}
             />
+
+            {/* Grupo: solo la raíz lo elige; el hijo lo hereda; en edición no cambia. */}
+            {!esEdicion && esRaiz && (
+              <>
+                <SelectField
+                  name="grupo"
+                  label="Grupo"
+                  control={control}
+                  options={opcionesGrupo}
+                  placeholder="Elegí un grupo"
+                  disabled={guardando}
+                  description="Categoría de la unidad. Las unidades hijas heredan este grupo."
+                />
+                {grupoSeleccionado === NUEVO_GRUPO && (
+                  <InputField
+                    name="grupoNuevo"
+                    label="Nombre del grupo nuevo"
+                    control={control}
+                    placeholder="MOF"
+                    disabled={guardando}
+                    mayusculas
+                  />
+                )}
+              </>
+            )}
+
+            {!esEdicion && !esRaiz && (
+              <p className="text-sm text-muted-foreground">
+                Hereda el grupo de su unidad padre.
+              </p>
+            )}
+
+            {esEdicion && unidad?.grupo && (
+              <p className="text-sm text-muted-foreground">
+                Grupo:{" "}
+                <span className="font-medium text-foreground">
+                  {unidad.grupo}
+                </span>{" "}
+                (no se cambia al editar)
+              </p>
+            )}
 
             <InputField
               name="nombre"

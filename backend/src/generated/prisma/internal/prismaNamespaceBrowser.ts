@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Unidad: 'Unidad',
   Almacen: 'Almacen',
+  AlmacenUnidad: 'AlmacenUnidad',
   Usuario: 'Usuario',
   UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
   Partida: 'Partida',
@@ -82,6 +83,7 @@ export const UnidadScalarFieldEnum = {
   nombre: 'nombre',
   sigla: 'sigla',
   activo: 'activo',
+  grupo: 'grupo',
   padreId: 'padreId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -99,6 +101,14 @@ export const AlmacenScalarFieldEnum = {
 } as const
 
 export type AlmacenScalarFieldEnum = (typeof AlmacenScalarFieldEnum)[keyof typeof AlmacenScalarFieldEnum]
+
+
+export const AlmacenUnidadScalarFieldEnum = {
+  almacenId: 'almacenId',
+  unidadId: 'unidadId'
+} as const
+
+export type AlmacenUnidadScalarFieldEnum = (typeof AlmacenUnidadScalarFieldEnum)[keyof typeof AlmacenUnidadScalarFieldEnum]
 
 
 export const UsuarioScalarFieldEnum = {

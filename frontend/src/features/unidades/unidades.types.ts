@@ -5,6 +5,8 @@ export interface Unidad {
   nombre: string
   sigla: string
   activo: boolean
+  /** Grupo (MOF, OTROS...). Lo elige la raíz; los hijos lo heredan. */
+  grupo: string | null
   padreId: number | null
   padre?: Unidad
   createdAt: string
@@ -24,6 +26,8 @@ export interface QueryUnidades extends PaginationQuery {
 export interface CreateUnidadPayload {
   nombre: string
   sigla: string
+  /** Requerido al crear una raíz; en un hijo se omite (hereda el del padre). */
+  grupo?: string
   activo?: boolean
   padreId?: number | null
 }

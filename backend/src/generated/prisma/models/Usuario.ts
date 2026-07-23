@@ -609,10 +609,6 @@ export type UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput = {
   deleteMany?: Prisma.UsuarioScalarWhereInput | Prisma.UsuarioScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type EnumRolFieldUpdateOperationsInput = {
   set?: $Enums.Rol
 }

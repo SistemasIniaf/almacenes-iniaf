@@ -18,6 +18,15 @@ export class CreateUnidadDto {
   @MaxLength(20)
   sigla!: string;
 
+  /**
+   * Grupo (MOF, OTROS...). Obligatorio para una unidad RAIZ; en un hijo se
+   * ignora (hereda el del padre). Lo valida el service. Se guarda en MAYUSCULAS.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  grupo?: string;
+
   @IsOptional()
   @IsBoolean()
   activo?: boolean;

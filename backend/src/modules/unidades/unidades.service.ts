@@ -24,28 +24,46 @@ export class UnidadesService {
   async create(dto: CreateUnidadDto) {
     await this.validarUnicidad(dto.nombre, dto.sigla);
 
-    // Validar que el padre existe (si se especifica).
+    // El grupo lo elige la RAIZ; el hijo lo hereda del padre.
+    let grupo: string;
     if (dto.padreId !== undefined && dto.padreId !== null) {
       const padre = await this.prisma.unidad.findUnique({
         where: { id: dto.padreId },
-        select: { id: true },
+        select: { id: true, grupo: true },
       });
       if (!padre) {
         throw new BadRequestException(
           `No existe la unidad padre con id ${dto.padreId}`,
         );
       }
+      grupo = padre.grupo ?? this.normalizarGrupo(dto.grupo);
+    } else {
+      grupo = this.normalizarGrupo(dto.grupo);
     }
 
     return this.prisma.unidad.create({
       data: {
         nombre: dto.nombre,
         sigla: dto.sigla,
+        grupo,
         activo: dto.activo ?? true,
         padreId: dto.padreId ?? null,
       },
       include: { padre: true },
     });
+  }
+
+  /** Grupos existentes (distinct), para el selector al crear una unidad raiz. */
+  async grupos(): Promise<string[]> {
+    const filas = await this.prisma.unidad.findMany({
+      where: { grupo: { not: null } },
+      distinct: ['grupo'],
+      select: { grupo: true },
+      orderBy: { grupo: 'asc' },
+    });
+    return filas
+      .map((f) => f.grupo)
+      .filter((g): g is string => g != null && g !== '');
   }
 
   async findAll(query: QueryUnidadesDto) {
@@ -207,6 +225,17 @@ export class UnidadesService {
     }
 
     return this.findOne(id);
+  }
+
+  /** Normaliza el grupo a MAYUSCULAS y exige que venga (para unidades raiz). */
+  private normalizarGrupo(grupo?: string): string {
+    const limpio = grupo?.trim().toUpperCase();
+    if (!limpio) {
+      throw new BadRequestException(
+        'El grupo es requerido para una unidad de primer nivel',
+      );
+    }
+    return limpio;
   }
 
   /** Valida unicidad de nombre y sigla (excluyendo el propio id en updates). */

@@ -7,7 +7,10 @@ import { z } from "zod"
  * Nota: `padreId` se maneja como string en el formulario (para el SelectField)
  * y se convierte a number | null al armar el payload.
  */
-export const unidadSchema = z.object({
+/** Valor centinela del select "Grupo" para crear uno nuevo. */
+export const NUEVO_GRUPO = "__nuevo__"
+
+const base = z.object({
   nombre: z
     .string()
     .trim()
@@ -21,9 +24,48 @@ export const unidadSchema = z.object({
   activo: z.boolean(),
   /** "" = raiz (Oficina Inicial); string numerico = id del padre. */
   padreId: z.string(),
+  /** Grupo elegido en el select (un grupo existente o `NUEVO_GRUPO`). */
+  grupo: z.string(),
+  /** Nombre del grupo nuevo (solo si grupo === NUEVO_GRUPO). */
+  grupoNuevo: z
+    .string()
+    .trim()
+    .max(50, "El grupo no puede superar los 50 caracteres"),
 })
 
-export type UnidadFormValues = z.infer<typeof unidadSchema>
+export type UnidadFormValues = z.infer<typeof base>
+
+/** Grupo final: el del select, o el escrito si se eligió "nuevo". */
+export function resolverGrupo(valores: UnidadFormValues): string {
+  return valores.grupo === NUEVO_GRUPO
+    ? valores.grupoNuevo.trim()
+    : valores.grupo
+}
+
+/**
+ * El grupo es obligatorio solo al CREAR una unidad raíz (sin padre). En un hijo
+ * lo hereda del padre, y en edición no se cambia, por eso es una función.
+ */
+export function unidadSchema(esEdicion: boolean) {
+  return base.superRefine((valores, ctx) => {
+    // El grupo solo importa al crear una unidad raíz.
+    if (esEdicion || valores.padreId !== "") return
+
+    if (!valores.grupo) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["grupo"],
+        message: "Elegí un grupo",
+      })
+    } else if (valores.grupo === NUEVO_GRUPO && !valores.grupoNuevo.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["grupoNuevo"],
+        message: "Escribí el nombre del grupo nuevo",
+      })
+    }
+  })
+}
 
 /** Convierte el padreId de string a number | null para el payload del backend. */
 export function padreIdToPayload(padreId: string): number | null {

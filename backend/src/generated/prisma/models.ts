@@ -10,6 +10,7 @@
  */
 export type * from './models/Unidad.js'
 export type * from './models/Almacen.js'
+export type * from './models/AlmacenUnidad.js'
 export type * from './models/Usuario.js'
 export type * from './models/UsuarioAlmacenObservado.js'
 export type * from './models/Partida.js'

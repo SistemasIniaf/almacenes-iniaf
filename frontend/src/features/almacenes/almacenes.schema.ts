@@ -12,6 +12,8 @@ export const almacenSchema = z.object({
     .min(1, "El nombre es requerido")
     .max(150, "El nombre no puede superar los 150 caracteres"),
   activo: z.boolean(),
+  /** Ids de las unidades que muestra el almacén (catálogo compartido). */
+  unidadIds: z.array(z.number()),
 })
 
 export type AlmacenFormValues = z.infer<typeof almacenSchema>

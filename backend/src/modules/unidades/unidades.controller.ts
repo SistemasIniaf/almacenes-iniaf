@@ -44,6 +44,12 @@ export class UnidadesController {
     return this.unidadesService.arbol(query);
   }
 
+  /** Grupos existentes (distinct), para el selector al crear una unidad raiz. */
+  @Get('grupos')
+  grupos() {
+    return this.unidadesService.grupos();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.unidadesService.findOne(id);

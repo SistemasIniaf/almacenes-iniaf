@@ -19,11 +19,16 @@ import { Rol } from '../src/generated/prisma/enums';
 
 const PASSWORD = process.env.SEED_DEV_PASSWORD ?? 'password123';
 
+// Catalogo compartido de unidades (globales). Cada una lleva su grupo (MOF, OTROS).
 const unidades = [
-  { nombre: 'Unidad de Planificación', sigla: 'UP' },
-  { nombre: 'Unidad Administrativa Financiera', sigla: 'UAF' },
-  { nombre: 'Unidad de Recursos Humanos', sigla: 'URH' },
-  { nombre: 'Unidad Jurídica', sigla: 'UJ' },
+  { nombre: 'Unidad de Planificación', sigla: 'UP', grupo: 'MOF' },
+  { nombre: 'Unidad Administrativa Financiera', sigla: 'UAF', grupo: 'MOF' },
+  { nombre: 'Unidad de Recursos Humanos', sigla: 'URH', grupo: 'MOF' },
+  { nombre: 'Unidad Jurídica', sigla: 'UJ', grupo: 'MOF' },
+  // Rubros departamentales (grupo OTROS; se reusan en cada almacen via M2M).
+  { nombre: 'Adm. y Finanzas', sigla: 'DEP-AF', grupo: 'OTROS' },
+  { nombre: 'Departamental', sigla: 'DEP', grupo: 'OTROS' },
+  { nombre: 'Semillas', sigla: 'DEP-SEM', grupo: 'OTROS' },
 ];
 
 const almacenes = [
@@ -32,6 +37,14 @@ const almacenes = [
   { nombre: 'Almacén de Materiales' },
   { nombre: 'Almacén Regional' },
 ];
+
+// Qué unidades muestra cada almacen (M2M). El mismo rubro puede repetirse entre
+// almacenes: acá "Almacén Central" hace de Nacional y "Almacén Regional" de
+// departamental (comparte los rubros DEP-*).
+const enlacesAlmacenUnidad: Record<string, string[]> = {
+  'Almacén Central': ['UP', 'UAF', 'URH', 'UJ'],
+  'Almacén Regional': ['DEP-AF', 'DEP', 'DEP-SEM'],
+};
 
 interface UsuarioDev {
   usuario: string;
@@ -192,8 +205,8 @@ async function main() {
   for (const u of unidades) {
     const row = await prisma.unidad.upsert({
       where: { nombre: u.nombre },
-      create: { nombre: u.nombre, sigla: u.sigla },
-      update: { sigla: u.sigla, activo: true },
+      create: { nombre: u.nombre, sigla: u.sigla, grupo: u.grupo },
+      update: { sigla: u.sigla, grupo: u.grupo, activo: true },
       select: { id: true },
     });
     unidadPorSigla.set(u.sigla, row.id);
@@ -208,6 +221,21 @@ async function main() {
       select: { id: true },
     });
     almacenPorNombre.set(a.nombre, row.id);
+  }
+
+  // Enlaces M2M almacen <-> unidad (reemplaza el conjunto de cada almacen).
+  for (const [nombreAlmacen, siglas] of Object.entries(enlacesAlmacenUnidad)) {
+    const almacenId = almacenPorNombre.get(nombreAlmacen);
+    if (almacenId == null) continue;
+    await prisma.almacenUnidad.deleteMany({ where: { almacenId } });
+    const unidadIds = siglas
+      .map((s) => unidadPorSigla.get(s))
+      .filter((id): id is number => id != null);
+    if (unidadIds.length > 0) {
+      await prisma.almacenUnidad.createMany({
+        data: unidadIds.map((unidadId) => ({ almacenId, unidadId })),
+      });
+    }
   }
 
   // Usuarios (upsert por username). Reconciliar almacenes observados.

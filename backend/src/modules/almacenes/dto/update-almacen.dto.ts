@@ -1,5 +1,8 @@
 import {
+  ArrayUnique,
+  IsArray,
   IsBoolean,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -17,4 +20,11 @@ export class UpdateAlmacenDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  /** Reemplaza el conjunto de unidades del almacén (si se envía). */
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true, message: 'Cada unidad debe ser un id valido' })
+  unidadIds?: number[];
 }

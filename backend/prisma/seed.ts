@@ -6,6 +6,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaClient } from '../src/generated/prisma/client';
+import { UNIDADES_INIAF } from './data/unidades-iniaf';
 
 /**
  * Seed del Clasificador por Objeto del Gasto (Partidas).
@@ -161,8 +162,42 @@ async function sembrarSuperAdmin() {
   console.log(`✅ super_admin inicial creado (usuario: "${username}").`);
 }
 
+/**
+ * Organigrama real del INIAF (grupo MOF). Idempotente (upsert por sigla). Dos
+ * pasadas: primero crea/actualiza todas, despues resuelve el padre por sigla,
+ * asi el orden del array no importa.
+ */
+async function sembrarUnidades() {
+  // Paso 1: crear/actualizar todas (grupo MOF), sin padre todavia.
+  for (const u of UNIDADES_INIAF) {
+    await prisma.unidad.upsert({
+      where: { sigla: u.sigla },
+      create: { nombre: u.nombre, sigla: u.sigla, grupo: 'MOF' },
+      update: { nombre: u.nombre, grupo: 'MOF', activo: true },
+    });
+  }
+
+  // Paso 2: resolver el padre por sigla.
+  const filas = await prisma.unidad.findMany({
+    select: { id: true, sigla: true },
+  });
+  const idPorSigla = new Map(filas.map((f) => [f.sigla, f.id]));
+
+  for (const u of UNIDADES_INIAF) {
+    await prisma.unidad.update({
+      where: { sigla: u.sigla },
+      data: { padreId: u.padre ? (idPorSigla.get(u.padre) ?? null) : null },
+    });
+  }
+
+  console.log(
+    `✅ ${UNIDADES_INIAF.length} unidades del organigrama (grupo MOF) sembradas.`,
+  );
+}
+
 async function main() {
   await sembrarSuperAdmin();
+  await sembrarUnidades();
 
   if (!existsSync(CSV_PATH)) {
     throw new Error(

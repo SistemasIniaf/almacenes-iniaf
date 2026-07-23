@@ -12,6 +12,7 @@ import {
   desactivarUnidad,
   listarUnidades,
   obtenerArbolUnidades,
+  obtenerGruposUnidades,
 } from "@/features/unidades/unidades.api"
 import { getApiErrorMessage } from "@/lib/api"
 
@@ -45,6 +46,15 @@ export function useArbolUnidades(soloActivas?: boolean) {
     queryKey: unidadesKeys.arbol(soloActivas),
     queryFn: () => obtenerArbolUnidades({ soloActivas }),
     staleTime: 5 * 60_000, // 5 min
+  })
+}
+
+/** Grupos existentes (MOF, OTROS...), para el selector al crear una unidad raíz. */
+export function useGruposUnidades() {
+  return useQuery({
+    queryKey: ["unidades", "grupos"],
+    queryFn: obtenerGruposUnidades,
+    staleTime: 5 * 60_000,
   })
 }
 

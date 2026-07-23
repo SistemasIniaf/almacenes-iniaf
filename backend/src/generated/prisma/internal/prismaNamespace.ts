@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Unidad: 'Unidad',
   Almacen: 'Almacen',
+  AlmacenUnidad: 'AlmacenUnidad',
   Usuario: 'Usuario',
   UsuarioAlmacenObservado: 'UsuarioAlmacenObservado',
   Partida: 'Partida',
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -556,6 +557,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AlmacenCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AlmacenCountAggregateOutputType> | number
+        }
+      }
+    }
+    AlmacenUnidad: {
+      payload: Prisma.$AlmacenUnidadPayload<ExtArgs>
+      fields: Prisma.AlmacenUnidadFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AlmacenUnidadFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AlmacenUnidadFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        findFirst: {
+          args: Prisma.AlmacenUnidadFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AlmacenUnidadFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        findMany: {
+          args: Prisma.AlmacenUnidadFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>[]
+        }
+        create: {
+          args: Prisma.AlmacenUnidadCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        createMany: {
+          args: Prisma.AlmacenUnidadCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AlmacenUnidadCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>[]
+        }
+        delete: {
+          args: Prisma.AlmacenUnidadDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        update: {
+          args: Prisma.AlmacenUnidadUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        deleteMany: {
+          args: Prisma.AlmacenUnidadDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AlmacenUnidadUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AlmacenUnidadUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>[]
+        }
+        upsert: {
+          args: Prisma.AlmacenUnidadUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlmacenUnidadPayload>
+        }
+        aggregate: {
+          args: Prisma.AlmacenUnidadAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlmacenUnidad>
+        }
+        groupBy: {
+          args: Prisma.AlmacenUnidadGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlmacenUnidadGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AlmacenUnidadCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlmacenUnidadCountAggregateOutputType> | number
         }
       }
     }
@@ -1047,6 +1122,7 @@ export const UnidadScalarFieldEnum = {
   nombre: 'nombre',
   sigla: 'sigla',
   activo: 'activo',
+  grupo: 'grupo',
   padreId: 'padreId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1064,6 +1140,14 @@ export const AlmacenScalarFieldEnum = {
 } as const
 
 export type AlmacenScalarFieldEnum = (typeof AlmacenScalarFieldEnum)[keyof typeof AlmacenScalarFieldEnum]
+
+
+export const AlmacenUnidadScalarFieldEnum = {
+  almacenId: 'almacenId',
+  unidadId: 'unidadId'
+} as const
+
+export type AlmacenUnidadScalarFieldEnum = (typeof AlmacenUnidadScalarFieldEnum)[keyof typeof AlmacenUnidadScalarFieldEnum]
 
 
 export const UsuarioScalarFieldEnum = {
@@ -1369,6 +1453,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   unidad?: Prisma.UnidadOmit
   almacen?: Prisma.AlmacenOmit
+  almacenUnidad?: Prisma.AlmacenUnidadOmit
   usuario?: Prisma.UsuarioOmit
   usuarioAlmacenObservado?: Prisma.UsuarioAlmacenObservadoOmit
   partida?: Prisma.PartidaOmit

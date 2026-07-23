@@ -43,6 +43,7 @@ export type UnidadMinAggregateOutputType = {
   nombre: string | null
   sigla: string | null
   activo: boolean | null
+  grupo: string | null
   padreId: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -53,6 +54,7 @@ export type UnidadMaxAggregateOutputType = {
   nombre: string | null
   sigla: string | null
   activo: boolean | null
+  grupo: string | null
   padreId: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -63,6 +65,7 @@ export type UnidadCountAggregateOutputType = {
   nombre: number
   sigla: number
   activo: number
+  grupo: number
   padreId: number
   createdAt: number
   updatedAt: number
@@ -85,6 +88,7 @@ export type UnidadMinAggregateInputType = {
   nombre?: true
   sigla?: true
   activo?: true
+  grupo?: true
   padreId?: true
   createdAt?: true
   updatedAt?: true
@@ -95,6 +99,7 @@ export type UnidadMaxAggregateInputType = {
   nombre?: true
   sigla?: true
   activo?: true
+  grupo?: true
   padreId?: true
   createdAt?: true
   updatedAt?: true
@@ -105,6 +110,7 @@ export type UnidadCountAggregateInputType = {
   nombre?: true
   sigla?: true
   activo?: true
+  grupo?: true
   padreId?: true
   createdAt?: true
   updatedAt?: true
@@ -202,6 +208,7 @@ export type UnidadGroupByOutputType = {
   nombre: string
   sigla: string
   activo: boolean
+  grupo: string | null
   padreId: number | null
   createdAt: Date
   updatedAt: Date
@@ -235,12 +242,14 @@ export type UnidadWhereInput = {
   nombre?: Prisma.StringFilter<"Unidad"> | string
   sigla?: Prisma.StringFilter<"Unidad"> | string
   activo?: Prisma.BoolFilter<"Unidad"> | boolean
+  grupo?: Prisma.StringNullableFilter<"Unidad"> | string | null
   padreId?: Prisma.IntNullableFilter<"Unidad"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
   padre?: Prisma.XOR<Prisma.UnidadNullableScalarRelationFilter, Prisma.UnidadWhereInput> | null
   hijos?: Prisma.UnidadListRelationFilter
   usuarios?: Prisma.UsuarioListRelationFilter
+  almacenes?: Prisma.AlmacenUnidadListRelationFilter
 }
 
 export type UnidadOrderByWithRelationInput = {
@@ -248,12 +257,14 @@ export type UnidadOrderByWithRelationInput = {
   nombre?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  grupo?: Prisma.SortOrderInput | Prisma.SortOrder
   padreId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   padre?: Prisma.UnidadOrderByWithRelationInput
   hijos?: Prisma.UnidadOrderByRelationAggregateInput
   usuarios?: Prisma.UsuarioOrderByRelationAggregateInput
+  almacenes?: Prisma.AlmacenUnidadOrderByRelationAggregateInput
 }
 
 export type UnidadWhereUniqueInput = Prisma.AtLeast<{
@@ -264,12 +275,14 @@ export type UnidadWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UnidadWhereInput[]
   NOT?: Prisma.UnidadWhereInput | Prisma.UnidadWhereInput[]
   activo?: Prisma.BoolFilter<"Unidad"> | boolean
+  grupo?: Prisma.StringNullableFilter<"Unidad"> | string | null
   padreId?: Prisma.IntNullableFilter<"Unidad"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
   padre?: Prisma.XOR<Prisma.UnidadNullableScalarRelationFilter, Prisma.UnidadWhereInput> | null
   hijos?: Prisma.UnidadListRelationFilter
   usuarios?: Prisma.UsuarioListRelationFilter
+  almacenes?: Prisma.AlmacenUnidadListRelationFilter
 }, "id" | "nombre" | "sigla">
 
 export type UnidadOrderByWithAggregationInput = {
@@ -277,6 +290,7 @@ export type UnidadOrderByWithAggregationInput = {
   nombre?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  grupo?: Prisma.SortOrderInput | Prisma.SortOrder
   padreId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -295,6 +309,7 @@ export type UnidadScalarWhereWithAggregatesInput = {
   nombre?: Prisma.StringWithAggregatesFilter<"Unidad"> | string
   sigla?: Prisma.StringWithAggregatesFilter<"Unidad"> | string
   activo?: Prisma.BoolWithAggregatesFilter<"Unidad"> | boolean
+  grupo?: Prisma.StringNullableWithAggregatesFilter<"Unidad"> | string | null
   padreId?: Prisma.IntNullableWithAggregatesFilter<"Unidad"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Unidad"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Unidad"> | Date | string
@@ -304,11 +319,13 @@ export type UnidadCreateInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadUncheckedCreateInput = {
@@ -316,22 +333,26 @@ export type UnidadUncheckedCreateInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   padreId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadUpdateInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUncheckedUpdateInput = {
@@ -339,11 +360,13 @@ export type UnidadUncheckedUpdateInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadCreateManyInput = {
@@ -351,6 +374,7 @@ export type UnidadCreateManyInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   padreId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -360,6 +384,7 @@ export type UnidadUpdateManyMutationInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -369,6 +394,7 @@ export type UnidadUncheckedUpdateManyInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,6 +420,7 @@ export type UnidadCountOrderByAggregateInput = {
   nombre?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  grupo?: Prisma.SortOrder
   padreId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -409,6 +436,7 @@ export type UnidadMaxOrderByAggregateInput = {
   nombre?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  grupo?: Prisma.SortOrder
   padreId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -419,6 +447,7 @@ export type UnidadMinOrderByAggregateInput = {
   nombre?: Prisma.SortOrder
   sigla?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  grupo?: Prisma.SortOrder
   padreId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -427,6 +456,11 @@ export type UnidadMinOrderByAggregateInput = {
 export type UnidadSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   padreId?: Prisma.SortOrder
+}
+
+export type UnidadScalarRelationFilter = {
+  is?: Prisma.UnidadWhereInput
+  isNot?: Prisma.UnidadWhereInput
 }
 
 export type UnidadCreateNestedOneWithoutHijosInput = {
@@ -455,6 +489,10 @@ export type StringFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -515,6 +553,20 @@ export type UnidadUncheckedUpdateManyWithoutPadreNestedInput = {
   deleteMany?: Prisma.UnidadScalarWhereInput | Prisma.UnidadScalarWhereInput[]
 }
 
+export type UnidadCreateNestedOneWithoutAlmacenesInput = {
+  create?: Prisma.XOR<Prisma.UnidadCreateWithoutAlmacenesInput, Prisma.UnidadUncheckedCreateWithoutAlmacenesInput>
+  connectOrCreate?: Prisma.UnidadCreateOrConnectWithoutAlmacenesInput
+  connect?: Prisma.UnidadWhereUniqueInput
+}
+
+export type UnidadUpdateOneRequiredWithoutAlmacenesNestedInput = {
+  create?: Prisma.XOR<Prisma.UnidadCreateWithoutAlmacenesInput, Prisma.UnidadUncheckedCreateWithoutAlmacenesInput>
+  connectOrCreate?: Prisma.UnidadCreateOrConnectWithoutAlmacenesInput
+  upsert?: Prisma.UnidadUpsertWithoutAlmacenesInput
+  connect?: Prisma.UnidadWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UnidadUpdateToOneWithWhereWithoutAlmacenesInput, Prisma.UnidadUpdateWithoutAlmacenesInput>, Prisma.UnidadUncheckedUpdateWithoutAlmacenesInput>
+}
+
 export type UnidadCreateNestedOneWithoutUsuariosInput = {
   create?: Prisma.XOR<Prisma.UnidadCreateWithoutUsuariosInput, Prisma.UnidadUncheckedCreateWithoutUsuariosInput>
   connectOrCreate?: Prisma.UnidadCreateOrConnectWithoutUsuariosInput
@@ -535,10 +587,12 @@ export type UnidadCreateWithoutHijosInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadUncheckedCreateWithoutHijosInput = {
@@ -546,10 +600,12 @@ export type UnidadUncheckedCreateWithoutHijosInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   padreId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadCreateOrConnectWithoutHijosInput = {
@@ -561,10 +617,12 @@ export type UnidadCreateWithoutPadreInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadUncheckedCreateWithoutPadreInput = {
@@ -572,10 +630,12 @@ export type UnidadUncheckedCreateWithoutPadreInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadCreateOrConnectWithoutPadreInput = {
@@ -603,10 +663,12 @@ export type UnidadUpdateWithoutHijosInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutHijosInput = {
@@ -614,10 +676,12 @@ export type UnidadUncheckedUpdateWithoutHijosInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUpsertWithWhereUniqueWithoutPadreInput = {
@@ -644,19 +708,88 @@ export type UnidadScalarWhereInput = {
   nombre?: Prisma.StringFilter<"Unidad"> | string
   sigla?: Prisma.StringFilter<"Unidad"> | string
   activo?: Prisma.BoolFilter<"Unidad"> | boolean
+  grupo?: Prisma.StringNullableFilter<"Unidad"> | string | null
   padreId?: Prisma.IntNullableFilter<"Unidad"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Unidad"> | Date | string
+}
+
+export type UnidadCreateWithoutAlmacenesInput = {
+  nombre: string
+  sigla: string
+  activo?: boolean
+  grupo?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
+  hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
+  usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+}
+
+export type UnidadUncheckedCreateWithoutAlmacenesInput = {
+  id?: number
+  nombre: string
+  sigla: string
+  activo?: boolean
+  grupo?: string | null
+  padreId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
+  usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+}
+
+export type UnidadCreateOrConnectWithoutAlmacenesInput = {
+  where: Prisma.UnidadWhereUniqueInput
+  create: Prisma.XOR<Prisma.UnidadCreateWithoutAlmacenesInput, Prisma.UnidadUncheckedCreateWithoutAlmacenesInput>
+}
+
+export type UnidadUpsertWithoutAlmacenesInput = {
+  update: Prisma.XOR<Prisma.UnidadUpdateWithoutAlmacenesInput, Prisma.UnidadUncheckedUpdateWithoutAlmacenesInput>
+  create: Prisma.XOR<Prisma.UnidadCreateWithoutAlmacenesInput, Prisma.UnidadUncheckedCreateWithoutAlmacenesInput>
+  where?: Prisma.UnidadWhereInput
+}
+
+export type UnidadUpdateToOneWithWhereWithoutAlmacenesInput = {
+  where?: Prisma.UnidadWhereInput
+  data: Prisma.XOR<Prisma.UnidadUpdateWithoutAlmacenesInput, Prisma.UnidadUncheckedUpdateWithoutAlmacenesInput>
+}
+
+export type UnidadUpdateWithoutAlmacenesInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
+  hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
+  usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+}
+
+export type UnidadUncheckedUpdateWithoutAlmacenesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
+  usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadCreateWithoutUsuariosInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
+  almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadUncheckedCreateWithoutUsuariosInput = {
@@ -664,10 +797,12 @@ export type UnidadUncheckedCreateWithoutUsuariosInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   padreId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
 }
 
 export type UnidadCreateOrConnectWithoutUsuariosInput = {
@@ -690,10 +825,12 @@ export type UnidadUpdateWithoutUsuariosInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
+  almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutUsuariosInput = {
@@ -701,10 +838,12 @@ export type UnidadUncheckedUpdateWithoutUsuariosInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadCreateManyPadreInput = {
@@ -712,6 +851,7 @@ export type UnidadCreateManyPadreInput = {
   nombre: string
   sigla: string
   activo?: boolean
+  grupo?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -720,10 +860,12 @@ export type UnidadUpdateWithoutPadreInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutPadreInput = {
@@ -731,10 +873,12 @@ export type UnidadUncheckedUpdateWithoutPadreInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
 export type UnidadUncheckedUpdateManyWithoutPadreInput = {
@@ -742,6 +886,7 @@ export type UnidadUncheckedUpdateManyWithoutPadreInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   sigla?: Prisma.StringFieldUpdateOperationsInput | string
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -754,11 +899,13 @@ export type UnidadUncheckedUpdateManyWithoutPadreInput = {
 export type UnidadCountOutputType = {
   hijos: number
   usuarios: number
+  almacenes: number
 }
 
 export type UnidadCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hijos?: boolean | UnidadCountOutputTypeCountHijosArgs
   usuarios?: boolean | UnidadCountOutputTypeCountUsuariosArgs
+  almacenes?: boolean | UnidadCountOutputTypeCountAlmacenesArgs
 }
 
 /**
@@ -785,18 +932,27 @@ export type UnidadCountOutputTypeCountUsuariosArgs<ExtArgs extends runtime.Types
   where?: Prisma.UsuarioWhereInput
 }
 
+/**
+ * UnidadCountOutputType without action
+ */
+export type UnidadCountOutputTypeCountAlmacenesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AlmacenUnidadWhereInput
+}
+
 
 export type UnidadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   nombre?: boolean
   sigla?: boolean
   activo?: boolean
+  grupo?: boolean
   padreId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   padre?: boolean | Prisma.Unidad$padreArgs<ExtArgs>
   hijos?: boolean | Prisma.Unidad$hijosArgs<ExtArgs>
   usuarios?: boolean | Prisma.Unidad$usuariosArgs<ExtArgs>
+  almacenes?: boolean | Prisma.Unidad$almacenesArgs<ExtArgs>
   _count?: boolean | Prisma.UnidadCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["unidad"]>
 
@@ -805,6 +961,7 @@ export type UnidadSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   nombre?: boolean
   sigla?: boolean
   activo?: boolean
+  grupo?: boolean
   padreId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -816,6 +973,7 @@ export type UnidadSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   nombre?: boolean
   sigla?: boolean
   activo?: boolean
+  grupo?: boolean
   padreId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -827,16 +985,18 @@ export type UnidadSelectScalar = {
   nombre?: boolean
   sigla?: boolean
   activo?: boolean
+  grupo?: boolean
   padreId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UnidadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "sigla" | "activo" | "padreId" | "createdAt" | "updatedAt", ExtArgs["result"]["unidad"]>
+export type UnidadOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "sigla" | "activo" | "grupo" | "padreId" | "createdAt" | "updatedAt", ExtArgs["result"]["unidad"]>
 export type UnidadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   padre?: boolean | Prisma.Unidad$padreArgs<ExtArgs>
   hijos?: boolean | Prisma.Unidad$hijosArgs<ExtArgs>
   usuarios?: boolean | Prisma.Unidad$usuariosArgs<ExtArgs>
+  almacenes?: boolean | Prisma.Unidad$almacenesArgs<ExtArgs>
   _count?: boolean | Prisma.UnidadCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UnidadIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -852,12 +1012,19 @@ export type $UnidadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     padre: Prisma.$UnidadPayload<ExtArgs> | null
     hijos: Prisma.$UnidadPayload<ExtArgs>[]
     usuarios: Prisma.$UsuarioPayload<ExtArgs>[]
+    almacenes: Prisma.$AlmacenUnidadPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     nombre: string
     sigla: string
     activo: boolean
+    /**
+     * Grupo de la unidad (MOF, OTROS...) en MAYUSCULAS. Lo elige la unidad RAIZ;
+     * los hijos heredan el del padre (todo el subarbol comparte grupo). Sirve para
+     * mostrar el catalogo en tablas por grupo y para agrupar el selector del almacen.
+     */
+    grupo: string | null
     padreId: number | null
     createdAt: Date
     updatedAt: Date
@@ -1258,6 +1425,7 @@ export interface Prisma__UnidadClient<T, Null = never, ExtArgs extends runtime.T
   padre<T extends Prisma.Unidad$padreArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$padreArgs<ExtArgs>>): Prisma.Prisma__UnidadClient<runtime.Types.Result.GetResult<Prisma.$UnidadPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   hijos<T extends Prisma.Unidad$hijosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$hijosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   usuarios<T extends Prisma.Unidad$usuariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$usuariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  almacenes<T extends Prisma.Unidad$almacenesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$almacenesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlmacenUnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1291,6 +1459,7 @@ export interface UnidadFieldRefs {
   readonly nombre: Prisma.FieldRef<"Unidad", 'String'>
   readonly sigla: Prisma.FieldRef<"Unidad", 'String'>
   readonly activo: Prisma.FieldRef<"Unidad", 'Boolean'>
+  readonly grupo: Prisma.FieldRef<"Unidad", 'String'>
   readonly padreId: Prisma.FieldRef<"Unidad", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Unidad", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Unidad", 'DateTime'>
@@ -1759,6 +1928,30 @@ export type Unidad$usuariosArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.UsuarioScalarFieldEnum | Prisma.UsuarioScalarFieldEnum[]
+}
+
+/**
+ * Unidad.almacenes
+ */
+export type Unidad$almacenesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AlmacenUnidad
+   */
+  select?: Prisma.AlmacenUnidadSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AlmacenUnidad
+   */
+  omit?: Prisma.AlmacenUnidadOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AlmacenUnidadInclude<ExtArgs> | null
+  where?: Prisma.AlmacenUnidadWhereInput
+  orderBy?: Prisma.AlmacenUnidadOrderByWithRelationInput | Prisma.AlmacenUnidadOrderByWithRelationInput[]
+  cursor?: Prisma.AlmacenUnidadWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AlmacenUnidadScalarFieldEnum | Prisma.AlmacenUnidadScalarFieldEnum[]
 }
 
 /**

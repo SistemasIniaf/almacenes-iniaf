@@ -30,6 +30,15 @@ export type Unidad = Prisma.UnidadModel
  */
 export type Almacen = Prisma.AlmacenModel
 /**
+ * Model AlmacenUnidad
+ * Tabla puente (muchos-a-muchos) Almacen <-> Unidad, 2026-07-23.
+ * Las unidades son un CATALOGO COMPARTIDO y cada almacen SELECCIONA cuales
+ * muestra en el selector de "unidad solicitante" del Ingreso. Asi los rubros
+ * departamentales (Adm. y Finanzas, Departamental...) se crean una sola vez y
+ * se reusan en cada almacen departamental (el Nacional apunta a su organigrama).
+ */
+export type AlmacenUnidad = Prisma.AlmacenUnidadModel
+/**
  * Model Usuario
  * Usuario del sistema. Se crea solo desde el modulo usuarios (no hay registro publico).
  * unidadId y almacenId son independientes entre si y opcionales segun el rol:

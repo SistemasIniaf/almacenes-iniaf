@@ -100,7 +100,7 @@ export function AlmacenesPage() {
   }
 
   const almacenes = data?.data ?? []
-  const columnas = puedeEscribir ? 3 : 2
+  const columnas = puedeEscribir ? 4 : 3
 
   return (
     <div className="flex flex-col gap-4">
@@ -156,6 +156,7 @@ export function AlmacenesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
+              <TableHead>Unidades</TableHead>
               <TableHead>Estado</TableHead>
               {puedeEscribir && (
                 <TableHead className="text-right">Acciones</TableHead>
@@ -206,6 +207,9 @@ export function AlmacenesPage() {
                 <TableRow key={almacen.id}>
                   <TableCell className="font-medium">
                     {almacen.nombre}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {almacen.unidades.length}
                   </TableCell>
                   <TableCell>
                     <Badge variant={almacen.activo ? "default" : "destructive"}>

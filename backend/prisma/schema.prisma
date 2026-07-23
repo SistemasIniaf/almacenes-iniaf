@@ -38,17 +38,24 @@ model Unidad {
   sigla  String  @unique
   activo Boolean @default(true)
 
+  /// Grupo de la unidad (MOF, OTROS...) en MAYUSCULAS. Lo elige la unidad RAIZ;
+  /// los hijos heredan el del padre (todo el subarbol comparte grupo). Sirve para
+  /// mostrar el catalogo en tablas por grupo y para agrupar el selector del almacen.
+  grupo String? @map("grupo")
+
   // Jerarquia auto-referenciada (similar a Partida pero sin limite de niveles).
   padreId Int?     @map("padre_id")
   padre   Unidad?  @relation("UnidadJerarquia", fields: [padreId], references: [id])
   hijos   Unidad[] @relation("UnidadJerarquia")
 
-  usuarios Usuario[]
+  usuarios  Usuario[]
+  almacenes AlmacenUnidad[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([padreId])
+  @@index([grupo])
   @@map("unidades")
 }
 
@@ -60,11 +67,29 @@ model Almacen {
 
   usuarios     Usuario[]
   observadores UsuarioAlmacenObservado[]
+  unidades     AlmacenUnidad[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("almacenes")
+}
+
+/// Tabla puente (muchos-a-muchos) Almacen <-> Unidad, 2026-07-23.
+/// Las unidades son un CATALOGO COMPARTIDO y cada almacen SELECCIONA cuales
+/// muestra en el selector de "unidad solicitante" del Ingreso. Asi los rubros
+/// departamentales (Adm. y Finanzas, Departamental...) se crean una sola vez y
+/// se reusan en cada almacen departamental (el Nacional apunta a su organigrama).
+model AlmacenUnidad {
+  almacenId Int @map("almacen_id")
+  unidadId  Int @map("unidad_id")
+
+  almacen Almacen @relation(fields: [almacenId], references: [id], onDelete: Cascade)
+  unidad  Unidad  @relation(fields: [unidadId], references: [id], onDelete: Cascade)
+
+  @@id([almacenId, unidadId])
+  @@index([unidadId])
+  @@map("almacen_unidad")
 }
 
 /// Usuario del sistema. Se crea solo desde el modulo usuarios (no hay registro publico).

@@ -61,6 +61,18 @@ export function UnidadesPage() {
     [arbol, busquedaDiferida, soloActivas]
   )
 
+  // Se muestra una tabla por grupo (MOF, OTROS...). Cada raíz lleva su grupo.
+  const porGrupo = useMemo(() => {
+    const mapa = new Map<string, UnidadArbol[]>()
+    for (const raiz of arbolFiltrado) {
+      const grupo = raiz.grupo ?? "SIN GRUPO"
+      const lista = mapa.get(grupo) ?? []
+      lista.push(raiz)
+      mapa.set(grupo, lista)
+    }
+    return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [arbolFiltrado])
+
   // Con filtro activo se expande todo: si no, las coincidencias quedarian
   // escondidas dentro de nodos colapsados y pareceria que no hay resultados.
   const idsVisibles = useMemo(
@@ -172,43 +184,51 @@ export function UnidadesPage() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        {isPending && (
-          <div className="flex flex-col gap-2 p-3">
-            {Array.from({ length: 8 }).map((_, fila) => (
-              <Skeleton key={fila} className="h-7 w-full" />
+      {isPending && (
+        <div className="flex flex-col gap-2 rounded-md border p-3">
+          {Array.from({ length: 8 }).map((_, fila) => (
+            <Skeleton key={fila} className="h-7 w-full" />
+          ))}
+        </div>
+      )}
+
+      {isError && (
+        <p className="rounded-md border py-8 text-center text-sm text-destructive">
+          {getApiErrorMessage(error, "No se pudieron cargar las unidades.")}
+        </p>
+      )}
+
+      {!isPending && !isError && arbolFiltrado.length === 0 && (
+        <p className="rounded-md border py-8 text-center text-sm text-muted-foreground">
+          {hayFiltro
+            ? "Ninguna unidad coincide con la busqueda."
+            : "Todavia no hay unidades registradas."}
+        </p>
+      )}
+
+      {/* Una tabla por grupo (MOF, OTROS...). */}
+      {porGrupo.map(([grupo, raices]) => (
+        <div key={grupo} className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+            {grupo}
+          </h2>
+          <div className="rounded-md border">
+            {raices.map((unidad) => (
+              <UnidadNodo
+                key={unidad.id}
+                unidad={unidad}
+                profundidad={0}
+                expandidos={expandidosEfectivos}
+                onToggle={alternarNodo}
+                puedeEscribir={puedeEscribir}
+                onEditar={abrirEdicion}
+                onActivar={handleActivar}
+                onDesactivar={setADesactivar}
+              />
             ))}
           </div>
-        )}
-
-        {isError && (
-          <p className="py-8 text-center text-sm text-destructive">
-            {getApiErrorMessage(error, "No se pudieron cargar las unidades.")}
-          </p>
-        )}
-
-        {!isPending && !isError && arbolFiltrado.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            {hayFiltro
-              ? "Ninguna unidad coincide con la busqueda."
-              : "Todavia no hay unidades registradas."}
-          </p>
-        )}
-
-        {arbolFiltrado.map((unidad) => (
-          <UnidadNodo
-            key={unidad.id}
-            unidad={unidad}
-            profundidad={0}
-            expandidos={expandidosEfectivos}
-            onToggle={alternarNodo}
-            puedeEscribir={puedeEscribir}
-            onEditar={abrirEdicion}
-            onActivar={handleActivar}
-            onDesactivar={setADesactivar}
-          />
-        ))}
-      </div>
+        </div>
+      ))}
 
       {arbol && (
         <p className="text-sm text-muted-foreground">
