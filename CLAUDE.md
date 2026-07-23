@@ -30,7 +30,9 @@ almacenes-institucion/
 
 ## Entidades principales
 
-- **Unidad**: nombre, sigla, activo. Área administrativa (ej. Unidad de Planificación).
+- **Unidad**: nombre, sigla, activo, `grupo`, jerárquica (`padre_id`). Área administrativa. Es un **CATÁLOGO COMPARTIDO**: NO pertenece a un almacén. Cada Almacén **selecciona** qué unidades muestra vía la tabla puente **`AlmacenUnidad`** (muchos-a-muchos) — así los rubros departamentales se crean una sola vez y se reusan. El **`grupo`** (MOF, OTROS…, en MAYÚSCULAS) lo elige la unidad RAÍZ y **los hijos lo heredan** (todo el subárbol comparte grupo); sirve para mostrar el catálogo en tablas por grupo y para agrupar el selector del almacén. El organigrama real del INIAF (54 unidades, grupo MOF) se siembra desde `prisma/data/unidades-iniaf.ts` (idempotente por sigla).
+- **AlmacenUnidad**: puente Almacén ↔ Unidad. Define qué unidades ofrece el selector de "unidad solicitante" del Ingreso de ese almacén.
+- **FuenteFinanciamiento**: nombre (único), `codigo` (opcional), activo. Recursos Específicos, Banco Mundial, COSUDE, programas TGN… Una sola fuente por Ingreso (va en la cabecera). Baja lógica: queda referenciada por lotes históricos.
 - **Almacen**: nombre, activo. Cada institución tiene 9+.
 - **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir (prop `mayusculas`, transforma el valor real, no con `text-transform` de CSS) y el service lo normaliza igual, porque la API es la fuente de verdad. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
 - **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
@@ -43,9 +45,11 @@ almacenes-institucion/
   - **`central` fue ELIMINADO** el 2026-07-21 (confirmado con el encargado de almacenes): el circuito de egresos pasó de 3 a 2 niveles de aprobación. Ver la migración `20260721180000_quita_rol_central`.
 - **Partida** (reemplaza al concepto anterior de "Material"): catálogo oficial del Clasificador por Objeto del Gasto (Ministerio de Economía y Finanzas Públicas, Bolivia, publicado por gestión/año fiscal). NO se crea libremente en el sistema — se importa/semilla desde el documento oficial. Es **jerárquica** (auto-referenciada, hasta 5 niveles: Grupo → Subgrupo → Partida → Subpartida → Sub-subpartida), porque el clasificador real tiene profundidad variable por rama. Campos: codigo (string, ej. "39700"), denominacion, nivel (1-5, calculado por cantidad de ceros finales del código), padreId (auto-referencia), `seleccionable` (boolean — SOLO true en los nodos hoja, es decir códigos sin hijos; son los únicos que se pueden asignar a un Ítem), activo, `ultimoCorrelativo` (contador para generar códigos de Ítem, solo relevante si `seleccionable=true`). Un solo catálogo vigente, SIN versionado histórico por gestión (se actualiza in-place si el Ministerio publica cambios; poco frecuente). Alcance del seed: **los 9 grupos completos** del Clasificador por Objeto del Gasto (`10000` a `90000`, ~505 partidas), extraídos del PDF oficial (gestión 2026). Los grupos `20000` (Servicios No Personales) y `30000` (Materiales y Suministros) son los relevantes para el almacén y están curados a mano; el resto se extrajo del PDF y la institución los deja desactivados desde la UI si no los usa (el "activo efectivo" inhabilita toda la rama). El seed valida grupos `1`-`9` (ver `GRUPOS_PERMITIDOS` en `prisma/seed.ts`).
 - **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
-- **StockAlmacen**: `item_id` + `almacen_id` + `stock_fisico` + `stock_reservado` (disponible = físico − reservado). Aquí vive el stock real, NO en Item.
+- ~~**StockAlmacen**~~: **ELIMINADO del diseño**. El stock NO es un saldo agregado: se lleva **por LOTE** (ver `IngresoDetalle`) y separado por fuente de financiamiento.
 - **Proveedor**: nombre (requerido, NO único — la razón social se escribe de formas distintas), `nit` (opcional pero `@unique`; Postgres admite varios NULL en un índice único, así que conviven proveedores sin NIT), telefono, `contacto` (nombre de la persona de contacto), direccion, activo. Baja lógica siempre: será referenciado por Ingreso y no se puede borrar sin romper el Kardex. Escritura para `super_admin` y `admin`; lectura además para `responsable_almacen` (necesita el selector de proveedor al registrar un Ingreso).
-- **Ingreso**: `almacen_id`, correlativo POR ALMACÉN, proveedor, fecha, detalle (ítem + cantidad + costo). Registrado directo por `responsable_almacen` de ESE almacén — **sin aprobación**.
+- **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`BORRADOR`/`CONFIRMADO`/`ANULADO`), `numero` + `gestion` (**nullable hasta confirmar**), `almacen_id`, respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). `@@unique([almacenId, gestion, numero])` — los NULL (borradores) conviven. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
+- **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`. El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
+- **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
 - **EgresoDetalle**: ítem, cantidad_solicitada, cantidad_aprobada (puede ajustarse en cada nivel de aprobación).
 - **EgresoHistorial**: registro de cada decisión (nivel, usuario, decisión, motivo, fecha) — trazabilidad completa, nunca se borra nada.
@@ -215,7 +219,25 @@ mutations con toast e invalidación), `UnidadFormDialog.tsx` (crear/editar en un
 Detalle de permisos: unidades es el único módulo donde `admin` **lee pero no escribe**, así que
 la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol.
 
-**Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`. Los tres siguen la misma
+**Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`, `partidas`, `items`,
+`proveedores`, `fuentes-financiamiento`, `ingresos`.
+
+Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `hooks/`, `pages/`):
+- Son **páginas con ruta**, no diálogo: `/ingresos` (listado), `/ingresos/nuevo` y `/ingresos/:id`
+  (mismo `IngresoFormPage` para crear/editar/ver). Un ingreso CONFIRMADO/ANULADO se ve en **solo
+  lectura** con botón Anular.
+- `components/IngresoLineas.tsx` es el wrapper de **`useFieldArray`** para las líneas (agregar/quitar
+  ítems, subtotal por línea y total en vivo). Era la pieza pendiente que faltaba construir.
+- El botón "Guardar borrador" vive **fuera** del `<form>` y se enlaza con `form="ingreso-form"`.
+  "Confirmar" hace `trigger()` → guarda → confirma; si falta un respaldo, **el backend lista qué
+  falta** y llega como toast (la validación dura NO se duplica en el front).
+- Los selectores dependen del almacén: `useUnidadesDeAlmacen(almacenId)` trae las unidades que ese
+  almacén muestra. El `responsable_almacen` no elige almacén (usa el suyo, se muestra el nombre).
+- **Permisos**: para armar un ingreso el `responsable_almacen` necesita leer cosas que son de admin,
+  por eso existen `GET /usuarios/solicitadores` (lista chica) y la lectura de `almacenes` abierta a
+  ese rol. Si agregás un selector nuevo, revisá que su endpoint permita al `responsable_almacen`.
+
+Los módulos simples siguen la misma
 plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*FormDialog.tsx`,
 `*Page.tsx`). Notas propias de `usuarios` (el más complejo):
 - El schema de Zod es una **función** `usuarioSchema(esEdicion)`: al crear, la contraseña es
@@ -291,7 +313,15 @@ Notas propias de `proveedores` (cierra el frontend de esta fase):
 negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacenes.md`. Al agregar cada uno hay que sumar su entrada en
 `NavMain.tsx` (`ITEMS`) y en `SECCIONES` de `DashboardLayout.tsx`.
 
-NO construir todavía: `stock`, `ingresos`, `egresos`, `kardex`, `reportes` — dependen de las reglas de negocio aún pendientes de confirmar (ver sección de pendientes). **Ingresos ya está casi definido**: leer `docs/decisiones-ingresos.md` antes de empezar.
+**INGRESOS: YA IMPLEMENTADO** (backend + frontend). Flujo:
+`BORRADOR` (reserva: puede tener 0 ítems, no toca stock, respaldos opcionales)
+→ **confirmar** (en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `numero` = `MAX+1` por almacén+gestión y `gestion` = año de `fechaRemision`; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea)
+→ **anular** (solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
+Un borrador se **elimina** (hard delete); un confirmado NO se borra, se anula.
+**Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
+El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO se guarda formateado.
+
+NO construir todavía: `stock`/`kardex` de consulta, `egresos`, `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
 
 ## Alcance NO incluido (por ahora)
 
@@ -304,6 +334,7 @@ NO construir todavía: `stock`, `ingresos`, `egresos`, `kardex`, `reportes` — 
   - **Ubicación de los módulos**: todos los módulos de dominio viven dentro de `src/modules/<modulo>/`. `src/prisma/` es infraestructura (no es módulo de dominio) y `src/common/` guarda lo compartido (ej. `common/dto/pagination-query.dto.ts`, `common/dto/paginated-result.ts`). El cliente Prisma generado está en `src/generated/prisma/`.
   - **Instalación de dependencias**: SIEMPRE correr `pnpm add`/`pnpm remove` DENTRO de `backend/` o `frontend/` (nunca en la raíz — no hay `package.json` ni workspace raíz; instalar ahí crea artefactos sueltos y provoca resolución de módulos duplicada).
   - **Listados**: todo endpoint de listado (`GET`) devuelve paginado con la forma estándar `{ data, meta: { total, page, pageSize, totalPages } }`, usando el helper `paginated()`. **Orden: `[{ createdAt: 'desc' }, { id: 'desc' }]`** — lo más reciente primero. El desempate por `id` no es decorativo: varios registros pueden compartir `createdAt` (el seed inserta muchos en el mismo instante) y sin él la paginación puede repetir u omitir filas entre páginas. **Excepción: `partidas`**, que se ordena por `codigo asc` porque el código ES la jerarquía del clasificador. El query DTO de cada módulo **extiende** `PaginationQueryDto` y agrega sus propios filtros + un buscador `q` según los campos de texto de su schema (ej. usuarios busca en `nombre`/`usuario`; unidades en `nombre`/`sigla`). Los DTO de update se definen explícitos (campos opcionales), no con `PartialType`/mapped-types, para no sumar dependencias.
+  - **Ordenamiento de selectores (parámetro `orden`)**: los combos/selectores de formulario se ven mejor alfabéticos, pero las TABLAS van por fecha. Se resuelve con un parámetro **`orden`** en el query DTO (validado con `@IsIn`): proveedores/fuentes/almacenes aceptan `orden=nombre`, items `orden=descripcion|codigo`. Si viene, el service ordena por ese campo asc; **sin él, el default sigue siendo por fecha**. Los hooks `*Activos` del frontend (los que alimentan selectores) piden `orden` al backend y **no ordenan en memoria** — así escala cuando el selector de ítems pase a búsqueda contra el servidor.
   - **Buscador `q` (insensible a acentos)**: NO usar `contains` + `mode: 'insensitive'` de Prisma — eso ignora mayúsculas pero NO tildes, así que buscar "almacen" no encontraba "Almacén" (nadie escribe acentos al buscar). Todos los listados usan el helper `buscarIdsPorTexto()` de `common/search/busqueda-texto.ts`, que resuelve el filtro de texto con SQL crudo (`f_unaccent(col) ILIKE f_unaccent($1)`) y devuelve ids; el service los aplica como `id: { in: ids }` y conserva el resto de su lógica Prisma (filtros, orden, paginación, includes). Un array vacío significa "ninguna coincidencia", no "sin filtro". Apoyo en DB: extensiones `unaccent` + `pg_trgm`, función IMMUTABLE `f_unaccent` e índices GIN de trigramas, todo en la migración `20260719161128_busqueda_sin_acentos` (escrita a mano; Prisma no expresa `unaccent` en su DSL). **Al agregar un buscador a un módulo nuevo hay que crear también su índice GIN en una migración**, si no la búsqueda funciona pero hace scan secuencial.
   - **Booleanos en query**: usar el helper `toBoolean` de `common/dto/transforms.ts` con `@Transform`. El `ValidationPipe` global NO usa `enableImplicitConversion` (coacciona mal los booleanos: `Boolean('false') === true`); los numéricos de query llevan `@Type(() => Number)` explícito.
 - Frontend: organizado por `features/` (dominio), no por tipo de archivo. Componente `EgresoAprobacion` reutilizado por los 2 roles que aprueban (aprobador, responsable_almacen), variando solo qué acciones habilita.
@@ -331,7 +362,7 @@ NO construir todavía: `stock`, `ingresos`, `egresos`, `kardex`, `reportes` — 
 
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
 
-**Ingresos** — ver la lista completa en `docs/decisiones-ingresos.md`. En resumen: formato visible del número, si se puede anular un ingreso con movimientos, alcance de la lista de "responsable", y la vía de carga inicial del arranque.
+**Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
 
 **Egresos y stock**:
 - Reglas exactas de rechazo por nivel (¿siempre vuelve a BORRADOR o a veces un nivel atrás?).
