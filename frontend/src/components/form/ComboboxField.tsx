@@ -65,8 +65,15 @@ export function ComboboxField<T extends FieldValues>({
   className,
 }: ComboboxFieldProps<T>) {
   const [abierto, setAbierto] = useState(false)
+  // Valor "activo" de cmdk (el resaltado por teclado). Al abrir se apunta al
+  // item seleccionado, si no cmdk resalta el primero por defecto.
+  const [resaltado, setResaltado] = useState("")
   const fieldId = id || `field-${name}`
   const limpiarWheel = useRef<(() => void) | null>(null)
+
+  // Texto interno (cmdk) de cada opción, el mismo que se usa como `value` del item.
+  const textoCmdk = (o: ComboboxOption) =>
+    `${o.busqueda ?? ""} ${o.label} ${o.descripcion ?? ""}`
 
   // Dentro de un Dialog, el popover se portaliza a `body`, fuera del bloqueo de
   // scroll (`react-remove-scroll`) del diálogo: la barra funciona pero la rueda
@@ -110,7 +117,14 @@ export function ComboboxField<T extends FieldValues>({
               {label}
               {required && <span className="text-red-500">*</span>}
             </FieldLabel>
-            <Popover open={abierto} onOpenChange={setAbierto}>
+            <Popover
+              open={abierto}
+              onOpenChange={(nuevo) => {
+                // Al abrir, el resaltado arranca sobre la opción ya elegida.
+                if (nuevo) setResaltado(seleccionada ? textoCmdk(seleccionada) : "")
+                setAbierto(nuevo)
+              }}
+            >
               <PopoverTrigger asChild>
                 <Button
                   id={fieldId}
@@ -143,6 +157,8 @@ export function ComboboxField<T extends FieldValues>({
                 align="start"
               >
                 <Command
+                  value={resaltado}
+                  onValueChange={setResaltado}
                   filter={(value, search) => {
                     // `value` es el texto de busqueda que arma cada item abajo.
                     const normalizar = (texto: string) =>
@@ -165,7 +181,7 @@ export function ComboboxField<T extends FieldValues>({
                           // se pierde sobre el fondo de seleccion.
                           className="group/opcion"
                           // cmdk busca sobre este string, no sobre el JSX.
-                          value={`${opcion.busqueda ?? ""} ${opcion.label} ${opcion.descripcion ?? ""}`}
+                          value={textoCmdk(opcion)}
                           onSelect={() => {
                             field.onChange(opcion.value)
                             setAbierto(false)
