@@ -255,6 +255,8 @@ export type ItemWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Item"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Item"> | Date | string
   partida?: Prisma.XOR<Prisma.PartidaScalarRelationFilter, Prisma.PartidaWhereInput>
+  ingresoDetalles?: Prisma.IngresoDetalleListRelationFilter
+  movimientos?: Prisma.MovimientoKardexListRelationFilter
 }
 
 export type ItemOrderByWithRelationInput = {
@@ -268,6 +270,8 @@ export type ItemOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   partida?: Prisma.PartidaOrderByWithRelationInput
+  ingresoDetalles?: Prisma.IngresoDetalleOrderByRelationAggregateInput
+  movimientos?: Prisma.MovimientoKardexOrderByRelationAggregateInput
 }
 
 export type ItemWhereUniqueInput = Prisma.AtLeast<{
@@ -284,6 +288,8 @@ export type ItemWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Item"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Item"> | Date | string
   partida?: Prisma.XOR<Prisma.PartidaScalarRelationFilter, Prisma.PartidaWhereInput>
+  ingresoDetalles?: Prisma.IngresoDetalleListRelationFilter
+  movimientos?: Prisma.MovimientoKardexListRelationFilter
 }, "id" | "codigo">
 
 export type ItemOrderByWithAggregationInput = {
@@ -327,6 +333,8 @@ export type ItemCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   partida: Prisma.PartidaCreateNestedOneWithoutItemsInput
+  ingresoDetalles?: Prisma.IngresoDetalleCreateNestedManyWithoutItemInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutItemInput
 }
 
 export type ItemUncheckedCreateInput = {
@@ -339,6 +347,8 @@ export type ItemUncheckedCreateInput = {
   partidaId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutItemInput
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutItemInput
 }
 
 export type ItemUpdateInput = {
@@ -350,6 +360,8 @@ export type ItemUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   partida?: Prisma.PartidaUpdateOneRequiredWithoutItemsNestedInput
+  ingresoDetalles?: Prisma.IngresoDetalleUpdateManyWithoutItemNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutItemNestedInput
 }
 
 export type ItemUncheckedUpdateInput = {
@@ -362,6 +374,8 @@ export type ItemUncheckedUpdateInput = {
   partidaId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutItemNestedInput
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutItemNestedInput
 }
 
 export type ItemCreateManyInput = {
@@ -454,6 +468,11 @@ export type ItemSumOrderByAggregateInput = {
   partidaId?: Prisma.SortOrder
 }
 
+export type ItemScalarRelationFilter = {
+  is?: Prisma.ItemWhereInput
+  isNot?: Prisma.ItemWhereInput
+}
+
 export type ItemCreateNestedManyWithoutPartidaInput = {
   create?: Prisma.XOR<Prisma.ItemCreateWithoutPartidaInput, Prisma.ItemUncheckedCreateWithoutPartidaInput> | Prisma.ItemCreateWithoutPartidaInput[] | Prisma.ItemUncheckedCreateWithoutPartidaInput[]
   connectOrCreate?: Prisma.ItemCreateOrConnectWithoutPartidaInput | Prisma.ItemCreateOrConnectWithoutPartidaInput[]
@@ -496,6 +515,34 @@ export type ItemUncheckedUpdateManyWithoutPartidaNestedInput = {
   deleteMany?: Prisma.ItemScalarWhereInput | Prisma.ItemScalarWhereInput[]
 }
 
+export type ItemCreateNestedOneWithoutIngresoDetallesInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutIngresoDetallesInput, Prisma.ItemUncheckedCreateWithoutIngresoDetallesInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutIngresoDetallesInput
+  connect?: Prisma.ItemWhereUniqueInput
+}
+
+export type ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutIngresoDetallesInput, Prisma.ItemUncheckedCreateWithoutIngresoDetallesInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutIngresoDetallesInput
+  upsert?: Prisma.ItemUpsertWithoutIngresoDetallesInput
+  connect?: Prisma.ItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutIngresoDetallesInput, Prisma.ItemUpdateWithoutIngresoDetallesInput>, Prisma.ItemUncheckedUpdateWithoutIngresoDetallesInput>
+}
+
+export type ItemCreateNestedOneWithoutMovimientosInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutMovimientosInput, Prisma.ItemUncheckedCreateWithoutMovimientosInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutMovimientosInput
+  connect?: Prisma.ItemWhereUniqueInput
+}
+
+export type ItemUpdateOneRequiredWithoutMovimientosNestedInput = {
+  create?: Prisma.XOR<Prisma.ItemCreateWithoutMovimientosInput, Prisma.ItemUncheckedCreateWithoutMovimientosInput>
+  connectOrCreate?: Prisma.ItemCreateOrConnectWithoutMovimientosInput
+  upsert?: Prisma.ItemUpsertWithoutMovimientosInput
+  connect?: Prisma.ItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ItemUpdateToOneWithWhereWithoutMovimientosInput, Prisma.ItemUpdateWithoutMovimientosInput>, Prisma.ItemUncheckedUpdateWithoutMovimientosInput>
+}
+
 export type ItemCreateWithoutPartidaInput = {
   codigo: string
   descripcion: string
@@ -504,6 +551,8 @@ export type ItemCreateWithoutPartidaInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleCreateNestedManyWithoutItemInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutItemInput
 }
 
 export type ItemUncheckedCreateWithoutPartidaInput = {
@@ -515,6 +564,8 @@ export type ItemUncheckedCreateWithoutPartidaInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutItemInput
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutItemInput
 }
 
 export type ItemCreateOrConnectWithoutPartidaInput = {
@@ -558,6 +609,138 @@ export type ItemScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Item"> | Date | string
 }
 
+export type ItemCreateWithoutIngresoDetallesInput = {
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+  imagenUrl?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  partida: Prisma.PartidaCreateNestedOneWithoutItemsInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutItemInput
+}
+
+export type ItemUncheckedCreateWithoutIngresoDetallesInput = {
+  id?: number
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+  imagenUrl?: string | null
+  activo?: boolean
+  partidaId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type ItemCreateOrConnectWithoutIngresoDetallesInput = {
+  where: Prisma.ItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.ItemCreateWithoutIngresoDetallesInput, Prisma.ItemUncheckedCreateWithoutIngresoDetallesInput>
+}
+
+export type ItemUpsertWithoutIngresoDetallesInput = {
+  update: Prisma.XOR<Prisma.ItemUpdateWithoutIngresoDetallesInput, Prisma.ItemUncheckedUpdateWithoutIngresoDetallesInput>
+  create: Prisma.XOR<Prisma.ItemCreateWithoutIngresoDetallesInput, Prisma.ItemUncheckedCreateWithoutIngresoDetallesInput>
+  where?: Prisma.ItemWhereInput
+}
+
+export type ItemUpdateToOneWithWhereWithoutIngresoDetallesInput = {
+  where?: Prisma.ItemWhereInput
+  data: Prisma.XOR<Prisma.ItemUpdateWithoutIngresoDetallesInput, Prisma.ItemUncheckedUpdateWithoutIngresoDetallesInput>
+}
+
+export type ItemUpdateWithoutIngresoDetallesInput = {
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  descripcion?: Prisma.StringFieldUpdateOperationsInput | string
+  unidadMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partida?: Prisma.PartidaUpdateOneRequiredWithoutItemsNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutItemNestedInput
+}
+
+export type ItemUncheckedUpdateWithoutIngresoDetallesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  descripcion?: Prisma.StringFieldUpdateOperationsInput | string
+  unidadMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  partidaId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutItemNestedInput
+}
+
+export type ItemCreateWithoutMovimientosInput = {
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+  imagenUrl?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  partida: Prisma.PartidaCreateNestedOneWithoutItemsInput
+  ingresoDetalles?: Prisma.IngresoDetalleCreateNestedManyWithoutItemInput
+}
+
+export type ItemUncheckedCreateWithoutMovimientosInput = {
+  id?: number
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+  imagenUrl?: string | null
+  activo?: boolean
+  partidaId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutItemInput
+}
+
+export type ItemCreateOrConnectWithoutMovimientosInput = {
+  where: Prisma.ItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.ItemCreateWithoutMovimientosInput, Prisma.ItemUncheckedCreateWithoutMovimientosInput>
+}
+
+export type ItemUpsertWithoutMovimientosInput = {
+  update: Prisma.XOR<Prisma.ItemUpdateWithoutMovimientosInput, Prisma.ItemUncheckedUpdateWithoutMovimientosInput>
+  create: Prisma.XOR<Prisma.ItemCreateWithoutMovimientosInput, Prisma.ItemUncheckedCreateWithoutMovimientosInput>
+  where?: Prisma.ItemWhereInput
+}
+
+export type ItemUpdateToOneWithWhereWithoutMovimientosInput = {
+  where?: Prisma.ItemWhereInput
+  data: Prisma.XOR<Prisma.ItemUpdateWithoutMovimientosInput, Prisma.ItemUncheckedUpdateWithoutMovimientosInput>
+}
+
+export type ItemUpdateWithoutMovimientosInput = {
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  descripcion?: Prisma.StringFieldUpdateOperationsInput | string
+  unidadMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partida?: Prisma.PartidaUpdateOneRequiredWithoutItemsNestedInput
+  ingresoDetalles?: Prisma.IngresoDetalleUpdateManyWithoutItemNestedInput
+}
+
+export type ItemUncheckedUpdateWithoutMovimientosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  descripcion?: Prisma.StringFieldUpdateOperationsInput | string
+  unidadMedida?: Prisma.StringFieldUpdateOperationsInput | string
+  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  partidaId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutItemNestedInput
+}
+
 export type ItemCreateManyPartidaInput = {
   id?: number
   codigo: string
@@ -577,6 +760,8 @@ export type ItemUpdateWithoutPartidaInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUpdateManyWithoutItemNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutItemNestedInput
 }
 
 export type ItemUncheckedUpdateWithoutPartidaInput = {
@@ -588,6 +773,8 @@ export type ItemUncheckedUpdateWithoutPartidaInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresoDetalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutItemNestedInput
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutItemNestedInput
 }
 
 export type ItemUncheckedUpdateManyWithoutPartidaInput = {
@@ -602,6 +789,44 @@ export type ItemUncheckedUpdateManyWithoutPartidaInput = {
 }
 
 
+/**
+ * Count Type ItemCountOutputType
+ */
+
+export type ItemCountOutputType = {
+  ingresoDetalles: number
+  movimientos: number
+}
+
+export type ItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ingresoDetalles?: boolean | ItemCountOutputTypeCountIngresoDetallesArgs
+  movimientos?: boolean | ItemCountOutputTypeCountMovimientosArgs
+}
+
+/**
+ * ItemCountOutputType without action
+ */
+export type ItemCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ItemCountOutputType
+   */
+  select?: Prisma.ItemCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ItemCountOutputType without action
+ */
+export type ItemCountOutputTypeCountIngresoDetallesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IngresoDetalleWhereInput
+}
+
+/**
+ * ItemCountOutputType without action
+ */
+export type ItemCountOutputTypeCountMovimientosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MovimientoKardexWhereInput
+}
+
 
 export type ItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -614,6 +839,9 @@ export type ItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   partida?: boolean | Prisma.PartidaDefaultArgs<ExtArgs>
+  ingresoDetalles?: boolean | Prisma.Item$ingresoDetallesArgs<ExtArgs>
+  movimientos?: boolean | Prisma.Item$movimientosArgs<ExtArgs>
+  _count?: boolean | Prisma.ItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["item"]>
 
 export type ItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -657,6 +885,9 @@ export type ItemSelectScalar = {
 export type ItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "codigo" | "descripcion" | "unidadMedida" | "imagenUrl" | "activo" | "partidaId" | "createdAt" | "updatedAt", ExtArgs["result"]["item"]>
 export type ItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   partida?: boolean | Prisma.PartidaDefaultArgs<ExtArgs>
+  ingresoDetalles?: boolean | Prisma.Item$ingresoDetallesArgs<ExtArgs>
+  movimientos?: boolean | Prisma.Item$movimientosArgs<ExtArgs>
+  _count?: boolean | Prisma.ItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   partida?: boolean | Prisma.PartidaDefaultArgs<ExtArgs>
@@ -669,6 +900,8 @@ export type $ItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Item"
   objects: {
     partida: Prisma.$PartidaPayload<ExtArgs>
+    ingresoDetalles: Prisma.$IngresoDetallePayload<ExtArgs>[]
+    movimientos: Prisma.$MovimientoKardexPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1075,6 +1308,8 @@ readonly fields: ItemFieldRefs;
 export interface Prisma__ItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   partida<T extends Prisma.PartidaDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PartidaDefaultArgs<ExtArgs>>): Prisma.Prisma__PartidaClient<runtime.Types.Result.GetResult<Prisma.$PartidaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  ingresoDetalles<T extends Prisma.Item$ingresoDetallesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$ingresoDetallesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoDetallePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  movimientos<T extends Prisma.Item$movimientosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Item$movimientosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimientoKardexPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1511,6 +1746,54 @@ export type ItemDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Items to delete.
    */
   limit?: number
+}
+
+/**
+ * Item.ingresoDetalles
+ */
+export type Item$ingresoDetallesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IngresoDetalle
+   */
+  select?: Prisma.IngresoDetalleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IngresoDetalle
+   */
+  omit?: Prisma.IngresoDetalleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IngresoDetalleInclude<ExtArgs> | null
+  where?: Prisma.IngresoDetalleWhereInput
+  orderBy?: Prisma.IngresoDetalleOrderByWithRelationInput | Prisma.IngresoDetalleOrderByWithRelationInput[]
+  cursor?: Prisma.IngresoDetalleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IngresoDetalleScalarFieldEnum | Prisma.IngresoDetalleScalarFieldEnum[]
+}
+
+/**
+ * Item.movimientos
+ */
+export type Item$movimientosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MovimientoKardex
+   */
+  select?: Prisma.MovimientoKardexSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MovimientoKardex
+   */
+  omit?: Prisma.MovimientoKardexOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MovimientoKardexInclude<ExtArgs> | null
+  where?: Prisma.MovimientoKardexWhereInput
+  orderBy?: Prisma.MovimientoKardexOrderByWithRelationInput | Prisma.MovimientoKardexOrderByWithRelationInput[]
+  cursor?: Prisma.MovimientoKardexWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MovimientoKardexScalarFieldEnum | Prisma.MovimientoKardexScalarFieldEnum[]
 }
 
 /**

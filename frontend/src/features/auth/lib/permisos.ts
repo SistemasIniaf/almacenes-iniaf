@@ -23,6 +23,16 @@ export const PERMISOS = {
   fuentesLeer: ["super_admin", "admin", "responsable_almacen"],
   fuentesEscribir: ["super_admin", "admin"],
 
+  /** Ingresos: escritura super_admin/admin/responsable_almacen; lectura además
+   * observador_almacen (auditoría). El scope por almacén lo aplica el backend. */
+  ingresosLeer: [
+    "super_admin",
+    "admin",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
+  ingresosEscribir: ["super_admin", "admin", "responsable_almacen"],
+
   usuariosLeer: ["super_admin", "admin"],
   usuariosEscribir: ["super_admin", "admin"],
 

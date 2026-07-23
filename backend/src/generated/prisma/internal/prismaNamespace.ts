@@ -392,7 +392,10 @@ export const ModelName = {
   Partida: 'Partida',
   Proveedor: 'Proveedor',
   FuenteFinanciamiento: 'FuenteFinanciamiento',
-  Item: 'Item'
+  Item: 'Item',
+  Ingreso: 'Ingreso',
+  IngresoDetalle: 'IngresoDetalle',
+  MovimientoKardex: 'MovimientoKardex'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -408,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1078,6 +1081,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Ingreso: {
+      payload: Prisma.$IngresoPayload<ExtArgs>
+      fields: Prisma.IngresoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IngresoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IngresoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        findFirst: {
+          args: Prisma.IngresoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IngresoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        findMany: {
+          args: Prisma.IngresoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>[]
+        }
+        create: {
+          args: Prisma.IngresoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        createMany: {
+          args: Prisma.IngresoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IngresoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>[]
+        }
+        delete: {
+          args: Prisma.IngresoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        update: {
+          args: Prisma.IngresoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        deleteMany: {
+          args: Prisma.IngresoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IngresoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IngresoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>[]
+        }
+        upsert: {
+          args: Prisma.IngresoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoPayload>
+        }
+        aggregate: {
+          args: Prisma.IngresoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIngreso>
+        }
+        groupBy: {
+          args: Prisma.IngresoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IngresoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IngresoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IngresoCountAggregateOutputType> | number
+        }
+      }
+    }
+    IngresoDetalle: {
+      payload: Prisma.$IngresoDetallePayload<ExtArgs>
+      fields: Prisma.IngresoDetalleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IngresoDetalleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IngresoDetalleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        findFirst: {
+          args: Prisma.IngresoDetalleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IngresoDetalleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        findMany: {
+          args: Prisma.IngresoDetalleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>[]
+        }
+        create: {
+          args: Prisma.IngresoDetalleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        createMany: {
+          args: Prisma.IngresoDetalleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IngresoDetalleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>[]
+        }
+        delete: {
+          args: Prisma.IngresoDetalleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        update: {
+          args: Prisma.IngresoDetalleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        deleteMany: {
+          args: Prisma.IngresoDetalleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IngresoDetalleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IngresoDetalleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>[]
+        }
+        upsert: {
+          args: Prisma.IngresoDetalleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IngresoDetallePayload>
+        }
+        aggregate: {
+          args: Prisma.IngresoDetalleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIngresoDetalle>
+        }
+        groupBy: {
+          args: Prisma.IngresoDetalleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IngresoDetalleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IngresoDetalleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IngresoDetalleCountAggregateOutputType> | number
+        }
+      }
+    }
+    MovimientoKardex: {
+      payload: Prisma.$MovimientoKardexPayload<ExtArgs>
+      fields: Prisma.MovimientoKardexFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MovimientoKardexFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MovimientoKardexFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        findFirst: {
+          args: Prisma.MovimientoKardexFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MovimientoKardexFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        findMany: {
+          args: Prisma.MovimientoKardexFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>[]
+        }
+        create: {
+          args: Prisma.MovimientoKardexCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        createMany: {
+          args: Prisma.MovimientoKardexCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MovimientoKardexCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>[]
+        }
+        delete: {
+          args: Prisma.MovimientoKardexDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        update: {
+          args: Prisma.MovimientoKardexUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        deleteMany: {
+          args: Prisma.MovimientoKardexDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MovimientoKardexUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MovimientoKardexUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>[]
+        }
+        upsert: {
+          args: Prisma.MovimientoKardexUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MovimientoKardexPayload>
+        }
+        aggregate: {
+          args: Prisma.MovimientoKardexAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMovimientoKardex>
+        }
+        groupBy: {
+          args: Prisma.MovimientoKardexGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimientoKardexGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MovimientoKardexCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MovimientoKardexCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1235,6 +1460,66 @@ export const ItemScalarFieldEnum = {
 export type ItemScalarFieldEnum = (typeof ItemScalarFieldEnum)[keyof typeof ItemScalarFieldEnum]
 
 
+export const IngresoScalarFieldEnum = {
+  id: 'id',
+  estado: 'estado',
+  numero: 'numero',
+  gestion: 'gestion',
+  almacenId: 'almacenId',
+  fechaRemision: 'fechaRemision',
+  notaRemision: 'notaRemision',
+  procesoC31: 'procesoC31',
+  certificacion: 'certificacion',
+  informeConformidad: 'informeConformidad',
+  fechaInformeConformidad: 'fechaInformeConformidad',
+  numeroFactura: 'numeroFactura',
+  observacion: 'observacion',
+  proveedorId: 'proveedorId',
+  fuenteFinanciamientoId: 'fuenteFinanciamientoId',
+  responsableConformidadId: 'responsableConformidadId',
+  unidadSolicitanteId: 'unidadSolicitanteId',
+  registradoPorId: 'registradoPorId',
+  anuladoPorId: 'anuladoPorId',
+  anuladoEn: 'anuladoEn',
+  motivoAnulacion: 'motivoAnulacion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IngresoScalarFieldEnum = (typeof IngresoScalarFieldEnum)[keyof typeof IngresoScalarFieldEnum]
+
+
+export const IngresoDetalleScalarFieldEnum = {
+  id: 'id',
+  ingresoId: 'ingresoId',
+  itemId: 'itemId',
+  cantidad: 'cantidad',
+  precioUnitario: 'precioUnitario',
+  saldoCantidad: 'saldoCantidad',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IngresoDetalleScalarFieldEnum = (typeof IngresoDetalleScalarFieldEnum)[keyof typeof IngresoDetalleScalarFieldEnum]
+
+
+export const MovimientoKardexScalarFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  itemId: 'itemId',
+  almacenId: 'almacenId',
+  cantidad: 'cantidad',
+  precioUnitario: 'precioUnitario',
+  ingresoId: 'ingresoId',
+  ingresoDetalleId: 'ingresoDetalleId',
+  fecha: 'fecha',
+  motivo: 'motivo',
+  createdAt: 'createdAt'
+} as const
+
+export type MovimientoKardexScalarFieldEnum = (typeof MovimientoKardexScalarFieldEnum)[keyof typeof MovimientoKardexScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1325,6 +1610,48 @@ export type EnumRolFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Rol[]'
  */
 export type ListEnumRolFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Rol[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EstadoIngreso'
+ */
+export type EnumEstadoIngresoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EstadoIngreso'>
+    
+
+
+/**
+ * Reference to a field of type 'EstadoIngreso[]'
+ */
+export type ListEnumEstadoIngresoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EstadoIngreso[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TipoMovimiento'
+ */
+export type EnumTipoMovimientoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoMovimiento'>
+    
+
+
+/**
+ * Reference to a field of type 'TipoMovimiento[]'
+ */
+export type ListEnumTipoMovimientoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoMovimiento[]'>
     
 
 
@@ -1460,6 +1787,9 @@ export type GlobalOmitConfig = {
   proveedor?: Prisma.ProveedorOmit
   fuenteFinanciamiento?: Prisma.FuenteFinanciamientoOmit
   item?: Prisma.ItemOmit
+  ingreso?: Prisma.IngresoOmit
+  ingresoDetalle?: Prisma.IngresoDetalleOmit
+  movimientoKardex?: Prisma.MovimientoKardexOmit
 }
 
 /* Types for Logging */

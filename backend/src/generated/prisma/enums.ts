@@ -19,3 +19,21 @@ export const Rol = {
 } as const
 
 export type Rol = (typeof Rol)[keyof typeof Rol]
+
+
+export const EstadoIngreso = {
+  BORRADOR: 'BORRADOR',
+  CONFIRMADO: 'CONFIRMADO',
+  ANULADO: 'ANULADO'
+} as const
+
+export type EstadoIngreso = (typeof EstadoIngreso)[keyof typeof EstadoIngreso]
+
+
+export const TipoMovimiento = {
+  ENTRADA: 'ENTRADA',
+  SALIDA: 'SALIDA',
+  REVERSION: 'REVERSION'
+} as const
+
+export type TipoMovimiento = (typeof TipoMovimiento)[keyof typeof TipoMovimiento]

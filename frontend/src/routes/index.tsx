@@ -5,6 +5,8 @@ import { DashboardLayout } from "@/features/dashboard/layout/DashboardLayout"
 import { DashboardHomePage } from "@/features/dashboard/pages/DashboardHomePage"
 import { AlmacenesPage } from "@/features/almacenes/AlmacenesPage"
 import { FuentesFinanciamientoPage } from "@/features/fuentes-financiamiento/FuentesFinanciamientoPage"
+import { IngresoFormPage } from "@/features/ingresos/pages/IngresoFormPage"
+import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
@@ -60,6 +62,18 @@ export const router = createBrowserRouter([
           {
             path: "fuentes-financiamiento",
             element: <FuentesFinanciamientoPage />,
+          },
+          {
+            path: "ingresos",
+            element: <IngresosPage />,
+          },
+          {
+            path: "ingresos/nuevo",
+            element: <IngresoFormPage />,
+          },
+          {
+            path: "ingresos/:id",
+            element: <IngresoFormPage />,
           },
         ],
       },

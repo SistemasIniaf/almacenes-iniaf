@@ -160,6 +160,19 @@ export class UsuariosService {
     return usuario;
   }
 
+  /**
+   * Lista chica de solicitadores activos (id, nombre, usuario), para el selector
+   * de "responsable de conformidad" del Ingreso. Accesible tambien al
+   * responsable_almacen (que registra ingresos), a diferencia del CRUD completo.
+   */
+  async solicitadores() {
+    return this.prisma.usuario.findMany({
+      where: { rol: Rol.solicitador, activo: true },
+      select: { id: true, nombre: true, usuario: true },
+      orderBy: { nombre: 'asc' },
+    });
+  }
+
   async update(id: number, dto: UpdateUsuarioDto) {
     const existente = await this.prisma.usuario.findUnique({
       where: { id },

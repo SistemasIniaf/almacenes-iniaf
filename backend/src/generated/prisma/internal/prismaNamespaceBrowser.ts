@@ -59,7 +59,10 @@ export const ModelName = {
   Partida: 'Partida',
   Proveedor: 'Proveedor',
   FuenteFinanciamiento: 'FuenteFinanciamiento',
-  Item: 'Item'
+  Item: 'Item',
+  Ingreso: 'Ingreso',
+  IngresoDetalle: 'IngresoDetalle',
+  MovimientoKardex: 'MovimientoKardex'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -194,6 +197,66 @@ export const ItemScalarFieldEnum = {
 } as const
 
 export type ItemScalarFieldEnum = (typeof ItemScalarFieldEnum)[keyof typeof ItemScalarFieldEnum]
+
+
+export const IngresoScalarFieldEnum = {
+  id: 'id',
+  estado: 'estado',
+  numero: 'numero',
+  gestion: 'gestion',
+  almacenId: 'almacenId',
+  fechaRemision: 'fechaRemision',
+  notaRemision: 'notaRemision',
+  procesoC31: 'procesoC31',
+  certificacion: 'certificacion',
+  informeConformidad: 'informeConformidad',
+  fechaInformeConformidad: 'fechaInformeConformidad',
+  numeroFactura: 'numeroFactura',
+  observacion: 'observacion',
+  proveedorId: 'proveedorId',
+  fuenteFinanciamientoId: 'fuenteFinanciamientoId',
+  responsableConformidadId: 'responsableConformidadId',
+  unidadSolicitanteId: 'unidadSolicitanteId',
+  registradoPorId: 'registradoPorId',
+  anuladoPorId: 'anuladoPorId',
+  anuladoEn: 'anuladoEn',
+  motivoAnulacion: 'motivoAnulacion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IngresoScalarFieldEnum = (typeof IngresoScalarFieldEnum)[keyof typeof IngresoScalarFieldEnum]
+
+
+export const IngresoDetalleScalarFieldEnum = {
+  id: 'id',
+  ingresoId: 'ingresoId',
+  itemId: 'itemId',
+  cantidad: 'cantidad',
+  precioUnitario: 'precioUnitario',
+  saldoCantidad: 'saldoCantidad',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type IngresoDetalleScalarFieldEnum = (typeof IngresoDetalleScalarFieldEnum)[keyof typeof IngresoDetalleScalarFieldEnum]
+
+
+export const MovimientoKardexScalarFieldEnum = {
+  id: 'id',
+  tipo: 'tipo',
+  itemId: 'itemId',
+  almacenId: 'almacenId',
+  cantidad: 'cantidad',
+  precioUnitario: 'precioUnitario',
+  ingresoId: 'ingresoId',
+  ingresoDetalleId: 'ingresoDetalleId',
+  fecha: 'fecha',
+  motivo: 'motivo',
+  createdAt: 'createdAt'
+} as const
+
+export type MovimientoKardexScalarFieldEnum = (typeof MovimientoKardexScalarFieldEnum)[keyof typeof MovimientoKardexScalarFieldEnum]
 
 
 export const SortOrder = {

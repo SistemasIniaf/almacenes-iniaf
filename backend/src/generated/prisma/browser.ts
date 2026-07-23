@@ -90,3 +90,30 @@ export type FuenteFinanciamiento = Prisma.FuenteFinanciamientoModel
  * El stock NO vive aqui (ira en StockAlmacen, fase posterior).
  */
 export type Item = Prisma.ItemModel
+/**
+ * Model Ingreso
+ * Ingreso de material a un almacen (cabecera). El detalle son los LOTES.
+ * Lo registra el responsable_almacen de ese almacen, SIN aprobacion.
+ * Flujo: BORRADOR (reserva, no toca stock) -> CONFIRMADO (estampa numero,
+ * crea lotes + kardex) -> ANULADO (revierte). El numero es correlativo POR
+ * ALMACEN + GESTION, se asigna al confirmar (se imprime "001/2026").
+ * Los respaldos son nullable: en BORRADOR no se exigen; el service los pide al
+ * confirmar. Ver docs/decisiones-ingresos.md.
+ */
+export type Ingreso = Prisma.IngresoModel
+/**
+ * Model IngresoDetalle
+ * Linea de un Ingreso = un LOTE de stock. Conserva su cantidad, su precio y su
+ * SALDO. El almacen y la fuente del lote los aporta el Ingreso. El stock de un
+ * item no es un numero: es la suma de los saldos de sus lotes. `saldoCantidad`
+ * se modifica SIEMPRE dentro de la transaccion que lo mueve (aprendizaje del
+ * sistema viejo, que lo actualizaba fuera de transaccion y se desincronizaba).
+ */
+export type IngresoDetalle = Prisma.IngresoDetalleModel
+/**
+ * Model MovimientoKardex
+ * Libro de movimientos (Kardex) por item + almacen. Nunca se borra: es la
+ * fuente para recalcular saldos si hiciera falta. Por ahora ENTRADA (ingreso
+ * confirmado) y REVERSION (anulacion). SALIDA llega con Egresos.
+ */
+export type MovimientoKardex = Prisma.MovimientoKardexModel

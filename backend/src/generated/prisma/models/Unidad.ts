@@ -250,6 +250,7 @@ export type UnidadWhereInput = {
   hijos?: Prisma.UnidadListRelationFilter
   usuarios?: Prisma.UsuarioListRelationFilter
   almacenes?: Prisma.AlmacenUnidadListRelationFilter
+  ingresosSolicitados?: Prisma.IngresoListRelationFilter
 }
 
 export type UnidadOrderByWithRelationInput = {
@@ -265,6 +266,7 @@ export type UnidadOrderByWithRelationInput = {
   hijos?: Prisma.UnidadOrderByRelationAggregateInput
   usuarios?: Prisma.UsuarioOrderByRelationAggregateInput
   almacenes?: Prisma.AlmacenUnidadOrderByRelationAggregateInput
+  ingresosSolicitados?: Prisma.IngresoOrderByRelationAggregateInput
 }
 
 export type UnidadWhereUniqueInput = Prisma.AtLeast<{
@@ -283,6 +285,7 @@ export type UnidadWhereUniqueInput = Prisma.AtLeast<{
   hijos?: Prisma.UnidadListRelationFilter
   usuarios?: Prisma.UsuarioListRelationFilter
   almacenes?: Prisma.AlmacenUnidadListRelationFilter
+  ingresosSolicitados?: Prisma.IngresoListRelationFilter
 }, "id" | "nombre" | "sigla">
 
 export type UnidadOrderByWithAggregationInput = {
@@ -326,6 +329,7 @@ export type UnidadCreateInput = {
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUncheckedCreateInput = {
@@ -340,6 +344,7 @@ export type UnidadUncheckedCreateInput = {
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUpdateInput = {
@@ -353,6 +358,7 @@ export type UnidadUpdateInput = {
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateInput = {
@@ -367,6 +373,7 @@ export type UnidadUncheckedUpdateInput = {
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadCreateManyInput = {
@@ -583,6 +590,22 @@ export type UnidadUpdateOneWithoutUsuariosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UnidadUpdateToOneWithWhereWithoutUsuariosInput, Prisma.UnidadUpdateWithoutUsuariosInput>, Prisma.UnidadUncheckedUpdateWithoutUsuariosInput>
 }
 
+export type UnidadCreateNestedOneWithoutIngresosSolicitadosInput = {
+  create?: Prisma.XOR<Prisma.UnidadCreateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedCreateWithoutIngresosSolicitadosInput>
+  connectOrCreate?: Prisma.UnidadCreateOrConnectWithoutIngresosSolicitadosInput
+  connect?: Prisma.UnidadWhereUniqueInput
+}
+
+export type UnidadUpdateOneWithoutIngresosSolicitadosNestedInput = {
+  create?: Prisma.XOR<Prisma.UnidadCreateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedCreateWithoutIngresosSolicitadosInput>
+  connectOrCreate?: Prisma.UnidadCreateOrConnectWithoutIngresosSolicitadosInput
+  upsert?: Prisma.UnidadUpsertWithoutIngresosSolicitadosInput
+  disconnect?: Prisma.UnidadWhereInput | boolean
+  delete?: Prisma.UnidadWhereInput | boolean
+  connect?: Prisma.UnidadWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UnidadUpdateToOneWithWhereWithoutIngresosSolicitadosInput, Prisma.UnidadUpdateWithoutIngresosSolicitadosInput>, Prisma.UnidadUncheckedUpdateWithoutIngresosSolicitadosInput>
+}
+
 export type UnidadCreateWithoutHijosInput = {
   nombre: string
   sigla: string
@@ -593,6 +616,7 @@ export type UnidadCreateWithoutHijosInput = {
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUncheckedCreateWithoutHijosInput = {
@@ -606,6 +630,7 @@ export type UnidadUncheckedCreateWithoutHijosInput = {
   updatedAt?: Date | string
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadCreateOrConnectWithoutHijosInput = {
@@ -623,6 +648,7 @@ export type UnidadCreateWithoutPadreInput = {
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUncheckedCreateWithoutPadreInput = {
@@ -636,6 +662,7 @@ export type UnidadUncheckedCreateWithoutPadreInput = {
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
   almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadCreateOrConnectWithoutPadreInput = {
@@ -669,6 +696,7 @@ export type UnidadUpdateWithoutHijosInput = {
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutHijosInput = {
@@ -682,6 +710,7 @@ export type UnidadUncheckedUpdateWithoutHijosInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUpsertWithWhereUniqueWithoutPadreInput = {
@@ -724,6 +753,7 @@ export type UnidadCreateWithoutAlmacenesInput = {
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUncheckedCreateWithoutAlmacenesInput = {
@@ -737,6 +767,7 @@ export type UnidadUncheckedCreateWithoutAlmacenesInput = {
   updatedAt?: Date | string
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadCreateOrConnectWithoutAlmacenesInput = {
@@ -765,6 +796,7 @@ export type UnidadUpdateWithoutAlmacenesInput = {
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutAlmacenesInput = {
@@ -778,6 +810,7 @@ export type UnidadUncheckedUpdateWithoutAlmacenesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadCreateWithoutUsuariosInput = {
@@ -790,6 +823,7 @@ export type UnidadCreateWithoutUsuariosInput = {
   padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
   hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
   almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadUncheckedCreateWithoutUsuariosInput = {
@@ -803,6 +837,7 @@ export type UnidadUncheckedCreateWithoutUsuariosInput = {
   updatedAt?: Date | string
   hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
   almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedCreateNestedManyWithoutUnidadSolicitanteInput
 }
 
 export type UnidadCreateOrConnectWithoutUsuariosInput = {
@@ -831,6 +866,7 @@ export type UnidadUpdateWithoutUsuariosInput = {
   padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutUsuariosInput = {
@@ -843,6 +879,77 @@ export type UnidadUncheckedUpdateWithoutUsuariosInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedUpdateManyWithoutUnidadSolicitanteNestedInput
+}
+
+export type UnidadCreateWithoutIngresosSolicitadosInput = {
+  nombre: string
+  sigla: string
+  activo?: boolean
+  grupo?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  padre?: Prisma.UnidadCreateNestedOneWithoutHijosInput
+  hijos?: Prisma.UnidadCreateNestedManyWithoutPadreInput
+  usuarios?: Prisma.UsuarioCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadCreateNestedManyWithoutUnidadInput
+}
+
+export type UnidadUncheckedCreateWithoutIngresosSolicitadosInput = {
+  id?: number
+  nombre: string
+  sigla: string
+  activo?: boolean
+  grupo?: string | null
+  padreId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hijos?: Prisma.UnidadUncheckedCreateNestedManyWithoutPadreInput
+  usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutUnidadInput
+  almacenes?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutUnidadInput
+}
+
+export type UnidadCreateOrConnectWithoutIngresosSolicitadosInput = {
+  where: Prisma.UnidadWhereUniqueInput
+  create: Prisma.XOR<Prisma.UnidadCreateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedCreateWithoutIngresosSolicitadosInput>
+}
+
+export type UnidadUpsertWithoutIngresosSolicitadosInput = {
+  update: Prisma.XOR<Prisma.UnidadUpdateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedUpdateWithoutIngresosSolicitadosInput>
+  create: Prisma.XOR<Prisma.UnidadCreateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedCreateWithoutIngresosSolicitadosInput>
+  where?: Prisma.UnidadWhereInput
+}
+
+export type UnidadUpdateToOneWithWhereWithoutIngresosSolicitadosInput = {
+  where?: Prisma.UnidadWhereInput
+  data: Prisma.XOR<Prisma.UnidadUpdateWithoutIngresosSolicitadosInput, Prisma.UnidadUncheckedUpdateWithoutIngresosSolicitadosInput>
+}
+
+export type UnidadUpdateWithoutIngresosSolicitadosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  padre?: Prisma.UnidadUpdateOneWithoutHijosNestedInput
+  hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
+  usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
+  almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
+}
+
+export type UnidadUncheckedUpdateWithoutIngresosSolicitadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  sigla?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  grupo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
+  usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
 }
 
@@ -866,6 +973,7 @@ export type UnidadUpdateWithoutPadreInput = {
   hijos?: Prisma.UnidadUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateWithoutPadreInput = {
@@ -879,6 +987,7 @@ export type UnidadUncheckedUpdateWithoutPadreInput = {
   hijos?: Prisma.UnidadUncheckedUpdateManyWithoutPadreNestedInput
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutUnidadNestedInput
   almacenes?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutUnidadNestedInput
+  ingresosSolicitados?: Prisma.IngresoUncheckedUpdateManyWithoutUnidadSolicitanteNestedInput
 }
 
 export type UnidadUncheckedUpdateManyWithoutPadreInput = {
@@ -900,12 +1009,14 @@ export type UnidadCountOutputType = {
   hijos: number
   usuarios: number
   almacenes: number
+  ingresosSolicitados: number
 }
 
 export type UnidadCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hijos?: boolean | UnidadCountOutputTypeCountHijosArgs
   usuarios?: boolean | UnidadCountOutputTypeCountUsuariosArgs
   almacenes?: boolean | UnidadCountOutputTypeCountAlmacenesArgs
+  ingresosSolicitados?: boolean | UnidadCountOutputTypeCountIngresosSolicitadosArgs
 }
 
 /**
@@ -939,6 +1050,13 @@ export type UnidadCountOutputTypeCountAlmacenesArgs<ExtArgs extends runtime.Type
   where?: Prisma.AlmacenUnidadWhereInput
 }
 
+/**
+ * UnidadCountOutputType without action
+ */
+export type UnidadCountOutputTypeCountIngresosSolicitadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IngresoWhereInput
+}
+
 
 export type UnidadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -953,6 +1071,7 @@ export type UnidadSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   hijos?: boolean | Prisma.Unidad$hijosArgs<ExtArgs>
   usuarios?: boolean | Prisma.Unidad$usuariosArgs<ExtArgs>
   almacenes?: boolean | Prisma.Unidad$almacenesArgs<ExtArgs>
+  ingresosSolicitados?: boolean | Prisma.Unidad$ingresosSolicitadosArgs<ExtArgs>
   _count?: boolean | Prisma.UnidadCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["unidad"]>
 
@@ -997,6 +1116,7 @@ export type UnidadInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   hijos?: boolean | Prisma.Unidad$hijosArgs<ExtArgs>
   usuarios?: boolean | Prisma.Unidad$usuariosArgs<ExtArgs>
   almacenes?: boolean | Prisma.Unidad$almacenesArgs<ExtArgs>
+  ingresosSolicitados?: boolean | Prisma.Unidad$ingresosSolicitadosArgs<ExtArgs>
   _count?: boolean | Prisma.UnidadCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UnidadIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1013,6 +1133,7 @@ export type $UnidadPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     hijos: Prisma.$UnidadPayload<ExtArgs>[]
     usuarios: Prisma.$UsuarioPayload<ExtArgs>[]
     almacenes: Prisma.$AlmacenUnidadPayload<ExtArgs>[]
+    ingresosSolicitados: Prisma.$IngresoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1426,6 +1547,7 @@ export interface Prisma__UnidadClient<T, Null = never, ExtArgs extends runtime.T
   hijos<T extends Prisma.Unidad$hijosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$hijosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   usuarios<T extends Prisma.Unidad$usuariosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$usuariosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   almacenes<T extends Prisma.Unidad$almacenesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$almacenesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlmacenUnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ingresosSolicitados<T extends Prisma.Unidad$ingresosSolicitadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Unidad$ingresosSolicitadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1952,6 +2074,30 @@ export type Unidad$almacenesArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.AlmacenUnidadScalarFieldEnum | Prisma.AlmacenUnidadScalarFieldEnum[]
+}
+
+/**
+ * Unidad.ingresosSolicitados
+ */
+export type Unidad$ingresosSolicitadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ingreso
+   */
+  select?: Prisma.IngresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ingreso
+   */
+  omit?: Prisma.IngresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IngresoInclude<ExtArgs> | null
+  where?: Prisma.IngresoWhereInput
+  orderBy?: Prisma.IngresoOrderByWithRelationInput | Prisma.IngresoOrderByWithRelationInput[]
+  cursor?: Prisma.IngresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
 }
 
 /**

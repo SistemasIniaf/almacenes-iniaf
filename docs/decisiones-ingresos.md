@@ -134,6 +134,7 @@ desaparecen por diseño:
 | Fuente de financiamiento | **Sí** | Selector |
 | Certificación | **Sí** | |
 | Informe y/o acta de conformidad | **Sí** | Antes se llamaba «solicitud» |
+| Fecha del informe / acta de conformidad | **Sí** | Fecha del documento anterior (agregado 2026-07-23) |
 | Responsable de conformidad | **Sí** | Usuario con rol `solicitador` — ver punto 5 |
 | Unidad solicitante | **Sí** | Solo para reportes; no afecta el stock |
 | Nº de factura | No | |

@@ -41,7 +41,9 @@ export function useAlmacenesActivos() {
   return useQuery({
     queryKey: almacenesKeys.lista({ page: 1, pageSize: 100, activo: true }),
     queryFn: () => listarAlmacenes({ page: 1, pageSize: 100, activo: true }),
-    select: (resultado) => resultado.data,
+    // Selector de formulario: ordenado por nombre (el listado va por fecha).
+    select: (resultado) =>
+      [...resultado.data].sort((a, b) => a.nombre.localeCompare(b.nombre)),
     staleTime: 5 * 60_000,
   })
 }

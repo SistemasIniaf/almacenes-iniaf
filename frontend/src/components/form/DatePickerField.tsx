@@ -57,8 +57,9 @@ export function DatePickerField<T extends FieldValues>({
             {required && <span className="ml-1 text-red-500">*</span>}
           </FieldLabel>
           <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger>
+            <PopoverTrigger asChild>
               <Button
+                type="button"
                 variant="outline"
                 className={cn(
                   "w-full justify-between font-normal",

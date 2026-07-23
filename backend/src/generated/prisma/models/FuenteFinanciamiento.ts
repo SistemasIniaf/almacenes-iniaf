@@ -229,6 +229,7 @@ export type FuenteFinanciamientoWhereInput = {
   activo?: Prisma.BoolFilter<"FuenteFinanciamiento"> | boolean
   createdAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
+  ingresos?: Prisma.IngresoListRelationFilter
 }
 
 export type FuenteFinanciamientoOrderByWithRelationInput = {
@@ -238,6 +239,7 @@ export type FuenteFinanciamientoOrderByWithRelationInput = {
   activo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ingresos?: Prisma.IngresoOrderByRelationAggregateInput
 }
 
 export type FuenteFinanciamientoWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type FuenteFinanciamientoWhereUniqueInput = Prisma.AtLeast<{
   activo?: Prisma.BoolFilter<"FuenteFinanciamiento"> | boolean
   createdAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
+  ingresos?: Prisma.IngresoListRelationFilter
 }, "id" | "nombre">
 
 export type FuenteFinanciamientoOrderByWithAggregationInput = {
@@ -284,6 +287,7 @@ export type FuenteFinanciamientoCreateInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresos?: Prisma.IngresoCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoUncheckedCreateInput = {
@@ -293,6 +297,7 @@ export type FuenteFinanciamientoUncheckedCreateInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoUpdateInput = {
@@ -301,6 +306,7 @@ export type FuenteFinanciamientoUpdateInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 export type FuenteFinanciamientoUncheckedUpdateInput = {
@@ -310,6 +316,7 @@ export type FuenteFinanciamientoUncheckedUpdateInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 export type FuenteFinanciamientoCreateManyInput = {
@@ -373,6 +380,106 @@ export type FuenteFinanciamientoSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type FuenteFinanciamientoNullableScalarRelationFilter = {
+  is?: Prisma.FuenteFinanciamientoWhereInput | null
+  isNot?: Prisma.FuenteFinanciamientoWhereInput | null
+}
+
+export type FuenteFinanciamientoCreateNestedOneWithoutIngresosInput = {
+  create?: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutIngresosInput>
+  connectOrCreate?: Prisma.FuenteFinanciamientoCreateOrConnectWithoutIngresosInput
+  connect?: Prisma.FuenteFinanciamientoWhereUniqueInput
+}
+
+export type FuenteFinanciamientoUpdateOneWithoutIngresosNestedInput = {
+  create?: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutIngresosInput>
+  connectOrCreate?: Prisma.FuenteFinanciamientoCreateOrConnectWithoutIngresosInput
+  upsert?: Prisma.FuenteFinanciamientoUpsertWithoutIngresosInput
+  disconnect?: Prisma.FuenteFinanciamientoWhereInput | boolean
+  delete?: Prisma.FuenteFinanciamientoWhereInput | boolean
+  connect?: Prisma.FuenteFinanciamientoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuenteFinanciamientoUpdateToOneWithWhereWithoutIngresosInput, Prisma.FuenteFinanciamientoUpdateWithoutIngresosInput>, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput>
+}
+
+export type FuenteFinanciamientoCreateWithoutIngresosInput = {
+  nombre: string
+  codigo?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type FuenteFinanciamientoUncheckedCreateWithoutIngresosInput = {
+  id?: number
+  nombre: string
+  codigo?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type FuenteFinanciamientoCreateOrConnectWithoutIngresosInput = {
+  where: Prisma.FuenteFinanciamientoWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutIngresosInput>
+}
+
+export type FuenteFinanciamientoUpsertWithoutIngresosInput = {
+  update: Prisma.XOR<Prisma.FuenteFinanciamientoUpdateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput>
+  create: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutIngresosInput>
+  where?: Prisma.FuenteFinanciamientoWhereInput
+}
+
+export type FuenteFinanciamientoUpdateToOneWithWhereWithoutIngresosInput = {
+  where?: Prisma.FuenteFinanciamientoWhereInput
+  data: Prisma.XOR<Prisma.FuenteFinanciamientoUpdateWithoutIngresosInput, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput>
+}
+
+export type FuenteFinanciamientoUpdateWithoutIngresosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type FuenteFinanciamientoCountOutputType
+ */
+
+export type FuenteFinanciamientoCountOutputType = {
+  ingresos: number
+}
+
+export type FuenteFinanciamientoCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ingresos?: boolean | FuenteFinanciamientoCountOutputTypeCountIngresosArgs
+}
+
+/**
+ * FuenteFinanciamientoCountOutputType without action
+ */
+export type FuenteFinanciamientoCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FuenteFinanciamientoCountOutputType
+   */
+  select?: Prisma.FuenteFinanciamientoCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * FuenteFinanciamientoCountOutputType without action
+ */
+export type FuenteFinanciamientoCountOutputTypeCountIngresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IngresoWhereInput
+}
 
 
 export type FuenteFinanciamientoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -382,6 +489,8 @@ export type FuenteFinanciamientoSelect<ExtArgs extends runtime.Types.Extensions.
   activo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ingresos?: boolean | Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>
+  _count?: boolean | Prisma.FuenteFinanciamientoCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["fuenteFinanciamiento"]>
 
 export type FuenteFinanciamientoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -412,10 +521,18 @@ export type FuenteFinanciamientoSelectScalar = {
 }
 
 export type FuenteFinanciamientoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "codigo" | "activo" | "createdAt" | "updatedAt", ExtArgs["result"]["fuenteFinanciamiento"]>
+export type FuenteFinanciamientoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ingresos?: boolean | Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>
+  _count?: boolean | Prisma.FuenteFinanciamientoCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type FuenteFinanciamientoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type FuenteFinanciamientoIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $FuenteFinanciamientoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "FuenteFinanciamiento"
-  objects: {}
+  objects: {
+    ingresos: Prisma.$IngresoPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     nombre: string
@@ -820,6 +937,7 @@ readonly fields: FuenteFinanciamientoFieldRefs;
  */
 export interface Prisma__FuenteFinanciamientoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  ingresos<T extends Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -872,6 +990,10 @@ export type FuenteFinanciamientoFindUniqueArgs<ExtArgs extends runtime.Types.Ext
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * Filter, which FuenteFinanciamiento to fetch.
    */
   where: Prisma.FuenteFinanciamientoWhereUniqueInput
@@ -890,6 +1012,10 @@ export type FuenteFinanciamientoFindUniqueOrThrowArgs<ExtArgs extends runtime.Ty
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * Filter, which FuenteFinanciamiento to fetch.
    */
   where: Prisma.FuenteFinanciamientoWhereUniqueInput
@@ -907,6 +1033,10 @@ export type FuenteFinanciamientoFindFirstArgs<ExtArgs extends runtime.Types.Exte
    * Omit specific fields from the FuenteFinanciamiento
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
   /**
    * Filter, which FuenteFinanciamiento to fetch.
    */
@@ -956,6 +1086,10 @@ export type FuenteFinanciamientoFindFirstOrThrowArgs<ExtArgs extends runtime.Typ
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * Filter, which FuenteFinanciamiento to fetch.
    */
   where?: Prisma.FuenteFinanciamientoWhereInput
@@ -1003,6 +1137,10 @@ export type FuenteFinanciamientoFindManyArgs<ExtArgs extends runtime.Types.Exten
    * Omit specific fields from the FuenteFinanciamiento
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
   /**
    * Filter, which FuenteFinanciamientos to fetch.
    */
@@ -1052,6 +1190,10 @@ export type FuenteFinanciamientoCreateArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * The data needed to create a FuenteFinanciamiento.
    */
   data: Prisma.XOR<Prisma.FuenteFinanciamientoCreateInput, Prisma.FuenteFinanciamientoUncheckedCreateInput>
@@ -1099,6 +1241,10 @@ export type FuenteFinanciamientoUpdateArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the FuenteFinanciamiento
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
   /**
    * The data needed to update a FuenteFinanciamiento.
    */
@@ -1166,6 +1312,10 @@ export type FuenteFinanciamientoUpsertArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * The filter to search for the FuenteFinanciamiento to update in case it exists.
    */
   where: Prisma.FuenteFinanciamientoWhereUniqueInput
@@ -1192,6 +1342,10 @@ export type FuenteFinanciamientoDeleteArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
+  /**
    * Filter which FuenteFinanciamiento to delete.
    */
   where: Prisma.FuenteFinanciamientoWhereUniqueInput
@@ -1212,6 +1366,30 @@ export type FuenteFinanciamientoDeleteManyArgs<ExtArgs extends runtime.Types.Ext
 }
 
 /**
+ * FuenteFinanciamiento.ingresos
+ */
+export type FuenteFinanciamiento$ingresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ingreso
+   */
+  select?: Prisma.IngresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ingreso
+   */
+  omit?: Prisma.IngresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IngresoInclude<ExtArgs> | null
+  where?: Prisma.IngresoWhereInput
+  orderBy?: Prisma.IngresoOrderByWithRelationInput | Prisma.IngresoOrderByWithRelationInput[]
+  cursor?: Prisma.IngresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
+}
+
+/**
  * FuenteFinanciamiento without action
  */
 export type FuenteFinanciamientoDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1223,4 +1401,8 @@ export type FuenteFinanciamientoDefaultArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the FuenteFinanciamiento
    */
   omit?: Prisma.FuenteFinanciamientoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FuenteFinanciamientoInclude<ExtArgs> | null
 }

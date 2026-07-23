@@ -1,4 +1,5 @@
 import {
+  ArrowDownToLine,
   Building2,
   Landmark,
   LayoutDashboard,
@@ -89,6 +90,12 @@ const ITEMS: ItemMenu[] = [
     url: "/fuentes-financiamiento",
     icono: Landmark,
     permiso: "fuentesLeer",
+  },
+  {
+    titulo: "Ingresos",
+    url: "/ingresos",
+    icono: ArrowDownToLine,
+    permiso: "ingresosLeer",
   },
 ]
 

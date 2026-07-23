@@ -251,6 +251,7 @@ export type ProveedorWhereInput = {
   activo?: Prisma.BoolFilter<"Proveedor"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Proveedor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Proveedor"> | Date | string
+  ingresos?: Prisma.IngresoListRelationFilter
 }
 
 export type ProveedorOrderByWithRelationInput = {
@@ -263,6 +264,7 @@ export type ProveedorOrderByWithRelationInput = {
   activo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  ingresos?: Prisma.IngresoOrderByRelationAggregateInput
 }
 
 export type ProveedorWhereUniqueInput = Prisma.AtLeast<{
@@ -278,6 +280,7 @@ export type ProveedorWhereUniqueInput = Prisma.AtLeast<{
   activo?: Prisma.BoolFilter<"Proveedor"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Proveedor"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Proveedor"> | Date | string
+  ingresos?: Prisma.IngresoListRelationFilter
 }, "id" | "nit">
 
 export type ProveedorOrderByWithAggregationInput = {
@@ -321,6 +324,7 @@ export type ProveedorCreateInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresos?: Prisma.IngresoCreateNestedManyWithoutProveedorInput
 }
 
 export type ProveedorUncheckedCreateInput = {
@@ -333,6 +337,7 @@ export type ProveedorUncheckedCreateInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutProveedorInput
 }
 
 export type ProveedorUpdateInput = {
@@ -344,6 +349,7 @@ export type ProveedorUpdateInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUpdateManyWithoutProveedorNestedInput
 }
 
 export type ProveedorUncheckedUpdateInput = {
@@ -356,6 +362,7 @@ export type ProveedorUncheckedUpdateInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutProveedorNestedInput
 }
 
 export type ProveedorCreateManyInput = {
@@ -437,6 +444,118 @@ export type ProveedorSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type ProveedorNullableScalarRelationFilter = {
+  is?: Prisma.ProveedorWhereInput | null
+  isNot?: Prisma.ProveedorWhereInput | null
+}
+
+export type ProveedorCreateNestedOneWithoutIngresosInput = {
+  create?: Prisma.XOR<Prisma.ProveedorCreateWithoutIngresosInput, Prisma.ProveedorUncheckedCreateWithoutIngresosInput>
+  connectOrCreate?: Prisma.ProveedorCreateOrConnectWithoutIngresosInput
+  connect?: Prisma.ProveedorWhereUniqueInput
+}
+
+export type ProveedorUpdateOneWithoutIngresosNestedInput = {
+  create?: Prisma.XOR<Prisma.ProveedorCreateWithoutIngresosInput, Prisma.ProveedorUncheckedCreateWithoutIngresosInput>
+  connectOrCreate?: Prisma.ProveedorCreateOrConnectWithoutIngresosInput
+  upsert?: Prisma.ProveedorUpsertWithoutIngresosInput
+  disconnect?: Prisma.ProveedorWhereInput | boolean
+  delete?: Prisma.ProveedorWhereInput | boolean
+  connect?: Prisma.ProveedorWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProveedorUpdateToOneWithWhereWithoutIngresosInput, Prisma.ProveedorUpdateWithoutIngresosInput>, Prisma.ProveedorUncheckedUpdateWithoutIngresosInput>
+}
+
+export type ProveedorCreateWithoutIngresosInput = {
+  nombre: string
+  nit?: string | null
+  telefono?: string | null
+  contacto?: string | null
+  direccion?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProveedorUncheckedCreateWithoutIngresosInput = {
+  id?: number
+  nombre: string
+  nit?: string | null
+  telefono?: string | null
+  contacto?: string | null
+  direccion?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProveedorCreateOrConnectWithoutIngresosInput = {
+  where: Prisma.ProveedorWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProveedorCreateWithoutIngresosInput, Prisma.ProveedorUncheckedCreateWithoutIngresosInput>
+}
+
+export type ProveedorUpsertWithoutIngresosInput = {
+  update: Prisma.XOR<Prisma.ProveedorUpdateWithoutIngresosInput, Prisma.ProveedorUncheckedUpdateWithoutIngresosInput>
+  create: Prisma.XOR<Prisma.ProveedorCreateWithoutIngresosInput, Prisma.ProveedorUncheckedCreateWithoutIngresosInput>
+  where?: Prisma.ProveedorWhereInput
+}
+
+export type ProveedorUpdateToOneWithWhereWithoutIngresosInput = {
+  where?: Prisma.ProveedorWhereInput
+  data: Prisma.XOR<Prisma.ProveedorUpdateWithoutIngresosInput, Prisma.ProveedorUncheckedUpdateWithoutIngresosInput>
+}
+
+export type ProveedorUpdateWithoutIngresosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  nit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contacto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direccion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProveedorUncheckedUpdateWithoutIngresosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  nit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  telefono?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contacto?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  direccion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type ProveedorCountOutputType
+ */
+
+export type ProveedorCountOutputType = {
+  ingresos: number
+}
+
+export type ProveedorCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ingresos?: boolean | ProveedorCountOutputTypeCountIngresosArgs
+}
+
+/**
+ * ProveedorCountOutputType without action
+ */
+export type ProveedorCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProveedorCountOutputType
+   */
+  select?: Prisma.ProveedorCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ProveedorCountOutputType without action
+ */
+export type ProveedorCountOutputTypeCountIngresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IngresoWhereInput
+}
 
 
 export type ProveedorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -449,6 +568,8 @@ export type ProveedorSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   activo?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  ingresos?: boolean | Prisma.Proveedor$ingresosArgs<ExtArgs>
+  _count?: boolean | Prisma.ProveedorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["proveedor"]>
 
 export type ProveedorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -488,10 +609,18 @@ export type ProveedorSelectScalar = {
 }
 
 export type ProveedorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "nit" | "telefono" | "contacto" | "direccion" | "activo" | "createdAt" | "updatedAt", ExtArgs["result"]["proveedor"]>
+export type ProveedorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  ingresos?: boolean | Prisma.Proveedor$ingresosArgs<ExtArgs>
+  _count?: boolean | Prisma.ProveedorCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ProveedorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ProveedorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $ProveedorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Proveedor"
-  objects: {}
+  objects: {
+    ingresos: Prisma.$IngresoPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     nombre: string
@@ -899,6 +1028,7 @@ readonly fields: ProveedorFieldRefs;
  */
 export interface Prisma__ProveedorClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  ingresos<T extends Prisma.Proveedor$ingresosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Proveedor$ingresosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -954,6 +1084,10 @@ export type ProveedorFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * Filter, which Proveedor to fetch.
    */
   where: Prisma.ProveedorWhereUniqueInput
@@ -972,6 +1106,10 @@ export type ProveedorFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensi
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * Filter, which Proveedor to fetch.
    */
   where: Prisma.ProveedorWhereUniqueInput
@@ -989,6 +1127,10 @@ export type ProveedorFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the Proveedor
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
   /**
    * Filter, which Proveedor to fetch.
    */
@@ -1038,6 +1180,10 @@ export type ProveedorFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * Filter, which Proveedor to fetch.
    */
   where?: Prisma.ProveedorWhereInput
@@ -1085,6 +1231,10 @@ export type ProveedorFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the Proveedor
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
   /**
    * Filter, which Proveedors to fetch.
    */
@@ -1134,6 +1284,10 @@ export type ProveedorCreateArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * The data needed to create a Proveedor.
    */
   data: Prisma.XOR<Prisma.ProveedorCreateInput, Prisma.ProveedorUncheckedCreateInput>
@@ -1181,6 +1335,10 @@ export type ProveedorUpdateArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Omit specific fields from the Proveedor
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
   /**
    * The data needed to update a Proveedor.
    */
@@ -1248,6 +1406,10 @@ export type ProveedorUpsertArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * The filter to search for the Proveedor to update in case it exists.
    */
   where: Prisma.ProveedorWhereUniqueInput
@@ -1274,6 +1436,10 @@ export type ProveedorDeleteArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
+  /**
    * Filter which Proveedor to delete.
    */
   where: Prisma.ProveedorWhereUniqueInput
@@ -1294,6 +1460,30 @@ export type ProveedorDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
+ * Proveedor.ingresos
+ */
+export type Proveedor$ingresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ingreso
+   */
+  select?: Prisma.IngresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ingreso
+   */
+  omit?: Prisma.IngresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IngresoInclude<ExtArgs> | null
+  where?: Prisma.IngresoWhereInput
+  orderBy?: Prisma.IngresoOrderByWithRelationInput | Prisma.IngresoOrderByWithRelationInput[]
+  cursor?: Prisma.IngresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
+}
+
+/**
  * Proveedor without action
  */
 export type ProveedorDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1305,4 +1495,8 @@ export type ProveedorDefaultArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Omit specific fields from the Proveedor
    */
   omit?: Prisma.ProveedorOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProveedorInclude<ExtArgs> | null
 }

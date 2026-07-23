@@ -25,6 +25,22 @@ enum Rol {
   observador_almacen
 }
 
+/// Estado del Ingreso. BORRADOR (reserva, no toca stock) -> CONFIRMADO (crea
+/// lotes + kardex, estampa numero) -> ANULADO (revierte). Ver decisiones-ingresos.md.
+enum EstadoIngreso {
+  BORRADOR
+  CONFIRMADO
+  ANULADO
+}
+
+/// Tipo de movimiento del Kardex. Por ahora ENTRADA (ingreso confirmado) y
+/// REVERSION (anulacion de ingreso). SALIDA llega con Egresos.
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+  REVERSION
+}
+
 // ---------------------------------------------------------------------------
 // Entidades
 // ---------------------------------------------------------------------------
@@ -48,8 +64,9 @@ model Unidad {
   padre   Unidad?  @relation("UnidadJerarquia", fields: [padreId], references: [id])
   hijos   Unidad[] @relation("UnidadJerarquia")
 
-  usuarios  Usuario[]
-  almacenes AlmacenUnidad[]
+  usuarios            Usuario[]
+  almacenes           AlmacenUnidad[]
+  ingresosSolicitados Ingreso[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -68,6 +85,8 @@ model Almacen {
   usuarios     Usuario[]
   observadores UsuarioAlmacenObservado[]
   unidades     AlmacenUnidad[]
+  ingresos     Ingreso[]
+  movimientos  MovimientoKardex[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -117,6 +136,11 @@ model Usuario {
   almacen   Almacen? @relation(fields: [almacenId], references: [id])
 
   almacenesObservados UsuarioAlmacenObservado[]
+
+  // Relaciones con Ingreso (multiples, por eso llevan nombre).
+  ingresosRegistrados  Ingreso[] @relation("IngresoRegistradoPor")
+  ingresosConformidad  Ingreso[] @relation("IngresoResponsableConformidad")
+  ingresosAnulados     Ingreso[] @relation("IngresoAnuladoPor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -182,6 +206,8 @@ model Proveedor {
   direccion String?
   activo    Boolean @default(true)
 
+  ingresos Ingreso[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -200,6 +226,8 @@ model FuenteFinanciamiento {
   /// Opcional, por si el area financiera maneja un codigo propio.
   codigo String?
   activo Boolean @default(true)
+
+  ingresos Ingreso[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -223,9 +251,130 @@ model Item {
   partidaId Int     @map("partida_id")
   partida   Partida @relation(fields: [partidaId], references: [id])
 
+  ingresoDetalles IngresoDetalle[]
+  movimientos     MovimientoKardex[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([partidaId])
   @@map("items")
+}
+
+/// Ingreso de material a un almacen (cabecera). El detalle son los LOTES.
+/// Lo registra el responsable_almacen de ese almacen, SIN aprobacion.
+/// Flujo: BORRADOR (reserva, no toca stock) -> CONFIRMADO (estampa numero,
+/// crea lotes + kardex) -> ANULADO (revierte). El numero es correlativo POR
+/// ALMACEN + GESTION, se asigna al confirmar (se imprime "001/2026").
+/// Los respaldos son nullable: en BORRADOR no se exigen; el service los pide al
+/// confirmar. Ver docs/decisiones-ingresos.md.
+model Ingreso {
+  id     Int           @id @default(autoincrement())
+  estado EstadoIngreso @default(BORRADOR)
+
+  numero  Int? // null hasta confirmar
+  gestion Int? @map("gestion") // anio; null hasta confirmar
+
+  almacenId Int     @map("almacen_id")
+  almacen   Almacen @relation(fields: [almacenId], references: [id])
+
+  // Respaldos del documento (se exigen al confirmar, no en borrador).
+  fechaRemision           DateTime? @map("fecha_remision")
+  notaRemision            String?   @map("nota_remision")
+  procesoC31              String?   @map("proceso_c31")
+  certificacion           String?
+  informeConformidad      String?   @map("informe_conformidad")
+  fechaInformeConformidad DateTime? @map("fecha_informe_conformidad")
+  numeroFactura           String?   @map("numero_factura")
+  observacion             String?
+
+  proveedorId              Int?                  @map("proveedor_id")
+  proveedor                Proveedor?            @relation(fields: [proveedorId], references: [id])
+  fuenteFinanciamientoId   Int?                  @map("fuente_financiamiento_id")
+  fuenteFinanciamiento     FuenteFinanciamiento? @relation(fields: [fuenteFinanciamientoId], references: [id])
+  responsableConformidadId Int?                  @map("responsable_conformidad_id")
+  responsableConformidad   Usuario?              @relation("IngresoResponsableConformidad", fields: [responsableConformidadId], references: [id])
+  unidadSolicitanteId      Int?                  @map("unidad_solicitante_id")
+  unidadSolicitante        Unidad?               @relation(fields: [unidadSolicitanteId], references: [id])
+
+  // Auditoria: quien registro (automatico).
+  registradoPorId Int     @map("registrado_por_id")
+  registradoPor   Usuario @relation("IngresoRegistradoPor", fields: [registradoPorId], references: [id])
+
+  // Anulacion (null salvo cuando se anula).
+  anuladoPorId    Int?      @map("anulado_por_id")
+  anuladoPor      Usuario?  @relation("IngresoAnuladoPor", fields: [anuladoPorId], references: [id])
+  anuladoEn       DateTime? @map("anulado_en")
+  motivoAnulacion String?   @map("motivo_anulacion")
+
+  detalles    IngresoDetalle[]
+  movimientos MovimientoKardex[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Unico por almacen + gestion + numero. Los NULL (borradores) conviven.
+  @@unique([almacenId, gestion, numero])
+  @@index([almacenId])
+  @@index([estado])
+  @@index([fuenteFinanciamientoId])
+  @@map("ingresos")
+}
+
+/// Linea de un Ingreso = un LOTE de stock. Conserva su cantidad, su precio y su
+/// SALDO. El almacen y la fuente del lote los aporta el Ingreso. El stock de un
+/// item no es un numero: es la suma de los saldos de sus lotes. `saldoCantidad`
+/// se modifica SIEMPRE dentro de la transaccion que lo mueve (aprendizaje del
+/// sistema viejo, que lo actualizaba fuera de transaccion y se desincronizaba).
+model IngresoDetalle {
+  id        Int     @id @default(autoincrement())
+  ingresoId Int     @map("ingreso_id")
+  ingreso   Ingreso @relation(fields: [ingresoId], references: [id])
+  itemId    Int     @map("item_id")
+  item      Item    @relation(fields: [itemId], references: [id])
+
+  cantidad       Decimal @db.Decimal(12, 2)
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 5)
+  saldoCantidad  Decimal @map("saldo_cantidad") @db.Decimal(12, 2)
+
+  movimientos MovimientoKardex[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([ingresoId])
+  @@index([itemId])
+  @@map("ingreso_detalles")
+}
+
+/// Libro de movimientos (Kardex) por item + almacen. Nunca se borra: es la
+/// fuente para recalcular saldos si hiciera falta. Por ahora ENTRADA (ingreso
+/// confirmado) y REVERSION (anulacion). SALIDA llega con Egresos.
+model MovimientoKardex {
+  id        Int            @id @default(autoincrement())
+  tipo      TipoMovimiento
+  itemId    Int            @map("item_id")
+  item      Item           @relation(fields: [itemId], references: [id])
+  almacenId Int            @map("almacen_id")
+  almacen   Almacen        @relation(fields: [almacenId], references: [id])
+
+  cantidad       Decimal @db.Decimal(12, 2)
+  precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 5)
+
+  // Origen del movimiento (el ingreso y el lote que lo generaron).
+  ingresoId        Int?            @map("ingreso_id")
+  ingreso          Ingreso?        @relation(fields: [ingresoId], references: [id])
+  ingresoDetalleId Int?            @map("ingreso_detalle_id")
+  ingresoDetalle   IngresoDetalle? @relation(fields: [ingresoDetalleId], references: [id])
+
+  /// Fecha del movimiento (la del documento; para el ingreso, su fechaRemision).
+  fecha  DateTime
+  motivo String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([itemId, almacenId])
+  @@index([ingresoId])
+  @@index([ingresoDetalleId])
+  @@map("movimientos_kardex")
 }

@@ -31,11 +31,15 @@ export class AlmacenesController {
     return this.almacenesService.create(dto);
   }
 
+  // Lectura tambien para responsable_almacen: necesita las unidades de su
+  // almacen al registrar un Ingreso (selector de "unidad solicitante").
+  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
   @Get()
   findAll(@Query() query: QueryAlmacenesDto) {
     return this.almacenesService.findAll(query);
   }
 
+  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.almacenesService.findOne(id);
