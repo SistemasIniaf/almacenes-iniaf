@@ -54,10 +54,15 @@ export class FuentesFinanciamientoService {
       ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
+    const orderBy =
+      query.orden === 'nombre'
+        ? [{ nombre: 'asc' as const }, { id: 'asc' as const }]
+        : [{ createdAt: 'desc' as const }, { id: 'desc' as const }];
+
     const [data, total] = await Promise.all([
       this.prisma.fuenteFinanciamiento.findMany({
         where,
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

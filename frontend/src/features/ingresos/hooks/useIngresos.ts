@@ -144,9 +144,14 @@ export function useUnidadesDeAlmacen(almacenId: number | undefined) {
 export function useItemsActivos() {
   return useQuery({
     queryKey: ["items", "activos"],
-    queryFn: () => listarItems({ page: 1, pageSize: 500, activo: true }),
-    select: (r) =>
-      [...r.data].sort((a, b) => a.descripcion.localeCompare(b.descripcion)),
+    queryFn: () =>
+      listarItems({
+        page: 1,
+        pageSize: 500,
+        activo: true,
+        orden: "descripcion",
+      }),
+    select: (r) => r.data,
     staleTime: 5 * 60_000,
   })
 }

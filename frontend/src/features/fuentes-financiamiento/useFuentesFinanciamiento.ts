@@ -34,14 +34,18 @@ export function useFuentes(query: QueryFuentesFinanciamiento) {
   })
 }
 
-/** Fuentes activas para el selector de Ingresos (cuando se construya). */
+/** Fuentes activas para los selectores (ordenadas por nombre en el backend). */
 export function useFuentesActivas() {
+  const query = {
+    page: 1,
+    pageSize: 100,
+    activo: true,
+    orden: "nombre" as const,
+  }
   return useQuery({
-    queryKey: fuentesKeys.lista({ page: 1, pageSize: 100, activo: true }),
-    queryFn: () => listarFuentes({ page: 1, pageSize: 100, activo: true }),
-    // Selector de formulario: ordenado por nombre (el listado va por fecha).
-    select: (resultado) =>
-      [...resultado.data].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    queryKey: fuentesKeys.lista(query),
+    queryFn: () => listarFuentes(query),
+    select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
   })
 }

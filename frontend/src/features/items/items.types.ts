@@ -25,6 +25,8 @@ export interface Item {
 export interface QueryItems extends PaginationQuery {
   activo?: boolean
   partidaId?: number
+  /** `descripcion`/`codigo` = alfabético (selectores); sin él, por fecha. */
+  orden?: "descripcion" | "codigo"
 }
 
 export interface CreateItemPayload {

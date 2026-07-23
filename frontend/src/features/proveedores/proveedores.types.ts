@@ -17,6 +17,8 @@ export interface Proveedor {
 /** Espejo de `QueryProveedoresDto`: `q` busca en nombre, nit y contacto. */
 export interface QueryProveedores extends PaginationQuery {
   activo?: boolean
+  /** `nombre` = alfabético (selectores); sin él, por fecha (listados). */
+  orden?: "nombre"
 }
 
 export interface CreateProveedorPayload {

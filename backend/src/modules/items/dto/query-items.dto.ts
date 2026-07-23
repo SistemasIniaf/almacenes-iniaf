@@ -1,5 +1,12 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { toBoolean } from '../../../common/dto/transforms';
@@ -21,4 +28,9 @@ export class QueryItemsDto extends PaginationQueryDto {
   @IsInt()
   @Min(1)
   partidaId?: number;
+
+  /** Orden del listado. Default = por fecha; `descripcion`/`codigo` = alfabetico. */
+  @IsOptional()
+  @IsIn(['descripcion', 'codigo'])
+  orden?: 'descripcion' | 'codigo';
 }

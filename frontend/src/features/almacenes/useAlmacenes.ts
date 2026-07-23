@@ -38,12 +38,16 @@ export function useAlmacenes(query: QueryAlmacenes) {
  * Son 9+ en total: una sola pagina alcanza de sobra.
  */
 export function useAlmacenesActivos() {
+  const query = {
+    page: 1,
+    pageSize: 100,
+    activo: true,
+    orden: "nombre" as const,
+  }
   return useQuery({
-    queryKey: almacenesKeys.lista({ page: 1, pageSize: 100, activo: true }),
-    queryFn: () => listarAlmacenes({ page: 1, pageSize: 100, activo: true }),
-    // Selector de formulario: ordenado por nombre (el listado va por fecha).
-    select: (resultado) =>
-      [...resultado.data].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    queryKey: almacenesKeys.lista(query),
+    queryFn: () => listarAlmacenes(query),
+    select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
   })
 }

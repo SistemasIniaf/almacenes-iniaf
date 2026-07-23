@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { toBoolean } from '../../../common/dto/transforms';
@@ -15,4 +15,9 @@ export class QueryAlmacenesDto extends PaginationQueryDto {
   @Transform(toBoolean)
   @IsBoolean()
   activo?: boolean;
+
+  /** Orden del listado. `nombre` = alfabetico (selectores); default = por fecha. */
+  @IsOptional()
+  @IsIn(['nombre'])
+  orden?: 'nombre';
 }

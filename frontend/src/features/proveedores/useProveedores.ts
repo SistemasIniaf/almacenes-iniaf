@@ -34,15 +34,18 @@ export function useProveedores(query: QueryProveedores) {
   })
 }
 
-/** Proveedores activos para el selector de Ingresos (cuando se construya). */
+/** Proveedores activos para los selectores (ordenados por nombre en el backend). */
 export function useProveedoresActivos() {
+  const query = {
+    page: 1,
+    pageSize: 100,
+    activo: true,
+    orden: "nombre" as const,
+  }
   return useQuery({
-    queryKey: proveedoresKeys.lista({ page: 1, pageSize: 100, activo: true }),
-    queryFn: () =>
-      listarProveedores({ page: 1, pageSize: 100, activo: true }),
-    // Selector de formulario: ordenado por nombre (el listado va por fecha).
-    select: (resultado) =>
-      [...resultado.data].sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    queryKey: proveedoresKeys.lista(query),
+    queryFn: () => listarProveedores(query),
+    select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
   })
 }

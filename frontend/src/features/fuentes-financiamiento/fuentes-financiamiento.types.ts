@@ -14,6 +14,8 @@ export interface FuenteFinanciamiento {
 /** Espejo de `QueryFuentesFinanciamientoDto`: `q` busca en nombre y código. */
 export interface QueryFuentesFinanciamiento extends PaginationQuery {
   activo?: boolean
+  /** `nombre` = alfabético (selectores); sin él, por fecha (listados). */
+  orden?: "nombre"
 }
 
 export interface CreateFuenteFinanciamientoPayload {

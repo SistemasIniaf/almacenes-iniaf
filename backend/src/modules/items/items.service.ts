@@ -127,13 +127,20 @@ export class ItemsService {
       ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
 
+    const orderBy =
+      query.orden === 'descripcion'
+        ? [{ descripcion: 'asc' as const }, { id: 'asc' as const }]
+        : query.orden === 'codigo'
+          ? [{ codigo: 'asc' as const }, { id: 'asc' as const }]
+          : [{ createdAt: 'desc' as const }, { id: 'desc' as const }];
+
     const [data, total] = await Promise.all([
       this.prisma.item.findMany({
         where,
         include: {
           partida: { select: { id: true, codigo: true, denominacion: true } },
         },
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

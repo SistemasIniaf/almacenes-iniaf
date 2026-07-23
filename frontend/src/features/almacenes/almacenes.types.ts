@@ -23,6 +23,8 @@ export interface Almacen {
 /** Espejo de `QueryAlmacenesDto`: `q` busca solo en nombre. */
 export interface QueryAlmacenes extends PaginationQuery {
   activo?: boolean
+  /** `nombre` = alfabético (selectores); sin él, por fecha (listados). */
+  orden?: "nombre"
 }
 
 export interface CreateAlmacenPayload {
