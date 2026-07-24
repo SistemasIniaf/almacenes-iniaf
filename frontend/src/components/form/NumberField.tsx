@@ -63,6 +63,9 @@ export function NumberField<T extends FieldValues>({
             disabled={disabled}
             aria-invalid={fieldState.invalid}
             aria-label={hideLabel ? label : undefined}
+            // Evita que la rueda del mouse suba/baje el número al hacer scroll
+            // sobre el campo enfocado: lo desenfoca y deja pasar el scroll.
+            onWheel={(e) => e.currentTarget.blur()}
           />
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>

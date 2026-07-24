@@ -227,7 +227,18 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   (mismo `IngresoFormPage` para crear/editar/ver). Un ingreso CONFIRMADO/ANULADO se ve en **solo
   lectura** con botón Anular.
 - `components/IngresoLineas.tsx` es el wrapper de **`useFieldArray`** para las líneas (agregar/quitar
-  ítems, subtotal por línea y total en vivo). Era la pieza pendiente que faltaba construir.
+  ítems, subtotal por línea y total en vivo). Era la pieza pendiente que faltaba construir. Cada línea
+  lleva: Ítem · **Unidad** (solo lectura, deriva del ítem) · Cantidad · Precio unit. · Subtotal · 🗑,
+  y debajo una **Observación** por línea (opcional, `IngresoDetalle.observacion`; se imprimirá como
+  "DESCRIPCIÓN (observación)" en el reporte). La fila usa **grilla de 12 columnas** (`sm:grid-cols-12`
+  + `col-span-*` por campo); el pie del Total replica esa grilla para caer bajo la columna Subtotal.
+- **Layout de la cabecera** (`IngresoFormPage`): grilla de **12 columnas** plana (sin secciones), cada
+  campo con su `col-span` (cortos ¼ = `col-span-3`, selectores ½ = `col-span-6`, Observación full).
+- **OJO — Certificación**: es un campo real (`ingresos.schema.ts` + backend). Se cayó por accidente en
+  un refactor y se restauró; hoy está en la cabecera junto a los otros números de documento. **No
+  volver a borrarlo.** (Pendiente menor: confirmar con el usuario su posición final en la grilla.)
+- El selector de ítem hoy trae **`pageSize: 100`** (el backend topa en 100; pedir más da 400 y el combo
+  queda vacío). Con el catálogo real (~23k ítems) esto debe pasar a búsqueda server-side (pendiente).
 - El botón "Guardar borrador" vive **fuera** del `<form>` y se enlaza con `form="ingreso-form"`.
   "Confirmar" hace `trigger()` → guarda → confirma; si falta un respaldo, **el backend lista qué
   falta** y llega como toast (la validación dura NO se duplica en el front).
