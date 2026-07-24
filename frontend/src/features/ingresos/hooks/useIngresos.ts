@@ -147,7 +147,10 @@ export function useItemsActivos() {
     queryFn: () =>
       listarItems({
         page: 1,
-        pageSize: 500,
+        // El backend limita pageSize a 100 (PaginationQueryDto @Max(100)); pedir
+        // más devuelve 400 y el selector queda vacío. Con el catálogo real (~23k
+        // ítems) esto pasará a búsqueda contra el servidor (ver pendientes en CLAUDE.md).
+        pageSize: 100,
         activo: true,
         orden: "descripcion",
       }),

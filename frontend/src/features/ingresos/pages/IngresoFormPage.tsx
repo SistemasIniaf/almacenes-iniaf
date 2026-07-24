@@ -45,15 +45,19 @@ import {
   ingresoSchema,
   VALORES_INICIALES,
 } from "@/features/ingresos/ingresos.schema"
-import { ESTADO_LABEL, etiquetaNumero } from "@/features/ingresos/ingresos.types"
+import {
+  ESTADO_LABEL,
+  etiquetaNumero,
+} from "@/features/ingresos/ingresos.types"
 
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
 
-const ESTADO_VARIANT: Record<string, "secondary" | "default" | "destructive"> = {
-  BORRADOR: "secondary",
-  CONFIRMADO: "default",
-  ANULADO: "destructive",
-}
+const ESTADO_VARIANT: Record<string, "secondary" | "default" | "destructive"> =
+  {
+    BORRADOR: "secondary",
+    CONFIRMADO: "default",
+    ANULADO: "destructive",
+  }
 
 export function IngresoFormPage() {
   const { id: idParam } = useParams()
@@ -83,7 +87,8 @@ export function IngresoFormPage() {
     if (esNuevo) {
       reset({
         ...VALORES_INICIALES,
-        almacenId: esResponsable && user?.almacenId ? String(user.almacenId) : "",
+        almacenId:
+          esResponsable && user?.almacenId ? String(user.almacenId) : "",
       })
     } else if (ingreso) {
       reset(desdeIngreso(ingreso))
@@ -238,154 +243,166 @@ export function IngresoFormPage() {
 
       {estado === "ANULADO" && ingreso?.motivoAnulacion && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-          <span className="font-medium">Anulado:</span> {ingreso.motivoAnulacion}
+          <span className="font-medium">Anulado:</span>{" "}
+          {ingreso.motivoAnulacion}
         </div>
       )}
 
       <form id="ingreso-form" onSubmit={handleSubmit(guardar)}>
         <div className="rounded-md border p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {almacenEditable ? (
-              <SelectField
-                name="almacenId"
-                label="Almacén"
-                control={control}
-                options={almacenes.map((a) => ({
-                  value: String(a.id),
-                  label: a.nombre,
-                }))}
-                placeholder="Elegí el almacén"
-                disabled={soloLectura}
-              />
-            ) : (
-              <Field>
-                <FieldLabel>Almacén</FieldLabel>
-                <Input value={nombreAlmacen} disabled readOnly />
-                <p className="text-sm text-muted-foreground">
-                  El ingreso entra a este almacén.
-                </p>
-              </Field>
-            )}
+          <div className="flex flex-col gap-6">
+            {/* Datos generales: quién, de dónde y con qué plata entra el material. */}
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Datos generales
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {almacenEditable ? (
+                  <SelectField
+                    name="almacenId"
+                    label="Almacén"
+                    control={control}
+                    options={almacenes.map((a) => ({
+                      value: String(a.id),
+                      label: a.nombre,
+                    }))}
+                    placeholder="Elegí el almacén"
+                    disabled={soloLectura}
+                  />
+                ) : (
+                  <Field>
+                    <FieldLabel>Almacén</FieldLabel>
+                    <Input value={nombreAlmacen} disabled readOnly />
+                  </Field>
+                )}
 
-            <ComboboxField
-              name="fuenteFinanciamientoId"
-              label="Fuente de financiamiento"
-              control={control}
-              required={false}
-              options={fuentes.map((f) => ({
-                value: String(f.id),
-                label: f.nombre,
-              }))}
-              placeholder="Elegí una fuente"
-              vacio="Ninguna fuente coincide."
-              disabled={soloLectura}
-            />
+                <DatePickerField
+                  name="fechaRemision"
+                  label="Fecha de remisión"
+                  control={control}
+                  required={false}
+                  placeholder="Elegí la fecha"
+                  disabled={soloLectura}
+                />
 
-            <DatePickerField
-              name="fechaRemision"
-              label="Fecha de remisión"
-              control={control}
-              required={false}
-              placeholder="Elegí la fecha"
-              description="Define la gestión del ingreso."
-              disabled={soloLectura}
-            />
+                <ComboboxField
+                  name="fuenteFinanciamientoId"
+                  label="Fuente de financiamiento"
+                  control={control}
+                  required={false}
+                  options={fuentes.map((f) => ({
+                    value: String(f.id),
+                    label: f.nombre,
+                  }))}
+                  placeholder="Elegí una fuente"
+                  vacio="Ninguna fuente coincide."
+                  disabled={soloLectura}
+                />
 
-            <InputField
-              name="notaRemision"
-              label="Nota de remisión"
-              control={control}
-              required={false}
-              disabled={soloLectura}
-            />
+                <ComboboxField
+                  name="proveedorId"
+                  label="Proveedor"
+                  control={control}
+                  required={false}
+                  options={proveedores.map((p) => ({
+                    value: String(p.id),
+                    label: p.nombre,
+                  }))}
+                  placeholder="Elegí un proveedor"
+                  vacio="Ningún proveedor coincide."
+                  disabled={soloLectura}
+                />
 
-            <InputField
-              name="procesoC31"
-              label="Proceso Nº / C31"
-              control={control}
-              required={false}
-              disabled={soloLectura}
-            />
+                <ComboboxField
+                  name="unidadSolicitanteId"
+                  label="Unidad solicitante"
+                  control={control}
+                  required={false}
+                  options={unidades.map((u) => ({
+                    value: String(u.id),
+                    label: u.nombre,
+                    busqueda: u.sigla,
+                  }))}
+                  placeholder={
+                    almacenNum ? "Elegí una unidad" : "Elegí primero el almacén"
+                  }
+                  vacio="Ninguna unidad coincide."
+                  disabled={soloLectura || !almacenNum}
+                />
 
-            <InputField
-              name="numeroFactura"
-              label="Nº de factura"
-              control={control}
-              required={false}
-              disabled={soloLectura}
-            />
+                <ComboboxField
+                  name="responsableConformidadId"
+                  label="Responsable de conformidad"
+                  control={control}
+                  required={false}
+                  options={solicitadores.map((u) => ({
+                    value: String(u.id),
+                    label: u.nombre,
+                    busqueda: u.usuario,
+                  }))}
+                  placeholder="Elegí un solicitador"
+                  vacio="Ningún solicitador coincide."
+                  disabled={soloLectura}
+                />
+              </div>
+            </section>
 
-            <InputField
-              name="certificacion"
-              label="Certificación"
-              control={control}
-              required={false}
-              disabled={soloLectura}
-            />
+            {/* Respaldos documentales: opcionales en borrador, el backend los exige al confirmar. */}
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Respaldos documentales
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <InputField
+                  name="notaRemision"
+                  label="Nota de remisión"
+                  control={control}
+                  required={false}
+                  disabled={soloLectura}
+                />
 
-            <InputField
-              name="informeConformidad"
-              label="Informe / acta de conformidad"
-              control={control}
-              required={false}
-              disabled={soloLectura}
-            />
+                <InputField
+                  name="procesoC31"
+                  label="Proceso Nº / C31"
+                  control={control}
+                  required={false}
+                  disabled={soloLectura}
+                />
 
-            <DatePickerField
-              name="fechaInformeConformidad"
-              label="Fecha del informe / acta"
-              control={control}
-              required={false}
-              placeholder="Elegí la fecha"
-              disabled={soloLectura}
-            />
+                <InputField
+                  name="numeroFactura"
+                  label="Nº de factura"
+                  control={control}
+                  required={false}
+                  disabled={soloLectura}
+                />
 
-            <ComboboxField
-              name="responsableConformidadId"
-              label="Responsable de conformidad"
-              control={control}
-              required={false}
-              options={solicitadores.map((u) => ({
-                value: String(u.id),
-                label: u.nombre,
-                busqueda: u.usuario,
-              }))}
-              placeholder="Elegí un solicitador"
-              vacio="Ningún solicitador coincide."
-              disabled={soloLectura}
-            />
+                <InputField
+                  name="certificacion"
+                  label="Certificación"
+                  control={control}
+                  required={false}
+                  disabled={soloLectura}
+                />
 
-            <ComboboxField
-              name="unidadSolicitanteId"
-              label="Unidad solicitante"
-              control={control}
-              required={false}
-              options={unidades.map((u) => ({
-                value: String(u.id),
-                label: u.nombre,
-                busqueda: u.sigla,
-              }))}
-              placeholder={
-                almacenNum ? "Elegí una unidad" : "Elegí primero el almacén"
-              }
-              vacio="Ninguna unidad coincide."
-              disabled={soloLectura || !almacenNum}
-            />
+                <InputField
+                  name="informeConformidad"
+                  label="Informe / acta de conformidad"
+                  control={control}
+                  required={false}
+                  disabled={soloLectura}
+                />
 
-            <ComboboxField
-              name="proveedorId"
-              label="Proveedor"
-              control={control}
-              required={false}
-              options={proveedores.map((p) => ({
-                value: String(p.id),
-                label: p.nombre,
-              }))}
-              placeholder="Elegí un proveedor"
-              vacio="Ningún proveedor coincide."
-              disabled={soloLectura}
-              className="sm:col-span-2"
-            />
+                <DatePickerField
+                  name="fechaInformeConformidad"
+                  label="Fecha del informe / acta"
+                  control={control}
+                  required={false}
+                  placeholder="Elegí la fecha"
+                  disabled={soloLectura}
+                />
+              </div>
+            </section>
 
             <TextareaField
               name="observacion"
@@ -394,7 +411,6 @@ export function IngresoFormPage() {
               required={false}
               rows={2}
               disabled={soloLectura}
-              className="sm:col-span-2"
             />
           </div>
 

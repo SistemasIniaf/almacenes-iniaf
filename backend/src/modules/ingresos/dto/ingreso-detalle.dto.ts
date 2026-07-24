@@ -1,4 +1,12 @@
-import { IsInt, IsNumber, IsPositive, Min } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 /** Una linea del ingreso (item + cantidad + precio). Al confirmar se vuelve un lote. */
 export class IngresoDetalleDto {
@@ -18,4 +26,10 @@ export class IngresoDetalleDto {
   )
   @Min(0, { message: 'El precio unitario no puede ser negativo' })
   precioUnitario!: number;
+
+  /** Nota libre por linea (ej. "COLOR NEGRO"). Opcional. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200, { message: 'La observacion admite hasta 200 caracteres' })
+  observacion?: string;
 }

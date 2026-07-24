@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ComboboxField } from "@/components/form/ComboboxField"
+import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
 import { useItemsActivos } from "@/features/ingresos/hooks/useIngresos"
 
@@ -45,7 +46,12 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
             variant="outline"
             size="sm"
             onClick={() =>
-              append({ itemId: "", cantidad: "", precioUnitario: "" })
+              append({
+                itemId: "",
+                cantidad: "",
+                precioUnitario: "",
+                observacion: "",
+              })
             }
           >
             <Plus className="size-4" />
@@ -67,8 +73,9 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
         return (
           <div
             key={campo.id}
-            className="grid grid-cols-1 items-start gap-2 rounded-md border p-3 sm:grid-cols-[1fr_7rem_8rem_auto]"
+            className="flex flex-col gap-2 rounded-md border p-3"
           >
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-[1fr_7rem_8rem_auto]">
             <ComboboxField
               name={`detalles.${index}.itemId` as Path<IngresoFormValues>}
               label="Ítem"
@@ -116,6 +123,14 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
                 </Button>
               )}
             </div>
+            </div>
+            <InputField
+              name={`detalles.${index}.observacion` as Path<IngresoFormValues>}
+              label="Observación"
+              control={control}
+              placeholder="Nota opcional (ej. COLOR NEGRO)"
+              disabled={disabled}
+            />
           </div>
         )
       })}

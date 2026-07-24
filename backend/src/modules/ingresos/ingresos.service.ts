@@ -89,6 +89,7 @@ const ingresoFullSelect = {
       cantidad: true,
       precioUnitario: true,
       saldoCantidad: true,
+      observacion: true,
       item: {
         select: {
           id: true,
@@ -625,6 +626,7 @@ export class IngresosService {
       cantidad: d.cantidad,
       precioUnitario: d.precioUnitario,
       saldoCantidad: d.cantidad,
+      observacion: normalizar(d.observacion),
     };
   }
 }

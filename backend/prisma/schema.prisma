@@ -337,6 +337,10 @@ model IngresoDetalle {
   precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 5)
   saldoCantidad  Decimal @map("saldo_cantidad") @db.Decimal(12, 2)
 
+  /// Nota libre por linea (ej. "COLOR NEGRO"). En el reporte se imprime junto a
+  /// la descripcion del item entre parentesis: "BOTAS DE AGUA (COLOR NEGRO)".
+  observacion String?
+
   movimientos MovimientoKardex[]
 
   createdAt DateTime @default(now()) @map("created_at")

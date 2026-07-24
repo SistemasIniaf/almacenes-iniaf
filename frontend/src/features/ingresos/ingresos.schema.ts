@@ -21,6 +21,8 @@ const lineaSchema = z.object({
   precioUnitario: z
     .string()
     .refine((v) => v.trim() !== "" && Number(v) >= 0, "Precio válido"),
+  // Nota libre opcional (ej. "COLOR NEGRO"); en el reporte va junto al ítem.
+  observacion: z.string().trim().max(200, "Máximo 200 caracteres"),
 })
 
 export const ingresoSchema = z.object({
@@ -95,6 +97,7 @@ export function aPayload(
       itemId: Number(d.itemId),
       cantidad: Number(d.cantidad),
       precioUnitario: Number(d.precioUnitario),
+      observacion: d.observacion,
     })),
   }
 }
@@ -122,6 +125,7 @@ export function desdeIngreso(ing: Ingreso): IngresoFormValues {
       itemId: String(d.itemId),
       cantidad: d.cantidad,
       precioUnitario: d.precioUnitario,
+      observacion: d.observacion ?? "",
     })),
   }
 }

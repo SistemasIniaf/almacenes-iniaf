@@ -14,6 +14,7 @@ export interface IngresoDetalle {
   cantidad: string
   precioUnitario: string
   saldoCantidad: string
+  observacion: string | null
   item: {
     id: number
     codigo: string
@@ -89,6 +90,7 @@ export interface DetallePayload {
   itemId: number
   cantidad: number
   precioUnitario: number
+  observacion?: string
 }
 
 /**
