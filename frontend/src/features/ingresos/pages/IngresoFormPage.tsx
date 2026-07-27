@@ -443,7 +443,13 @@ export function IngresoFormPage() {
           </div>
 
           <div className="mt-6 border-t pt-4">
-            <IngresoLineas control={control} disabled={soloLectura} />
+            <IngresoLineas
+              control={control}
+              disabled={soloLectura}
+              // El selector de ítems busca contra el servidor: los ítems que ya
+              // tiene el ingreso viajan aparte para que se vean sin buscarlos.
+              itemsIniciales={ingreso?.detalles.map((d) => d.item) ?? []}
+            />
           </div>
         </div>
       </form>

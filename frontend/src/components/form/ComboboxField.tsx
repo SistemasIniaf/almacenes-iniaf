@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller } from "react-hook-form"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
+import type { ReactNode } from "react"
 import type { Control, FieldValues, Path } from "react-hook-form"
 
 export interface ComboboxOption {
@@ -42,6 +43,33 @@ interface ComboboxFieldProps<T extends FieldValues> {
   disabled?: boolean
   required?: boolean
   className?: string
+  /** Texto del cuadro de búsqueda de la lista. */
+  buscarPlaceholder?: string
+  /**
+   * Búsqueda contra el SERVIDOR. Si viene, cmdk deja de filtrar en memoria y
+   * `options` se toma tal cual llega (el que consume decide qué trae cada
+   * término). Se usa para catálogos que no entran en el navegador (ítems).
+   */
+  onSearchChange?: (valor: string) => void
+  /** Término actual, cuando la búsqueda es contra el servidor (controlado). */
+  search?: string
+  /** Muestra "Buscando..." mientras la consulta está en vuelo. */
+  loading?: boolean
+  /** Pie de la lista (ej. "mostrando 50 de 23.005"). */
+  footer?: ReactNode
+  /**
+   * Avisa qué opción se eligió (además del `onChange` del formulario, que solo
+   * lleva el value). Sirve con búsqueda del servidor, donde quien consume
+   * necesita recordar el registro elegido: la lista de opciones cambia con cada
+   * término y el seleccionado puede dejar de estar en ella.
+   */
+  onSelectOption?: (opcion: ComboboxOption) => void
+  /**
+   * Se llama al acercarse al final de la lista, para cargar la tanda siguiente
+   * (catálogos grandes). Puede dispararse varias veces: quien lo implementa
+   * debe ignorar el pedido si ya está trayendo o si no queda nada.
+   */
+  onEndReached?: () => void
 }
 
 /**
@@ -63,13 +91,42 @@ export function ComboboxField<T extends FieldValues>({
   disabled = false,
   required = true,
   className,
+  buscarPlaceholder = "Buscar...",
+  onSearchChange,
+  search,
+  loading = false,
+  footer,
+  onSelectOption,
+  onEndReached,
 }: ComboboxFieldProps<T>) {
+  // Con búsqueda del servidor el filtrado ya lo hizo la API: cmdk no debe
+  // volver a filtrar (si no, esconde resultados que el backend sí encontró,
+  // ej. buscar por una palabra que está en la descripción pero no en la etiqueta).
+  const enServidor = onSearchChange != null
   const [abierto, setAbierto] = useState(false)
   // Valor "activo" de cmdk (el resaltado por teclado). Al abrir se apunta al
   // item seleccionado, si no cmdk resalta el primero por defecto.
   const [resaltado, setResaltado] = useState("")
   const fieldId = id || `field-${name}`
   const limpiarWheel = useRef<(() => void) | null>(null)
+  // El nodo de la lista se guarda en estado (no en un ref) para poder scrollearlo
+  // desde un efecto: leer un ref en render lo prohíbe el lint del repo.
+  const [nodoLista, setNodoLista] = useState<HTMLDivElement | null>(null)
+
+  // La lista vuelve arriba cuando cambia el término. Si quedara al fondo, el
+  // `onEndReached` se dispararía solo con los resultados nuevos y encadenaría
+  // tandas que nadie pidió.
+  //
+  // Dos disparadores, porque ocurren en momentos distintos: `search` es lo que
+  // se tipea (inmediato) y `primeraOpcion` avisa cuando el resultado REEMPLAZA
+  // al anterior, que con búsqueda del servidor llega ~300 ms después. Cargar la
+  // tanda siguiente NO lo dispara: eso agrega al final y deja la primera igual.
+  const primeraOpcion = options[0]?.value
+  useEffect(() => {
+    // `scrollTo` y no `scrollTop = 0`: asignarle una propiedad a un valor que
+    // viene de useState lo marca el lint como mutación de estado.
+    nodoLista?.scrollTo({ top: 0 })
+  }, [search, primeraOpcion, nodoLista])
 
   // Texto interno (cmdk) de cada opción, el mismo que se usa como `value` del item.
   const textoCmdk = (o: ComboboxOption) =>
@@ -85,6 +142,7 @@ export function ComboboxField<T extends FieldValues>({
   const refLista = useCallback((lista: HTMLDivElement | null) => {
     limpiarWheel.current?.()
     limpiarWheel.current = null
+    setNodoLista(lista)
     if (!lista) return
     const onWheel = (evento: WheelEvent) => {
       evento.preventDefault()
@@ -122,6 +180,9 @@ export function ComboboxField<T extends FieldValues>({
               onOpenChange={(nuevo) => {
                 // Al abrir, el resaltado arranca sobre la opción ya elegida.
                 if (nuevo) setResaltado(seleccionada ? textoCmdk(seleccionada) : "")
+                // Al cerrar se limpia el término, para que la próxima apertura
+                // no arranque con la búsqueda de la vez anterior.
+                else onSearchChange?.("")
                 setAbierto(nuevo)
               }}
             >
@@ -159,19 +220,48 @@ export function ComboboxField<T extends FieldValues>({
                 <Command
                   value={resaltado}
                   onValueChange={setResaltado}
-                  filter={(value, search) => {
+                  shouldFilter={!enServidor}
+                  filter={(value, termino) => {
                     // `value` es el texto de busqueda que arma cada item abajo.
                     const normalizar = (texto: string) =>
                       texto
                         .normalize("NFD")
                         .replace(/\p{Diacritic}/gu, "")
                         .toLowerCase()
-                    return normalizar(value).includes(normalizar(search)) ? 1 : 0
+                    return normalizar(value).includes(normalizar(termino))
+                      ? 1
+                      : 0
                   }}
                 >
-                  <CommandInput placeholder="Buscar..." />
-                  <CommandList ref={refLista}>
-                    <CommandEmpty>{vacio}</CommandEmpty>
+                  <CommandInput
+                    placeholder={buscarPlaceholder}
+                    value={enServidor ? (search ?? "") : undefined}
+                    onValueChange={onSearchChange}
+                  />
+                  <CommandList
+                    ref={refLista}
+                    // `onScroll` de React alcanza acá (no necesita ser no-pasivo
+                    // como el `wheel` de arriba, que sí llama a preventDefault) y
+                    // se dispara también con el scroll que hace ese handler.
+                    onScroll={(evento) => {
+                      if (!onEndReached) return
+                      const lista = evento.currentTarget
+                      const faltante =
+                        lista.scrollHeight - lista.scrollTop - lista.clientHeight
+                      // Un par de filas antes del fondo, para que la tanda llegue
+                      // sin que el scroll se frene.
+                      if (faltante < 64) onEndReached()
+                    }}
+                  >
+                    <CommandEmpty>
+                      {loading ? "Buscando..." : vacio}
+                    </CommandEmpty>
+                    {loading && options.length > 0 && (
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+                        <Loader2 className="size-4 animate-spin" />
+                        Buscando...
+                      </div>
+                    )}
                     <CommandGroup>
                       {options.map((opcion) => (
                         <CommandItem
@@ -184,6 +274,7 @@ export function ComboboxField<T extends FieldValues>({
                           value={textoCmdk(opcion)}
                           onSelect={() => {
                             field.onChange(opcion.value)
+                            onSelectOption?.(opcion)
                             setAbierto(false)
                           }}
                         >
@@ -208,6 +299,14 @@ export function ComboboxField<T extends FieldValues>({
                       ))}
                     </CommandGroup>
                   </CommandList>
+                  {/* Fuera de CommandList a propósito: adentro scrollea con las
+                      opciones y solo se ve al llegar al fondo, que es justo
+                      cuando deja de importar. Acá queda fijo al pie del popover. */}
+                  {footer && (
+                    <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+                      {footer}
+                    </div>
+                  )}
                 </Command>
               </PopoverContent>
             </Popover>

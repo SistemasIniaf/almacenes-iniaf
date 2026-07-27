@@ -237,8 +237,26 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
 - **OJO — Certificación**: es un campo real (`ingresos.schema.ts` + backend). Se cayó por accidente en
   un refactor y se restauró; hoy está en la cabecera junto a los otros números de documento. **No
   volver a borrarlo.** (Pendiente menor: confirmar con el usuario su posición final en la grilla.)
-- El selector de ítem hoy trae **`pageSize: 100`** (el backend topa en 100; pedir más da 400 y el combo
-  queda vacío). Con el catálogo real (~23k ítems) esto debe pasar a búsqueda server-side (pendiente).
+- El selector de ítem **busca contra el servidor** (el catálogo real tiene ~23k ítems y no entra en el
+  navegador): `useBuscarItems(termino)` es un `useInfiniteQuery` que pide tandas de 50 (`q`, resuelto
+  en el backend sin acentos y con índice GIN sobre código+descripción) y `ComboboxField` recibe
+  `search`/`onSearchChange`, con lo que **cmdk deja de filtrar en memoria** (`shouldFilter={false}`).
+  La tanda siguiente la pide `onEndReached` (scroll infinito: `onScroll` de React sobre `CommandList`,
+  distinto del listener nativo de `wheel`, que resuelve otra cosa). **OJO con el efecto de cascada**:
+  al cambiar el término la lista sigue scrolleada abajo y, como el disparador es estar cerca del fondo,
+  se encadenan tandas solas (se vio: 11 páginas pedidas sin que nadie scrollee). Lo evitan dos guardas
+  que NO hay que sacar: el `ComboboxField` manda la lista arriba cuando cambia `search` **o cuando
+  cambia la primera opción** (el reemplazo de resultados llega ~300 ms después de tipear; apilar una
+  tanda no lo dispara porque agrega al final), y `cargarMas` no pide nada mientras haya una búsqueda en
+  vuelo (`isFetching`). El hook va con **`gcTime: 0`** para que toda búsqueda arranque en 50: sin eso,
+  volver a un término ya visitado (típico: vaciar el filtro) revive de la caché las tandas apiladas
+  antes ahí. Paginar así es correcto porque
+  `items.service` desempata el orden por `id`; sin ese desempate, dos ítems con la misma descripción
+  podrían repetirse o perderse entre tandas. Dos piezas hacen que el ítem ya
+  elegido no se quede sin etiqueta cuando la lista cambia: `itemsIniciales` (los del propio ingreso,
+  que llegan por props desde `IngresoFormPage`) y el registro de lo elegido en esta sesión, que se
+  guarda **al elegir** vía `onSelectOption` (no en un efecto: el lint del repo — reglas del React
+  Compiler — rechaza `setState` dentro de `useEffect` y refs leídos en render).
 - El botón "Guardar borrador" vive **fuera** del `<form>` y se enlaza con `form="ingreso-form"`.
   "Confirmar" hace `trigger()` → guarda → confirma; si falta un respaldo, **el backend lista qué
   falta** y llega como toast (la validación dura NO se duplica en el front).
@@ -391,6 +409,6 @@ NO construir todavía: `stock`/`kardex` de consulta, `egresos`, `reportes` — d
 **Otros**:
 - Reportes específicos requeridos.
 - Ancho del padding del correlativo de Ítem: se asumió 6 dígitos (`000001`), confirmar o ajustar.
-- El catálogo real del INIAF tiene **23.005 ítems**: `ComboboxField` hoy trae la lista completa al navegador, así que para ítems habrá que pasar a búsqueda contra el servidor.
+- ~~El catálogo real del INIAF tiene **23.005 ítems**: `ComboboxField` trae la lista completa al navegador~~ — **resuelto**: el selector de ítems de los ingresos ya busca contra el servidor (ver notas de `ingresos`). Los demás combos (proveedores, fuentes, unidades, partidas) siguen filtrando en memoria, que es lo correcto para listas chicas.
 
 **Ya resuelto (no volver a preguntar)**: cierre de gestión con arrastre automático de saldos · sin mínimos/máximos por ítem · stock por lote · separación por fuente de financiamiento · sin migración de históricos.

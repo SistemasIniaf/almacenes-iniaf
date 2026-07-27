@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useFieldArray, useWatch } from "react-hook-form"
 import { Plus, Trash2 } from "lucide-react"
 
@@ -6,14 +7,32 @@ import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
-import { useItemsActivos } from "@/features/ingresos/hooks/useIngresos"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import {
+  ITEMS_POR_BUSQUEDA,
+  useBuscarItems,
+} from "@/features/ingresos/hooks/useIngresos"
 
 import type { Control, Path } from "react-hook-form"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
 
+/** Lo único que el selector necesita de un ítem. */
+export interface ItemDeLinea {
+  id: number
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+}
+
 interface IngresoLineasProps {
   control: Control<IngresoFormValues>
   disabled?: boolean
+  /**
+   * Ítems que ya trae el ingreso al abrirlo (de `ingreso.detalles`). Hacen falta
+   * porque la lista del combo es una búsqueda del servidor: sin ellos, un ítem
+   * ya elegido que no esté en los resultados actuales se mostraría en blanco.
+   */
+  itemsIniciales?: ItemDeLinea[]
 }
 
 const moneda = (n: number) =>
@@ -22,24 +41,79 @@ const moneda = (n: number) =>
     maximumFractionDigits: 2,
   })
 
-export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
+const aOpcion = (i: ItemDeLinea) => ({
+  value: String(i.id),
+  label: `${i.codigo} — ${i.descripcion}`,
+  busqueda: i.codigo,
+})
+
+export function IngresoLineas({
+  control,
+  disabled,
+  itemsIniciales = [],
+}: IngresoLineasProps) {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "detalles",
   })
-  const { data: items = [], isLoading } = useItemsActivos()
+
+  // Búsqueda de ítems contra el servidor (el catálogo no entra en el navegador).
+  // El término es uno solo para todo el bloque: solo hay un combo abierto a la
+  // vez, y al cerrarse el `ComboboxField` lo limpia.
+  const [busqueda, setBusqueda] = useState("")
+  const termino = useDebouncedValue(busqueda, 300)
+  const {
+    data,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useBuscarItems(termino)
+  const resultados = data?.pages.flatMap((p) => p.data) ?? []
+  const totalCoincidencias = data?.pages[0]?.meta.total ?? 0
+
+  const cargarMas = () => {
+    // `isFetching` cubre también la búsqueda de un término nuevo: mientras esa
+    // está en vuelo se sigue viendo la lista anterior, y pedir su tanda
+    // siguiente traería resultados del término viejo.
+    if (hasNextPage && !isFetching && !isFetchingNextPage) void fetchNextPage()
+  }
+
+  // Ítems elegidos en esta sesión del formulario. Hace falta recordarlos porque
+  // al cerrar el combo el término se limpia y la lista pasa a ser otra: sin
+  // esto, un ítem recién elegido se quedaría sin etiqueta ni unidad apenas
+  // cambie la búsqueda. Se registran al elegir (evento), no al llegar los
+  // resultados, que es cuando realmente importan.
+  const [elegidos, setElegidos] = useState<Map<string, ItemDeLinea>>(
+    () => new Map()
+  )
+
+  const porId = new Map(resultados.map((i) => [String(i.id), i]))
+  const iniciales = new Map(itemsIniciales.map((i) => [String(i.id), i]))
+  /** El ítem de una línea, venga de donde venga. */
+  const dameItem = (id: string) =>
+    porId.get(id) ?? iniciales.get(id) ?? elegidos.get(id)
+
+  const recordarElegido = (id: string) => {
+    const item = porId.get(id)
+    if (!item) return
+    setElegidos((previos) =>
+      previos.has(id) ? previos : new Map(previos).set(id, item)
+    )
+  }
 
   // Para el total en vivo por línea y general.
   const detalles = useWatch({ control, name: "detalles" }) ?? []
 
-  const opciones = items.map((i) => ({
-    value: String(i.id),
-    label: `${i.codigo} — ${i.descripcion}`,
-    busqueda: i.codigo,
-  }))
-
-  // Para mostrar la unidad de medida del ítem elegido en cada línea.
-  const itemsPorId = new Map(items.map((i) => [String(i.id), i]))
+  const opcionesBase = resultados.map(aOpcion)
+  const cuenta = (n: number) => n.toLocaleString("es-BO")
+  const pie = isFetchingNextPage
+    ? "Cargando más ítems..."
+    : totalCoincidencias > resultados.length
+      ? `Viendo ${cuenta(resultados.length)} de ${cuenta(totalCoincidencias)} ítems. Seguí bajando para cargar más.`
+      : totalCoincidencias > ITEMS_POR_BUSQUEDA
+        ? `${cuenta(totalCoincidencias)} ítems.`
+        : null
 
   const totalGeneral = detalles.reduce(
     (s, d) => s + (Number(d?.cantidad) || 0) * (Number(d?.precioUnitario) || 0),
@@ -81,7 +155,15 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
         const linea = detalles[index]
         const subtotal =
           (Number(linea?.cantidad) || 0) * (Number(linea?.precioUnitario) || 0)
-        const unidad = itemsPorId.get(linea?.itemId ?? "")?.unidadMedida
+        const itemId = linea?.itemId ?? ""
+        const elegido = dameItem(itemId)
+        const unidad = elegido?.unidadMedida
+        // El ítem ya elegido va siempre en la lista, aunque la búsqueda actual
+        // no lo traiga: si no, el combo no tendría con qué pintar su etiqueta.
+        const opciones =
+          elegido && !resultados.some((i) => String(i.id) === itemId)
+            ? [aOpcion(elegido), ...opcionesBase]
+            : opcionesBase
         return (
           <div
             key={campo.id}
@@ -99,8 +181,17 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
                 label="Ítem"
                 control={control}
                 options={opciones}
-                placeholder={isLoading ? "Cargando..." : "Elegí un ítem"}
+                placeholder="Elegí un ítem"
                 vacio="Ningún ítem coincide."
+                buscarPlaceholder="Buscar por código o descripción..."
+                search={busqueda}
+                onSearchChange={setBusqueda}
+                onSelectOption={(opcion) => recordarElegido(opcion.value)}
+                onEndReached={cargarMas}
+                // Solo el "Buscando..." del término nuevo; la tanda siguiente
+                // se avisa en el pie y no debe tapar la lista que ya está.
+                loading={isFetching && !isFetchingNextPage}
+                footer={pie}
                 disabled={disabled}
                 className="sm:col-span-7"
               />
