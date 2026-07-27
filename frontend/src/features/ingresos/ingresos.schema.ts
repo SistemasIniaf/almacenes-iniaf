@@ -17,10 +17,16 @@ const lineaSchema = z.object({
   itemId: z.string().min(1, "Elegí un ítem"),
   cantidad: z
     .string()
-    .refine((v) => v.trim() !== "" && Number(v) > 0, "Cantidad mayor a 0"),
+    .refine(
+      (v) => v.trim() !== "" && Number(v) > 0,
+      "La cantidad debe ser mayor a 0"
+    ),
   precioUnitario: z
     .string()
-    .refine((v) => v.trim() !== "" && Number(v) >= 0, "Precio válido"),
+    .refine(
+      (v) => v.trim() !== "" && Number(v) >= 0,
+      "Ingresá un precio válido (0 o más)"
+    ),
   // Nota libre opcional (ej. "COLOR NEGRO"); en el reporte va junto al ítem.
   observacion: z.string().trim().max(200, "Máximo 200 caracteres"),
 })

@@ -89,8 +89,9 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
           >
             {/*
               Grilla de 12 columnas (desde sm). Anchos por campo vía col-span:
-              Ítem 3 · Unidad 2 · Cantidad 2 · Precio 2 · Subtotal 2 · Eliminar 1.
-              Ajustá estos números para redistribuir el espacio.
+              Ítem 5 · Unidad 2 · Cantidad 1 · Precio 1 · Subtotal+Eliminar 3.
+              El botón de quitar va DENTRO de la celda de Subtotal (no gasta
+              columna propia). Ajustá estos números para redistribuir el espacio.
             */}
             <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-12">
               <ComboboxField
@@ -101,7 +102,7 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
                 placeholder={isLoading ? "Cargando..." : "Elegí un ítem"}
                 vacio="Ningún ítem coincide."
                 disabled={disabled}
-                className="sm:col-span-3"
+                className="sm:col-span-7"
               />
               {/* Unidad de medida del ítem elegido (solo lectura, deriva del ítem). */}
               <div className="flex flex-col gap-2 sm:col-span-2">
@@ -121,49 +122,44 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
                 min={0}
                 placeholder="0"
                 disabled={disabled}
-                className="sm:col-span-2"
+                className="sm:col-span-1"
               />
 
               <NumberField
                 name={
                   `detalles.${index}.precioUnitario` as Path<IngresoFormValues>
                 }
-                label="Precio unit."
+                label="Prec. unit."
                 control={control}
                 step="0.00001"
                 min={0}
                 placeholder="0.00"
                 disabled={disabled}
-                className="sm:col-span-2"
+                className="sm:col-span-1"
               />
-              {/* Subtotal (derivado): alineado a la derecha, a la altura del input. */}
-              <div className="flex flex-col gap-2 sm:col-span-2 sm:items-end">
-                <FieldLabel>Subtotal</FieldLabel>
-                <span className="flex h-9 items-center text-sm font-medium tabular-nums">
-                  {moneda(subtotal)}
-                </span>
-              </div>
-              {/* Eliminar línea: el label invisible lo alinea con la fila de inputs. */}
-              {!disabled && (
-                <div className="flex flex-col gap-2 sm:col-span-1">
-                  <FieldLabel
-                    aria-hidden
-                    className="hidden sm:invisible sm:block"
-                  >
-                    ·
-                  </FieldLabel>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-9 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => remove(index)}
-                    aria-label="Quitar ítem"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
+              {/* Subtotal (derivado) + botón eliminar en la misma celda: el monto
+                  alineado a la derecha y el 🗑 pegado a su lado, sin gastar una
+                  columna solo para el icono. */}
+              <div className="flex flex-col gap-2 sm:col-span-1">
+                <FieldLabel className="sm:text-right">Subtotal</FieldLabel>
+                <div className="flex h-9 items-center justify-end gap-2">
+                  <span className="text-sm font-medium tabular-nums">
+                    {moneda(subtotal)}
+                  </span>
+                  {!disabled && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => remove(index)}
+                      aria-label="Quitar ítem"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
             <InputField
               name={`detalles.${index}.observacion` as Path<IngresoFormValues>}
@@ -176,17 +172,17 @@ export function IngresoLineas({ control, disabled }: IngresoLineasProps) {
         )
       })}
 
-      {/* Total: replica la grilla de 12 columnas para que el valor caiga justo
-          bajo la columna Subtotal (col-span-2), con el hueco del botón al final. */}
+      {/* Total: replica la grilla de 12 columnas para que el valor caiga bajo la
+          columna Subtotal (col-span-3). El pr-11 lo desplaza a la izquierda el
+          ancho del 🗑 (size-9 + gap-2) para quedar justo bajo el monto de arriba. */}
       {fields.length > 0 && (
         <div className="flex items-center justify-between gap-2 text-sm sm:grid sm:grid-cols-12 sm:items-center sm:gap-2">
           <span className="text-muted-foreground sm:col-span-9 sm:text-right">
             Total del ingreso:
           </span>
-          <span className="text-base font-semibold tabular-nums sm:col-span-2 sm:text-right">
+          <span className="text-base font-semibold tabular-nums sm:col-span-3 sm:pr-11 sm:text-right">
             Bs {moneda(totalGeneral)}
           </span>
-          <span aria-hidden className="hidden sm:col-span-1 sm:block" />
         </div>
       )}
     </div>
