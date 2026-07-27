@@ -36,7 +36,7 @@ export class UsuariosController {
     return this.usuariosService.findAll(query);
   }
 
-  /** Solicitadores activos (para el selector de responsable de conformidad del Ingreso). */
+  /** Solicitadores activos (para el selector de responsable / comision de recepcion del Ingreso). */
   @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
   @Get('solicitadores')
   solicitadores() {

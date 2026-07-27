@@ -121,7 +121,7 @@ export function useEliminarIngreso() {
 // Selectores auxiliares del formulario
 // ---------------------------------------------------------------------------
 
-/** Solicitadores activos (para el selector de responsable de conformidad). */
+/** Solicitadores activos (para el selector de responsable / comisión de recepción). */
 export function useSolicitadores() {
   return useQuery({
     queryKey: ["usuarios", "solicitadores"],

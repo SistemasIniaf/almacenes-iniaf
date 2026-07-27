@@ -15,6 +15,8 @@ interface IconActionProps {
   disabled?: boolean
   /** Pinta la accion en rojo (desactivar, eliminar). */
   destructiva?: boolean
+  /** Hace girar el icono mientras la accion esta en curso. */
+  cargando?: boolean
 }
 
 /**
@@ -30,6 +32,7 @@ export function IconAction({
   onClick,
   disabled = false,
   destructiva = false,
+  cargando = false,
 }: IconActionProps) {
   return (
     <Tooltip>
@@ -47,7 +50,7 @@ export function IconAction({
                 : undefined
             }
           >
-            <Icono className="size-4" />
+            <Icono className={cargando ? "size-4 animate-spin" : "size-4"} />
           </Button>
         </span>
       </TooltipTrigger>

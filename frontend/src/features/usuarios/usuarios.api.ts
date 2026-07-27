@@ -22,7 +22,7 @@ export async function obtenerUsuario(id: number): Promise<Usuario> {
   return data
 }
 
-/** Solicitador (lista chica para el selector de responsable de conformidad). */
+/** Solicitador (lista chica para el selector de responsable / comision de recepcion). */
 export interface Solicitador {
   id: number
   nombre: string

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Ban, Check, Loader2, Save } from "lucide-react"
+import { ArrowLeft, Ban, Check, Loader2, Printer, Save } from "lucide-react"
 
 import {
   AlertDialog,
@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { FieldGroup } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { DatePickerField } from "@/components/form/DatePickerField"
@@ -39,6 +38,7 @@ import {
   useSolicitadores,
   useUnidadesDeAlmacen,
 } from "@/features/ingresos/hooks/useIngresos"
+import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
 import {
   aPayload,
   desdeIngreso,
@@ -75,6 +75,7 @@ export function IngresoFormPage() {
 
   const [dialogoAnular, setDialogoAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
+  const { abrirNota, generandoId } = useNotaIngreso()
 
   const { control, handleSubmit, reset, watch, getValues, trigger } =
     useForm<IngresoFormValues>({
@@ -191,7 +192,9 @@ export function IngresoFormPage() {
               <Badge variant={ESTADO_VARIANT[estado]}>
                 {ESTADO_LABEL[estado]}
               </Badge>
-              {ingreso?.almacen && <span>{ingreso.almacen.nombre}</span>}
+              {/* El almacén se muestra acá y no como campo del formulario:
+                  salvo que un admin lo esté eligiendo, es un dato fijo. */}
+              {nombreAlmacen && <span>{nombreAlmacen}</span>}
             </div>
           </div>
         </div>
@@ -228,6 +231,22 @@ export function IngresoFormPage() {
               )}
             </>
           )}
+          {/* Un borrador no se imprime: todavía no tiene número. */}
+          {!esNuevo && estado !== "BORRADOR" && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => ingreso && abrirNota(ingreso)}
+              disabled={generandoId != null}
+            >
+              {generandoId != null ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Printer className="size-4" />
+              )}
+              Imprimir
+            </Button>
+          )}
           {estado === "CONFIRMADO" && (
             <Button
               type="button"
@@ -250,47 +269,57 @@ export function IngresoFormPage() {
 
       <form id="ingreso-form" onSubmit={handleSubmit(guardar)}>
         <div className="rounded-md border p-4">
-          {/*
-            Grilla de 12 columnas (desde lg): cada campo elige su ancho vía el
-            wrapper (col-span). Corto = 3 (¼), selector largo = 6 (½). Las filas
-            tilean a 12. En md son 2 columnas parejas; en móvil, apilado.
-          */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12">
-            {/* 1. Almacén (½) */}
-            <div className="lg:col-span-4">
-              {almacenEditable ? (
-                <SelectField
-                  name="almacenId"
-                  label="Almacén"
-                  control={control}
-                  options={almacenes.map((a) => ({
-                    value: String(a.id),
-                    label: a.nombre,
-                  }))}
-                  placeholder="Elegí el almacén"
-                  disabled={soloLectura}
-                />
-              ) : (
-                <Field>
-                  <FieldLabel>Almacén</FieldLabel>
-                  <Input value={nombreAlmacen} disabled readOnly />
-                </Field>
-              )}
-            </div>
+            {/*
+              1. Almacén — SOLO cuando un admin crea el ingreso y tiene que
+              elegir a cuál entra. Para el responsable es siempre el suyo, así
+              que no se pide: el nombre figura en el encabezado de la página.
+            */}
+            {almacenEditable && (
+              <>
+                <div className="lg:col-span-4">
+                  <SelectField
+                    name="almacenId"
+                    label="Almacén"
+                    control={control}
+                    options={almacenes.map((a) => ({
+                      value: String(a.id),
+                      label: a.nombre,
+                    }))}
+                    placeholder="Elegí el almacén"
+                    disabled={soloLectura}
+                  />
+                </div>
+                {/*
+                  Relleno para que el almacén ocupe su propia línea y las filas
+                  de abajo sigan cerrando en 12 tal cual las ordenaste. Sin esto,
+                  con el admin la primera fila suma 17 (4+3+2+2+6) y el proveedor
+                  se cae de línea arrastrando todo el resto. Solo desde lg: más
+                  abajo la grilla es de 1 o 2 columnas y una celda vacía se vería.
+                */}
+                <div className="hidden lg:col-span-8 lg:block" aria-hidden />
+              </>
+            )}
 
-            {/* 5. Proveedor (½) */}
-            <div className="lg:col-span-6">
-              <ComboboxField
-                name="proveedorId"
-                label="Proveedor"
+            {/* 2. Fecha de remisión (¼) */}
+            <div className="lg:col-span-3">
+              <DatePickerField
+                name="fechaRemision"
+                label="Fecha de remisión"
                 control={control}
                 required={false}
-                options={proveedores.map((p) => ({
-                  value: String(p.id),
-                  label: p.nombre,
-                }))}
-                placeholder="Elegí un proveedor"
-                vacio="Ningún proveedor coincide."
+                placeholder="Elija la fecha"
+                disabled={soloLectura}
+              />
+            </div>
+
+            {/* 3. Nota de remisión (¼) */}
+            <div className="lg:col-span-2">
+              <InputField
+                name="notaRemision"
+                label="Nota de remisión"
+                control={control}
+                required={false}
                 disabled={soloLectura}
               />
             </div>
@@ -306,47 +335,19 @@ export function IngresoFormPage() {
               />
             </div>
 
-            {/* 2. Fecha de remisión (¼) */}
-            <div className="lg:col-span-3">
-              <DatePickerField
-                name="fechaRemision"
-                label="Fecha de remisión"
+            {/* 5. Proveedor — cierra la fila: 3+2+2+5 = 12. */}
+            <div className="lg:col-span-5">
+              <ComboboxField
+                name="proveedorId"
+                label="Proveedor"
                 control={control}
                 required={false}
-                placeholder="Elija la fecha"
-                disabled={soloLectura}
-              />
-            </div>
-
-            {/* 3. Nota de remisión (¼) */}
-            <div className="lg:col-span-3">
-              <InputField
-                name="notaRemision"
-                label="Nota de remisión"
-                control={control}
-                required={false}
-                disabled={soloLectura}
-              />
-            </div>
-
-            {/* 6. Proceso Nº / C31 (¼) */}
-            <div className="lg:col-span-3">
-              <InputField
-                name="procesoC31"
-                label="Proceso Nº / C31"
-                control={control}
-                required={false}
-                disabled={soloLectura}
-              />
-            </div>
-
-            {/* 7. Certificación (¼) — la puse junto a los otros nº de documento. Decime si va en otro lado. */}
-            <div className="lg:col-span-3">
-              <InputField
-                name="certificacion"
-                label="Certificación"
-                control={control}
-                required={false}
+                options={proveedores.map((p) => ({
+                  value: String(p.id),
+                  label: p.nombre,
+                }))}
+                placeholder="Elegí un proveedor"
+                vacio="Ningún proveedor coincide."
                 disabled={soloLectura}
               />
             </div>
@@ -367,35 +368,18 @@ export function IngresoFormPage() {
             <div className="lg:col-span-3">
               <InputField
                 name="informeConformidad"
-                label="Informe / acta de conformidad"
+                label="Informe/acta de conformidad"
                 control={control}
                 required={false}
                 disabled={soloLectura}
               />
             </div>
 
-            {/* 8. Fuente de financiamiento (½) */}
-            <div className="lg:col-span-6">
-              <ComboboxField
-                name="fuenteFinanciamientoId"
-                label="Fuente de financiamiento"
-                control={control}
-                required={false}
-                options={fuentes.map((f) => ({
-                  value: String(f.id),
-                  label: f.nombre,
-                }))}
-                placeholder="Elegí una fuente"
-                vacio="Ninguna fuente coincide."
-                disabled={soloLectura}
-              />
-            </div>
-
-            {/* 11. Responsable de conformidad (¼) */}
+            {/* 11. Responsable / Comisión de recepción (¼) */}
             <div className="lg:col-span-6">
               <ComboboxField
                 name="responsableConformidadId"
-                label="Responsable de conformidad"
+                label="Responsable / Comisión de recepción"
                 control={control}
                 required={false}
                 options={solicitadores.map((u) => ({
@@ -410,7 +394,7 @@ export function IngresoFormPage() {
             </div>
 
             {/* 12. Unidad solicitante (½) */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-4">
               <ComboboxField
                 name="unidadSolicitanteId"
                 label="Unidad solicitante"
@@ -426,6 +410,45 @@ export function IngresoFormPage() {
                 }
                 vacio="Ninguna unidad coincide."
                 disabled={soloLectura || !almacenNum}
+              />
+            </div>
+
+            {/* 6. Proceso Nº / C31 (¼) */}
+            <div className="lg:col-span-2">
+              <InputField
+                name="procesoC31"
+                label="Proceso Nº / C31"
+                control={control}
+                required={false}
+                disabled={soloLectura}
+              />
+            </div>
+
+            {/* 7. Certificación (¼) — la puse junto a los otros nº de documento. Decime si va en otro lado. */}
+            <div className="lg:col-span-2">
+              <InputField
+                name="certificacion"
+                label="Certificación"
+                control={control}
+                required={false}
+                disabled={soloLectura}
+              />
+            </div>
+
+            {/* 8. Fuente de financiamiento (½) */}
+            <div className="lg:col-span-4">
+              <ComboboxField
+                name="fuenteFinanciamientoId"
+                label="Fuente de financiamiento"
+                control={control}
+                required={false}
+                options={fuentes.map((f) => ({
+                  value: String(f.id),
+                  label: f.nombre,
+                }))}
+                placeholder="Elegí una fuente"
+                vacio="Ninguna fuente coincide."
+                disabled={soloLectura}
               />
             </div>
 

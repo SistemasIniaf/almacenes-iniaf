@@ -162,7 +162,7 @@ export class UsuariosService {
 
   /**
    * Lista chica de solicitadores activos (id, nombre, usuario), para el selector
-   * de "responsable de conformidad" del Ingreso. Accesible tambien al
+   * de "responsable / comision de recepcion" del Ingreso. Accesible tambien al
    * responsable_almacen (que registra ingresos), a diferencia del CRUD completo.
    */
   async solicitadores() {

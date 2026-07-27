@@ -43,6 +43,8 @@ const ingresoListSelect = {
   notaRemision: true,
   procesoC31: true,
   numeroFactura: true,
+  // La observacion es columna del listado (dice de que fue la compra).
+  observacion: true,
   createdAt: true,
   updatedAt: true,
   almacen: { select: { id: true, nombre: true } },
@@ -76,11 +78,13 @@ const ingresoFullSelect = {
   createdAt: true,
   updatedAt: true,
   almacen: { select: { id: true, nombre: true } },
-  proveedor: { select: { id: true, nombre: true } },
+  // El `nit` del proveedor y el `cargo` de las personas los pide la nota de
+  // ingreso impresa (encabezado y pies de firma); no los usa el formulario.
+  proveedor: { select: { id: true, nombre: true, nit: true } },
   fuenteFinanciamiento: { select: { id: true, nombre: true } },
-  responsableConformidad: { select: { id: true, nombre: true } },
+  responsableConformidad: { select: { id: true, nombre: true, cargo: true } },
   unidadSolicitante: { select: { id: true, nombre: true, sigla: true } },
-  registradoPor: { select: { id: true, nombre: true } },
+  registradoPor: { select: { id: true, nombre: true, cargo: true } },
   anuladoPor: { select: { id: true, nombre: true } },
   detalles: {
     select: {
@@ -96,6 +100,9 @@ const ingresoFullSelect = {
           codigo: true,
           descripcion: true,
           unidadMedida: true,
+          // La partida va como columna propia en la nota impresa (el codigo del
+          // item la lleva de prefijo, pero el documento oficial la separa).
+          partida: { select: { id: true, codigo: true } },
         },
       },
     },
@@ -483,7 +490,7 @@ export class IngresosService {
       });
       if (!x) {
         throw new BadRequestException(
-          `No existe el responsable de conformidad con id ${dto.responsableConformidadId}`,
+          `No existe el responsable / comision de recepcion con id ${dto.responsableConformidadId}`,
         );
       }
     }
@@ -537,7 +544,7 @@ export class IngresosService {
     if (!ingreso.fuenteFinanciamientoId)
       faltan.push('fuente de financiamiento');
     if (!ingreso.responsableConformidadId)
-      faltan.push('responsable de conformidad');
+      faltan.push('responsable / comisión de recepción');
     if (!ingreso.unidadSolicitanteId) faltan.push('unidad solicitante');
     if (faltan.length > 0) {
       throw new BadRequestException(
@@ -546,7 +553,7 @@ export class IngresosService {
     }
   }
 
-  /** El responsable de conformidad debe ser un usuario con rol solicitador activo. */
+  /** El responsable / comision de recepcion debe ser un usuario con rol solicitador activo. */
   private async validarResponsableConformidad(usuarioId: number | null) {
     if (usuarioId == null) return; // ya cubierto por validarRespaldos
     const usuario = await this.prisma.usuario.findUnique({
@@ -555,7 +562,7 @@ export class IngresosService {
     });
     if (!usuario || !usuario.activo || usuario.rol !== Rol.solicitador) {
       throw new BadRequestException(
-        'El responsable de conformidad debe ser un usuario activo con rol solicitador',
+        'El responsable / comisión de recepción debe ser un usuario activo con rol solicitador',
       );
     }
   }

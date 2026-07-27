@@ -226,6 +226,36 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
 - Son **páginas con ruta**, no diálogo: `/ingresos` (listado), `/ingresos/nuevo` y `/ingresos/:id`
   (mismo `IngresoFormPage` para crear/editar/ver). Un ingreso CONFIRMADO/ANULADO se ve en **solo
   lectura** con botón Anular.
+- **Impresión**: el botón *Imprimir* del ingreso genera un **PDF de verdad con `pdfmake`** y lo abre en
+  una pestaña con el visor del navegador (miniaturas, zoom, descargar, imprimir), igual que el sistema
+  anterior — que lo armaba en el servidor con PHP. Todo vive en
+  `features/ingresos/lib/nota-ingreso-pdf.ts`. Por qué así y no de otras formas: en el navegador evita
+  meterle un Chrome headless al backend on-premise, y sale **vectorial** (texto seleccionable, nítido a
+  cualquier zoom), no una captura como daría html2canvas. Detalles que cuestan descubrir:
+  - `pdfmake` es **CommonJS**: la instancia llega en `.default` del `import()` dinámico. Usar los
+    nombres sueltos del namespace NO funciona — sus métodos vienen del prototipo y el interop no los
+    expone (`addFontContainer is not a function`).
+  - Fuente **Helvetica** (`pdfmake/build/standard-fonts/Helvetica`), una de las 14 que todo lector de
+    PDF ya trae: 300 KB en vez de los 854 KB del vfs de Roboto, y no se embebe en cada archivo.
+    `@types/pdfmake` no declara ese módulo; la declaración está en `src/pdfmake.d.ts`.
+  - Las medidas van en **puntos** (1 in = 72 pt): hoja Carta 612x792, márgenes de 34 pt (12 mm), y los
+    anchos de tabla suman **544**, que es el ancho útil.
+  - Los logos se embeben en CADA PDF, por eso `public/iniaf/logo-*.png` están generados al tamaño que
+    ocupan en la hoja a 300 dpi y no más (el PDF pasó de 268 KB a 88 KB al ajustarlos).
+  - `import()` dinámico de pdfmake y `window.open("", "_blank")` **sincrónico** en el clic: si la
+    pestaña se abriera después de generar, el navegador la bloquearía como emergente. Si aun así la
+    bloquea, se descarga el archivo.
+  Un **borrador no se imprime** (no tiene número todavía): no se ofrece el botón. El monto
+  en letras sale de `lib/numero-literal.ts` (compartido, lo va a reusar el egreso). El detalle imprime
+  `DESCRIPCIÓN (observación de la línea)`. El pie de firmas replica el del sistema anterior: un
+  recuadro **ANTECEDENTES** con la observación, espacio en blanco y los cargos *Encargado Almacén ·
+  Unidad Solicitante · VoBo Jefe Administrativo* (son rótulos fijos, no salen de la BD). Un ingreso
+  **ANULADO** lleva marca de agua cruzada (`watermark` de pdfmake), etiqueta bajo el número y el
+  detalle de quién lo anuló al pie.
+  **Membrete**: INIAF a la izquierda, Ministerio a la derecha y al centro el título, el almacén y el
+  número. Los archivos son `public/iniaf/logo-iniaf.png` + `logo-ministerio.png`, versiones reducidas
+  con `sharp` de los originales que también están en esa carpeta. El logo del INIAF ya trae el nombre
+  completo de la institución, por eso el encabezado NO lo repite en texto.
 - `components/IngresoLineas.tsx` es el wrapper de **`useFieldArray`** para las líneas (agregar/quitar
   ítems, subtotal por línea y total en vivo). Era la pieza pendiente que faltaba construir. Cada línea
   lleva: Ítem · **Unidad** (solo lectura, deriva del ítem) · Cantidad · Precio unit. · Subtotal · 🗑,

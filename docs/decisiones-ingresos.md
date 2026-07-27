@@ -135,7 +135,7 @@ desaparecen por diseño:
 | Certificación | **Sí** | |
 | Informe y/o acta de conformidad | **Sí** | Antes se llamaba «solicitud» |
 | Fecha del informe / acta de conformidad | **Sí** | Fecha del documento anterior (agregado 2026-07-23) |
-| Responsable de conformidad | **Sí** | Usuario con rol `solicitador` — ver punto 5 |
+| Responsable / Comisión de recepción | **Sí** | Usuario con rol `solicitador` — ver punto 5 |
 | Unidad solicitante | **Sí** | Solo para reportes; no afecta el stock |
 | Nº de factura | No | |
 | Observación | No | |
@@ -167,8 +167,19 @@ almacén **no aparecen** en esa lista, porque un usuario tiene un solo rol. Si
 alguna vez el acta la firma un jefe de unidad, habrá que ampliar la lista a todos
 los usuarios activos — es un cambio de una línea, sin impacto en los datos.
 
-**Etiqueta en el formulario:** «Responsable de conformidad», para no confundirlo
-con el rol `responsable_almacen`.
+**Etiqueta en el formulario — corregida el 2026-07-27:** «Responsable / Comisión
+de recepción». Antes decía «Responsable de conformidad»; la institución aclaró
+que el nombre correcto es *responsable de recepción* cuando firma una persona y
+*comisión de recepción* cuando lo hace un cuerpo colegiado (es la distinción de
+la normativa de contrataciones según el monto). La etiqueta cubre los dos casos
+y sigue sin confundirse con el rol `responsable_almacen`.
+
+**En la base y en la API el campo se sigue llamando `responsableConformidadId`**:
+renombrarlo pide una migración y no le cambia nada al usuario.
+
+⏳ **Abierto:** el sistema guarda **un** usuario. Si la comisión de recepción es
+de varias personas y las tres tienen que figurar en la nota impresa, hace falta
+pasar el campo a una relación muchos-a-muchos.
 
 ---
 

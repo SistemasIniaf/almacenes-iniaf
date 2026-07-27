@@ -7,6 +7,11 @@ interface RefNombre {
   nombre: string
 }
 
+/** Personas del ingreso: el `cargo` va en los pies de firma del impreso. */
+interface RefPersona extends RefNombre {
+  cargo: string | null
+}
+
 /** Línea de un ingreso (lote). Los decimales llegan como string (Prisma Decimal). */
 export interface IngresoDetalle {
   id: number
@@ -20,6 +25,8 @@ export interface IngresoDetalle {
     codigo: string
     descripcion: string
     unidadMedida: string
+    /** Va como columna propia en la nota impresa. */
+    partida: { id: number; codigo: string }
   }
 }
 
@@ -49,11 +56,11 @@ export interface Ingreso {
   createdAt: string
   updatedAt: string
   almacen: RefNombre
-  proveedor: RefNombre | null
+  proveedor: (RefNombre & { nit: string | null }) | null
   fuenteFinanciamiento: RefNombre | null
-  responsableConformidad: RefNombre | null
+  responsableConformidad: RefPersona | null
   unidadSolicitante: { id: number; nombre: string; sigla: string } | null
-  registradoPor: RefNombre
+  registradoPor: RefPersona
   anuladoPor: RefNombre | null
   detalles: IngresoDetalle[]
 }
@@ -69,6 +76,8 @@ export interface IngresoListItem {
   notaRemision: string | null
   procesoC31: string | null
   numeroFactura: string | null
+  /** Es columna del listado: dice de qué fue la compra. */
+  observacion: string | null
   createdAt: string
   updatedAt: string
   almacen: RefNombre
