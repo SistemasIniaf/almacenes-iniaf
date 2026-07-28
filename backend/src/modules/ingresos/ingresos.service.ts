@@ -510,7 +510,9 @@ export class IngresosService {
     if (!dto.informeConformidad?.trim())
       faltan.push('informe/acta de conformidad');
     if (!dto.fechaInformeConformidad) faltan.push('fecha del informe/acta');
-    if (!dto.numeroFactura?.trim()) faltan.push('número de factura');
+    // El numero de factura NO se exige: hay material que entra sin factura
+    // (donaciones, transferencias). En el sistema anterior el 17% de los
+    // ingresos no tenia uno util. Ver docs/decisiones-ingresos.md, punto 4.
     if (dto.proveedorId == null) faltan.push('proveedor');
     if (dto.fuenteFinanciamientoId == null)
       faltan.push('fuente de financiamiento');

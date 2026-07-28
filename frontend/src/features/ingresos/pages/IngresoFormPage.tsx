@@ -300,7 +300,7 @@ export function IngresoFormPage() {
                 name="numeroFactura"
                 label="Nº de factura"
                 control={control}
-                required
+                required={false}
                 disabled={bloqueoCabecera}
               />
             </div>

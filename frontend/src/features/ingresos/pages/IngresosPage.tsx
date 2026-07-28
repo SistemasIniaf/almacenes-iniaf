@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, Loader2, Plus, Printer, Search } from "lucide-react"
+import { Eye, Loader2, Pencil, Plus, Printer, Search } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,10 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
 import { usePagination } from "@/hooks/use-pagination"
 
-import type { EstadoIngreso } from "@/features/ingresos/ingresos.types"
+import type {
+  EstadoIngreso,
+  IngresoListItem,
+} from "@/features/ingresos/ingresos.types"
 
 type FiltroEstado = EstadoIngreso | "todos"
 
@@ -59,6 +62,9 @@ export function IngresosPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "ingresosEscribir")
+  /** Un ingreso se edita si el rol escribe y el registro sigue vigente. */
+  const puedeEditar = (ingreso: IngresoListItem) =>
+    puedeEscribir && ingreso.estado !== "ANULADO"
   // El almacén solo se muestra a quien ve más de uno: admin y super_admin ven
   // todos, y el observador los que tenga asignados para auditar. Al responsable
   // no le aporta, todas sus filas son del suyo. No va en PERMISOS porque ese
@@ -236,9 +242,16 @@ export function IngresosPage() {
                     className="text-right"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    {/*
+                      Lápiz u ojo según lo que la fila realmente permita: un
+                      ingreso vigente se edita (la cabecera documental; las
+                      líneas y el stock quedan fijos desde que se registra),
+                      pero uno ANULADO ya no, y quien solo tiene lectura
+                      tampoco. Un lápiz fijo prometería algo que no se cumple.
+                    */}
                     <IconAction
-                      icono={Eye}
-                      etiqueta="Ver"
+                      icono={puedeEditar(ingreso) ? Pencil : Eye}
+                      etiqueta={puedeEditar(ingreso) ? "Editar" : "Ver"}
                       onClick={() => navigate(`/ingresos/${ingreso.id}`)}
                     />
                     <IconAction

@@ -54,8 +54,9 @@ export const ingresoSchema = z
       .min(1, "Ingresá el informe/acta de conformidad")
       .max(200),
     fechaInformeConformidad: z.date().optional(),
-    numeroFactura: z.string().trim().min(1, "Ingresá el Nº de factura").max(50),
-    // Opcional (el backend tampoco la exige).
+    // Opcionales, igual que en el backend: hay material que entra sin factura
+    // (donaciones, transferencias) — ver docs/decisiones-ingresos.md, punto 4.
+    numeroFactura: z.string().trim().max(50),
     observacion: z.string().trim().max(500),
     proveedorId: z.string().min(1, "Elegí un proveedor"),
     fuenteFinanciamientoId: z.string().min(1, "Elegí una fuente de financiamiento"),
