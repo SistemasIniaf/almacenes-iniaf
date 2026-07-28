@@ -151,6 +151,86 @@ export class StockService {
   }
 
   /**
+   * Filas del reporte «Estado de almacenes», sin paginar.
+   *
+   * Replica el agrupamiento del reporte del sistema anterior: por FUENTE y,
+   * dentro, por PARTIDA. Cada fila es **item + fuente + precio** — que es el
+   * lote, sumando los que comparten los tres. Los lotes de un mismo item,
+   * fuente y precio son indistinguibles en el papel, y separarlos solo agregaria
+   * renglones repetidos.
+   *
+   * Se agrega aca y no en el navegador: son todas las existencias, no una
+   * pagina, y el catalogo real puede dar miles de lotes.
+   */
+  async reporte(query: QueryStockDto, user: AuthenticatedUser) {
+    const whereLote = await this.where(query, user);
+
+    const lotes = await this.prisma.ingresoDetalle.findMany({
+      where: whereLote,
+      select: {
+        precioUnitario: true,
+        saldoCantidad: true,
+        item: {
+          select: {
+            id: true,
+            codigo: true,
+            descripcion: true,
+            unidadMedida: true,
+            partida: { select: { id: true, codigo: true, denominacion: true } },
+          },
+        },
+        ingreso: {
+          select: {
+            fuenteFinanciamiento: { select: { id: true, nombre: true } },
+          },
+        },
+      },
+    });
+
+    const filas = new Map<
+      string,
+      {
+        item: (typeof lotes)[number]['item'];
+        fuente: { id: number; nombre: string } | null;
+        precioUnitario: number;
+        cantidad: number;
+      }
+    >();
+
+    for (const lote of lotes) {
+      const fuente = lote.ingreso.fuenteFinanciamiento;
+      const precio = Number(lote.precioUnitario);
+      const clave = `${lote.item.id}|${fuente?.id ?? 0}|${precio}`;
+      const acumulada = filas.get(clave);
+      if (acumulada) {
+        acumulada.cantidad += Number(lote.saldoCantidad);
+      } else {
+        filas.set(clave, {
+          item: lote.item,
+          fuente,
+          precioUnitario: precio,
+          cantidad: Number(lote.saldoCantidad),
+        });
+      }
+    }
+
+    const sinFuente = 'ZZZ'; // al final, si alguna vez falta
+    return [...filas.values()]
+      .map((fila) => ({
+        ...fila,
+        valor: fila.cantidad * fila.precioUnitario,
+      }))
+      .sort(
+        (a, b) =>
+          (a.fuente?.nombre ?? sinFuente).localeCompare(
+            b.fuente?.nombre ?? sinFuente,
+          ) ||
+          a.item.partida.codigo.localeCompare(b.item.partida.codigo) ||
+          a.item.descripcion.localeCompare(b.item.descripcion),
+      );
+  }
+
+  /**
    * Partidas que HOY tienen existencias, para el selector de la pantalla.
    *
    * No se usa el catalogo de partidas: leerlo esta reservado a admin y

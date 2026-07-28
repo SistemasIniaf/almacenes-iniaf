@@ -30,6 +30,15 @@ export class StockController {
     return this.stockService.findAll(query, user);
   }
 
+  /** Todas las existencias, sin paginar, para el reporte imprimible. */
+  @Get('reporte')
+  reporte(
+    @Query() query: QueryStockDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.stockService.reporte(query, user);
+  }
+
   /** Partidas con existencias, para el selector de la pantalla de stock. */
   @Get('partidas')
   partidas(

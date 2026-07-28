@@ -1,5 +1,11 @@
 import { Fragment, useState } from "react"
-import { ChevronDown, ChevronRight, Search } from "lucide-react"
+import {
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Printer,
+  Search,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,15 +26,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { DataPagination } from "@/components/data/DataPagination"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
-import { usePartidasConStock, useStock } from "@/features/stock/useStock"
+import {
+  usePartidasConStock,
+  useReporteStock,
+  useStock,
+} from "@/features/stock/useStock"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { usePagination } from "@/hooks/use-pagination"
 import { getApiErrorMessage } from "@/lib/api"
 
+import type { TipoReporteStock } from "@/features/stock/useStock"
 import type { ItemStock, LoteStock } from "@/features/stock/stock.types"
 
 const TODOS = "todos"
@@ -95,6 +112,21 @@ export function StockPage() {
   // El selector se arma con lo que hay en stock bajo los OTROS filtros, así no
   // ofrece partidas que darían una tabla vacía.
   const { data: partidas = [] } = usePartidasConStock(filtrosComunes)
+  const { abrirReporte, generando: generandoReporte } = useReporteStock()
+
+  /** Emite un reporte con los filtros que estén puestos en la pantalla. */
+  function imprimir(tipo: TipoReporteStock) {
+    void abrirReporte(
+      tipo,
+      {
+        ...filtrosComunes,
+        partidaId: partidaId === TODOS ? undefined : Number(partidaId),
+      },
+      almacenId === TODOS
+        ? "Todos los almacenes"
+        : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? "—")
+    )
+  }
 
   function cambiarFiltro(accion: () => void) {
     accion()
@@ -115,13 +147,53 @@ export function StockPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Stock</h1>
-        <p className="text-sm text-muted-foreground">
-          Existencias por ítem. El saldo no es un número suelto: sale de los
-          lotes que trajo cada ingreso, cada uno con su precio y su fuente de
-          financiamiento. Desplegá un ítem para verlos.
-        </p>
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Stock</h1>
+          <p className="text-sm text-muted-foreground">
+            Existencias por ítem. El saldo no es un número suelto: sale de los
+            lotes que trajo cada ingreso, cada uno con su precio y su fuente de
+            financiamiento. Desplegá un ítem para verlos.
+          </p>
+        </div>
+        {/* Los dos reportes del sistema anterior. Ambos respetan los filtros
+            que estén puestos en la pantalla. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              disabled={generandoReporte}
+            >
+              {generandoReporte ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Printer className="size-4" />
+              )}
+              Reportes
+              <ChevronDown className="size-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuItem onClick={() => imprimir("detalle")}>
+              <div>
+                <div className="font-medium">Estado de almacenes</div>
+                <div className="text-xs text-muted-foreground">
+                  Detalle por ítem, agrupado por fuente y partida.
+                </div>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => imprimir("consolidado")}>
+              <div>
+                <div className="font-medium">Estado consolidado</div>
+                <div className="text-xs text-muted-foreground">
+                  Resumen valorizado por partida y fuente, sin ítems.
+                </div>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">

@@ -55,3 +55,21 @@ export interface QueryStock extends PaginationQuery {
   /** Por defecto el backend devuelve solo lo que tiene saldo. */
   conSaldo?: boolean
 }
+
+/**
+ * Fila del reporte imprimible: es un ítem + fuente + precio (el lote, sumando
+ * los que comparten los tres). Viene agregada y ordenada del backend.
+ */
+export interface FilaReporteStock {
+  item: {
+    id: number
+    codigo: string
+    descripcion: string
+    unidadMedida: string
+    partida: PartidaStock
+  }
+  fuente: { id: number; nombre: string } | null
+  precioUnitario: number
+  cantidad: number
+  valor: number
+}

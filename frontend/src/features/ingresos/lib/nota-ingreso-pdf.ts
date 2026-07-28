@@ -1,5 +1,6 @@
 import { etiquetaNumero } from "@/features/ingresos/ingresos.types"
 import { montoALiteral } from "@/lib/numero-literal"
+import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
 import type { Ingreso } from "@/features/ingresos/ingresos.types"
 import type {
@@ -23,38 +24,12 @@ import type {
  * los anchos de las tablas.
  */
 
-const MARGEN = 34
+const MARGEN = MARGEN_PDF
 /** Carta apaisada: el lado largo (11 in = 792 pt) es el horizontal. */
 const ANCHO_UTIL = 792 - MARGEN * 2
 
 /** Tal cual lo titula la institución (así figura en el reporte anterior). */
 const TITULO_DOCUMENTO = "INGRESO ALMACEN MATERIAL Y/O SUMINISTROS"
-
-const LOGOS = {
-  iniaf: "/iniaf/logo-iniaf.png",
-  ministerio: "/iniaf/logo-ministerio.png",
-} as const
-
-/** pdfmake necesita las imágenes embebidas; se leen una vez y quedan cacheadas. */
-const cacheLogos = new Map<string, string>()
-
-async function comoDataUrl(ruta: string): Promise<string> {
-  const cacheado = cacheLogos.get(ruta)
-  if (cacheado) return cacheado
-
-  const respuesta = await fetch(ruta)
-  if (!respuesta.ok) throw new Error(`No se pudo leer el logo ${ruta}`)
-  const blob = await respuesta.blob()
-  const dataUrl = await new Promise<string>((resolver, rechazar) => {
-    const lector = new FileReader()
-    lector.onload = () => resolver(lector.result as string)
-    lector.onerror = () => rechazar(lector.error)
-    lector.readAsDataURL(blob)
-  })
-
-  cacheLogos.set(ruta, dataUrl)
-  return dataUrl
-}
 
 const moneda = (n: number) =>
   n.toLocaleString("es-BO", {
@@ -118,26 +93,9 @@ const FIRMAS = [
   "VoBo Jefe Administrativo",
 ]
 
-/**
- * Arma el PDF. pdfmake se carga con `import()` dinámico para que no pese en el
- * bundle de quien nunca imprime, y se usa **Helvetica** (una de las 14 fuentes
- * que todo lector de PDF ya tiene) en vez del Roboto que trae pdfmake: son
- * 300 KB en lugar de 854 KB, la fuente no se embebe en el archivo y es el tipo
- * que usan estos documentos.
- */
+/** Arma el PDF (la carga de pdfmake y la fuente van en `lib/pdf`). */
 export async function crearNotaIngresoPdf(ingreso: Ingreso) {
-  const [modulo, helvetica] = await Promise.all([
-    import("pdfmake/build/pdfmake"),
-    import("pdfmake/build/standard-fonts/Helvetica"),
-  ])
-
-  // pdfmake es CommonJS (`module.exports = new pdfmake()`), así que la instancia
-  // llega en `default`. Los nombres sueltos NO sirven: sus métodos vienen del
-  // prototipo de la clase y el interop del bundler no los expone (se cae con
-  // "addFontContainer is not a function").
-  const pdfMake = modulo.default ?? modulo
-
-  pdfMake.addFontContainer(helvetica.default ?? helvetica)
+  const pdfMake = await cargarPdfMake()
   return pdfMake.createPdf(await definicionNotaIngreso(ingreso))
 }
 
@@ -149,10 +107,8 @@ export function nombreArchivo(ingreso: Ingreso): string {
 export async function definicionNotaIngreso(
   ingreso: Ingreso
 ): Promise<TDocumentDefinitions> {
-  const [logoIniaf, logoMinisterio] = await Promise.all([
-    comoDataUrl(LOGOS.iniaf),
-    comoDataUrl(LOGOS.ministerio),
-  ])
+  const { iniaf: logoIniaf, ministerio: logoMinisterio } =
+    await logosMembrete()
 
   const numero = etiquetaNumero(ingreso)
   const anulado = ingreso.estado === "ANULADO"

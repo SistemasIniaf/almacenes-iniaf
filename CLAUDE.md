@@ -410,6 +410,23 @@ stock (y lo va a usar egresos): `null` = sin restricción (admin/super_admin), a
 array vacío = ninguno. Duplicar esa regla es lo que hace que un rol nuevo se arregle en un lado y se
 olvide en otro.
 
+**Reportes imprimibles** — menú «Reportes» de la pantalla, los DOS del sistema anterior. Ambos salen
+de **`GET /stock/reporte`** (sin paginar; un reporte no se pagina y agregar en el servidor evita
+mandar miles de lotes al navegador) y respetan los filtros que estén puestos en pantalla:
+
+| Reporte | Qué es | Archivo |
+|---|---|---|
+| **Estado de almacenes** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **fuente** y dentro por **partida**. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` |
+| **Estado consolidado** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. | `estado-consolidado-pdf.ts` |
+
+Los dos comparten membrete, pie y formatos en `features/stock/lib/comun-reporte.ts` — si cada uno
+armara su encabezado, en dos cambios dejan de verse hermanos. Agregan lo que el reporte viejo no
+traía: subtotales, total general y «Página N de M».
+
+**La base de los PDF vive en `lib/pdf.ts`** (carga de pdfmake con el interop de CommonJS, fuente
+Helvetica y los logos como data URL); la nota de ingreso y este reporte la comparten y cada uno pone
+solo su maquetado.
+
 En el frontend, `StockPage` es una tabla por ítem con **fila desplegable**: al abrir un ítem se
 muestra una sub-tabla con sus lotes (ingreso `001/2026`, fecha, fuente, proveedor, precio unitario,
 saldo/cantidad y valorizado). La columna Almacén —tanto en el filtro como en los lotes— sigue la
