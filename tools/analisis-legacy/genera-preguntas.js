@@ -113,17 +113,21 @@ const doc = new Document({
           ],
         }),
         p("Preguntas para el encargado de almacenes", { size: 28, bold: true, after: 80 }),
-        p("Documento de trabajo · La Paz, 21 de julio de 2026", { size: 20, color: GRIS, after: 300 }),
+        p(
+          "Documento de trabajo · La Paz, 21 de julio de 2026 · revisado el 28 de julio de 2026",
+          { size: 20, color: GRIS, after: 300 }
+        ),
 
         recuadro([
           "Para qué sirve este documento",
           "El sistema nuevo de almacenes está en construcción. Las preguntas que siguen son decisiones de negocio que el equipo de sistemas no puede tomar solo: definen cómo se guarda la información y, una vez cargados los datos reales, cambiarlas es costoso.",
-          "Cada pregunta trae el contexto, lo que hace hoy el sistema anterior (verificado sobre su base de datos, gestiones 2015 a 2026) y una propuesta. Alcanza con confirmar o corregir.",
+          "Cada pregunta trae el contexto, lo que hace hoy el sistema anterior (verificado sobre su base de datos y su código fuente, gestiones 2015 a 2026) y una propuesta. Alcanza con confirmar o corregir.",
           "Las preguntas de la Parte 1 bloquean el avance; el resto se puede ir respondiendo después.",
+          "Revisión del 28 de julio: ingresos y stock ya están construidos, así que la Parte 3 (egresos) es hoy la que bloquea. Sus preguntas se reescribieron con lo que se pudo verificar del sistema anterior: cuántos niveles de aprobación tiene de verdad, quién elige de qué compra sale el material y si el pedido reserva stock.",
         ]),
 
         p("", { after: 200 }),
-        campo("Diferencia principal con el sistema anterior:", "el sistema nuevo maneja varios almacenes independientes (cada uno con su propio stock y su propia numeración), mientras que el anterior llevaba el almacén a nivel de unidad. Además, el circuito de aprobación de egresos tiene 2 niveles: solicitante → aprobador de la unidad → responsable de almacén, que es quien entrega y descarga el stock."),
+        campo("Diferencia principal con el sistema anterior:", "el sistema nuevo maneja varios almacenes independientes (cada uno con su propio stock y su propia numeración), mientras que el anterior llevaba el almacén a nivel de unidad. Para los egresos se propone un circuito de 2 niveles —solicitante → aprobador de la unidad → responsable de almacén, que entrega y descarga el stock—, frente a los 4 pasos del sistema actual: eso es justamente lo que pregunta la primera pregunta de la Parte 3."),
 
         titulo("Parte 1 · Decisiones que bloquean el diseño"),
 
@@ -254,19 +258,60 @@ const doc = new Document({
         titulo("Parte 3 · Egresos (salidas de almacén)"),
 
         ...pregunta({
-          texto: "¿El circuito de aprobación es correcto?",
+          texto: "¿Cuántos niveles de aprobación debe tener un pedido?",
           contexto:
-            "El circuito definido es: el solicitante crea el pedido → lo aprueba el jefe de su unidad → el responsable del almacén lo aprueba y entrega, descargando el stock. Cada nivel puede ajustar las cantidades.",
+            "El circuito definido para el sistema nuevo es de dos niveles: el solicitante crea el pedido → lo aprueba el jefe de su unidad → el responsable del almacén lo aprueba y entrega, descargando el stock. Cada nivel puede ajustar las cantidades.",
           hoy:
-            "El sistema anterior también manejaba dos firmas: un verificador y un aprobador, cada uno con su fecha.",
-          opciones: ["Correcto", "Falta o sobra un nivel (indicar cuál)"],
+            "El sistema anterior tiene CUATRO pasos, cada uno con su pantalla y su rol: envío de la solicitud, aprobación del inmediato superior (solo de su unidad), verificación del encargado de almacenes y aprobación del jefe de la unidad administrativa. PERO los datos muestran que en los hechos lo firma una sola persona: de los 24.664 egresos con firma, el 81,5% tiene al mismo funcionario en los tres casilleros y el 86,3% tiene el mismo verificador que aprobador. Los rechazos son 505 en once años (1,3%).",
+          opciones: [
+            "Dos niveles, como está definido (jefe de unidad y responsable de almacén)",
+            "Tres: sumar la aprobación del jefe de la unidad administrativa",
+            "Los cuatro pasos del sistema anterior",
+          ],
+          sugerido:
+            "Mantener los dos niveles. El circuito largo del sistema anterior se cumple en el papel pero lo firma una sola persona, así que agrega pasos sin agregar control real.",
+          lineas: 3,
+        }),
+
+        ...pregunta({
+          texto:
+            "¿Quién elige de qué compra (lote) y de qué fuente sale el material?",
+          contexto:
+            "El stock está separado por lote y por fuente de financiamiento, así que alguien tiene que decidir de cuál se descuenta cada entrega. Es la decisión más importante que queda abierta del módulo.",
+          hoy:
+            "Lo elige el SOLICITANTE, al armar el pedido: el selector no lista ítems sino lotes, con su fecha, su saldo y su fuente («02/01/2026-PAPEL BOND A3 Saldo:1.00 TGN APICOLA»). Además ofrece lotes ya agotados (Saldo:0.00) y nada impide elegirlos — de ahí los saldos negativos que tiene la base.",
+          opciones: [
+            "El solicitante elige el lote y la fuente, como hoy",
+            "El solicitante pide el ítem y el almacén decide de qué lote sale al entregar",
+            "El sistema propone el lote más antiguo y el almacén puede cambiarlo",
+          ],
+          sugerido:
+            "Que el solicitante pida el ítem y el almacén resuelva el lote: quien pide no tiene por qué saber de qué compra sale el material, y así no puede elegir un lote vacío. Hace falta confirmar si alguna rendición obliga a que sea el solicitante quien indique la fuente.",
+          lineas: 3,
+        }),
+
+        ...pregunta({
+          texto: "¿El pedido reserva el material desde que se registra?",
+          contexto:
+            "Entre que se pide el material y se entrega pueden pasar días. Si el pedido no reserva, otro pedido puede llevarse el stock en el medio; si reserva desde el minuto cero, un pedido que nadie aprueba deja material inmovilizado.",
+          hoy:
+            "Reserva de hecho, aunque nadie lo llame así: el saldo que ven todos resta TODAS las líneas de pedido del lote sin mirar en qué estado están, así que un pedido recién grabado ya baja el saldo. El rechazo lo libera poniendo las cantidades en cero.",
+          opciones: [
+            "Reserva desde que el solicitante lo registra",
+            "Reserva recién cuando lo aprueba el jefe de unidad",
+            "No reserva: el stock se descuenta solo al entregar",
+          ],
+          sugerido:
+            "Reservar desde la aprobación del jefe de unidad: un pedido sin aprobar no debería inmovilizar material, y uno aprobado no debería quedarse sin stock por otro pedido posterior.",
+          lineas: 3,
         }),
 
         ...pregunta({
           texto: "Cuando un pedido se rechaza, ¿a dónde vuelve?",
           contexto:
             "Puede volver al solicitante para que lo corrija desde el principio, o retroceder un solo paso.",
-          hoy: "No verificado.",
+          hoy:
+            "Cada nivel tiene su propio rechazo (solicitud rechazada, verificado-rechazado, aprobado-rechazado), pero el pedido no vuelve a ningún lado: queda marcado con ese estado. Cuando el encargado de almacenes rechaza, el sistema además pone en cero las cantidades de todas las líneas.",
           opciones: [
             "Siempre vuelve al solicitante, que corrige y lo envía de nuevo",
             "Vuelve al nivel anterior",
@@ -283,6 +328,8 @@ const doc = new Document({
           texto: "¿Qué pasa si al momento de entregar ya no hay stock suficiente?",
           contexto:
             "Entre que se aprueba el pedido y se entrega el material puede haber salido stock por otro pedido.",
+          hoy:
+            "No hay control: el sistema deja elegir lotes agotados y entregar de ellos igual, y así quedaron saldos en negativo.",
           opciones: [
             "Se entrega lo que hay y el pedido queda cerrado con esa cantidad",
             "Se entrega lo que hay y queda un saldo pendiente de entrega",
@@ -315,12 +362,30 @@ const doc = new Document({
           contexto:
             "Permite después reportar el consumo por actividad, proyecto o programa.",
           hoy:
-            "Sí: el egreso tiene un campo obligatorio de actividad (hasta 200 caracteres) y una categoría.",
+            "Sí: un campo de actividad de hasta 200 caracteres (se llena en el 63,9% de los egresos, con una mediana de 48 caracteres) y además una CATEGORÍA, que el documento impreso llama «Programa». Las categorías cargadas son nueve: Fortalecimiento del SNIAF · Fortalecimiento de las actividades del INIAF · Apoyo al Desarrollo Institucional del INIAF · Gestión del Proyecto, Monitoreo y Evaluación · SNIAF · Investigación e Innovación · Transferencia de Tecnología y Desarrollo de Capacidades · Semillas · Componente Gestión Ejecutiva, Técnica, Administrativa y Financiera Institucional.",
           opciones: [
-            "Sí, texto libre como ahora",
-            "Sí, pero eligiendo de una lista predefinida de actividades",
-            "No hace falta",
+            "Actividad en texto libre y categoría de la lista, como hoy",
+            "Solo la categoría (sin texto libre)",
+            "Solo el texto libre (sin categoría)",
+            "No hace falta ninguna de las dos",
           ],
+          sugerido:
+            "Mantener las dos, y confirmar si esa lista de nueve categorías sigue vigente para la gestión en curso o hay que actualizarla.",
+          lineas: 3,
+        }),
+
+        ...pregunta({
+          texto: "¿Cuánto debería tardar cada nivel en responder un pedido?",
+          contexto:
+            "Sirve para avisar cuando un pedido lleva demasiado tiempo esperando, y para saber si hace falta que alguien más pueda destrabarlo.",
+          hoy:
+            "No se puede saber: el sistema anterior tiene los campos de fecha de verificación y de aprobación, pero NINGUNA pantalla los escribe — quedaron con un valor fijo (2000-01-01 y 2000-01-02) en los 24.664 egresos firmados. No existe registro de cuándo se aprobó nada. Peor: al aprobar, el sistema pisa la fecha de solicitud con la del día, así que también se pierde cuándo se pidió.",
+          opciones: [
+            "No hace falta ningún plazo",
+            "Sí, avisar al que tiene el pedido pendiente después de X días (indicar cuántos)",
+          ],
+          sugerido:
+            "En el sistema nuevo, cada aprobación guarda quién y cuándo pase lo que pase; el plazo se puede definir después, pero el dato hay que registrarlo desde el primer día.",
         }),
 
         ...pregunta({

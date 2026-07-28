@@ -495,18 +495,31 @@ NO construir todavía: `egresos` y `reportes` — dependen de reglas de negocio 
 
 **Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
 
-**Egresos y stock**:
-- Reglas exactas de rechazo por nivel (¿siempre vuelve a BORRADOR o a veces un nivel atrás?).
-- SLA / tiempos de espera por nivel.
+**Egresos** — el análisis del sistema anterior (sección 12 de
+`docs/analisis-sistema-anterior.md`, hecho el 2026-07-28 sobre su **código** además de su base) ya
+contestó varias de estas y **cambió las propuestas**; el cuestionario del `.docx` está actualizado con
+eso. Lo que sigue abierto, y por qué:
+
+- **Cuántos niveles de aprobación.** El sistema anterior tiene CUATRO pasos, pero el 81,5% de los
+  egresos firmados tiene a la misma persona en los tres casilleros. Propuesta: mantener los 2.
+- **Quién elige el lote y la fuente.** Allá lo elige el **solicitante** (el selector lista lotes, no
+  ítems). Propuesta corregida: que el solicitante pida el ÍTEM y el almacén resuelva el lote — así no
+  puede elegir un lote vacío, que es de donde salen los saldos negativos de la base vieja.
+- **Si el pedido reserva stock.** Allá reserva **de hecho** desde que se graba (el saldo resta todas
+  las líneas sin mirar el estado). Propuesta: reservar desde la aprobación del jefe de unidad.
+- Reglas exactas de rechazo por nivel (allá cada nivel tiene su rechazo y el pedido no vuelve a
+  ningún lado: queda marcado).
+- Plazos por nivel. **Ojo**: no se pueden estimar con datos del sistema anterior — sus fechas de
+  firma nunca se escribieron (constantes `2000-01-01`/`2000-01-02` en 24.664 filas).
 - Cancelación del egreso por el propio solicitador antes de aprobación.
 - Egresos que saltan niveles por monto/cantidad bajo.
 - Qué pasa si al entregar ya no hay stock físico suficiente.
-- **Quién elige de qué lote y de qué fuente de financiamiento sale el material** (propuesta: sugerencia automática de lo más antiguo, modificable por el responsable).
-- Si hace falta reservar stock entre la aprobación y la entrega.
 - Reglas de anulación: quién autoriza, plazo límite, motivo obligatorio.
 - Manejo de ausencia/suplencia de aprobador o responsable_almacen.
-- Si el Egreso debe registrar la actividad/destino (el sistema anterior lo exige: campo obligatorio de 200 caracteres + categoría).
-- Confirmar si el Egreso también necesita reportar/agrupar por Partida (ej. para reportes de ejecución presupuestaria por objeto del gasto), o si la Partida solo importa a nivel de catálogo/Ingreso.
+- Actividad/destino: allá hay texto libre (200 caracteres) **más una categoría de 9 valores** que el
+  impreso llama «Programa». Falta confirmar si esa lista sigue vigente.
+- Confirmar si el Egreso también necesita reportar/agrupar por Partida (ej. para reportes de ejecución
+  presupuestaria por objeto del gasto), o si la Partida solo importa a nivel de catálogo/Ingreso.
 
 **Otros**:
 - Reportes específicos requeridos.
