@@ -175,9 +175,71 @@ cargar los saldos iniciales crearon un proveedor llamado literalmente
 - **Sin IVA desglosado**: existe un único precio unitario, sin campo de impuesto.
 - **Mínimos y máximos por ítem**: `itemsalmacenes.MINIMO` / `MAXIMO`, con reporte
   propio. Descartados para el sistema nuevo (decisión del 2026-07-21).
-- **El egreso registra la actividad**: campo obligatorio de 200 caracteres, más
-  una categoría.
-- **El egreso tiene dos firmas**: `IDVERIFICADOR` e `IDAPROBADOR`, cada una con
-  su fecha — coincide con el circuito de 2 niveles del sistema nuevo.
+- **El egreso registra la actividad**: campo de 200 caracteres, más una
+  categoría. Ver la sección 11.
 - **El responsable sale de `personal`** (3.228 funcionarios), no de los usuarios
   del sistema: se usaron 1.326 responsables distintos.
+
+### 11. Los egresos: un circuito de 3 niveles que en los hechos firma una persona
+
+> Cifras de `analiza-egresos.js` sobre 38.594 egresos y 185.909 líneas
+> (gestiones 2015–2026, ~3.000 egresos por año).
+
+**La cabecera tiene TRES casilleros de aprobación**, no dos: `IDVERIFICADOR`,
+`IDAPROBADOR` y `IDAPROBADORSOL`, cada uno con su fecha. Los estados lo
+confirman: existe un rechazo por nivel (`SOLICITUD RECHAZADO`,
+`VERIFICADO-RECHAZADO`, `APROBADO-RECHAZADO`).
+
+**Pero el circuito no funciona como tres niveles.** De los 24.664 egresos con
+alguna firma:
+
+| | |
+|---|---|
+| Verificador == aprobador | 21.284 (**86,3%**) |
+| Las TRES firmas son la misma persona | 20.100 (**81,5%**) |
+| Verificador distinto del aprobador | 3.380 (13,7%) |
+
+**Y las fechas de firma son constantes**: `FECHAVERIFICACION` tiene **un solo
+valor distinto** en las 24.664 filas (`2000-01-01`) y `FECHAAPROBACION` también
+(`2000-01-02`). O sea que **no hay traza de cuándo se aprobó cada egreso**: los
+campos existen pero se llenan con una constante. Cualquier pregunta sobre
+tiempos de aprobación es incontestable con estos datos.
+
+El circuito además es **posterior al sistema**: aparece recién en 2017, y el
+36,1% de los egresos (13.930, los de 2015–2016) no tiene ninguna firma ni
+estado.
+
+**Los rechazos son raros**: 505 en 11 años (1,3%), repartidos en los tres
+niveles.
+
+**Se ajusta la cantidad entregada.** La línea guarda `cantidadsolicitada` además
+de `cantidad` (cargada en el 73,4% de las líneas):
+
+| | |
+|---|---|
+| Se entregó lo pedido | 90,7% |
+| Se entregó **menos** | 8,1% |
+| Se entregó más | 1,2% |
+| Se entregó **cero** | 6,1% |
+
+Es decir: el ajuste hacia abajo existe y es habitual (uno de cada doce), y
+entregar cero —negar el ítem sin rechazar el pedido entero— pasa en el 6% de
+las líneas.
+
+**La actividad se llena** en el 63,9% (todos los que pasaron por el circuito):
+mediana de 48 caracteres, máximo 207. Textuales: *«MATERIAL PARA ACTIVIDAD DE LA
+DIRECCIÓN CORRESPONDIENTES AL MES DE JULIO»*, *«INFORMES Y PROCESOS
+ADMINISTRATIVOS»*, *«POR REGULARIZACIÓN DE SALDOS DE ALMACÉN DE SEMILLAS SANTA
+CRUZ»*. La **categoría** también, con 8 valores: Semillas (6.326), Componente
+Gestión Ejecutiva/Técnica/Administrativa y Financiera (2.955), Fortalecimiento
+del SNIAF (2.644), Apoyo al Desarrollo Institucional (1.589), Transferencia de
+Tecnología (1.166), Gestión del Proyecto (664), SNIAF (12).
+
+**De qué lote sale**: el 2,0% de las combinaciones egreso+ítem toma de **más de
+un lote** (3.601 de 180.216), con un máximo de **70 lotes** en una sola salida
+de un ítem. Confirma que hay que resolver de qué lote sale el material, aunque
+el caso múltiple sea minoritario.
+
+**La numeración** (`PEDIDO`) repite: 969 números duplicados dentro de la misma
+unidad y gestión (3,0%), y 1.521 egresos sin número o en cero — el mismo
+problema que ya se vio con `NUMEROINGRESO`.
