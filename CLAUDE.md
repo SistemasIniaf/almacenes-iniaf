@@ -489,7 +489,7 @@ NO construir todavía: `egresos` y `reportes` — dependen de reglas de negocio 
 | `docs/decisiones-ingresos.md` | **Lo decidido y lo pendiente de ingresos.** Fuente de verdad del módulo. |
 | `docs/decisiones-egresos.md` | **Lo decidido y lo pendiente de egresos.** Cuáles preguntas bloquean el schema y cuáles no. |
 | `docs/analisis-sistema-anterior.md` | Cómo opera hoy el INIAF: relevamiento del sistema viejo con cifras verificadas sobre su base (11 gestiones). |
-| `docs/preguntas-encargado-almacenes.docx` | Cuestionario para la reunión con el encargado (24 preguntas). |
+| `docs/preguntas-encargado-almacenes.docx` | Cuestionario para la reunión con el encargado (27 preguntas; lo genera `tools/analisis-legacy/genera-preguntas.js`, no se edita a mano). |
 | `tools/analisis-legacy/` | Scripts que producen las cifras del análisis. |
 
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
