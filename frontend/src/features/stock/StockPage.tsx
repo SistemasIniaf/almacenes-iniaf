@@ -122,8 +122,10 @@ export function StockPage() {
         ...filtrosComunes,
         partidaId: partidaId === TODOS ? undefined : Number(partidaId),
       },
+      // null = todos: el reporte se titula NACIONAL y omite la oficina,
+      // igual que la entrada aparte que tiene el sistema anterior.
       almacenId === TODOS
-        ? "Todos los almacenes"
+        ? null
         : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? "—")
     )
   }

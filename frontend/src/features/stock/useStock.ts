@@ -45,7 +45,7 @@ export function useReporteStock() {
   async function abrirReporte(
     tipo: TipoReporteStock,
     query: QueryStock,
-    almacen: string
+    almacen: string | null
   ) {
     // La pestaña se abre AHORA, dentro del gesto del clic: después de generar,
     // el navegador la bloquearía como emergente.

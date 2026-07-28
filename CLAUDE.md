@@ -417,7 +417,7 @@ mandar miles de lotes al navegador) y respetan los filtros que estén puestos en
 | Reporte | Qué es | Archivo |
 |---|---|---|
 | **Estado de almacenes** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **fuente** y dentro por **partida**. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` |
-| **Estado consolidado** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. | `estado-consolidado-pdf.ts` |
+| **Estado consolidado** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. Sin filtrar almacén se titula solo **«NACIONAL»** y omite la línea de OFICINA — en el sistema anterior eso era una tercera entrada de menú; acá es el mismo reporte con el filtro vacío. | `estado-consolidado-pdf.ts` |
 
 Los dos comparten membrete, pie y formatos en `features/stock/lib/comun-reporte.ts` — si cada uno
 armara su encabezado, en dos cambios dejan de verse hermanos. Agregan lo que el reporte viejo no

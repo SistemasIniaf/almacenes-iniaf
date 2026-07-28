@@ -1,5 +1,6 @@
 import {
   datosCabecera,
+  esNacional,
   encabezadoReporte,
   fechaCorta,
   moneda,
@@ -21,14 +22,23 @@ import type { TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
  * reagrupación, no otra consulta— así que los dos siempre cuadran.
  */
 
-const TITULO = "ESTADO CONSOLIDADO DE ALMACENES Y SUMINISTROS"
+/**
+ * El sistema anterior tiene DOS entradas de menú para esto, que solo se
+ * diferencian en el alcance: una oficina o todas. Acá es el mismo reporte, y el
+ * título acompaña según se haya filtrado un almacén o no.
+ */
+const titulo = (almacen: string | null) =>
+  esNacional(almacen)
+    ? "ESTADO CONSOLIDADO NACIONAL DE ALMACENES Y SUMINISTROS"
+    : "ESTADO CONSOLIDADO DE ALMACENES Y SUMINISTROS"
 
 export interface DatosConsolidado extends DatosReporte {
   filas: FilaReporteStock[]
 }
 
 export function nombreArchivoConsolidado(datos: DatosConsolidado): string {
-  return `estado-consolidado-${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
+  const alcance = esNacional(datos.almacen) ? "nacional-" : ""
+  return `estado-consolidado-${alcance}${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
 }
 
 export async function crearEstadoConsolidadoPdf(datos: DatosConsolidado) {
@@ -149,13 +159,13 @@ export async function definicionEstadoConsolidado(
     pageSize: "LETTER",
     pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
     info: {
-      title: `Estado consolidado ${fechaCorta(emitidoEn)}`,
+      title: `${esNacional(almacen) ? "Estado consolidado nacional" : "Estado consolidado"} ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
     content: [
-      encabezadoReporte(TITULO, logos, emitidoEn),
+      encabezadoReporte(titulo(almacen), logos, emitidoEn),
       ...datosCabecera(almacen, emitidoEn),
       grupos.length === 0
         ? { text: "Sin existencias para los filtros elegidos.", italics: true }

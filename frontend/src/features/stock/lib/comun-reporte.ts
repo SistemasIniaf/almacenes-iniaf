@@ -35,8 +35,8 @@ export const fechaCorta = (fecha: Date) =>
   })
 
 export interface DatosReporte {
-  /** Qué almacén se reporta ("Todos los almacenes" si no se filtró uno). */
-  almacen: string
+  /** Almacén reportado, o `null` si son todos (reporte nacional). */
+  almacen: string | null
   /** Momento de emisión: es el «AL:» del encabezado. */
   emitidoEn: Date
   /** Quién lo emitió, para el pie. */
@@ -76,8 +76,26 @@ export function encabezadoReporte(
   }
 }
 
-/** Raya bajo el membrete y la línea de OFICINA / GESTIÓN. */
-export function datosCabecera(almacen: string, emitidoEn: Date): Content[] {
+/**
+ * ¿El reporte abarca TODOS los almacenes? Cuando es así, el sistema anterior lo
+ * titula «NACIONAL» y saca la línea de OFICINA del encabezado — ahí tiene dos
+ * entradas de menú distintas; acá es el mismo reporte sin filtrar almacén.
+ */
+export const esNacional = (almacen: string | null) => almacen === null
+
+/**
+ * Raya bajo el membrete y la línea de OFICINA / GESTIÓN. Con `almacen` en
+ * `null` (todos) se omite la oficina, como el consolidado nacional.
+ */
+export function datosCabecera(
+  almacen: string | null,
+  emitidoEn: Date
+): Content[] {
+  const gestion = {
+    text: [{ text: "GESTIÓN: ", bold: true }, String(emitidoEn.getFullYear())],
+    fontSize: 8,
+  }
+
   return [
     {
       canvas: [
@@ -85,20 +103,15 @@ export function datosCabecera(almacen: string, emitidoEn: Date): Content[] {
       ],
       margin: [0, 4, 0, 0],
     },
-    {
-      columns: [
-        { text: [{ text: "OFICINA: ", bold: true }, almacen], fontSize: 8 },
-        {
-          text: [
-            { text: "GESTIÓN: ", bold: true },
-            String(emitidoEn.getFullYear()),
+    almacen === null
+      ? { ...gestion, margin: [0, 6, 0, 6] }
+      : {
+          columns: [
+            { text: [{ text: "OFICINA: ", bold: true }, almacen], fontSize: 8 },
+            { ...gestion, width: 90 },
           ],
-          fontSize: 8,
-          width: 90,
+          margin: [0, 6, 0, 6],
         },
-      ],
-      margin: [0, 6, 0, 6],
-    },
   ]
 }
 
