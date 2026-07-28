@@ -432,7 +432,27 @@ muestra una sub-tabla con sus lotes (ingreso `001/2026`, fecha, fuente, proveedo
 saldo/cantidad y valorizado). La columna Almacén —tanto en el filtro como en los lotes— sigue la
 misma regla que el listado de ingresos: solo para quien ve más de uno.
 
-NO construir todavía: `kardex` de consulta, `egresos`, `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
+**KARDEX (consulta): YA IMPLEMENTADO** — `GET /kardex` + página `/kardex`, solo lectura.
+
+Es el libro de UN ítem en UN almacén: el saldo corriente no significa nada si se mezclan ítems o
+almacenes, así que `itemId` es obligatorio y el almacén se exige (el `responsable_almacen` usa el
+suyo). No hay tabla de saldos: cada renglón acumula los movimientos, que es lo que permite auditarlo.
+Muestra además el **saldo de apertura** (todo lo anterior a la gestión pedida): sin esa línea, el
+saldo de la primera fila parece salir de la nada.
+
+**El signo de un movimiento sale del documento que lo origina, NO del tipo** (`KardexService.signo`):
+ENTRADA suma y SALIDA resta, pero una REVERSIÓN depende de qué revierte — la de un ingreso deshace
+una entrada (resta) y la de un egreso devolverá material (sumará). Cuando exista egresos, esa función
+es el único lugar a tocar.
+
+A diferencia del sistema anterior, **la fuente es un filtro opcional**: allá hay que elegir una sí o
+sí y no existe vista consolidada; acá, sin filtro, salen todas juntas. Desde la pantalla de stock,
+cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la URL.
+
+El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
+porque lo comparten el formulario de ingreso y el kardex.
+
+NO construir todavía: `egresos` y `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
 
 ## Alcance NO incluido (por ahora)
 

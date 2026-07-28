@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { FuentesFinanciamientoModule } from './modules/fuentes-financiamiento/fuentes-financiamiento.module';
 import { IngresosModule } from './modules/ingresos/ingresos.module';
 import { ItemsModule } from './modules/items/items.module';
+import { KardexModule } from './modules/kardex/kardex.module';
 import { PartidasModule } from './modules/partidas/partidas.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -31,6 +32,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     FuentesFinanciamientoModule,
     IngresosModule,
     StockModule,
+    KardexModule,
   ],
   controllers: [AppController],
   providers: [AppService],

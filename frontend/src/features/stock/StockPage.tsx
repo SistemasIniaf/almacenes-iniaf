@@ -1,5 +1,7 @@
 import { Fragment, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
+  BookOpen,
   ChevronDown,
   ChevronRight,
   Loader2,
@@ -33,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DataPagination } from "@/components/data/DataPagination"
+import { IconAction } from "@/components/data/IconAction"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
@@ -78,6 +81,7 @@ const valorItem = (item: ItemStock) =>
   item.lotes.reduce((total, lote) => total + valorLote(lote), 0)
 
 export function StockPage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   // Igual que en el listado de ingresos: el almacén solo se elige si el usuario
   // ve más de uno. El responsable tiene el suyo y no puede cambiarlo.
@@ -145,7 +149,8 @@ export function StockPage() {
   }
 
   const items = data?.data ?? []
-  const columnas = 6
+  // desplegar · código · ítem · unidad · saldo · valorizado · kardex
+  const columnas = 7
 
   return (
     <div className="flex flex-col gap-4">
@@ -274,6 +279,7 @@ export function StockPage() {
               <TableHead>Unidad</TableHead>
               <TableHead className="text-right">Saldo</TableHead>
               <TableHead className="text-right">Valorizado (Bs)</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -378,6 +384,25 @@ export function StockPage() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {numero(valorItem(item))}
+                      </TableCell>
+                      {/* Atajo al kardex del ítem: es la pregunta que sigue
+                          naturalmente a "¿cuánto hay?" — "¿y cómo llegó a eso?".
+                          Lleva el almacén si hay uno filtrado; si no, el kardex
+                          lo pide (su saldo es por almacén). */}
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <IconAction
+                          icono={BookOpen}
+                          etiqueta="Ver kardex"
+                          onClick={() =>
+                            navigate(
+                              `/kardex?item=${item.id}` +
+                                (almacenId === TODOS ? "" : `&almacen=${almacenId}`)
+                            )
+                          }
+                        />
                       </TableCell>
                     </TableRow>
 

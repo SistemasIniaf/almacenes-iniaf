@@ -11,7 +11,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import {
   ITEMS_POR_BUSQUEDA,
   useBuscarItems,
-} from "@/features/ingresos/hooks/useIngresos"
+} from "@/features/items/useBuscarItems"
 
 import type { Control, Path } from "react-hook-form"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"

@@ -8,6 +8,7 @@ import { FuentesFinanciamientoPage } from "@/features/fuentes-financiamiento/Fue
 import { IngresoFormPage } from "@/features/ingresos/pages/IngresoFormPage"
 import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
+import { KardexPage } from "@/features/kardex/KardexPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
 import { StockPage } from "@/features/stock/StockPage"
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
           {
             path: "stock",
             element: <StockPage />,
+          },
+          {
+            path: "kardex",
+            element: <KardexPage />,
           },
           {
             path: "ingresos",
