@@ -243,3 +243,65 @@ el caso múltiple sea minoritario.
 **La numeración** (`PEDIDO`) repite: 969 números duplicados dentro de la misma
 unidad y gestión (3,0%), y 1.521 egresos sin número o en cero — el mismo
 problema que ya se vio con `NUMEROINGRESO`.
+
+### 12. El circuito de egresos, leído del código
+
+> Fuente: `htdocs/almacenes/protected/` (app Yii). Los estados son
+> `codificadores` con `TIPO=25`; el rol del usuario vive en su propio
+> `idestado` (101 solicitador · 102 verificador · 103 aprobador).
+
+**Son CUATRO pasos, no dos ni tres.** Cada uno tiene su pantalla, su rol de Yii
+y su propio rechazo:
+
+| # | Pantalla (controlador) | Rol | Ve los que están en | Los deja en |
+|---|---|---|---|---|
+| 1 | Crear (`Egresosalmacenes`) | `rol-solicitud` | — | **104** SOLICITADO |
+| 2 | Envío de solicitud (`Enviarsolicitud`) | `rol-solicitud` | 104 | 104 · **112** ENVIADO |
+| 3 | «Aprobación de solicitudes de material (Inmediato superior)» (`Aprobarsolicitud`) | `rol-apr-solicitud` | 112, **solo de su unidad** | 112 · **109** APROBADO · **110** RECHAZADO |
+| 4 | Verificación del encargado de almacenes (`Egresosalmacenes/_form`) | `rol-ver-solicitud` | 104 | **105** VERIFICADO · **107** VERIFICADO-RECHAZADO |
+| 5 | «Aprobación de egreso (Jefe de la Unidad Administrativa)» (`Aprobaregreso`) | `rol-apr-verificacion` | 105, de **varias** unidades | 105 · **106** APROBADO · **108** APROBADO-RECHAZADO |
+
+El 106 es el final: `Reporteaprob` imprime los aprobados y `Cambiarfecha`
+permite cambiarles la fecha después.
+
+**Al rechazar la verificación, las cantidades se ponen en cero**
+(`EgresosalmacenesController` línea 202: `$cantidadAux = ($model->IDESTADO==107) ? 0 : $cantidad[$i]`).
+No se borra el pedido: se vacía.
+
+#### Lo que el código explica y los datos no
+
+- **Las fechas de firma nunca se escriben.** Los controladores guardan
+  `IDVERIFICADOR` / `IDAPROBADOR` con el usuario que actúa, pero **ninguno toca
+  `FECHAVERIFICACION` ni `FECHAAPROBACION`** — por eso quedaron con el valor con
+  que se creó la columna (`2000-01-01` / `2000-01-02`) en las 24.664 filas.
+- **La fecha de solicitud se pisa al aprobar.** `AprobaregresoController` hace
+  `$model->FECHA = Date('Y-m-d')` con el comentario *«actualizamos la fecha de
+  solicitud»*. La fecha del pedido original se pierde.
+- **`SALDOCANTIDAD` no se lee ni se escribe en toda la app de egresos.** El
+  saldo del lote se calcula al vuelo:
+  `ii.cantidad - IFNULL((select sum(cantidad) from egresositems where idingresoitem = ii.idingresoitem), 0)`.
+  El campo desincronizado en el 59% de los lotes es basura heredada que nadie
+  mantiene.
+- **El selector de material lista LOTES, no ítems**, con el formato
+  `02/01/2026-PAPEL BOND A3 Saldo:1.00 TGN APICOLA`: fecha del ingreso,
+  descripción, saldo y fuente. **Es el solicitante quien elige de qué lote y de
+  qué fuente sale el material.**
+- **El selector filtra `year(ingreso.fecha) = gestión`**: solo ofrece lotes de
+  ingresos de la gestión en curso. De ahí la necesidad del «ingreso de saldos»
+  de enero (punto 5): sin él, el material del año anterior desaparecería de la
+  lista.
+- **El selector NO filtra por saldo > 0**: ofrece lotes agotados
+  (`Saldo:0.00`), y nada impide elegirlos. Explica los saldos negativos.
+- **El pedido reserva stock de hecho, desde que se graba.** La resta del saldo
+  suma **todas** las líneas de egreso del lote sin mirar el estado, así que un
+  pedido apenas creado ya baja el saldo que ven los demás. El rechazo lo libera
+  poniendo las cantidades en cero.
+
+#### El documento impreso
+
+«SOLICITUD DE MATERIALES Y/O SUMINISTROS DE ALMACEN», con número propio.
+Encabezado: unidad solicitante, **programa** (la categoría), fecha y actividad.
+Columnas: `ITEM · DESCRIPCION · FUENTE · PARTIDA · UNIDAD · CANTIDAD SOLICITADA
+· CANTIDAD DESPACHADA`. Abajo, dos nombres impresos (**Solicitador** y
+**Aprobador Solicitud**) y tres recuadros para firmar a mano: **Verificado por
+encargado de Almacenes · Jefe Inmediato Superior · Recibido Por**.
