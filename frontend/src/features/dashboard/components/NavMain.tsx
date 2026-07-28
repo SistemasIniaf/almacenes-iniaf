@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  Boxes,
   Building2,
   Landmark,
   LayoutDashboard,
@@ -44,7 +45,7 @@ const CLASE_ACTIVO =
 /**
  * Menu real del sistema. Se agregan entradas a medida que se construye cada
  * feature — NO listar modulos sin ruta todavia (quedarian como enlaces muertos).
- * Pendientes: stock, ingresos, egresos, kardex y reportes (dependen de reglas
+ * Pendientes: egresos, kardex y reportes (dependen de reglas
  * de negocio todavia sin confirmar — ver CLAUDE.md).
  */
 const ITEMS: ItemMenu[] = [
@@ -90,6 +91,12 @@ const ITEMS: ItemMenu[] = [
     url: "/fuentes-financiamiento",
     icono: Landmark,
     permiso: "fuentesLeer",
+  },
+  {
+    titulo: "Stock",
+    url: "/stock",
+    icono: Boxes,
+    permiso: "stockLeer",
   },
   {
     titulo: "Ingresos",

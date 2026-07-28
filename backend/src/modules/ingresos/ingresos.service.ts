@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import {
   EstadoIngreso,
@@ -364,21 +365,12 @@ export class IngresosService {
   // Helpers de scope / almacen
   // ---------------------------------------------------------------------------
 
-  /** null = sin restriccion (admin/super_admin). Array = almacenes que puede ver. */
-  private async almacenesPermitidos(
-    user: AuthenticatedUser,
-  ): Promise<number[] | null> {
-    if (user.rol === Rol.responsable_almacen) {
-      return user.almacenId != null ? [user.almacenId] : [];
-    }
-    if (user.rol === Rol.observador_almacen) {
-      const observados = await this.prisma.usuarioAlmacenObservado.findMany({
-        where: { usuarioId: user.id },
-        select: { almacenId: true },
-      });
-      return observados.map((o) => o.almacenId);
-    }
-    return null; // super_admin / admin
+  /**
+   * null = sin restriccion (admin/super_admin). Array = almacenes que puede ver.
+   * La regla vive en `common/scope`: la comparten stock, kardex y egresos.
+   */
+  private almacenesPermitidos(user: AuthenticatedUser) {
+    return almacenesPermitidos(this.prisma, user);
   }
 
   private async verificarScope(almacenId: number, user: AuthenticatedUser) {

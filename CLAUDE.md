@@ -220,7 +220,7 @@ Detalle de permisos: unidades es el único módulo donde `admin` **lee pero no e
 la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol.
 
 **Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`, `partidas`, `items`,
-`proveedores`, `fuentes-financiamiento`, `ingresos`.
+`proveedores`, `fuentes-financiamiento`, `ingresos`, `stock`.
 
 Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `hooks/`, `pages/`):
 - Son **páginas con ruta**, no diálogo: `/ingresos` (listado), `/ingresos/nuevo` y `/ingresos/:id`
@@ -387,7 +387,35 @@ Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y 
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
 El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO se guarda formateado.
 
-NO construir todavía: `stock`/`kardex` de consulta, `egresos`, `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
+**STOCK (consulta): YA IMPLEMENTADO** — `GET /stock` + página `/stock`, solo lectura.
+
+**No hay tabla de existencias**: el saldo vive en cada línea de ingreso (el LOTE) y el stock de un
+ítem es la **suma de los saldos de sus lotes**. El service agrupa `ingresoDetalle` por `itemId`
+(`groupBy` + `_sum`), pagina los ítems ordenados por descripción —el orden sale de `items`, porque
+Prisma no ordena un `groupBy` por campo de otra tabla, y desempata por `id`— y recién ahí trae los
+lotes de esa página. Los lotes vienen **del más antiguo primero**, que es el orden en que se va a
+proponer consumirlos. Filtros: `q` (código/descripción), `almacenId`, `fuenteFinanciamientoId`,
+`partidaId`, `itemId` y `conSaldo` (default `true`; en `false` incluye agotados). Filtrar por fuente
+**recalcula el saldo**, no solo esconde lotes: el mismo filtro alimenta el `groupBy` y el detalle.
+
+**Partida**: los ítems se ordenan por `partida.codigo` y la pantalla encabeza cada grupo
+(`32100 · Papel`), como el reporte «Estado de almacenes» del sistema anterior — que sale por fuente y,
+dentro, por partida. El selector se alimenta de **`GET /stock/partidas`** y NO del catálogo de
+partidas: leer ese catálogo está reservado a `admin`/`super_admin` (ver `PERMISOS`) y quien más mira
+el stock es el `responsable_almacen`; además así solo se ofrecen partidas que tienen existencias. Ese
+endpoint reusa el mismo `where` que el listado, salvo el propio filtro de partida.
+
+**El scope por almacén salió a `common/scope/almacenes-permitidos.ts`** y lo comparten ingresos y
+stock (y lo va a usar egresos): `null` = sin restricción (admin/super_admin), array = esos almacenes,
+array vacío = ninguno. Duplicar esa regla es lo que hace que un rol nuevo se arregle en un lado y se
+olvide en otro.
+
+En el frontend, `StockPage` es una tabla por ítem con **fila desplegable**: al abrir un ítem se
+muestra una sub-tabla con sus lotes (ingreso `001/2026`, fecha, fuente, proveedor, precio unitario,
+saldo/cantidad y valorizado). La columna Almacén —tanto en el filtro como en los lotes— sigue la
+misma regla que el listado de ingresos: solo para quien ve más de uno.
+
+NO construir todavía: `kardex` de consulta, `egresos`, `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
 
 ## Alcance NO incluido (por ahora)
 

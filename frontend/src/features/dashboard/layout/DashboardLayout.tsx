@@ -26,6 +26,7 @@ const SECCIONES: Record<string, string> = {
   items: "Ítems",
   proveedores: "Proveedores",
   "fuentes-financiamiento": "Fuentes de financiamiento",
+  stock: "Stock",
   ingresos: "Ingresos",
 }
 

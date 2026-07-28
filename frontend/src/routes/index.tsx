@@ -10,6 +10,7 @@ import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
+import { StockPage } from "@/features/stock/StockPage"
 import { UnidadesPage } from "@/features/unidades/UnidadesPage"
 import { UsuariosPage } from "@/features/usuarios/UsuariosPage"
 import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute"
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
           {
             path: "fuentes-financiamiento",
             element: <FuentesFinanciamientoPage />,
+          },
+          {
+            path: "stock",
+            element: <StockPage />,
           },
           {
             path: "ingresos",

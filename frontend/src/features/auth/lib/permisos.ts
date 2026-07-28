@@ -33,6 +33,14 @@ export const PERMISOS = {
   ],
   ingresosEscribir: ["super_admin", "admin", "responsable_almacen"],
 
+  /** Stock: solo lectura, los mismos que leen ingresos y con el mismo scope. */
+  stockLeer: [
+    "super_admin",
+    "admin",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
+
   usuariosLeer: ["super_admin", "admin"],
   usuariosEscribir: ["super_admin", "admin"],
 

@@ -13,6 +13,7 @@ import { IngresosModule } from './modules/ingresos/ingresos.module';
 import { ItemsModule } from './modules/items/items.module';
 import { PartidasModule } from './modules/partidas/partidas.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+import { StockModule } from './modules/stock/stock.module';
 import { UnidadesModule } from './modules/unidades/unidades.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 
@@ -29,6 +30,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     ProveedoresModule,
     FuentesFinanciamientoModule,
     IngresosModule,
+    StockModule,
   ],
   controllers: [AppController],
   providers: [AppService],
