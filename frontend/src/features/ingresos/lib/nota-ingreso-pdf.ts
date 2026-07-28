@@ -78,33 +78,38 @@ const fechaHora = (iso: string) =>
   })}`
 
 /**
- * Rótulo chico arriba y valor abajo, como los campos del formulario.
- * Sin anotar como `TableCell` a propósito: ese tipo es una unión y al
- * desparramarlo para agregarle `colSpan` se pierde la forma concreta.
+ * Rótulo chico arriba y valor abajo, como los campos del formulario. El margen
+ * derecho deja un canal entre campos para que el texto no toque el de al lado.
  */
 const campo = (rotulo: string, valor: string) => ({
   stack: [
     { text: rotulo.toUpperCase(), style: "rotulo" },
     { text: valor || "—", style: "valor" },
   ],
+  margin: [0, 0, 8, 0] as [number, number, number, number],
 })
 
 /**
- * Una fila de datos, con los MISMOS anchos que el formulario.
+ * Una fila de datos, con los MISMOS anchos que el formulario (grilla de 12).
  *
- * La tabla tiene 12 columnas iguales y cada campo declara cuántas ocupa, así el
- * documento se puede reordenar copiando los `col-span` de `IngresoFormPage` sin
- * recalcular anchos. pdfmake exige rellenar con celdas vacías las columnas que
- * absorbe un `colSpan`.
+ * Se arma con `columns` (no con `colSpan` de tabla) porque pdfmake NO limita el
+ * ancho del texto en una celda con `colSpan`: la del extremo derecho (ej. el
+ * proveedor con su NIT) se desbordaba fuera de la hoja en vez de cortar a la
+ * línea siguiente. Cada campo declara cuántas de las 12 columnas ocupa y su
+ * ancho sale de ahí; `columns` sí ajusta el texto a ese ancho. La fila entera va
+ * dentro de una celda de una tabla de una sola columna, que es la que dibuja la
+ * línea separadora de abajo.
  */
-const fila = (campos: [ancho: number, rotulo: string, valor: string][]) => {
-  const celdas: TableCell[] = []
-  for (const [ancho, rotulo, valor] of campos) {
-    celdas.push({ ...campo(rotulo, valor), colSpan: ancho })
-    for (let i = 1; i < ancho; i++) celdas.push({})
-  }
-  return celdas
-}
+const fila = (
+  campos: [ancho: number, rotulo: string, valor: string][]
+): Content => ({
+  columns: campos.map(([ancho, rotulo, valor]) => ({
+    // Multiplico antes de dividir para que los anchos sumen EXACTO el ancho útil
+    // (si no, el redondeo podría empujar la última columna a otra línea).
+    width: (ancho * ANCHO_UTIL) / 12,
+    ...campo(rotulo, valor),
+  })),
+})
 
 /** Rótulos del pie de firmas: son cargos fijos, no salen de la base. */
 const FIRMAS = [
@@ -207,40 +212,46 @@ export async function definicionNotaIngreso(
 
   const datos: Content = {
     table: {
-      // 12 columnas iguales: los anchos los declara cada campo con su colSpan,
-      // copiando el orden y las proporciones del formulario.
-      widths: Array.from({ length: 12 }, () => ANCHO_UTIL / 12),
+      // Una sola columna: cada fila es una celda que adentro reparte sus campos
+      // con `columns`. La tabla existe solo para dibujar la línea separadora.
+      widths: ["*"],
       body: [
         // Mismo ORDEN que el formulario, pero en cuatro columnas iguales (3+3+
         // 3+3). En pantalla los recuadros de los inputs marcan las columnas y
         // anchos distintos por fila se ven bien; acá son rótulos sueltos, y si
         // cada fila empieza en otro punto el bloque queda desalineado.
-        fila([
-          [3, "Fecha de remisión", fecha(ingreso.fechaRemision)],
-          [3, "Nota de remisión", ingreso.notaRemision ?? ""],
-          [3, "Nº de factura", ingreso.numeroFactura ?? ""],
-          [3, "Proveedor", proveedor],
-        ]),
-        fila([
-          [3, "Fecha del informe/acta", fecha(ingreso.fechaInformeConformidad)],
-          [3, "Informe/acta de conformidad", ingreso.informeConformidad ?? ""],
-          [
-            6,
-            "Responsable / Comisión de recepción",
-            ingreso.responsableConformidad?.nombre ?? "",
-          ],
-        ]),
-        fila([
-          // Sin la sigla: el nombre solo.
-          [3, "Unidad solicitante", ingreso.unidadSolicitante?.nombre ?? ""],
-          [3, "Proceso Nº / C31", ingreso.procesoC31 ?? ""],
-          [3, "Certificación", ingreso.certificacion ?? ""],
-          [
-            3,
-            "Fuente de financiamiento",
-            ingreso.fuenteFinanciamiento?.nombre ?? "",
-          ],
-        ]),
+        [
+          fila([
+            [3, "Fecha de remisión", fecha(ingreso.fechaRemision)],
+            [3, "Nota de remisión", ingreso.notaRemision ?? ""],
+            [3, "Nº de factura", ingreso.numeroFactura ?? ""],
+            [3, "Proveedor", proveedor],
+          ]),
+        ],
+        [
+          fila([
+            [3, "Fecha del informe/acta", fecha(ingreso.fechaInformeConformidad)],
+            [3, "Informe/acta de conformidad", ingreso.informeConformidad ?? ""],
+            [
+              6,
+              "Responsable / Comisión de recepción",
+              ingreso.responsableConformidad?.nombre ?? "",
+            ],
+          ]),
+        ],
+        [
+          fila([
+            // Sin la sigla: el nombre solo.
+            [3, "Unidad solicitante", ingreso.unidadSolicitante?.nombre ?? ""],
+            [3, "Proceso Nº / C31", ingreso.procesoC31 ?? ""],
+            [3, "Certificación", ingreso.certificacion ?? ""],
+            [
+              3,
+              "Fuente de financiamiento",
+              ingreso.fuenteFinanciamiento?.nombre ?? "",
+            ],
+          ]),
+        ],
       ],
     },
     // Solo una línea fina bajo cada fila; la de arriba de todo no se dibuja.
@@ -251,7 +262,7 @@ export async function definicionNotaIngreso(
       paddingTop: () => 4,
       paddingBottom: () => 2,
       paddingLeft: () => 0,
-      paddingRight: () => 6,
+      paddingRight: () => 0,
     },
     margin: [0, 10, 0, 0],
   }

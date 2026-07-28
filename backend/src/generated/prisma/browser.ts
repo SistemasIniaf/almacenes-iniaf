@@ -94,11 +94,11 @@ export type Item = Prisma.ItemModel
  * Model Ingreso
  * Ingreso de material a un almacen (cabecera). El detalle son los LOTES.
  * Lo registra el responsable_almacen de ese almacen, SIN aprobacion.
- * Flujo: BORRADOR (reserva, no toca stock) -> CONFIRMADO (estampa numero,
- * crea lotes + kardex) -> ANULADO (revierte). El numero es correlativo POR
- * ALMACEN + GESTION, se asigna al confirmar (se imprime "001/2026").
- * Los respaldos son nullable: en BORRADOR no se exigen; el service los pide al
- * confirmar. Ver docs/decisiones-ingresos.md.
+ * Flujo: CONFIRMADO (se crea definitivo: estampa numero, crea lotes + kardex)
+ * -> ANULADO (revierte). Ya NO hay borrador. El numero es correlativo POR
+ * ALMACEN + GESTION, se asigna al crear (se imprime "001/2026").
+ * Los respaldos siguen nullable en la BD; el service los EXIGE al crear (la
+ * regla vive en el service, como el cargo del usuario). Ver decisiones-ingresos.md.
  */
 export type Ingreso = Prisma.IngresoModel
 /**

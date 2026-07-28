@@ -22,7 +22,6 @@ export type Rol = (typeof Rol)[keyof typeof Rol]
 
 
 export const EstadoIngreso = {
-  BORRADOR: 'BORRADOR',
   CONFIRMADO: 'CONFIRMADO',
   ANULADO: 'ANULADO'
 } as const

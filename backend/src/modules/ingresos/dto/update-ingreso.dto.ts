@@ -1,25 +1,18 @@
-import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsDateString,
   IsInt,
   IsOptional,
   IsString,
   MaxLength,
-  ValidateNested,
 } from 'class-validator';
 
-import { IngresoDetalleDto } from './ingreso-detalle.dto';
-
 /**
- * Edita un Ingreso en BORRADOR (el service lo rechaza si ya esta CONFIRMADO).
- * El almacen NO se cambia. Si `detalles` viene, reemplaza el conjunto de lineas.
+ * Edita SOLO la cabecera documental de un ingreso ya registrado. A propósito NO
+ * lleva `detalles`, `almacenId`, `fuenteFinanciamientoId` ni `fechaRemision`:
+ * esos tocan stock / valorización / correlativo, y para corregirlos se anula el
+ * ingreso y se vuelve a registrar. El service rechaza editar uno anulado.
  */
 export class UpdateIngresoDto {
-  @IsOptional()
-  @IsDateString({}, { message: 'La fecha de remision no es valida' })
-  fechaRemision?: string;
-
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -60,19 +53,9 @@ export class UpdateIngresoDto {
 
   @IsOptional()
   @IsInt()
-  fuenteFinanciamientoId?: number | null;
-
-  @IsOptional()
-  @IsInt()
   responsableConformidadId?: number | null;
 
   @IsOptional()
   @IsInt()
   unidadSolicitanteId?: number | null;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => IngresoDetalleDto)
-  detalles?: IngresoDetalleDto[];
 }

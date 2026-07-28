@@ -12,9 +12,9 @@ import {
 import { IngresoDetalleDto } from './ingreso-detalle.dto';
 
 /**
- * Crea un Ingreso en estado BORRADOR. Casi todo es opcional: un borrador puede
- * guardarse incompleto (incluso sin ítems) y completarse despues. Las
- * validaciones "duras" (respaldos obligatorios, >=1 ítem) rigen al CONFIRMAR.
+ * Registra un Ingreso DEFINITIVO (ya no hay borrador). Los campos van opcionales
+ * a nivel de tipo, pero el service exige TODOS los respaldos + >=1 ítem antes de
+ * crear y responde con la lista de lo que falta (mensaje claro, un solo lugar).
  */
 export class CreateIngresoDto {
   /**

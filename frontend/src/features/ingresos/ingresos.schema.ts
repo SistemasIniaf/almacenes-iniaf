@@ -3,12 +3,14 @@ import { z } from "zod"
 import type {
   CreateIngresoPayload,
   Ingreso,
+  UpdateIngresoPayload,
 } from "@/features/ingresos/ingresos.types"
 
 /**
- * Un ingreso se guarda como BORRADOR: la cabecera es toda opcional (se completa
- * al confirmar, lo valida el backend). Lo único que se valida acá son las LÍNEAS:
- * si agregás una, tiene que tener ítem, cantidad > 0 y precio ≥ 0.
+ * El ingreso se registra definitivo (ya no hay borrador). La cabecera va sin
+ * `.min()` porque la validación "dura" de respaldos la hace el backend, que lista
+ * lo que falta como toast (un solo lugar, no duplicado acá). Lo que sí se valida
+ * en el front son las LÍNEAS: si agregás una, tiene ítem, cantidad > 0 y precio ≥ 0.
  *
  * Los ids (proveedor, fuente, etc.) se manejan como string ("" = sin selección)
  * porque es lo que entregan Select/Combobox; las fechas son `Date` (DatePicker).
@@ -31,22 +33,54 @@ const lineaSchema = z.object({
   observacion: z.string().trim().max(200, "Máximo 200 caracteres"),
 })
 
-export const ingresoSchema = z.object({
-  almacenId: z.string(),
-  fechaRemision: z.date().optional(),
-  notaRemision: z.string().trim().max(100),
-  procesoC31: z.string().trim().max(100),
-  certificacion: z.string().trim().max(150),
-  informeConformidad: z.string().trim().max(200),
-  fechaInformeConformidad: z.date().optional(),
-  numeroFactura: z.string().trim().max(50),
-  observacion: z.string().trim().max(500),
-  proveedorId: z.string(),
-  fuenteFinanciamientoId: z.string(),
-  responsableConformidadId: z.string(),
-  unidadSolicitanteId: z.string(),
-  detalles: z.array(lineaSchema),
-})
+export const ingresoSchema = z
+  .object({
+    // El almacén siempre está resuelto (el responsable usa el suyo, el admin lo
+    // elige); igual se exige para que el admin no lo deje vacío.
+    almacenId: z.string().min(1, "Elegí el almacén"),
+    // Las dos fechas se validan abajo con superRefine (el DatePicker arranca en
+    // `undefined` y `z.date()` sin optional rompería el tipo del valor inicial).
+    fechaRemision: z.date().optional(),
+    notaRemision: z.string().trim().min(1, "Ingresá la nota de remisión").max(100),
+    procesoC31: z.string().trim().min(1, "Ingresá el proceso Nº / C31").max(100),
+    certificacion: z
+      .string()
+      .trim()
+      .min(1, "Ingresá la certificación")
+      .max(150),
+    informeConformidad: z
+      .string()
+      .trim()
+      .min(1, "Ingresá el informe/acta de conformidad")
+      .max(200),
+    fechaInformeConformidad: z.date().optional(),
+    numeroFactura: z.string().trim().min(1, "Ingresá el Nº de factura").max(50),
+    // Opcional (el backend tampoco la exige).
+    observacion: z.string().trim().max(500),
+    proveedorId: z.string().min(1, "Elegí un proveedor"),
+    fuenteFinanciamientoId: z.string().min(1, "Elegí una fuente de financiamiento"),
+    responsableConformidadId: z
+      .string()
+      .min(1, "Elegí el responsable / comisión de recepción"),
+    unidadSolicitanteId: z.string().min(1, "Elegí la unidad solicitante"),
+    detalles: z.array(lineaSchema).min(1, "Agregá al menos un ítem"),
+  })
+  .superRefine((v, ctx) => {
+    if (!v.fechaRemision) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fechaRemision"],
+        message: "Elegí la fecha de remisión",
+      })
+    }
+    if (!v.fechaInformeConformidad) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["fechaInformeConformidad"],
+        message: "Elegí la fecha del informe/acta",
+      })
+    }
+  })
 
 export type IngresoFormValues = z.infer<typeof ingresoSchema>
 
@@ -105,6 +139,25 @@ export function aPayload(
       precioUnitario: Number(d.precioUnitario),
       observacion: d.observacion,
     })),
+  }
+}
+
+/**
+ * Payload de EDICIÓN: solo la cabecera documental. No manda líneas, almacén,
+ * fuente ni fecha de remisión — esos no se editan (se anula y se re-registra).
+ */
+export function aPayloadEdicion(v: IngresoFormValues): UpdateIngresoPayload {
+  return {
+    notaRemision: v.notaRemision,
+    procesoC31: v.procesoC31,
+    certificacion: v.certificacion,
+    informeConformidad: v.informeConformidad,
+    fechaInformeConformidad: aIso(v.fechaInformeConformidad),
+    numeroFactura: v.numeroFactura,
+    observacion: v.observacion,
+    proveedorId: idOnull(v.proveedorId),
+    responsableConformidadId: idOnull(v.responsableConformidadId),
+    unidadSolicitanteId: idOnull(v.unidadSolicitanteId),
   }
 }
 

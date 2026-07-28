@@ -23,6 +23,7 @@ export async function obtenerIngreso(id: number): Promise<Ingreso> {
   return data
 }
 
+/** Registra el ingreso definitivo: estampa el número, crea los lotes y el Kardex. */
 export async function crearIngreso(
   payload: CreateIngresoPayload
 ): Promise<Ingreso> {
@@ -30,17 +31,12 @@ export async function crearIngreso(
   return data
 }
 
+/** Edita solo la cabecera documental (no toca líneas ni stock). */
 export async function actualizarIngreso(
   id: number,
   payload: UpdateIngresoPayload
 ): Promise<Ingreso> {
   const { data } = await api.patch<Ingreso>(`/ingresos/${id}`, payload)
-  return data
-}
-
-/** Confirma el ingreso: estampa el número, crea los lotes y el Kardex. */
-export async function confirmarIngreso(id: number): Promise<Ingreso> {
-  const { data } = await api.post<Ingreso>(`/ingresos/${id}/confirmar`)
   return data
 }
 
@@ -51,9 +47,4 @@ export async function anularIngreso(
 ): Promise<Ingreso> {
   const { data } = await api.post<Ingreso>(`/ingresos/${id}/anular`, { motivo })
   return data
-}
-
-/** Elimina un borrador (los confirmados se anulan, no se borran). */
-export async function eliminarIngreso(id: number): Promise<void> {
-  await api.delete(`/ingresos/${id}`)
 }

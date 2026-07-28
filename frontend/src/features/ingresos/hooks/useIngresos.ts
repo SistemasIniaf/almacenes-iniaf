@@ -10,9 +10,7 @@ import { toast } from "sonner"
 import {
   actualizarIngreso,
   anularIngreso,
-  confirmarIngreso,
   crearIngreso,
-  eliminarIngreso,
   listarIngresos,
   obtenerIngreso,
 } from "@/features/ingresos/ingresos.api"
@@ -60,8 +58,9 @@ export function useCrearIngreso() {
     mutationFn: (payload: CreateIngresoPayload) => crearIngreso(payload),
     onSuccess: () => {
       invalidar()
-      toast.success("Borrador de ingreso creado")
+      toast.success("Ingreso registrado")
     },
+    // El backend lista lo que falta si no se puede registrar.
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 }
@@ -73,21 +72,8 @@ export function useActualizarIngreso() {
       actualizarIngreso(id, payload),
     onSuccess: () => {
       invalidar()
-      toast.success("Ingreso guardado")
+      toast.success("Cambios guardados")
     },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  })
-}
-
-export function useConfirmarIngreso() {
-  const invalidar = useInvalidarIngresos()
-  return useMutation({
-    mutationFn: (id: number) => confirmarIngreso(id),
-    onSuccess: () => {
-      invalidar()
-      toast.success("Ingreso confirmado")
-    },
-    // El backend lista lo que falta si no se puede confirmar.
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 }
@@ -100,18 +86,6 @@ export function useAnularIngreso() {
     onSuccess: () => {
       invalidar()
       toast.success("Ingreso anulado")
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  })
-}
-
-export function useEliminarIngreso() {
-  const invalidar = useInvalidarIngresos()
-  return useMutation({
-    mutationFn: (id: number) => eliminarIngreso(id),
-    onSuccess: () => {
-      invalidar()
-      toast.success("Borrador eliminado")
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })

@@ -1,6 +1,6 @@
 import type { PaginationQuery } from "@/lib/types"
 
-export type EstadoIngreso = "BORRADOR" | "CONFIRMADO" | "ANULADO"
+export type EstadoIngreso = "CONFIRMADO" | "ANULADO"
 
 interface RefNombre {
   id: number
@@ -105,7 +105,7 @@ export interface DetallePayload {
 /**
  * Se manda el estado completo del formulario: los textos como string ("" limpia),
  * los ids como number|null (null limpia) y las fechas como ISO|null. El backend
- * normaliza. Así editar un borrador puede limpiar campos, no solo setearlos.
+ * normaliza y exige los respaldos obligatorios al registrar.
  */
 export interface CreateIngresoPayload {
   /** Solo lo mandan super_admin/admin. */
@@ -125,7 +125,23 @@ export interface CreateIngresoPayload {
   detalles?: DetallePayload[]
 }
 
-export type UpdateIngresoPayload = Omit<CreateIngresoPayload, "almacenId">
+/**
+ * Editar solo cambia la cabecera documental. NO lleva `detalles`, `almacenId`,
+ * `fuenteFinanciamientoId` ni `fechaRemision`: esos tocan stock / correlativo y
+ * para corregirlos se anula el ingreso y se registra de nuevo (espeja el DTO).
+ */
+export interface UpdateIngresoPayload {
+  notaRemision?: string
+  procesoC31?: string
+  certificacion?: string
+  informeConformidad?: string
+  fechaInformeConformidad?: string | null
+  numeroFactura?: string
+  observacion?: string
+  proveedorId?: number | null
+  responsableConformidadId?: number | null
+  unidadSolicitanteId?: number | null
+}
 
 /** Etiqueta impresa del número: 001/2026. */
 export function etiquetaNumero(ingreso: {
@@ -137,7 +153,6 @@ export function etiquetaNumero(ingreso: {
 }
 
 export const ESTADO_LABEL: Record<EstadoIngreso, string> = {
-  BORRADOR: "Borrador",
   CONFIRMADO: "Confirmado",
   ANULADO: "Anulado",
 }

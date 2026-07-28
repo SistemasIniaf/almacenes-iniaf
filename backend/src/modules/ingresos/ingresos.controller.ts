@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -61,6 +60,7 @@ export class IngresosController {
     return this.ingresosService.findOne(id, user);
   }
 
+  /** Edita solo la cabecera documental (no toca lineas, stock ni fuente). */
   @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
   @Patch(':id')
   update(
@@ -69,16 +69,6 @@ export class IngresosController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.ingresosService.update(id, dto, user);
-  }
-
-  /** Confirma el ingreso: estampa el numero, crea los lotes y el Kardex. */
-  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
-  @Post(':id/confirmar')
-  confirmar(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.ingresosService.confirmar(id, user);
   }
 
   /** Anula un ingreso confirmado: reversion en Kardex + devuelve saldos. */
@@ -90,15 +80,5 @@ export class IngresosController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.ingresosService.anular(id, dto, user);
-  }
-
-  /** Elimina un borrador (los confirmados no se borran: se anulan). */
-  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
-  @Delete(':id')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.ingresosService.remove(id, user);
   }
 }

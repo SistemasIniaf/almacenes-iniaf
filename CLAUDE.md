@@ -47,7 +47,7 @@ almacenes-institucion/
 - **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
 - ~~**StockAlmacen**~~: **ELIMINADO del diseño**. El stock NO es un saldo agregado: se lleva **por LOTE** (ver `IngresoDetalle`) y separado por fuente de financiamiento.
 - **Proveedor**: nombre (requerido, NO único — la razón social se escribe de formas distintas), `nit` (opcional pero `@unique`; Postgres admite varios NULL en un índice único, así que conviven proveedores sin NIT), telefono, `contacto` (nombre de la persona de contacto), direccion, activo. Baja lógica siempre: será referenciado por Ingreso y no se puede borrar sin romper el Kardex. Escritura para `super_admin` y `admin`; lectura además para `responsable_almacen` (necesita el selector de proveedor al registrar un Ingreso).
-- **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`BORRADOR`/`CONFIRMADO`/`ANULADO`), `numero` + `gestion` (**nullable hasta confirmar**), `almacen_id`, respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). `@@unique([almacenId, gestion, numero])` — los NULL (borradores) conviven. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
+- **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`CONFIRMADO`/`ANULADO` — **ya NO hay `BORRADOR`**; el encargado lo quitó el 2026-07-27: se crea definitivo en un solo paso, ver migración `20260727120000_ingresos_sin_borrador`), `numero` + `gestion` (nullable en la BD pero el service los estampa SIEMPRE al crear), `almacen_id`, respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). Los respaldos siguen nullable en la BD pero son **obligatorios**: la regla vive en el service (los exige al crear, como el `cargo` del usuario). `@@unique([almacenId, gestion, numero])`. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
 - **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
 - **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
@@ -224,8 +224,13 @@ la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol
 
 Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `hooks/`, `pages/`):
 - Son **páginas con ruta**, no diálogo: `/ingresos` (listado), `/ingresos/nuevo` y `/ingresos/:id`
-  (mismo `IngresoFormPage` para crear/editar/ver). Un ingreso CONFIRMADO/ANULADO se ve en **solo
-  lectura** con botón Anular.
+  (mismo `IngresoFormPage` para crear/editar/ver). **Ya no hay borrador**: `/ingresos/nuevo` registra
+  el ingreso definitivo de una (botón *Registrar ingreso*). Un ingreso **CONFIRMADO** se abre con la
+  **cabecera documental editable** (factura, respaldos, proveedor, solicitante, unidad — botón
+  *Guardar cambios*) pero las líneas, el almacén, la fuente y la fecha de remisión quedan **fijos**
+  (tocan stock/correlativo); para corregir eso se **anula** y se registra de nuevo. Un **ANULADO** se
+  ve en solo lectura. La partición editable/fijo la controlan `bloqueoCabecera` (solo se bloquea si
+  está anulado) y `bloqueoStock` (se bloquea apenas deja de ser nuevo) en `IngresoFormPage`.
 - **Impresión**: el botón *Imprimir* del ingreso genera un **PDF de verdad con `pdfmake`** y lo abre en
   una pestaña con el visor del navegador (miniaturas, zoom, descargar, imprimir), igual que el sistema
   anterior — que lo armaba en el servidor con PHP. Todo vive en
@@ -245,7 +250,7 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   - `import()` dinámico de pdfmake y `window.open("", "_blank")` **sincrónico** en el clic: si la
     pestaña se abriera después de generar, el navegador la bloquearía como emergente. Si aun así la
     bloquea, se descarga el archivo.
-  Un **borrador no se imprime** (no tiene número todavía): no se ofrece el botón. El monto
+  Todo ingreso ya tiene número (se estampa al crear), así que **siempre se puede imprimir**. El monto
   en letras sale de `lib/numero-literal.ts` (compartido, lo va a reusar el egreso). El detalle imprime
   `DESCRIPCIÓN (observación de la línea)`. El pie de firmas replica el del sistema anterior: un
   recuadro **ANTECEDENTES** con la observación, espacio en blanco y los cargos *Encargado Almacén ·
@@ -287,9 +292,11 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   que llegan por props desde `IngresoFormPage`) y el registro de lo elegido en esta sesión, que se
   guarda **al elegir** vía `onSelectOption` (no en un efecto: el lint del repo — reglas del React
   Compiler — rechaza `setState` dentro de `useEffect` y refs leídos en render).
-- El botón "Guardar borrador" vive **fuera** del `<form>` y se enlaza con `form="ingreso-form"`.
-  "Confirmar" hace `trigger()` → guarda → confirma; si falta un respaldo, **el backend lista qué
-  falta** y llega como toast (la validación dura NO se duplica en el front).
+- El botón principal (*Registrar ingreso* al crear, *Guardar cambios* al editar) es el `submit` del
+  `<form id="ingreso-form">`. Al crear, el POST hace todo en el backend (número + lotes + Kardex); si
+  falta un respaldo, **el backend lista qué falta** y llega como toast (la validación dura NO se
+  duplica en el front). Al editar se manda solo la cabecera vía `aPayloadEdicion()` (no viajan líneas,
+  almacén, fuente ni fecha). El payload de creación es `aPayload()`; ambos en `ingresos.schema.ts`.
 - Los selectores dependen del almacén: `useUnidadesDeAlmacen(almacenId)` trae las unidades que ese
   almacén muestra. El `responsable_almacen` no elige almacén (usa el suyo, se muestra el nombre).
 - **Permisos**: para armar un ingreso el `responsable_almacen` necesita leer cosas que son de admin,
@@ -372,11 +379,11 @@ Notas propias de `proveedores` (cierra el frontend de esta fase):
 negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacenes.md`. Al agregar cada uno hay que sumar su entrada en
 `NavMain.tsx` (`ITEMS`) y en `SECCIONES` de `DashboardLayout.tsx`.
 
-**INGRESOS: YA IMPLEMENTADO** (backend + frontend). Flujo:
-`BORRADOR` (reserva: puede tener 0 ítems, no toca stock, respaldos opcionales)
-→ **confirmar** (en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `numero` = `MAX+1` por almacén+gestión y `gestion` = año de `fechaRemision`; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea)
-→ **anular** (solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
-Un borrador se **elimina** (hard delete); un confirmado NO se borra, se anula.
+**INGRESOS: YA IMPLEMENTADO** (backend + frontend). **Sin borrador** (quitado el 2026-07-27). Flujo:
+**crear** = `POST /ingresos` registra el ingreso `CONFIRMADO` en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `numero` = `MAX+1` por almacén+gestión y `gestion` = año de `fechaRemision`; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea. Si falta un dato, responde la lista de pendientes y **no crea nada**.
+→ **editar** (`PATCH /ingresos/:id`, solo `CONFIRMADO`): cambia SOLO la cabecera documental (factura, respaldos, proveedor, responsable, unidad). NO toca líneas, almacén, fuente ni fecha de remisión (el `UpdateIngresoDto` ni siquiera los acepta), así que el stock/Kardex queda intacto.
+→ **anular** (`POST /ingresos/:id/anular`, solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
+Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y registrando de nuevo. **No hay endpoint `confirmar` ni `remove`** (eran del borrador; se eliminaron).
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
 El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO se guarda formateado.
 

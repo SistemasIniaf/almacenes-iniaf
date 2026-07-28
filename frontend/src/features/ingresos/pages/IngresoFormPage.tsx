@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Ban, Check, Loader2, Printer, Save } from "lucide-react"
+import { ArrowLeft, Ban, Loader2, Printer, Save } from "lucide-react"
 
 import {
   AlertDialog,
@@ -32,7 +32,6 @@ import { IngresoLineas } from "@/features/ingresos/components/IngresoLineas"
 import {
   useActualizarIngreso,
   useAnularIngreso,
-  useConfirmarIngreso,
   useCrearIngreso,
   useIngreso,
   useSolicitadores,
@@ -41,6 +40,7 @@ import {
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
 import {
   aPayload,
+  aPayloadEdicion,
   desdeIngreso,
   ingresoSchema,
   VALORES_INICIALES,
@@ -52,12 +52,10 @@ import {
 
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
 
-const ESTADO_VARIANT: Record<string, "secondary" | "default" | "destructive"> =
-  {
-    BORRADOR: "secondary",
-    CONFIRMADO: "default",
-    ANULADO: "destructive",
-  }
+const ESTADO_VARIANT: Record<string, "default" | "destructive"> = {
+  CONFIRMADO: "default",
+  ANULADO: "destructive",
+}
 
 export function IngresoFormPage() {
   const { id: idParam } = useParams()
@@ -70,18 +68,16 @@ export function IngresoFormPage() {
   const { data: ingreso, isPending: cargando } = useIngreso(id)
   const crear = useCrearIngreso()
   const actualizar = useActualizarIngreso()
-  const confirmar = useConfirmarIngreso()
   const anular = useAnularIngreso()
 
   const [dialogoAnular, setDialogoAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
   const { abrirNota, generandoId } = useNotaIngreso()
 
-  const { control, handleSubmit, reset, watch, getValues, trigger } =
-    useForm<IngresoFormValues>({
-      resolver: zodResolver(ingresoSchema),
-      defaultValues: VALORES_INICIALES,
-    })
+  const { control, handleSubmit, reset, watch } = useForm<IngresoFormValues>({
+    resolver: zodResolver(ingresoSchema),
+    defaultValues: VALORES_INICIALES,
+  })
 
   // Carga inicial: nuevo (preseteando el almacén del responsable) o existente.
   useEffect(() => {
@@ -96,8 +92,14 @@ export function IngresoFormPage() {
     }
   }, [esNuevo, ingreso, esResponsable, user?.almacenId, reset])
 
-  const estado = ingreso?.estado ?? "BORRADOR"
-  const soloLectura = !esNuevo && estado !== "BORRADOR"
+  const estado = ingreso?.estado
+  const anulado = !esNuevo && estado === "ANULADO"
+  // Los campos que tocan stock / correlativo (líneas, fecha de remisión, fuente,
+  // almacén) se editan SOLO al crear; registrado el ingreso, quedan fijos.
+  const bloqueoStock = !esNuevo
+  // La cabecera documental (factura, respaldos, proveedor, solicitante, unidad)
+  // se puede editar mientras el ingreso esté vigente (no anulado).
+  const bloqueoCabecera = anulado
   const guardando = crear.isPending || actualizar.isPending
 
   const almacenIdSel = watch("almacenId")
@@ -120,33 +122,20 @@ export function IngresoFormPage() {
   async function guardar(v: IngresoFormValues) {
     try {
       if (esNuevo) {
+        // Registro definitivo: el backend estampa número, crea lotes y Kardex.
         const creado = await crear.mutateAsync(
           aPayload(v, { incluirAlmacen: !esResponsable })
         )
         navigate(`/ingresos/${creado.id}`)
       } else {
+        // Edición: solo la cabecera documental (no toca líneas ni stock).
         await actualizar.mutateAsync({
           id: id as number,
-          ...aPayload(v, { incluirAlmacen: false }),
+          ...aPayloadEdicion(v),
         })
       }
     } catch {
-      // toast lo emite la mutación
-    }
-  }
-
-  async function handleConfirmar() {
-    // Guarda lo que haya en pantalla y luego confirma (el backend valida respaldos).
-    const ok = await trigger()
-    if (!ok) return
-    try {
-      await actualizar.mutateAsync({
-        id: id as number,
-        ...aPayload(getValues(), { incluirAlmacen: false }),
-      })
-      await confirmar.mutateAsync(id as number)
-    } catch {
-      // toast lo emite la mutación (lista lo que falta)
+      // toast lo emite la mutación (lista lo que falta al registrar)
     }
   }
 
@@ -189,9 +178,11 @@ export function IngresoFormPage() {
                 : `Ingreso ${etiquetaNumero(ingreso ?? { numero: null, gestion: null })}`}
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant={ESTADO_VARIANT[estado]}>
-                {ESTADO_LABEL[estado]}
-              </Badge>
+              {!esNuevo && estado && (
+                <Badge variant={ESTADO_VARIANT[estado]}>
+                  {ESTADO_LABEL[estado]}
+                </Badge>
+              )}
               {/* El almacén se muestra acá y no como campo del formulario:
                   salvo que un admin lo esté eligiendo, es un dato fijo. */}
               {nombreAlmacen && <span>{nombreAlmacen}</span>}
@@ -199,40 +190,10 @@ export function IngresoFormPage() {
           </div>
         </div>
 
+        {/* Acciones del ingreso YA existente (a nivel documento). El botón de
+            registrar/guardar del formulario va en la barra fija de abajo. */}
         <div className="flex gap-2">
-          {!soloLectura && (
-            <>
-              <Button
-                type="submit"
-                form="ingreso-form"
-                variant="outline"
-                disabled={guardando}
-              >
-                {guardando ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Save className="size-4" />
-                )}
-                Guardar borrador
-              </Button>
-              {!esNuevo && (
-                <Button
-                  type="button"
-                  onClick={handleConfirmar}
-                  disabled={guardando || confirmar.isPending}
-                >
-                  {confirmar.isPending ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Check className="size-4" />
-                  )}
-                  Confirmar
-                </Button>
-              )}
-            </>
-          )}
-          {/* Un borrador no se imprime: todavía no tiene número. */}
-          {!esNuevo && estado !== "BORRADOR" && (
+          {!esNuevo && (
             <Button
               type="button"
               variant="outline"
@@ -267,6 +228,15 @@ export function IngresoFormPage() {
         </div>
       )}
 
+      {!esNuevo && estado === "CONFIRMADO" && (
+        <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+          Este ingreso ya impactó el stock. Solo se edita la cabecera (factura,
+          respaldos, proveedor, solicitante y unidad). Para corregir ítems,
+          cantidades, precios, fuente o fecha, anulá el ingreso y registralo de
+          nuevo.
+        </div>
+      )}
+
       <form id="ingreso-form" onSubmit={handleSubmit(guardar)}>
         <div className="rounded-md border p-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12">
@@ -287,7 +257,7 @@ export function IngresoFormPage() {
                       label: a.nombre,
                     }))}
                     placeholder="Elegí el almacén"
-                    disabled={soloLectura}
+                    disabled={bloqueoCabecera}
                   />
                 </div>
                 {/*
@@ -307,9 +277,9 @@ export function IngresoFormPage() {
                 name="fechaRemision"
                 label="Fecha de remisión"
                 control={control}
-                required={false}
+                required
                 placeholder="Elija la fecha"
-                disabled={soloLectura}
+                disabled={bloqueoStock}
               />
             </div>
 
@@ -319,8 +289,8 @@ export function IngresoFormPage() {
                 name="notaRemision"
                 label="Nota de remisión"
                 control={control}
-                required={false}
-                disabled={soloLectura}
+                required
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -330,8 +300,8 @@ export function IngresoFormPage() {
                 name="numeroFactura"
                 label="Nº de factura"
                 control={control}
-                required={false}
-                disabled={soloLectura}
+                required
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -341,14 +311,14 @@ export function IngresoFormPage() {
                 name="proveedorId"
                 label="Proveedor"
                 control={control}
-                required={false}
+                required
                 options={proveedores.map((p) => ({
                   value: String(p.id),
                   label: p.nombre,
                 }))}
                 placeholder="Elegí un proveedor"
                 vacio="Ningún proveedor coincide."
-                disabled={soloLectura}
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -358,9 +328,9 @@ export function IngresoFormPage() {
                 name="fechaInformeConformidad"
                 label="Fecha del informe/acta"
                 control={control}
-                required={false}
+                required
                 placeholder="Elija la fecha"
-                disabled={soloLectura}
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -370,8 +340,8 @@ export function IngresoFormPage() {
                 name="informeConformidad"
                 label="Informe/acta de conformidad"
                 control={control}
-                required={false}
-                disabled={soloLectura}
+                required
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -381,7 +351,7 @@ export function IngresoFormPage() {
                 name="responsableConformidadId"
                 label="Responsable / Comisión de recepción"
                 control={control}
-                required={false}
+                required
                 options={solicitadores.map((u) => ({
                   value: String(u.id),
                   label: u.nombre,
@@ -389,7 +359,7 @@ export function IngresoFormPage() {
                 }))}
                 placeholder="Elegí un solicitador"
                 vacio="Ningún solicitador coincide."
-                disabled={soloLectura}
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -399,7 +369,7 @@ export function IngresoFormPage() {
                 name="unidadSolicitanteId"
                 label="Unidad solicitante"
                 control={control}
-                required={false}
+                required
                 options={unidades.map((u) => ({
                   value: String(u.id),
                   label: u.nombre,
@@ -409,7 +379,7 @@ export function IngresoFormPage() {
                   almacenNum ? "Elegí una unidad" : "Elegí primero el almacén"
                 }
                 vacio="Ninguna unidad coincide."
-                disabled={soloLectura || !almacenNum}
+                disabled={bloqueoCabecera || !almacenNum}
               />
             </div>
 
@@ -419,8 +389,8 @@ export function IngresoFormPage() {
                 name="procesoC31"
                 label="Proceso Nº / C31"
                 control={control}
-                required={false}
-                disabled={soloLectura}
+                required
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -430,8 +400,8 @@ export function IngresoFormPage() {
                 name="certificacion"
                 label="Certificación"
                 control={control}
-                required={false}
-                disabled={soloLectura}
+                required
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -441,14 +411,14 @@ export function IngresoFormPage() {
                 name="fuenteFinanciamientoId"
                 label="Fuente de financiamiento"
                 control={control}
-                required={false}
+                required
                 options={fuentes.map((f) => ({
                   value: String(f.id),
                   label: f.nombre,
                 }))}
                 placeholder="Elegí una fuente"
                 vacio="Ninguna fuente coincide."
-                disabled={soloLectura}
+                disabled={bloqueoStock}
               />
             </div>
 
@@ -460,7 +430,7 @@ export function IngresoFormPage() {
                 control={control}
                 required={false}
                 rows={2}
-                disabled={soloLectura}
+                disabled={bloqueoCabecera}
               />
             </div>
           </div>
@@ -468,12 +438,27 @@ export function IngresoFormPage() {
           <div className="mt-6 border-t pt-4">
             <IngresoLineas
               control={control}
-              disabled={soloLectura}
+              disabled={bloqueoStock}
               // El selector de ítems busca contra el servidor: los ítems que ya
               // tiene el ingreso viajan aparte para que se vean sin buscarlos.
               itemsIniciales={ingreso?.detalles.map((d) => d.item) ?? []}
             />
           </div>
+
+          {/* Acción principal al pie del formulario, dentro del card. Un ingreso
+              anulado ya no se edita, así que no lleva botón. */}
+          {!anulado && (
+            <div className="mt-6 flex justify-end">
+              <Button type="submit" disabled={guardando}>
+                {guardando ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+                {esNuevo ? "Registrar ingreso" : "Guardar cambios"}
+              </Button>
+            </div>
+          )}
         </div>
       </form>
 

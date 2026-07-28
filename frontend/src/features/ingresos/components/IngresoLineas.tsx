@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useFieldArray, useWatch } from "react-hook-form"
+import { useFieldArray, useFormState, useWatch } from "react-hook-form"
 import { Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -100,6 +100,14 @@ export function IngresoLineas({
   // Para el total en vivo por línea y general.
   const detalles = useWatch({ control, name: "detalles" }) ?? []
 
+  // Error a nivel del arreglo (ej. "Agregá al menos un ítem"): no lo pinta ningún
+  // campo, así que se muestra acá. Al ser un field array, RHF lo deja en `.root`.
+  const { errors } = useFormState({ control, name: "detalles" })
+  const errorDetalles = errors.detalles as
+    | { message?: string; root?: { message?: string } }
+    | undefined
+  const mensajeDetalles = errorDetalles?.root?.message ?? errorDetalles?.message
+
   const opcionesBase = resultados.map(aOpcion)
   const cuenta = (n: number) => n.toLocaleString("es-BO")
   const pie = isFetchingNextPage
@@ -139,10 +147,14 @@ export function IngresoLineas({
         )}
       </div>
 
+      {mensajeDetalles && (
+        <p className="text-sm text-destructive">{mensajeDetalles}</p>
+      )}
+
       {fields.length === 0 && (
         <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
           Sin ítems todavía.{" "}
-          {disabled ? "" : "Agregá al menos uno para confirmar."}
+          {disabled ? "" : "Agregá al menos uno para registrar el ingreso."}
         </p>
       )}
 

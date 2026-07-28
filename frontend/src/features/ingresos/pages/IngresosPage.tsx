@@ -1,17 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, Loader2, Plus, Printer, Search, Trash2 } from "lucide-react"
+import { Eye, Loader2, Plus, Printer, Search } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,10 +25,7 @@ import { DataPagination } from "@/components/data/DataPagination"
 import { IconAction } from "@/components/data/IconAction"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
-import {
-  useEliminarIngreso,
-  useIngresos,
-} from "@/features/ingresos/hooks/useIngresos"
+import { useIngresos } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
 import {
   ESTADO_LABEL,
@@ -48,18 +35,11 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
 import { usePagination } from "@/hooks/use-pagination"
 
-import type {
-  EstadoIngreso,
-  IngresoListItem,
-} from "@/features/ingresos/ingresos.types"
+import type { EstadoIngreso } from "@/features/ingresos/ingresos.types"
 
 type FiltroEstado = EstadoIngreso | "todos"
 
-const ESTADO_VARIANT: Record<
-  EstadoIngreso,
-  "secondary" | "default" | "destructive"
-> = {
-  BORRADOR: "secondary",
+const ESTADO_VARIANT: Record<EstadoIngreso, "default" | "destructive"> = {
   CONFIRMADO: "default",
   ANULADO: "destructive",
 }
@@ -91,10 +71,8 @@ export function IngresosPage() {
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
-  const [aEliminar, setAEliminar] = useState<IngresoListItem | null>(null)
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const eliminar = useEliminarIngreso()
   const { abrirNota, generandoId } = useNotaIngreso()
 
   const { data, isPending, isError, error } = useIngresos({
@@ -109,17 +87,6 @@ export function IngresosPage() {
     resetPage()
   }
 
-  async function confirmarEliminacion() {
-    if (!aEliminar) return
-    try {
-      await eliminar.mutateAsync(aEliminar.id)
-    } catch {
-      // toast en la mutación
-    } finally {
-      setAEliminar(null)
-    }
-  }
-
   const ingresos = data?.data ?? []
   // Nº · fecha · C31 · estado · [almacén] · proveedor · observación · acciones
   const columnas = veVariosAlmacenes ? 8 : 7
@@ -130,8 +97,8 @@ export function IngresosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Ingresos</h1>
           <p className="text-sm text-muted-foreground">
-            Entradas de material al almacén. Un borrador se confirma para que
-            impacte el stock.
+            Entradas de material al almacén. Al registrarse impactan el stock;
+            para corregir un error se anula el ingreso.
           </p>
         </div>
         {puedeEscribir && (
@@ -166,7 +133,6 @@ export function IngresosPage() {
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectItem value="todos">Todos los estados</SelectItem>
-            <SelectItem value="BORRADOR">Borradores</SelectItem>
             <SelectItem value="CONFIRMADO">Confirmados</SelectItem>
             <SelectItem value="ANULADO">Anulados</SelectItem>
           </SelectContent>
@@ -283,21 +249,8 @@ export function IngresosPage() {
                       cargando={generandoId === ingreso.id}
                       etiqueta="Imprimir"
                       onClick={() => abrirNota(ingreso.id)}
-                      // Un borrador todavía no tiene número: no se imprime.
-                      disabled={
-                        ingreso.estado === "BORRADOR" || generandoId != null
-                      }
+                      disabled={generandoId != null}
                     />
-                    {puedeEscribir && (
-                      <IconAction
-                        icono={Trash2}
-                        etiqueta="Eliminar borrador"
-                        onClick={() => setAEliminar(ingreso)}
-                        // Solo se borra un borrador; los demás se anulan desde el detalle.
-                        disabled={ingreso.estado !== "BORRADOR"}
-                        destructiva
-                      />
-                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -313,36 +266,6 @@ export function IngresosPage() {
           entidad="ingresos"
         />
       )}
-
-      <AlertDialog
-        open={aEliminar !== null}
-        onOpenChange={(abierto) => !abierto && setAEliminar(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar este borrador?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se borra definitivamente (todavía no impactó el stock). Los
-              ingresos confirmados no se borran: se anulan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={eliminar.isPending}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={(e) => {
-                e.preventDefault()
-                void confirmarEliminacion()
-              }}
-              disabled={eliminar.isPending}
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

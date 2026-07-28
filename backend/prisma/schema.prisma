@@ -25,10 +25,10 @@ enum Rol {
   observador_almacen
 }
 
-/// Estado del Ingreso. BORRADOR (reserva, no toca stock) -> CONFIRMADO (crea
-/// lotes + kardex, estampa numero) -> ANULADO (revierte). Ver decisiones-ingresos.md.
+/// Estado del Ingreso. CONFIRMADO (registrado: crea lotes + kardex, estampa
+/// numero) -> ANULADO (revierte). Ya NO hay borrador: el ingreso se crea
+/// definitivo en un solo paso. Ver decisiones-ingresos.md.
 enum EstadoIngreso {
-  BORRADOR
   CONFIRMADO
   ANULADO
 }
@@ -263,22 +263,22 @@ model Item {
 
 /// Ingreso de material a un almacen (cabecera). El detalle son los LOTES.
 /// Lo registra el responsable_almacen de ese almacen, SIN aprobacion.
-/// Flujo: BORRADOR (reserva, no toca stock) -> CONFIRMADO (estampa numero,
-/// crea lotes + kardex) -> ANULADO (revierte). El numero es correlativo POR
-/// ALMACEN + GESTION, se asigna al confirmar (se imprime "001/2026").
-/// Los respaldos son nullable: en BORRADOR no se exigen; el service los pide al
-/// confirmar. Ver docs/decisiones-ingresos.md.
+/// Flujo: CONFIRMADO (se crea definitivo: estampa numero, crea lotes + kardex)
+/// -> ANULADO (revierte). Ya NO hay borrador. El numero es correlativo POR
+/// ALMACEN + GESTION, se asigna al crear (se imprime "001/2026").
+/// Los respaldos siguen nullable en la BD; el service los EXIGE al crear (la
+/// regla vive en el service, como el cargo del usuario). Ver decisiones-ingresos.md.
 model Ingreso {
   id     Int           @id @default(autoincrement())
-  estado EstadoIngreso @default(BORRADOR)
+  estado EstadoIngreso @default(CONFIRMADO)
 
-  numero  Int? // null hasta confirmar
-  gestion Int? @map("gestion") // anio; null hasta confirmar
+  numero  Int? // lo estampa el service al crear
+  gestion Int? @map("gestion") // anio; lo estampa el service al crear
 
   almacenId Int     @map("almacen_id")
   almacen   Almacen @relation(fields: [almacenId], references: [id])
 
-  // Respaldos del documento (se exigen al confirmar, no en borrador).
+  // Respaldos del documento (obligatorios; los valida el service al crear).
   fechaRemision           DateTime? @map("fecha_remision")
   notaRemision            String?   @map("nota_remision")
   procesoC31              String?   @map("proceso_c31")
@@ -313,7 +313,7 @@ model Ingreso {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Unico por almacen + gestion + numero. Los NULL (borradores) conviven.
+  // Unico por almacen + gestion + numero (el correlativo no se repite).
   @@unique([almacenId, gestion, numero])
   @@index([almacenId])
   @@index([estado])
