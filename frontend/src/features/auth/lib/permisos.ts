@@ -46,6 +46,13 @@ export const PERMISOS = {
   ],
   egresosCrear: ["solicitador"],
 
+  /** Imprimir la «Solicitud de materiales»: almacén y administración. NO el
+   * solicitante ni el jefe de unidad — el documento oficial lo emite el
+   * almacén (decisión del encargado, 2026-07-29). Es una regla de circuito, no
+   * una barrera: el PDF se arma en el navegador con datos que `GET /egresos/:id`
+   * ya devuelve, así que no hay endpoint que proteger. */
+  egresosImprimir: ["super_admin", "admin", "responsable_almacen"],
+
   /** Stock: el solicitador entra desde 2026-07-29 — su pedido apunta a un lote,
    * así que necesita ver cuáles hay y con cuánto disponible. */
   stockLeer: [

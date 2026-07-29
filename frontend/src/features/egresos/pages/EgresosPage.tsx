@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Inbox, Plus, Search } from "lucide-react"
+import { Inbox, Loader2, Plus, Printer, Search } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,8 @@ import { DataPagination } from "@/components/data/DataPagination"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useEgresos } from "@/features/egresos/hooks/useEgresos"
+import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
+import { IconAction } from "@/components/data/IconAction"
 import {
   ESTADO_LABEL,
   ESTADO_VARIANT,
@@ -53,6 +55,7 @@ export function EgresosPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const puedeCrear = tienePermiso(user, "egresosCrear")
+  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   // Quien decide algo en el circuito arranca en SU bandeja: lo que espera su
   // firma. El resto ve todo lo que le toca por alcance.
@@ -84,7 +87,7 @@ export function EgresosPage() {
     user?.rol === "admin" ||
     user?.rol === "responsable_almacen" ||
     user?.rol === "observador_almacen"
-  const columnas = veVariasUnidades ? 7 : 6
+  const columnas = (veVariasUnidades ? 7 : 6) + (puedeImprimir ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,6 +163,9 @@ export function EgresosPage() {
               <TableHead>Justificación</TableHead>
               <TableHead className="text-center">Ítems</TableHead>
               <TableHead>Estado</TableHead>
+              {puedeImprimir && (
+                <TableHead className="text-right">Acciones</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -230,6 +236,25 @@ export function EgresosPage() {
                       {ESTADO_LABEL[egreso.estado]}
                     </Badge>
                   </TableCell>
+                  {puedeImprimir && (
+                    <TableCell
+                      className="text-right"
+                      // La fila navega al detalle: el botón no debe arrastrar
+                      // ese clic.
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {egreso.estado !== "BORRADOR" && (
+                        <IconAction
+                          icono={
+                            generandoId === egreso.id ? Loader2 : Printer
+                          }
+                          etiqueta="Imprimir solicitud"
+                          onClick={() => void abrirSolicitud(egreso.id)}
+                          disabled={generandoId === egreso.id}
+                        />
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
           </TableBody>

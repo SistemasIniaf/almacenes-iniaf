@@ -2,7 +2,16 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, Ban, Check, Loader2, Send, Trash2, X } from "lucide-react"
+import {
+  ArrowLeft,
+  Ban,
+  Check,
+  Loader2,
+  Printer,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react"
 
 import {
   AlertDialog,
@@ -47,6 +56,7 @@ import {
   egresoSchema,
   VALORES_INICIALES,
 } from "@/features/egresos/egresos.schema"
+import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import {
   ESTADO_LABEL,
   ESTADO_VARIANT,
@@ -77,6 +87,7 @@ export function EgresoFormPage() {
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
   const descartar = useDescartarEgreso()
+  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   const [dialogoEntrega, setDialogoEntrega] = useState(false)
   const [dialogoDescartar, setDialogoDescartar] = useState(false)
@@ -235,6 +246,23 @@ export function EgresoFormPage() {
                 Descartar
               </Button>
             </>
+          )}
+
+          {/* Un borrador todavía no tiene número, así que no hay documento que
+              imprimir; recién enviado se vuelve uno. */}
+          {egreso && estado !== "BORRADOR" && puedeImprimir && (
+            <Button
+              variant="outline"
+              disabled={generandoId === egreso.id}
+              onClick={() => void abrirSolicitud(egreso)}
+            >
+              {generandoId === egreso.id ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Printer className="size-4" />
+              )}
+              Imprimir
+            </Button>
           )}
 
           {puedeAprobar && (

@@ -478,8 +478,7 @@ cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
 
-**EGRESOS — YA IMPLEMENTADO** (2026-07-29), backend y frontend. **Falta solo el PDF** de la
-«Solicitud de materiales».
+**EGRESOS — YA IMPLEMENTADO** (2026-07-29): backend, frontend y el PDF de la solicitud.
 
 Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · `GET /egresos/:id` ·
 `POST /egresos` (borrador) · `PATCH` / `DELETE` (solo borrador, solo su dueño) · `POST /:id/enviar` ·
@@ -526,6 +525,17 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
 - **Toda mutación invalida `stock` y `kardex`** además de `egresos` (`useInvalidarEgresos`): crear,
   editar, enviar, rechazar y descartar mueven la RESERVA, y entregar/anular mueven el saldo. Sin eso el
   disponible que ve el solicitante queda viejo.
+- **Impresión** (`lib/solicitud-pdf.ts` + `hooks/useSolicitudPdf.ts`): «SOLICITUD DE MATERIALES Y/O
+  SUMINISTROS DE ALMACEN», hermana de la nota de ingreso — misma base de `lib/pdf.ts`, mismo membrete
+  (con la fecha de ENVÍO bajo el número, que es de la que sale su gestión), mismos estilos y hoja Carta
+  apaisada de 724 pt útiles. Columnas del reporte anterior: `Nº · Código · Descripción · Fuente ·
+  Partida · Unidad · Cant. solicitada · Cant. despachada`. **El recuadro «Programa» NO va**: la
+  categoría se eliminó. El pie imprime los nombres de quienes ya actuaron (solicitante, jefe de unidad
+  —sale del historial—, encargado) sobre líneas para firmar a mano. Un ANULADO lleva marca de agua.
+  **Solo la imprimen `responsable_almacen`, `admin` y `super_admin`** (`egresosImprimir`), NO el
+  solicitante ni el jefe de unidad: el documento oficial lo emite el almacén. Ojo: eso **oculta el
+  botón, no es una barrera** — el PDF se arma en el navegador con datos que `GET /egresos/:id` ya
+  devuelve, así que no hay endpoint que proteger. Un BORRADOR no se imprime: todavía no tiene número.
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 
