@@ -533,19 +533,21 @@ propuesta de que los resolviera el almacén) · **la reserva es desde que se reg
 reservar recién con la aprobación del jefe) · **se elimina la categoría/«Programa»** y `actividad`
 pasa a llamarse `justificacion`.
 
+También quedaron cerrados: **falta de stock físico al entregar** (el responsable entrega menos con el
+ajuste que ya tiene; el pedido queda entregado con la cantidad ajustada) · **anulación de un egreso
+entregado** (calcada del ingreso: `responsable_almacen`/`admin`/`super_admin`, motivo obligatorio, sin
+plazo salvo gestión cerrada) · **`justificacion` obligatoria, 300 caracteres** · **la partida NO
+necesita nada en el schema** (cuelga del ítem; verificado en el código del sistema anterior, que la
+imprime por línea y nunca la totaliza en egresos).
+
 Lo que sigue abierto, y **ninguno bloquea escribir el schema**:
 
-- **Qué pasa si al entregar falta stock FÍSICO.** El encargado no lo respondió, pero al reservar desde
-  el registro el sistema ya garantiza el saldo; queda solo el faltante en el estante, y para eso el
-  responsable ya puede ajustar la cantidad. Propuesta: entrega menos y el pedido queda entregado con
-  la cantidad ajustada.
-- Reglas de anulación de un egreso ya entregado: quién autoriza, plazo límite, motivo obligatorio.
-- Si `justificacion` es obligatoria y de qué largo (propuesta: obligatoria, 300 caracteres; en el
-  sistema anterior era de 200 y se llenaba en el 63,9%).
+- **Devoluciones de material ya retirado.** Anular ≠ devolver: anular dice que la salida nunca debió
+  existir. El sistema anterior tenía un documento propio («Ingreso devolución», 21 usos en 11 años,
+  ninguno desde 2021) cuyas observaciones parecen correcciones de salidas mal hechas — si es así, la
+  anulación alcanza. Sin confirmar; de hacer falta es aditivo.
 - Plazos por nivel. **Ojo**: no se pueden estimar con datos del sistema anterior — sus fechas de
   firma nunca se escribieron (constantes `2000-01-01`/`2000-01-02` en 24.664 filas).
-- Confirmar si el Egreso también necesita reportar/agrupar por Partida (ej. para reportes de ejecución
-  presupuestaria por objeto del gasto), o si la Partida solo importa a nivel de catálogo/Ingreso.
 
 **Otros**:
 - Reportes específicos requeridos.

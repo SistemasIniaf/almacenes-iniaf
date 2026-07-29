@@ -125,13 +125,58 @@ un proceso de limpieza.
   Tecnología…). No hace falta CRUD ni seed, y ese recuadro desaparece del
   documento impreso.
 
+### 9. Falta de stock físico al entregar (2026-07-29)
+
+Al reservar desde que se registra el pedido, el sistema ya garantiza el saldo: el
+único hueco es el faltante **físico** (lo que hay en el estante no coincide con
+lo que dice el sistema). Para ese caso el responsable **entrega menos** usando el
+ajuste de cantidad que ya tiene, y el pedido queda **entregado con la cantidad
+ajustada**. No hay un estado de «entrega parcial pendiente».
+
+---
+
+### 10. Anulación de un egreso ya entregado (2026-07-29)
+
+Calcado de la anulación del ingreso, que ya está implementada:
+
+| | |
+|---|---|
+| Quién | `responsable_almacen`, `admin`, `super_admin` |
+| Motivo | Obligatorio |
+| Plazo | Sin límite, salvo gestión cerrada (cuando exista el cierre) |
+| Efecto | Devuelve la cantidad a los lotes + REVERSIÓN en el Kardex |
+
+**Anular ≠ devolver.** Anular dice «esto fue un error de registro, la salida
+nunca debió existir». No es el camino para material que se retiró de verdad y
+después vuelve: ahí el Kardex quedaría contando que la salida nunca pasó.
+
+Para el ingreso rige la cadena inversa, ya implementada: si de un lote **ya
+salió** material, su ingreso no se puede anular hasta anular esos egresos
+(`ingresos.service.ts`, el mensaje lo dice explícito).
+
+---
+
+### 11. La partida en los egresos — verificado en el código, no hace falta preguntar (2026-07-29)
+
+En el sistema anterior la partida aparece en los egresos **solo como columna por
+línea**, nunca totalizada:
+
+- `views/reporteaprob/pdfreportegresos.php` la imprime por línea en la
+  «Solicitud de materiales» (columna `PARTIDA`).
+- `getListadoKardex` y `getListadoMovAlmacenes` la traen como columna.
+- La **única** consulta que agrupa por partida es `getListadoMinMax`, el reporte
+  de mínimos y máximos por ítem — descartado para el sistema nuevo el 2026-07-21.
+
+**Consecuencia: el schema no necesita nada.** La partida ya cuelga del ítem
+(`Item.partidaId`), así que toda línea de egreso la tiene por derivación. Si
+alguna vez piden un reporte de ejecución por objeto del gasto, sale con un
+`groupBy` y sin migración, igual que el «Estado consolidado» del stock.
+
 ## Abierto
 
-Ya nada de esto bloquea el schema; son reglas del service o del impreso.
+Nada de esto bloquea el schema.
 
 | Qué | Estado |
 |---|---|
-| **Falta de stock físico al entregar** | Quedó sin responder, pero las otras respuestas casi lo resuelven: si el pedido reserva desde que se registra, el sistema ya garantiza el saldo. Lo único que queda es el faltante **físico** (lo que hay en el estante no coincide), y para eso el responsable ya puede ajustar la cantidad. **Propuesta: entrega menos y el pedido queda entregado con la cantidad ajustada.** Confirmar. |
-| **Anulación de un egreso ya entregado** | Quién autoriza, si hay plazo límite y si el motivo es obligatorio. Sin responder. |
-| **`justificacion`: ¿obligatoria? ¿largo?** | En el sistema anterior era opcional de hecho (se llena en el 63,9%, mediana 48 caracteres, máximo 207). **Propuesta: obligatoria, 300 caracteres.** |
+| **Devoluciones de material ya retirado** | El sistema anterior tenía un tipo de documento propio («Ingreso devolución»), usado 21 veces en 11 años y ninguna desde 2021. Sus observaciones (*«Combustible no retirado del surtidor»*, *«reversión de 2 unidades … aprobadas en la salida erróneamente»*) parecen correcciones de salidas mal hechas, no devoluciones reales — en cuyo caso la anulación del egreso alcanza. **Sin confirmar.** Si hiciera falta, es una funcionalidad aparte y aditiva. |
 | **Plazos por nivel** | No se pueden estimar con datos del sistema anterior: sus fechas de firma nunca se escribieron (constantes `2000-01-01`/`2000-01-02` en 24.664 filas). |
