@@ -10,14 +10,19 @@ import type {
  * Espejo de `CreateEgresoDto`. La línea apunta al LOTE, no al ítem: el
  * solicitante elige de qué compra y de qué fuente sale el material.
  *
- * `ingresoDetalleId` va como string porque es lo que entrega el combo; se
- * convierte a number al armar el payload.
+ * TODO va como string, igual que en el ingreso: es lo que entregan el combo
+ * (`ingresoDetalleId`) y `NumberField` (`cantidadSolicitada`, que se mantiene
+ * como texto a propósito para no lidiar con `NaN` al vaciar el campo). La
+ * conversión a number ocurre al armar el payload.
  */
 const lineaSchema = z.object({
   ingresoDetalleId: z.string().min(1, "Elegí de qué lote sale"),
   cantidadSolicitada: z
-    .number({ message: "Ingresá la cantidad" })
-    .positive("La cantidad debe ser mayor a cero"),
+    .string()
+    .refine(
+      (v) => v.trim() !== "" && Number(v) > 0,
+      "La cantidad debe ser mayor a 0"
+    ),
   observacion: z.string().trim().max(200),
 })
 
@@ -40,7 +45,7 @@ export const VALORES_INICIALES: EgresoFormValues = {
 /** Línea vacía para el botón «Agregar ítem». */
 export const LINEA_VACIA: EgresoFormValues["detalles"][number] = {
   ingresoDetalleId: "",
-  cantidadSolicitada: 0,
+  cantidadSolicitada: "",
   observacion: "",
 }
 
@@ -49,7 +54,7 @@ export function aPayload(v: EgresoFormValues): CreateEgresoPayload {
     justificacion: v.justificacion,
     detalles: v.detalles.map((d) => ({
       ingresoDetalleId: Number(d.ingresoDetalleId),
-      cantidadSolicitada: d.cantidadSolicitada,
+      cantidadSolicitada: Number(d.cantidadSolicitada),
       ...(d.observacion ? { observacion: d.observacion } : {}),
     })),
   }
@@ -66,7 +71,7 @@ export function desdeEgreso(egreso: Egreso): EgresoFormValues {
     justificacion: egreso.justificacion,
     detalles: egreso.detalles.map((d) => ({
       ingresoDetalleId: String(d.ingresoDetalleId),
-      cantidadSolicitada: Number(d.cantidadSolicitada),
+      cantidadSolicitada: String(Number(d.cantidadSolicitada)),
       observacion: d.observacion ?? "",
     })),
   }
