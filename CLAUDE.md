@@ -87,20 +87,24 @@ El almacén destino de un Egreso es **siempre el `almacen_id` del usuario Solici
 BORRADOR
    │ enviar
    ▼
-PENDIENTE_APROBADOR   (aprobador de la unidad del solicitante)
-   │ aprueba (puede ajustar cantidad) ──► PENDIENTE_RESPONSABLE_ALMACEN
+PENDIENTE_APROBADOR   (aprobador = jefe de la unidad del solicitante)
+   │ aprueba — NO toca cantidades ─────► PENDIENTE_RESPONSABLE_ALMACEN
    │ rechaza ──────────────────────────► BORRADOR
    ▼
 PENDIENTE_RESPONSABLE_ALMACEN   (responsable del almacén del solicitante — último nivel)
-   │ aprueba (puede ajustar cantidad final)
-   │    → stock_fisico -= cantidad_final
-   │    → genera movimiento de salida en Kardex
+   │ aprueba y entrega (AJUSTA la cantidad final)
+   │    → descuenta el saldo de los lotes pedidos
+   │    → genera movimiento de SALIDA en Kardex
    │ rechaza ──────────────────────────► BORRADOR
    ▼
-APROBADO (ejecutado)
+APROBADO (entregado)
 ```
 
+**Quién ajusta cantidades** (confirmado con el encargado el 2026-07-29): SOLO el `responsable_almacen` al entregar, y el `solicitador` cuando corrige un pedido rechazado. El `aprobador` **solo aprueba o rechaza**.
+
 **Regla clave**: un rechazo en CUALQUIER nivel (aprobador o responsable_almacen) regresa el Egreso al estado `BORRADOR` (nivel 1, el solicitador), nunca al nivel anterior. El solicitador corrige y reenvía desde el inicio.
+
+**Sin cancelación ni saltos ni suplencia**: enviado el pedido, el solicitador no puede anularlo; ningún egreso saltea niveles; y si el aprobador o el responsable están ausentes, **los pedidos esperan** (no hay reemplazo).
 
 **Cambio 2026-07-21**: el circuito era de 3 niveles y terminaba en un `central` por almacén. Se eliminó ese rol: ahora el `responsable_almacen` es quien ejecuta la salida. **Queda pendiente redefinir el control de stock** (ver sección siguiente): la reserva progresiva existía porque había dos pasos entre la aprobación y la salida física, y ahora ese hueco desapareció.
 
@@ -132,10 +136,21 @@ se actualizaba fuera de transacción. Acá el saldo del lote se modifica **dentr
 de la transacción** que lo mueve, y toda la historia queda en la tabla de
 movimientos para poder recalcularlo.
 
-**Sigue pendiente**: si hace falta reservar stock entre la aprobación del
-aprobador y la entrega del responsable, y quién elige de qué lote sale el
-material al entregar (propuesta: el sistema sugiere lo más antiguo primero y el
-responsable puede cambiarlo).
+**Resuelto el 2026-07-29** (respuestas del encargado, ver
+`docs/decisiones-egresos.md`):
+
+- **El lote y la fuente los elige el SOLICITANTE**: la línea de egreso apunta a
+  un lote concreto desde que se crea, no a un ítem. (Se descartó la propuesta de
+  que el almacén resolviera el lote al entregar.)
+- **El pedido RESERVA desde que se registra.** La reserva **no es una columna**:
+  `disponible = saldoCantidad − reservado`, donde `reservado` se **deriva** de
+  las líneas de egreso en estados pendientes. Es la lección de `SALDOCANTIDAD`
+  del sistema anterior, desincronizado en el 59% de los lotes por mantenerse a
+  mano. Efecto lateral bueno: **el rechazo libera solo**, sin proceso de limpieza.
+- El selector de lotes **solo ofrece los que tienen disponible > 0**, y la
+  reserva se toma **dentro de la transacción** que graba el pedido (bloqueo de
+  fila sobre el lote). Ahí estaban las dos causas reales de los saldos negativos
+  del sistema anterior — no en quién elige el lote.
 
 ## Anulación / reversión
 
@@ -463,7 +478,9 @@ cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
 
-NO construir todavía: `egresos` y `reportes` — dependen de reglas de negocio aún pendientes de confirmar (ver sección de pendientes).
+**`egresos` — LISTO PARA CONSTRUIR** (el encargado respondió el 2026-07-29; ver `docs/decisiones-egresos.md`). Lo que queda abierto son reglas del service que no cambian el schema.
+
+NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 
 ## Alcance NO incluido (por ahora)
 
@@ -507,29 +524,26 @@ NO construir todavía: `egresos` y `reportes` — dependen de reglas de negocio 
 
 **Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
 
-**Egresos** — el análisis del sistema anterior (sección 12 de
-`docs/analisis-sistema-anterior.md`, hecho el 2026-07-28 sobre su **código** además de su base) ya
-contestó varias de estas y **cambió las propuestas**; el cuestionario del `.docx` está actualizado con
-eso. Lo que sigue abierto, y por qué:
+**Egresos** — **el encargado respondió el 2026-07-29 y ya NADA bloquea el schema.** Todo lo decidido
+está en `docs/decisiones-egresos.md` (niveles, quién ajusta cantidades, quién elige el lote, reserva,
+rechazo, cancelación, saltos, ausencias y justificación). Resumen de lo que cambió respecto de lo que
+se venía asumiendo: **el aprobador NO ajusta cantidades** (solo el responsable de almacén, y el
+solicitador al corregir un rechazo) · **el lote y la fuente los elige el solicitante** (se descartó la
+propuesta de que los resolviera el almacén) · **la reserva es desde que se registra** (se descartó
+reservar recién con la aprobación del jefe) · **se elimina la categoría/«Programa»** y `actividad`
+pasa a llamarse `justificacion`.
 
-- **Cuántos niveles de aprobación.** El sistema anterior tiene CUATRO pasos, pero el 81,5% de los
-  egresos firmados tiene a la misma persona en los tres casilleros. Propuesta: mantener los 2.
-- **Quién elige el lote y la fuente.** Allá lo elige el **solicitante** (el selector lista lotes, no
-  ítems). Propuesta corregida: que el solicitante pida el ÍTEM y el almacén resuelva el lote — así no
-  puede elegir un lote vacío, que es de donde salen los saldos negativos de la base vieja.
-- **Si el pedido reserva stock.** Allá reserva **de hecho** desde que se graba (el saldo resta todas
-  las líneas sin mirar el estado). Propuesta: reservar desde la aprobación del jefe de unidad.
-- Reglas exactas de rechazo por nivel (allá cada nivel tiene su rechazo y el pedido no vuelve a
-  ningún lado: queda marcado).
+Lo que sigue abierto, y **ninguno bloquea escribir el schema**:
+
+- **Qué pasa si al entregar falta stock FÍSICO.** El encargado no lo respondió, pero al reservar desde
+  el registro el sistema ya garantiza el saldo; queda solo el faltante en el estante, y para eso el
+  responsable ya puede ajustar la cantidad. Propuesta: entrega menos y el pedido queda entregado con
+  la cantidad ajustada.
+- Reglas de anulación de un egreso ya entregado: quién autoriza, plazo límite, motivo obligatorio.
+- Si `justificacion` es obligatoria y de qué largo (propuesta: obligatoria, 300 caracteres; en el
+  sistema anterior era de 200 y se llenaba en el 63,9%).
 - Plazos por nivel. **Ojo**: no se pueden estimar con datos del sistema anterior — sus fechas de
   firma nunca se escribieron (constantes `2000-01-01`/`2000-01-02` en 24.664 filas).
-- Cancelación del egreso por el propio solicitador antes de aprobación.
-- Egresos que saltan niveles por monto/cantidad bajo.
-- Qué pasa si al entregar ya no hay stock físico suficiente.
-- Reglas de anulación: quién autoriza, plazo límite, motivo obligatorio.
-- Manejo de ausencia/suplencia de aprobador o responsable_almacen.
-- Actividad/destino: allá hay texto libre (200 caracteres) **más una categoría de 9 valores** que el
-  impreso llama «Programa». Falta confirmar si esa lista sigue vigente.
 - Confirmar si el Egreso también necesita reportar/agrupar por Partida (ej. para reportes de ejecución
   presupuestaria por objeto del gasto), o si la Partida solo importa a nivel de catálogo/Ingreso.
 

@@ -39,32 +39,99 @@ Lo contestan los datos: el reporte «Solicitud de materiales» del sistema
 anterior trae en un mismo pedido líneas de TGN Papa y Yuca, KOPIA y TGN
 Ganadería. El egreso no se ata a una sola fuente, a diferencia del ingreso.
 
-## Abierto — bloquea el modelo de datos
+### 4. El circuito: dos niveles (2026-07-29, respuesta del encargado)
 
-Estas cuatro cambian el esquema, así que se responden antes de escribir el
-schema. Las demás preguntas de la Parte 3 (rechazo, cancelación, falta de stock,
-saltar niveles, suplencia, plazos y anulación) son reglas del service: se pueden
-confirmar después sin rehacer nada.
+```
+El solicitante crea el pedido
+   │ envía
+   ▼
+Jefe de su unidad (rol `aprobador`)        → aprueba o RECHAZA. No toca cantidades.
+   ▼
+Responsable del almacén                    → aprueba, AJUSTA cantidades y entrega.
+   │                                          Descarga el stock y genera la SALIDA de Kardex.
+   ▼
+Entregado
+```
 
-| # | Pregunta | Qué define |
-|---|---|---|
-| 10 | Cuántos niveles de aprobación | La máquina de estados y la tabla de historial |
-| 11 | Quién elige el lote y la fuente | **La más estructural**: si elige el solicitante, la línea apunta a un lote desde que se crea; si elige el almacén al entregar, la línea nace apuntando a un ítem y recién al entregar se reparte en lotes |
-| 12 | Si el pedido reserva stock | Si reserva, hay que representar la reserva; si no, no existe |
-| 18 | Actividad y categoría | Si va la categoría, hace falta su catálogo (CRUD + seed con las 9 existentes) |
+**Quién puede tocar las cantidades — importante, corrige lo que se había
+asumido**: solo el **responsable de almacén**, y el **solicitante** cuando le
+rechazaron el pedido y lo está corrigiendo. El jefe de unidad **no ajusta nada**:
+aprueba o rechaza.
 
-### Lo que ya sabemos de cada una (del sistema anterior)
+> La máquina de estados de `CLAUDE.md` decía «aprueba (puede ajustar cantidad)»
+> también en el nivel del aprobador. Quedó corregida.
 
-- **Niveles**: allá son CUATRO pasos con pantalla y rol propios, pero el **81,5%**
-  de los egresos firmados tiene a la misma persona en los tres casilleros y el
-  86,3% tiene el mismo verificador que aprobador. Los rechazos son 505 en once
-  años (1,3%).
-- **Lote y fuente**: los elige el **solicitante**, sobre un selector que lista
-  lotes (`02/01/2026-PAPEL BOND A3 Saldo:1.00 TGN APICOLA`) y que **ofrece lotes
-  agotados** — de ahí los saldos negativos de esa base.
-- **Reserva**: allá reserva **de hecho** desde que se graba el pedido, porque el
-  saldo resta todas las líneas sin mirar el estado. El rechazo libera poniendo
-  las cantidades en cero.
-- **Actividad**: texto libre de 200 caracteres (se llena en el 63,9%, mediana 48
-  caracteres) más una **categoría** de 9 valores que el impreso llama
-  «Programa».
+Se descarta el circuito del sistema anterior (cuatro pasos): allá el 81,5% de los
+egresos firmados tiene a la misma persona en los tres casilleros.
+
+---
+
+### 5. El solicitante elige el lote y la fuente (2026-07-29)
+
+Es lo mismo que hace el sistema anterior: el pedido nace apuntando a un **lote**
+concreto, no a un ítem. La línea de egreso lleva el lote desde que se crea.
+
+**Objeción registrada, y por qué no bloquea.** En la base vieja este modelo
+produjo saldos negativos, pero la causa **no fue quién elige**: fue que su
+selector ofrece lotes agotados (`Saldo:0.00`) y que el saldo se tocaba fuera de
+transacción. Acá esos dos defectos no se copian:
+
+- El selector **solo ofrece lotes con disponible > 0** (disponible = saldo −
+  reservado), calculado en el servidor.
+- La reserva se hace **dentro de la transacción** que graba el pedido, tomando
+  el lote con bloqueo de fila. Dos solicitantes no pueden reservar el mismo saldo.
+
+---
+
+### 6. El pedido reserva el material desde que se registra (2026-07-29)
+
+Igual que el sistema anterior, pero explícito en vez de accidental (allá el saldo
+restaba todas las líneas sin mirar el estado, y liberar un rechazo obligaba a
+poner las cantidades en cero).
+
+**Cómo se representa — propuesta técnica, no requiere al encargado:** la reserva
+NO es una columna. `disponible = saldoCantidad − reservado`, donde `reservado` se
+**deriva** de las líneas de egreso cuyo pedido está en un estado pendiente. Es la
+lección directa de `SALDOCANTIDAD`, el campo de saldo del sistema anterior, que
+está desincronizado en el **59%** de los lotes por mantenerse a mano.
+
+Consecuencia buena: **el rechazo libera solo**. Al cambiar de estado el pedido,
+sus líneas dejan de contar como reserva; no hay que poner nada en cero ni correr
+un proceso de limpieza.
+
+---
+
+### 7. Rechazo, cancelación, saltos y ausencias (2026-07-29)
+
+- **Un rechazo, en cualquier nivel, vuelve al solicitante.** Nunca al nivel
+  anterior. El solicitante corrige y reenvía desde el principio. (Confirma lo que
+  ya estaba asumido; en el sistema anterior el pedido no volvía a ningún lado,
+  quedaba marcado.)
+- **El solicitante NO puede anular su propio pedido** una vez enviado: sigue el
+  circuito.
+- **Ningún pedido saltea niveles**, ni por monto ni por cantidad.
+- **Ausencias: los pedidos esperan** a que la persona vuelva. **No hay
+  suplencia** — el aprobador es siempre el jefe de su unidad, y el responsable,
+  el de su almacén.
+
+---
+
+### 8. Justificación en vez de actividad, y sin categoría (2026-07-29)
+
+- El campo `actividad` del sistema anterior pasa a llamarse **`justificacion`**:
+  texto libre, para qué se pide el material.
+- **La categoría se elimina.** No va el catálogo de 9 valores que el impreso
+  viejo llamaba «Programa» (Semillas, Fortalecimiento del SNIAF, Transferencia de
+  Tecnología…). No hace falta CRUD ni seed, y ese recuadro desaparece del
+  documento impreso.
+
+## Abierto
+
+Ya nada de esto bloquea el schema; son reglas del service o del impreso.
+
+| Qué | Estado |
+|---|---|
+| **Falta de stock físico al entregar** | Quedó sin responder, pero las otras respuestas casi lo resuelven: si el pedido reserva desde que se registra, el sistema ya garantiza el saldo. Lo único que queda es el faltante **físico** (lo que hay en el estante no coincide), y para eso el responsable ya puede ajustar la cantidad. **Propuesta: entrega menos y el pedido queda entregado con la cantidad ajustada.** Confirmar. |
+| **Anulación de un egreso ya entregado** | Quién autoriza, si hay plazo límite y si el motivo es obligatorio. Sin responder. |
+| **`justificacion`: ¿obligatoria? ¿largo?** | En el sistema anterior era opcional de hecho (se llena en el 63,9%, mediana 48 caracteres, máximo 207). **Propuesta: obligatoria, 300 caracteres.** |
+| **Plazos por nivel** | No se pueden estimar con datos del sistema anterior: sus fechas de firma nunca se escribieron (constantes `2000-01-01`/`2000-01-02` en 24.664 filas). |
