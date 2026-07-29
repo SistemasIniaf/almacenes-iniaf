@@ -424,8 +424,11 @@ export function StockPage() {
                                   <TableHead className="h-8 text-xs">
                                     Ingreso
                                   </TableHead>
+                                  {/* La del ingreso: es la que ordena los lotes
+                                      (más antiguo primero, el orden en que se
+                                      van a consumir). */}
                                   <TableHead className="h-8 text-xs">
-                                    Fecha remisión
+                                    Fecha
                                   </TableHead>
                                   <TableHead className="h-8 text-xs">
                                     Fuente
@@ -459,7 +462,7 @@ export function StockPage() {
                                       {etiquetaIngreso(lote)}
                                     </TableCell>
                                     <TableCell className="py-1.5 text-xs whitespace-nowrap text-muted-foreground">
-                                      {fecha(lote.ingreso.fechaRemision)}
+                                      {fecha(lote.ingreso.fechaIngreso)}
                                     </TableCell>
                                     <TableCell className="py-1.5 text-xs">
                                       <Badge

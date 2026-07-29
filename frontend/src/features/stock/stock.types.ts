@@ -21,6 +21,8 @@ export interface LoteStock {
     id: number
     numero: number | null
     gestion: number | null
+    /** La del ingreso: es la que ordena los lotes (más antiguo primero). */
+    fechaIngreso: string
     fechaRemision: string | null
     almacen: RefNombre
     fuenteFinanciamiento: RefNombre | null

@@ -13,6 +13,16 @@ import {
  * ingreso y se vuelve a registrar. El service rechaza editar uno anulado.
  */
 export class UpdateIngresoDto {
+  /**
+   * Correccion de la fecha con efecto contable. SOLO super_admin (lo valida el
+   * service, que es quien conoce al usuario). El caso previsto es el cierre de
+   * gestion: material que entro el 28/12 y se registro el 2/1. Si la correccion
+   * cae en otra gestion, el service re-estampa el correlativo.
+   */
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha de ingreso no es valida' })
+  fechaIngreso?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(100)

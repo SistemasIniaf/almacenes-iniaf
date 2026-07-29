@@ -95,7 +95,7 @@ export function IngresosPage() {
 
   const ingresos = data?.data ?? []
   // Nº · fecha · C31 · estado · [almacén] · proveedor · observación · acciones
-  const columnas = veVariosAlmacenes ? 8 : 7
+  const columnas = veVariosAlmacenes ? 9 : 8
 
   return (
     <div className="flex flex-col gap-4">
@@ -150,8 +150,20 @@ export function IngresosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nº</TableHead>
+              {/* Las dos fechas, una al lado de la otra. La de ingreso va
+                  primero y pegada al número porque es de la que sale su
+                  gestión; la de remisión es la del documento del proveedor y
+                  no gobierna nada (ver docs/decisiones-ingresos.md punto 7). */}
+              <TableHead>Fecha ingreso</TableHead>
               <TableHead>Fecha remisión</TableHead>
-              <TableHead>Proceso Nº / C31</TableHead>
+              {/* En dos renglones: el rótulo es más largo que su contenido (un
+                  número) y arrastraba el ancho de toda la columna. El `<br>`
+                  corta igual con el `whitespace-nowrap` del TableHead, y las
+                  dos líneas entran en el alto que ya tiene (h-10). */}
+              {/* Abreviado: el rótulo completo («Proceso Nº / C31») es más
+                  largo que su contenido —un número— y arrastraba el ancho de
+                  toda la columna. Entero se lee en el formulario y en el PDF. */}
+              <TableHead>Proc. C31</TableHead>
               {veVariosAlmacenes && <TableHead>Almacén</TableHead>}
               <TableHead>Proveedor</TableHead>
               <TableHead>Observación</TableHead>
@@ -206,6 +218,9 @@ export function IngresosPage() {
                 >
                   <TableCell className="font-medium whitespace-nowrap">
                     {etiquetaNumero(ingreso)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {fecha(ingreso.fechaIngreso)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">
                     {fecha(ingreso.fechaRemision)}

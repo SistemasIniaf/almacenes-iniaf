@@ -138,6 +138,15 @@ export async function definicionNotaIngreso(
             bold: true,
             margin: [0, 3, 0, 0],
           },
+          // La fecha del INGRESO va pegada al número a propósito: la gestión del
+          // número (`001/2026`) sale de esta fecha, así que juntas se explican
+          // solas. No es la fecha de remisión, que es del documento del
+          // proveedor y vive abajo, en el bloque de respaldos.
+          {
+            text: `Fecha: ${fecha(ingreso.fechaIngreso)}`,
+            fontSize: 8.5,
+            margin: [0, 2, 0, 0],
+          },
           // Además de la marca de agua: en una fotocopia en blanco y negro el
           // gris claro puede perderse, este renglón no.
           ...(anulado

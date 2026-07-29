@@ -200,11 +200,36 @@ todo el kardex (`YEAR(fecha) = gestión`, `fecha <= corte`). Los 22.850 registro
 tienen hora `00:00:00`: es una fecha **tipeada por el usuario**, no el momento
 del registro. No existe fecha de registro.
 
-**✅ Decidido.** Dos fechas:
+**✅ Decidido — CORREGIDO el 2026-07-29.** Ahora son **tres** fechas, y la que
+manda ya no la escribe nadie.
 
-- **Fecha de remisión** — la escribe el usuario, es la del documento y **es la
-  que manda** para el kardex y para determinar a qué gestión pertenece.
-- **Fecha y hora de registro** — automática, nadie la edita, solo auditoría.
+> La decisión anterior (2026-07-24) era: «la fecha de remisión es la que manda
+> para el kardex y para determinar la gestión». **Se cambió**: la escribe a mano
+> el responsable de almacén, así que un error de tipeo en el año mandaba el
+> ingreso a otra gestión, le daba un correlativo de esa otra secuencia y
+> descolocaba el libro. Repetía el defecto del sistema anterior, solo que con
+> otro nombre de columna.
+
+| Fecha | Quién la pone | Qué gobierna |
+|---|---|---|
+| **`fechaIngreso`** | el sistema, al registrar | **Todo**: la gestión (y con ella el correlativo), la fecha del movimiento de Kardex y el orden en que se consumen los lotes |
+| **`fechaRemision`** | el usuario | Nada. Es el dato del documento del proveedor: se sigue pidiendo, mostrando e imprimiendo |
+| **`createdAt`** | el sistema | Nada. Auditoría pura, nunca se corrige |
+
+**La corrección de `fechaIngreso` es exclusiva del `super_admin`** (el resto
+recibe 403). El caso previsto es el cierre de gestión: material que entró el
+28/12 y se registró el 2/1. No se admite fecha futura.
+
+Esa corrección arrastra tres cosas y por eso va en **una sola transacción**:
+mueve la fecha de los movimientos de Kardex y, **si cae en otra gestión,
+re-estampa el correlativo** — el número se había asignado en la secuencia de la
+gestión anterior y ahí no vale (`@@unique([almacenId, gestion, numero])`).
+Consecuencia asumida: corregir de gestión **cambia el número impreso** del
+ingreso.
+
+Migración: `20260729190000_ingreso_fecha_propia`. Los ingresos ya registrados
+conservan exactamente su comportamiento: su `fechaIngreso` se pobló con su
+`fechaRemision`, que es de donde habían salido su gestión y su Kardex.
 
 ---
 

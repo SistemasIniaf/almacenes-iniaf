@@ -278,6 +278,18 @@ model Ingreso {
   almacenId Int     @map("almacen_id")
   almacen   Almacen @relation(fields: [almacenId], references: [id])
 
+  /// Fecha con EFECTO CONTABLE del ingreso: de ella salen la gestion (y con ella
+  /// el correlativo), la fecha del movimiento de Kardex y el orden en que se
+  /// consumen los lotes. Se estampa sola al registrar (2026-07-29); solo el
+  /// super_admin puede corregirla despues.
+  ///
+  /// No confundir con las otras dos fechas del ingreso:
+  ///   - `fechaRemision`: la del documento del proveedor. Se tipea a mano y ya
+  ///     NO gobierna nada — antes de esta fecha definia la gestion y el kardex,
+  ///     y un error de tipeo mandaba el ingreso a otra gestion.
+  ///   - `createdAt`: cuando se registro. Auditoria, nunca se corrige.
+  fechaIngreso DateTime @map("fecha_ingreso")
+
   // Respaldos del documento (obligatorios; los valida el service al crear).
   fechaRemision           DateTime? @map("fecha_remision")
   notaRemision            String?   @map("nota_remision")
@@ -318,6 +330,8 @@ model Ingreso {
   @@index([almacenId])
   @@index([estado])
   @@index([fuenteFinanciamientoId])
+  // El stock ordena los lotes por esta fecha (el mas antiguo primero).
+  @@index([fechaIngreso])
   @@map("ingresos")
 }
 

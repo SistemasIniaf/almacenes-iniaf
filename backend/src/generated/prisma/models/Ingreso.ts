@@ -64,6 +64,7 @@ export type IngresoMinAggregateOutputType = {
   numero: number | null
   gestion: number | null
   almacenId: number | null
+  fechaIngreso: Date | null
   fechaRemision: Date | null
   notaRemision: string | null
   procesoC31: string | null
@@ -90,6 +91,7 @@ export type IngresoMaxAggregateOutputType = {
   numero: number | null
   gestion: number | null
   almacenId: number | null
+  fechaIngreso: Date | null
   fechaRemision: Date | null
   notaRemision: string | null
   procesoC31: string | null
@@ -116,6 +118,7 @@ export type IngresoCountAggregateOutputType = {
   numero: number
   gestion: number
   almacenId: number
+  fechaIngreso: number
   fechaRemision: number
   notaRemision: number
   procesoC31: number
@@ -170,6 +173,7 @@ export type IngresoMinAggregateInputType = {
   numero?: true
   gestion?: true
   almacenId?: true
+  fechaIngreso?: true
   fechaRemision?: true
   notaRemision?: true
   procesoC31?: true
@@ -196,6 +200,7 @@ export type IngresoMaxAggregateInputType = {
   numero?: true
   gestion?: true
   almacenId?: true
+  fechaIngreso?: true
   fechaRemision?: true
   notaRemision?: true
   procesoC31?: true
@@ -222,6 +227,7 @@ export type IngresoCountAggregateInputType = {
   numero?: true
   gestion?: true
   almacenId?: true
+  fechaIngreso?: true
   fechaRemision?: true
   notaRemision?: true
   procesoC31?: true
@@ -335,6 +341,7 @@ export type IngresoGroupByOutputType = {
   numero: number | null
   gestion: number | null
   almacenId: number
+  fechaIngreso: Date
   fechaRemision: Date | null
   notaRemision: string | null
   procesoC31: string | null
@@ -384,6 +391,7 @@ export type IngresoWhereInput = {
   numero?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   gestion?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   almacenId?: Prisma.IntFilter<"Ingreso"> | number
+  fechaIngreso?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   fechaRemision?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   notaRemision?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   procesoC31?: Prisma.StringNullableFilter<"Ingreso"> | string | null
@@ -419,6 +427,7 @@ export type IngresoOrderByWithRelationInput = {
   numero?: Prisma.SortOrderInput | Prisma.SortOrder
   gestion?: Prisma.SortOrderInput | Prisma.SortOrder
   almacenId?: Prisma.SortOrder
+  fechaIngreso?: Prisma.SortOrder
   fechaRemision?: Prisma.SortOrderInput | Prisma.SortOrder
   notaRemision?: Prisma.SortOrderInput | Prisma.SortOrder
   procesoC31?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -458,6 +467,7 @@ export type IngresoWhereUniqueInput = Prisma.AtLeast<{
   numero?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   gestion?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   almacenId?: Prisma.IntFilter<"Ingreso"> | number
+  fechaIngreso?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   fechaRemision?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   notaRemision?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   procesoC31?: Prisma.StringNullableFilter<"Ingreso"> | string | null
@@ -493,6 +503,7 @@ export type IngresoOrderByWithAggregationInput = {
   numero?: Prisma.SortOrderInput | Prisma.SortOrder
   gestion?: Prisma.SortOrderInput | Prisma.SortOrder
   almacenId?: Prisma.SortOrder
+  fechaIngreso?: Prisma.SortOrder
   fechaRemision?: Prisma.SortOrderInput | Prisma.SortOrder
   notaRemision?: Prisma.SortOrderInput | Prisma.SortOrder
   procesoC31?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -527,6 +538,7 @@ export type IngresoScalarWhereWithAggregatesInput = {
   numero?: Prisma.IntNullableWithAggregatesFilter<"Ingreso"> | number | null
   gestion?: Prisma.IntNullableWithAggregatesFilter<"Ingreso"> | number | null
   almacenId?: Prisma.IntWithAggregatesFilter<"Ingreso"> | number
+  fechaIngreso?: Prisma.DateTimeWithAggregatesFilter<"Ingreso"> | Date | string
   fechaRemision?: Prisma.DateTimeNullableWithAggregatesFilter<"Ingreso"> | Date | string | null
   notaRemision?: Prisma.StringNullableWithAggregatesFilter<"Ingreso"> | string | null
   procesoC31?: Prisma.StringNullableWithAggregatesFilter<"Ingreso"> | string | null
@@ -551,6 +563,7 @@ export type IngresoCreateInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -580,6 +593,7 @@ export type IngresoUncheckedCreateInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -606,6 +620,7 @@ export type IngresoUpdateInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -635,6 +650,7 @@ export type IngresoUncheckedUpdateInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -663,6 +679,7 @@ export type IngresoCreateManyInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -687,6 +704,7 @@ export type IngresoUpdateManyMutationInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -707,6 +725,7 @@ export type IngresoUncheckedUpdateManyInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -749,6 +768,7 @@ export type IngresoCountOrderByAggregateInput = {
   numero?: Prisma.SortOrder
   gestion?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
+  fechaIngreso?: Prisma.SortOrder
   fechaRemision?: Prisma.SortOrder
   notaRemision?: Prisma.SortOrder
   procesoC31?: Prisma.SortOrder
@@ -788,6 +808,7 @@ export type IngresoMaxOrderByAggregateInput = {
   numero?: Prisma.SortOrder
   gestion?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
+  fechaIngreso?: Prisma.SortOrder
   fechaRemision?: Prisma.SortOrder
   notaRemision?: Prisma.SortOrder
   procesoC31?: Prisma.SortOrder
@@ -814,6 +835,7 @@ export type IngresoMinOrderByAggregateInput = {
   numero?: Prisma.SortOrder
   gestion?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
+  fechaIngreso?: Prisma.SortOrder
   fechaRemision?: Prisma.SortOrder
   notaRemision?: Prisma.SortOrder
   procesoC31?: Prisma.SortOrder
@@ -1193,6 +1215,7 @@ export type IngresoCreateWithoutUnidadSolicitanteInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1221,6 +1244,7 @@ export type IngresoUncheckedCreateWithoutUnidadSolicitanteInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1277,6 +1301,7 @@ export type IngresoScalarWhereInput = {
   numero?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   gestion?: Prisma.IntNullableFilter<"Ingreso"> | number | null
   almacenId?: Prisma.IntFilter<"Ingreso"> | number
+  fechaIngreso?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   fechaRemision?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   notaRemision?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   procesoC31?: Prisma.StringNullableFilter<"Ingreso"> | string | null
@@ -1301,6 +1326,7 @@ export type IngresoCreateWithoutAlmacenInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1328,6 +1354,7 @@ export type IngresoUncheckedCreateWithoutAlmacenInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1380,6 +1407,7 @@ export type IngresoCreateWithoutRegistradoPorInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1408,6 +1436,7 @@ export type IngresoUncheckedCreateWithoutRegistradoPorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1443,6 +1472,7 @@ export type IngresoCreateWithoutResponsableConformidadInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1471,6 +1501,7 @@ export type IngresoUncheckedCreateWithoutResponsableConformidadInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1506,6 +1537,7 @@ export type IngresoCreateWithoutAnuladoPorInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1534,6 +1566,7 @@ export type IngresoUncheckedCreateWithoutAnuladoPorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1617,6 +1650,7 @@ export type IngresoCreateWithoutProveedorInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1645,6 +1679,7 @@ export type IngresoUncheckedCreateWithoutProveedorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1696,6 +1731,7 @@ export type IngresoCreateWithoutFuenteFinanciamientoInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1724,6 +1760,7 @@ export type IngresoUncheckedCreateWithoutFuenteFinanciamientoInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1775,6 +1812,7 @@ export type IngresoCreateWithoutDetallesInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1803,6 +1841,7 @@ export type IngresoUncheckedCreateWithoutDetallesInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1844,6 +1883,7 @@ export type IngresoUpdateWithoutDetallesInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1872,6 +1912,7 @@ export type IngresoUncheckedUpdateWithoutDetallesInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1897,6 +1938,7 @@ export type IngresoCreateWithoutMovimientosInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1925,6 +1967,7 @@ export type IngresoUncheckedCreateWithoutMovimientosInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -1966,6 +2009,7 @@ export type IngresoUpdateWithoutMovimientosInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1994,6 +2038,7 @@ export type IngresoUncheckedUpdateWithoutMovimientosInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2021,6 +2066,7 @@ export type IngresoCreateManyUnidadSolicitanteInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2044,6 +2090,7 @@ export type IngresoUpdateWithoutUnidadSolicitanteInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2072,6 +2119,7 @@ export type IngresoUncheckedUpdateWithoutUnidadSolicitanteInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2099,6 +2147,7 @@ export type IngresoUncheckedUpdateManyWithoutUnidadSolicitanteInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2123,6 +2172,7 @@ export type IngresoCreateManyAlmacenInput = {
   estado?: $Enums.EstadoIngreso
   numero?: number | null
   gestion?: number | null
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2147,6 +2197,7 @@ export type IngresoUpdateWithoutAlmacenInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2174,6 +2225,7 @@ export type IngresoUncheckedUpdateWithoutAlmacenInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2201,6 +2253,7 @@ export type IngresoUncheckedUpdateManyWithoutAlmacenInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2227,6 +2280,7 @@ export type IngresoCreateManyRegistradoPorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2252,6 +2306,7 @@ export type IngresoCreateManyResponsableConformidadInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2277,6 +2332,7 @@ export type IngresoCreateManyAnuladoPorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2300,6 +2356,7 @@ export type IngresoUpdateWithoutRegistradoPorInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2328,6 +2385,7 @@ export type IngresoUncheckedUpdateWithoutRegistradoPorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2355,6 +2413,7 @@ export type IngresoUncheckedUpdateManyWithoutRegistradoPorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2378,6 +2437,7 @@ export type IngresoUpdateWithoutResponsableConformidadInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2406,6 +2466,7 @@ export type IngresoUncheckedUpdateWithoutResponsableConformidadInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2433,6 +2494,7 @@ export type IngresoUncheckedUpdateManyWithoutResponsableConformidadInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2456,6 +2518,7 @@ export type IngresoUpdateWithoutAnuladoPorInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2484,6 +2547,7 @@ export type IngresoUncheckedUpdateWithoutAnuladoPorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2511,6 +2575,7 @@ export type IngresoUncheckedUpdateManyWithoutAnuladoPorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2536,6 +2601,7 @@ export type IngresoCreateManyProveedorInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2559,6 +2625,7 @@ export type IngresoUpdateWithoutProveedorInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2587,6 +2654,7 @@ export type IngresoUncheckedUpdateWithoutProveedorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2614,6 +2682,7 @@ export type IngresoUncheckedUpdateManyWithoutProveedorInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2639,6 +2708,7 @@ export type IngresoCreateManyFuenteFinanciamientoInput = {
   numero?: number | null
   gestion?: number | null
   almacenId: number
+  fechaIngreso: Date | string
   fechaRemision?: Date | string | null
   notaRemision?: string | null
   procesoC31?: string | null
@@ -2662,6 +2732,7 @@ export type IngresoUpdateWithoutFuenteFinanciamientoInput = {
   estado?: Prisma.EnumEstadoIngresoFieldUpdateOperationsInput | $Enums.EstadoIngreso
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2690,6 +2761,7 @@ export type IngresoUncheckedUpdateWithoutFuenteFinanciamientoInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2717,6 +2789,7 @@ export type IngresoUncheckedUpdateManyWithoutFuenteFinanciamientoInput = {
   numero?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gestion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  fechaIngreso?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fechaRemision?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   notaRemision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   procesoC31?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2782,6 +2855,7 @@ export type IngresoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   numero?: boolean
   gestion?: boolean
   almacenId?: boolean
+  fechaIngreso?: boolean
   fechaRemision?: boolean
   notaRemision?: boolean
   procesoC31?: boolean
@@ -2818,6 +2892,7 @@ export type IngresoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   numero?: boolean
   gestion?: boolean
   almacenId?: boolean
+  fechaIngreso?: boolean
   fechaRemision?: boolean
   notaRemision?: boolean
   procesoC31?: boolean
@@ -2851,6 +2926,7 @@ export type IngresoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   numero?: boolean
   gestion?: boolean
   almacenId?: boolean
+  fechaIngreso?: boolean
   fechaRemision?: boolean
   notaRemision?: boolean
   procesoC31?: boolean
@@ -2884,6 +2960,7 @@ export type IngresoSelectScalar = {
   numero?: boolean
   gestion?: boolean
   almacenId?: boolean
+  fechaIngreso?: boolean
   fechaRemision?: boolean
   notaRemision?: boolean
   procesoC31?: boolean
@@ -2904,7 +2981,7 @@ export type IngresoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type IngresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "fechaRemision" | "notaRemision" | "procesoC31" | "certificacion" | "informeConformidad" | "fechaInformeConformidad" | "numeroFactura" | "observacion" | "proveedorId" | "fuenteFinanciamientoId" | "responsableConformidadId" | "unidadSolicitanteId" | "registradoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "createdAt" | "updatedAt", ExtArgs["result"]["ingreso"]>
+export type IngresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "fechaIngreso" | "fechaRemision" | "notaRemision" | "procesoC31" | "certificacion" | "informeConformidad" | "fechaInformeConformidad" | "numeroFactura" | "observacion" | "proveedorId" | "fuenteFinanciamientoId" | "responsableConformidadId" | "unidadSolicitanteId" | "registradoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "createdAt" | "updatedAt", ExtArgs["result"]["ingreso"]>
 export type IngresoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
   proveedor?: boolean | Prisma.Ingreso$proveedorArgs<ExtArgs>
@@ -2955,6 +3032,19 @@ export type $IngresoPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     numero: number | null
     gestion: number | null
     almacenId: number
+    /**
+     * Fecha con EFECTO CONTABLE del ingreso: de ella salen la gestion (y con ella
+     * el correlativo), la fecha del movimiento de Kardex y el orden en que se
+     * consumen los lotes. Se estampa sola al registrar (2026-07-29); solo el
+     * super_admin puede corregirla despues.
+     * 
+     * No confundir con las otras dos fechas del ingreso:
+     * - `fechaRemision`: la del documento del proveedor. Se tipea a mano y ya
+     * NO gobierna nada — antes de esta fecha definia la gestion y el kardex,
+     * y un error de tipeo mandaba el ingreso a otra gestion.
+     * - `createdAt`: cuando se registro. Auditoria, nunca se corrige.
+     */
+    fechaIngreso: Date
     fechaRemision: Date | null
     notaRemision: string | null
     procesoC31: string | null
@@ -3410,6 +3500,7 @@ export interface IngresoFieldRefs {
   readonly numero: Prisma.FieldRef<"Ingreso", 'Int'>
   readonly gestion: Prisma.FieldRef<"Ingreso", 'Int'>
   readonly almacenId: Prisma.FieldRef<"Ingreso", 'Int'>
+  readonly fechaIngreso: Prisma.FieldRef<"Ingreso", 'DateTime'>
   readonly fechaRemision: Prisma.FieldRef<"Ingreso", 'DateTime'>
   readonly notaRemision: Prisma.FieldRef<"Ingreso", 'String'>
   readonly procesoC31: Prisma.FieldRef<"Ingreso", 'String'>

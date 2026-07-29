@@ -121,6 +121,7 @@ export class StockService {
             id: true,
             numero: true,
             gestion: true,
+            fechaIngreso: true,
             fechaRemision: true,
             almacen: { select: { id: true, nombre: true } },
             fuenteFinanciamiento: { select: { id: true, nombre: true } },
@@ -128,8 +129,11 @@ export class StockService {
           },
         },
       },
-      // Mas antiguo primero: es el orden en que se propone consumirlos.
-      orderBy: [{ ingreso: { fechaRemision: 'asc' } }, { id: 'asc' }],
+      // Mas antiguo primero: es el orden en que se propone consumirlos. Va por
+      // la fecha del INGRESO (cuando entro al almacen), no por la del documento
+      // del proveedor, que se tipea a mano y puede no tener relacion con el
+      // momento en que el material quedo disponible.
+      orderBy: [{ ingreso: { fechaIngreso: 'asc' } }, { id: 'asc' }],
     });
 
     const lotesPorItem = new Map<number, typeof lotes>();

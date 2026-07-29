@@ -56,6 +56,7 @@ const ingresoListSelect = {
   numero: true,
   gestion: true,
   almacenId: true,
+  fechaIngreso: true,
   fechaRemision: true,
   notaRemision: true,
   procesoC31: true,
@@ -76,6 +77,7 @@ const ingresoFullSelect = {
   numero: true,
   gestion: true,
   almacenId: true,
+  fechaIngreso: true,
   fechaRemision: true,
   notaRemision: true,
   procesoC31: true,
@@ -215,9 +217,13 @@ export class IngresosService {
       almacenId,
     );
 
-    // La gestion sale del anio de la fecha de remision (obligatoria).
-    const fechaRemision = new Date(dto.fechaRemision as string);
-    const gestion = fechaRemision.getFullYear();
+    // La fecha del ingreso es el momento del registro: no la elige nadie, asi
+    // que no se puede equivocar ni manipular. De ella salen la gestion (y con
+    // ella el correlativo) y la fecha del Kardex. La de remision es del
+    // documento del proveedor y ya no gobierna nada. Solo el super_admin puede
+    // corregirla despues (ver `update`).
+    const fechaIngreso = new Date();
+    const gestion = fechaIngreso.getFullYear();
 
     const id = await this.prisma.$transaction(async (tx) => {
       // Correlativo por almacen + gestion.
@@ -232,6 +238,7 @@ export class IngresosService {
           estado: EstadoIngreso.CONFIRMADO,
           numero,
           gestion,
+          fechaIngreso,
           almacenId,
           registradoPorId: user.id,
           ...this.datosDesdeDto(dto),
@@ -254,7 +261,7 @@ export class IngresosService {
             precioUnitario: d.precioUnitario,
             ingresoId: ingreso.id,
             ingresoDetalleId: lote.id,
-            fecha: fechaRemision,
+            fecha: fechaIngreso,
           },
         });
       }
@@ -266,9 +273,13 @@ export class IngresosService {
   }
 
   // ---------------------------------------------------------------------------
-  // Editar (solo la cabecera documental; NO las lineas, el almacen, la fuente ni
-  // la fecha de remision -> eso toca stock/correlativo: para corregirlo se anula
-  // y se vuelve a registrar)
+  // Editar (la cabecera documental; NO las lineas, el almacen, la fuente ni la
+  // fecha de remision -> eso toca stock/valorizacion: para corregirlo se anula y
+  // se vuelve a registrar).
+  //
+  // La excepcion es la FECHA DE INGRESO, que solo el super_admin puede corregir:
+  // arrastra la gestion, el correlativo y el Kardex, y por eso se resuelve
+  // entera dentro de una transaccion.
   // ---------------------------------------------------------------------------
 
   async update(id: number, dto: UpdateIngresoDto, user: AuthenticatedUser) {
@@ -278,7 +289,15 @@ export class IngresosService {
     }
 
     await this.validarReferencias(dto);
-    if (dto.responsableConformidadId != null) {
+    // El responsable se valida SOLO si cambia. Reenviar el que ya tenia se
+    // acepta aunque hoy este dado de baja: un ingreso ya registrado es un hecho
+    // historico y no puede quedar bloqueado porque esa persona dejo la
+    // institucion. Los catalogos filtran activos para lo NUEVO; los documentos
+    // ya emitidos conservan su referencia.
+    if (
+      dto.responsableConformidadId != null &&
+      dto.responsableConformidadId !== existente.responsableConformidadId
+    ) {
       await this.validarResponsableConformidad(dto.responsableConformidadId);
     }
     if (dto.unidadSolicitanteId != null) {
@@ -288,13 +307,81 @@ export class IngresosService {
       );
     }
 
-    // Solo cabecera: ni lineas ni Kardex se tocan (el stock queda intacto).
-    await this.prisma.ingreso.update({
-      where: { id },
-      data: this.datosDesdeDto(dto),
+    const nuevaFecha = this.resolverCorreccionDeFecha(dto, existente, user);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.ingreso.update({
+        where: { id },
+        data: {
+          ...this.datosDesdeDto(dto),
+          ...(nuevaFecha ? { fechaIngreso: nuevaFecha } : {}),
+        },
+      });
+
+      if (!nuevaFecha) return;
+
+      // El Kardex se ordena por la fecha del movimiento, no por la del ingreso:
+      // si no se mueven, el libro queda contando la entrada en el dia viejo.
+      await tx.movimientoKardex.updateMany({
+        where: { ingresoId: id },
+        data: { fecha: nuevaFecha },
+      });
+
+      // Cambiar de gestion obliga a re-estampar el correlativo: el numero se
+      // asigno dentro de la secuencia de la gestion anterior y ahi no vale
+      // (`@@unique([almacenId, gestion, numero])`). Va en la misma transaccion
+      // que el resto para que el ingreso nunca quede con la gestion nueva y el
+      // numero viejo.
+      const gestion = nuevaFecha.getFullYear();
+      if (gestion === existente.gestion) return;
+
+      const agg = await tx.ingreso.aggregate({
+        _max: { numero: true },
+        where: { almacenId: existente.almacenId, gestion },
+      });
+      await tx.ingreso.update({
+        where: { id },
+        data: { gestion, numero: (agg._max.numero ?? 0) + 1 },
+      });
     });
 
     return this.findOne(id, user);
+  }
+
+  /**
+   * Fecha de ingreso corregida, o null si no hay que tocarla. Solo el
+   * super_admin puede correr esta fecha: de ella salen la gestion, el
+   * correlativo y el Kardex, asi que no es un dato de cabecera cualquiera.
+   * El caso previsto es el cierre de gestion (material que entro el 28/12 y se
+   * registro el 2/1).
+   */
+  private resolverCorreccionDeFecha(
+    dto: UpdateIngresoDto,
+    existente: { fechaIngreso: Date },
+    user: AuthenticatedUser,
+  ): Date | null {
+    if (dto.fechaIngreso === undefined) return null;
+
+    if (user.rol !== Rol.super_admin) {
+      throw new ForbiddenException(
+        'Solo el super_admin puede corregir la fecha de ingreso',
+      );
+    }
+
+    const fecha = new Date(dto.fechaIngreso);
+    if (Number.isNaN(fecha.getTime())) {
+      throw new BadRequestException('La fecha de ingreso no es valida');
+    }
+    // Una fecha futura no significa nada: el material ya esta en el almacen.
+    if (fecha.getTime() > Date.now()) {
+      throw new BadRequestException(
+        'La fecha de ingreso no puede ser posterior a hoy',
+      );
+    }
+    // Sin cambio real no se toca nada (evita reescribir el Kardex al pedo).
+    if (fecha.getTime() === existente.fechaIngreso.getTime()) return null;
+
+    return fecha;
   }
 
   // ---------------------------------------------------------------------------
@@ -385,7 +472,17 @@ export class IngresosService {
   private async cargarParaEscritura(id: number, user: AuthenticatedUser) {
     const ingreso = await this.prisma.ingreso.findUnique({
       where: { id },
-      select: { id: true, estado: true, almacenId: true },
+      select: {
+        id: true,
+        estado: true,
+        almacenId: true,
+        // Lo necesita el update para saber si el responsable CAMBIO (ver abajo).
+        responsableConformidadId: true,
+        // Los necesita la correccion de fecha del super_admin: para saber si la
+        // fecha cambio de verdad y si hay que re-estampar el correlativo.
+        fechaIngreso: true,
+        gestion: true,
+      },
     });
     if (!ingreso) {
       throw new NotFoundException(`No existe el ingreso con id ${id}`);

@@ -50,11 +50,37 @@ import {
   etiquetaNumero,
 } from "@/features/ingresos/ingresos.types"
 
+import type { ComboboxOption } from "@/components/form/ComboboxField"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
 
 const ESTADO_VARIANT: Record<string, "default" | "destructive"> = {
   CONFIRMADO: "default",
   ANULADO: "destructive",
+}
+
+/**
+ * Agrega al selector lo que el ingreso YA referencia, si el catálogo activo no
+ * lo trae. Pasa cuando la persona o el proveedor se dieron de baja DESPUÉS de
+ * registrar el ingreso: sin esto el campo se ve vacío y parece que se perdió el
+ * dato.
+ *
+ * La regla: los catálogos filtran activos para lo NUEVO, pero un documento ya
+ * emitido conserva su referencia. El backend la acompaña — al editar solo valida
+ * el responsable si CAMBIA (ver `ingresos.service.ts`).
+ *
+ * No hace falta pedir nada extra: el propio ingreso trae el nombre.
+ */
+function conReferenciaActual(
+  opciones: ComboboxOption[],
+  actual: { id: number; nombre: string } | null | undefined
+): ComboboxOption[] {
+  if (!actual || opciones.some((o) => o.value === String(actual.id))) {
+    return opciones
+  }
+  return [
+    { value: String(actual.id), label: `${actual.nombre} (inactivo)` },
+    ...opciones,
+  ]
 }
 
 export function IngresoFormPage() {
@@ -64,6 +90,7 @@ export function IngresoFormPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const esResponsable = user?.rol === "responsable_almacen"
+  const esSuperAdmin = user?.rol === "super_admin"
 
   const { data: ingreso, isPending: cargando } = useIngreso(id)
   const crear = useCrearIngreso()
@@ -100,6 +127,9 @@ export function IngresoFormPage() {
   // La cabecera documental (factura, respaldos, proveedor, solicitante, unidad)
   // se puede editar mientras el ingreso esté vigente (no anulado).
   const bloqueoCabecera = anulado
+  // La fecha de ingreso arrastra gestión, correlativo y Kardex: la corrige solo
+  // el super_admin (el backend responde 403 a cualquier otro rol).
+  const puedeCorregirFecha = !esNuevo && esSuperAdmin && !anulado
   const guardando = crear.isPending || actualizar.isPending
 
   const almacenIdSel = watch("almacenId")
@@ -131,7 +161,7 @@ export function IngresoFormPage() {
         // Edición: solo la cabecera documental (no toca líneas ni stock).
         await actualizar.mutateAsync({
           id: id as number,
-          ...aPayloadEdicion(v),
+          ...aPayloadEdicion(v, { incluirFecha: puedeCorregirFecha }),
         })
       }
     } catch {
@@ -232,8 +262,8 @@ export function IngresoFormPage() {
         <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
           Este ingreso ya impactó el stock. Solo se edita la cabecera (factura,
           respaldos, proveedor, solicitante y unidad). Para corregir ítems,
-          cantidades, precios, fuente o fecha, anulá el ingreso y registralo de
-          nuevo.
+          cantidades, precios, fuente o la fecha de remisión, anulá el ingreso y
+          registralo de nuevo.
         </div>
       )}
 
@@ -268,6 +298,34 @@ export function IngresoFormPage() {
                   abajo la grilla es de 1 o 2 columnas y una celda vacía se vería.
                 */}
                 <div className="hidden lg:col-span-8 lg:block" aria-hidden />
+              </>
+            )}
+
+            {/*
+              1-bis. Fecha de ingreso. No se pide al crear: la estampa el
+              backend con el momento del registro, justamente para que nadie la
+              tipee. Al editar se muestra siempre, y solo el super_admin puede
+              corregirla. Ocupa su propia línea (mismo truco de relleno que el
+              almacén) para no descuadrar la suma de 12 de las filas de abajo.
+            */}
+            {!esNuevo && (
+              <>
+                <div className="lg:col-span-3">
+                  <DatePickerField
+                    name="fechaIngreso"
+                    label="Fecha de ingreso"
+                    control={control}
+                    required={false}
+                    placeholder="—"
+                    disabled={!puedeCorregirFecha}
+                    description={
+                      puedeCorregirFecha
+                        ? "Gobierna la gestión, el correlativo y el Kardex. Si la corrección cae en otra gestión, el número del ingreso cambia."
+                        : "La asigna el sistema al registrar el ingreso."
+                    }
+                  />
+                </div>
+                <div className="hidden lg:col-span-9 lg:block" aria-hidden />
               </>
             )}
 
@@ -312,10 +370,13 @@ export function IngresoFormPage() {
                 label="Proveedor"
                 control={control}
                 required
-                options={proveedores.map((p) => ({
-                  value: String(p.id),
-                  label: p.nombre,
-                }))}
+                options={conReferenciaActual(
+                  proveedores.map((p) => ({
+                    value: String(p.id),
+                    label: p.nombre,
+                  })),
+                  ingreso?.proveedor
+                )}
                 placeholder="Elegí un proveedor"
                 vacio="Ningún proveedor coincide."
                 disabled={bloqueoCabecera}
@@ -352,11 +413,14 @@ export function IngresoFormPage() {
                 label="Responsable / Comisión de recepción"
                 control={control}
                 required
-                options={solicitadores.map((u) => ({
-                  value: String(u.id),
-                  label: u.nombre,
-                  busqueda: u.usuario,
-                }))}
+                options={conReferenciaActual(
+                  solicitadores.map((u) => ({
+                    value: String(u.id),
+                    label: u.nombre,
+                    busqueda: u.usuario,
+                  })),
+                  ingreso?.responsableConformidad
+                )}
                 placeholder="Elegí un solicitador"
                 vacio="Ningún solicitador coincide."
                 disabled={bloqueoCabecera}

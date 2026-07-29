@@ -47,7 +47,9 @@ almacenes-institucion/
 - **Item**: el ítem real de almacén (catálogo compartido entre todos los almacenes). Campos: codigo (AUTOGENERADO al crear: `{partida.codigo}-{correlativo interno padStart(6)}`, ej. "39700-000001", incrementado transaccionalmente sobre `Partida.ultimoCorrelativo`), descripcion, unidadMedida, `imagenUrl` (String?, nullable), activo, `partida_id`.
 - ~~**StockAlmacen**~~: **ELIMINADO del diseño**. El stock NO es un saldo agregado: se lleva **por LOTE** (ver `IngresoDetalle`) y separado por fuente de financiamiento.
 - **Proveedor**: nombre (requerido, NO único — la razón social se escribe de formas distintas), `nit` (opcional pero `@unique`; Postgres admite varios NULL en un índice único, así que conviven proveedores sin NIT), telefono, `contacto` (nombre de la persona de contacto), direccion, activo. Baja lógica siempre: será referenciado por Ingreso y no se puede borrar sin romper el Kardex. Escritura para `super_admin` y `admin`; lectura además para `responsable_almacen` (necesita el selector de proveedor al registrar un Ingreso).
-- **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`CONFIRMADO`/`ANULADO` — **ya NO hay `BORRADOR`**; el encargado lo quitó el 2026-07-27: se crea definitivo en un solo paso, ver migración `20260727120000_ingresos_sin_borrador`), `numero` + `gestion` (nullable en la BD pero el service los estampa SIEMPRE al crear), `almacen_id`, respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). Los respaldos siguen nullable en la BD pero son **obligatorios**: la regla vive en el service (los exige al crear, como el `cargo` del usuario). `@@unique([almacenId, gestion, numero])`. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
+- **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`CONFIRMADO`/`ANULADO` — **ya NO hay `BORRADOR`**; el encargado lo quitó el 2026-07-27: se crea definitivo en un solo paso, ver migración `20260727120000_ingresos_sin_borrador`), `numero` + `gestion` (nullable en la BD pero el service los estampa SIEMPRE al crear), `almacen_id`, **`fechaIngreso`** (ver abajo), respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). Los respaldos siguen nullable en la BD pero son **obligatorios**: la regla vive en el service (los exige al crear, como el `cargo` del usuario). `@@unique([almacenId, gestion, numero])`. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
+  - **Las TRES fechas del ingreso** (no confundirlas — cambio del 2026-07-29, migración `20260729190000_ingreso_fecha_propia`): **`fechaIngreso`** es la de EFECTO CONTABLE: de ella salen la gestión (y con ella el correlativo), la fecha del movimiento de Kardex y el orden en que se consumen los lotes. **La estampa el backend con el momento del registro: nadie la tipea.** · **`fechaRemision`** es la del documento del proveedor: se sigue pidiendo e imprimiendo, pero **ya NO gobierna nada**. Antes definía la gestión, así que un error de tipeo en el año mandaba el ingreso a otra gestión y descolocaba el libro. · **`createdAt`** es auditoría pura y nunca se corrige.
+  - **Solo `super_admin` puede corregir `fechaIngreso`** (`ForbiddenException` para el resto; el caso previsto es el cierre de gestión: material que entró el 28/12 y se registró el 2/1). La corrección va en UNA transacción porque arrastra tres cosas: mueve la fecha de los movimientos de Kardex, y **si cae en otra gestión re-estampa el correlativo** (el número se había asignado en la secuencia de la gestión anterior y ahí no vale). No se admite fecha futura.
 - **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
 - **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
@@ -228,7 +230,10 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   el ingreso definitivo de una (botón *Registrar ingreso*). Un ingreso **CONFIRMADO** se abre con la
   **cabecera documental editable** (factura, respaldos, proveedor, solicitante, unidad — botón
   *Guardar cambios*) pero las líneas, el almacén, la fuente y la fecha de remisión quedan **fijos**
-  (tocan stock/correlativo); para corregir eso se **anula** y se registra de nuevo. Un **ANULADO** se
+  (tocan stock/correlativo); para corregir eso se **anula** y se registra de nuevo. La **fecha de
+  ingreso** aparece solo al editar (al crear la pone el backend) y está deshabilitada salvo para
+  `super_admin` — lo decide `puedeCorregirFecha`, y `aPayloadEdicion(v, { incluirFecha })` es lo que
+  evita que el campo viaje para los demás roles y el backend responda 403. Un **ANULADO** se
   ve en solo lectura. La partición editable/fijo la controlan `bloqueoCabecera` (solo se bloquea si
   está anulado) y `bloqueoStock` (se bloquea apenas deja de ser nuevo) en `IngresoFormPage`.
 - **Impresión**: el botón *Imprimir* del ingreso genera un **PDF de verdad con `pdfmake`** y lo abre en
@@ -257,8 +262,11 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   Unidad Solicitante · VoBo Jefe Administrativo* (son rótulos fijos, no salen de la BD). Un ingreso
   **ANULADO** lleva marca de agua cruzada (`watermark` de pdfmake), etiqueta bajo el número y el
   detalle de quién lo anuló al pie.
-  **Membrete**: INIAF a la izquierda, Ministerio a la derecha y al centro el título, el almacén y el
-  número. Los archivos son `public/iniaf/logo-iniaf.png` + `logo-ministerio.png`, versiones reducidas
+  **Membrete**: INIAF a la izquierda, Ministerio a la derecha y al centro el título, el almacén, el
+  número y la **fecha de ingreso**. Esa fecha va pegada al número a propósito: la gestión del número
+  (`001/2026`) sale de ella, así que juntas se explican solas. No es la fecha de remisión, que es del
+  documento del proveedor y vive abajo, en el bloque de respaldos. Agregarla no cambia el alto del
+  membrete: el bloque central suma ~48 pt y lo que manda es el logo del Ministerio (~59 pt). Los archivos son `public/iniaf/logo-iniaf.png` + `logo-ministerio.png`, versiones reducidas
   con `sharp` de los originales que también están en esa carpeta. El logo del INIAF ya trae el nombre
   completo de la institución, por eso el encabezado NO lo repite en texto.
 - `components/IngresoLineas.tsx` es el wrapper de **`useFieldArray`** para las líneas (agregar/quitar
@@ -380,8 +388,9 @@ negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacene
 `NavMain.tsx` (`ITEMS`) y en `SECCIONES` de `DashboardLayout.tsx`.
 
 **INGRESOS: YA IMPLEMENTADO** (backend + frontend). **Sin borrador** (quitado el 2026-07-27). Flujo:
-**crear** = `POST /ingresos` registra el ingreso `CONFIRMADO` en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `numero` = `MAX+1` por almacén+gestión y `gestion` = año de `fechaRemision`; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea. Si falta un dato, responde la lista de pendientes y **no crea nada**.
-→ **editar** (`PATCH /ingresos/:id`, solo `CONFIRMADO`): cambia SOLO la cabecera documental (factura, respaldos, proveedor, responsable, unidad). NO toca líneas, almacén, fuente ni fecha de remisión (el `UpdateIngresoDto` ni siquiera los acepta), así que el stock/Kardex queda intacto.
+**crear** = `POST /ingresos` registra el ingreso `CONFIRMADO` en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `fechaIngreso` = **ahora**, `gestion` = año de esa fecha y `numero` = `MAX+1` por almacén+gestión; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea (fechada con `fechaIngreso`). Si falta un dato, responde la lista de pendientes y **no crea nada**.
+→ **editar** (`PATCH /ingresos/:id`, solo `CONFIRMADO`): cambia la cabecera documental (factura, respaldos, proveedor, responsable, unidad). NO toca líneas, almacén, fuente ni fecha de remisión (el `UpdateIngresoDto` ni siquiera los acepta), así que el stock queda intacto. **La excepción es `fechaIngreso`**, que solo acepta de `super_admin` y que sí mueve el Kardex y el correlativo (ver la entidad `Ingreso` más arriba).
+  **El responsable de recepción se valida SOLO si cambia**: reenviar el que ya tenía se acepta aunque hoy esté dado de baja. Si no, dar de baja a esa persona dejaba el ingreso imposible de editar —ni siquiera para corregir la factura— porque el formulario reenvía su id. Regla general: **los catálogos filtran activos para lo NUEVO; los documentos ya emitidos conservan su referencia.** El frontend la acompaña con `conReferenciaActual()` en `IngresoFormPage`, que agrega al selector lo que el ingreso ya referencia con la etiqueta «(inactivo)» — aplicado al responsable y al proveedor.
 → **anular** (`POST /ingresos/:id/anular`, solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
 Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y registrando de nuevo. **No hay endpoint `confirmar` ni `remove`** (eran del borrador; se eliminaron).
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
@@ -393,7 +402,9 @@ El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO
 ítem es la **suma de los saldos de sus lotes**. El service agrupa `ingresoDetalle` por `itemId`
 (`groupBy` + `_sum`), pagina los ítems ordenados por descripción —el orden sale de `items`, porque
 Prisma no ordena un `groupBy` por campo de otra tabla, y desempata por `id`— y recién ahí trae los
-lotes de esa página. Los lotes vienen **del más antiguo primero**, que es el orden en que se va a
+lotes de esa página. Los lotes vienen **del más antiguo primero por `fechaIngreso`** (no por la
+fecha de remisión: esa es del documento del proveedor y puede no tener relación con cuándo el
+material quedó disponible), que es el orden en que se va a
 proponer consumirlos. Filtros: `q` (código/descripción), `almacenId`, `fuenteFinanciamientoId`,
 `partidaId`, `itemId` y `conSaldo` (default `true`; en `false` incluye agotados). Filtrar por fuente
 **recalcula el saldo**, no solo esconde lotes: el mismo filtro alimenta el `groupBy` y el detalle.

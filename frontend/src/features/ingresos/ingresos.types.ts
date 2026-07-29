@@ -37,6 +37,13 @@ export interface Ingreso {
   numero: number | null
   gestion: number | null
   almacenId: number
+  /**
+   * Fecha con efecto contable: de ella salen la gestión (y con ella el
+   * correlativo), la fecha del Kardex y el orden de consumo de los lotes. La
+   * estampa el backend al registrar; solo `super_admin` puede corregirla.
+   */
+  fechaIngreso: string
+  /** La del documento del proveedor. Se tipea a mano y NO gobierna nada. */
   fechaRemision: string | null
   notaRemision: string | null
   procesoC31: string | null
@@ -72,6 +79,13 @@ export interface IngresoListItem {
   numero: number | null
   gestion: number | null
   almacenId: number
+  /**
+   * Fecha con efecto contable: de ella salen la gestión (y con ella el
+   * correlativo), la fecha del Kardex y el orden de consumo de los lotes. La
+   * estampa el backend al registrar; solo `super_admin` puede corregirla.
+   */
+  fechaIngreso: string
+  /** La del documento del proveedor. Se tipea a mano y NO gobierna nada. */
   fechaRemision: string | null
   notaRemision: string | null
   procesoC31: string | null
@@ -126,11 +140,17 @@ export interface CreateIngresoPayload {
 }
 
 /**
- * Editar solo cambia la cabecera documental. NO lleva `detalles`, `almacenId`,
- * `fuenteFinanciamientoId` ni `fechaRemision`: esos tocan stock / correlativo y
+ * Editar cambia la cabecera documental. NO lleva `detalles`, `almacenId`,
+ * `fuenteFinanciamientoId` ni `fechaRemision`: esos tocan stock / valorización y
  * para corregirlos se anula el ingreso y se registra de nuevo (espeja el DTO).
+ *
+ * La excepción es `fechaIngreso`, que arrastra gestión, correlativo y Kardex y
+ * por eso queda reservada al `super_admin`.
  */
 export interface UpdateIngresoPayload {
+  /** Corrección de la fecha con efecto contable. El backend la acepta SOLO de
+   * `super_admin`; para el resto responde 403. */
+  fechaIngreso?: string
   notaRemision?: string
   procesoC31?: string
   certificacion?: string

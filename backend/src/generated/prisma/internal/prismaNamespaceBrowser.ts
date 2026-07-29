@@ -205,6 +205,7 @@ export const IngresoScalarFieldEnum = {
   numero: 'numero',
   gestion: 'gestion',
   almacenId: 'almacenId',
+  fechaIngreso: 'fechaIngreso',
   fechaRemision: 'fechaRemision',
   notaRemision: 'notaRemision',
   procesoC31: 'procesoC31',
