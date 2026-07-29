@@ -117,7 +117,11 @@ export function EntregaDialog({ onClose, egreso }: EntregaDialogProps) {
                   <TableCell>
                     <Input
                       type="number"
-                      step="0.01"
+                      // `any` y no "0.01": con un paso decimal las flechas
+                      // mueven de a un centésimo, que no es como se entrega
+                      // material. Así se mueven de a 1 y los decimales se
+                      // siguen pudiendo escribir (hay ítems en kilos y litros).
+                      step="any"
                       min={0}
                       max={pedido}
                       value={cantidades[detalle.id] ?? ""}
@@ -130,6 +134,9 @@ export function EntregaDialog({ onClose, egreso }: EntregaDialogProps) {
                       aria-invalid={valor > pedido}
                       className="text-right"
                       aria-label={`Cantidad a entregar de ${item.descripcion}`}
+                      // Misma guarda que `NumberField`: sin esto, scrollear la
+                      // página con el puntero sobre el campo le cambia el valor.
+                      onWheel={(event) => event.currentTarget.blur()}
                     />
                   </TableCell>
                 </TableRow>

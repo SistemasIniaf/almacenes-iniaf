@@ -149,7 +149,8 @@ export function EgresoLineas({
                   label="Cantidad"
                   control={control}
                   disabled={disabled}
-                  step="0.01"
+                  // Las flechas mueven de a 1; los decimales se escriben igual.
+                  step="any"
                   min={0}
                 />
               </div>
