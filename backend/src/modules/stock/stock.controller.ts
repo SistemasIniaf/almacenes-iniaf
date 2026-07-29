@@ -8,15 +8,20 @@ import { QueryStockDto } from './dto/query-stock.dto';
 import { StockService } from './stock.service';
 
 /**
- * Existencias, solo lectura. Los mismos roles que leen ingresos, con el mismo
- * scope por almacen: el responsable ve el suyo, el observador los que observa,
- * admin/super_admin todos.
+ * Existencias, solo lectura, con scope por almacen: el responsable y el
+ * solicitador ven el suyo, el observador los que observa, admin/super_admin
+ * todos (ver `almacenesPermitidos`).
+ *
+ * El SOLICITADOR entra desde 2026-07-29: su pedido apunta a un LOTE, asi que
+ * necesita ver que lotes hay y cuanto disponible tiene cada uno. Sin esto no
+ * puede armar un egreso.
  */
 @Roles(
   Rol.super_admin,
   Rol.admin,
   Rol.responsable_almacen,
   Rol.observador_almacen,
+  Rol.solicitador,
 )
 @Controller('stock')
 export class StockController {

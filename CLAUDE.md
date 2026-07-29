@@ -478,7 +478,33 @@ cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
 
-**`egresos` — LISTO PARA CONSTRUIR** (el encargado respondió el 2026-07-29; ver `docs/decisiones-egresos.md`). Lo que queda abierto son reglas del service que no cambian el schema.
+**EGRESOS — BACKEND YA IMPLEMENTADO** (2026-07-29). Falta el frontend.
+
+Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · `GET /egresos/:id` ·
+`POST /egresos` (borrador) · `PATCH` / `DELETE` (solo borrador, solo su dueño) · `POST /:id/enviar` ·
+`/aprobar` · `/rechazar` · `/entregar` · `/anular`.
+
+- **La línea apunta al LOTE** (`ingresoDetalleId`), no al ítem: el ítem, la fuente y el precio de la
+  salida se derivan de él. Por eso la SALIDA del Kardex sale valorizada al precio de ESE lote.
+- **La reserva vive en `common/stock/reserva.ts`**, compartida con `stock`. `disponible = saldo −
+  reservado`, y `reservado` se deriva de las líneas cuyo egreso está pendiente **o** en un borrador de
+  menos de `HORAS_RESERVA_BORRADOR` (48). El vencimiento es una condición del `where`: **no hay cron**
+  — uno que falle dejaría stock reservado que nadie puede liberar. Si hay que subirlo a 72 h, es esa
+  constante.
+- **El descuento al entregar es un UPDATE condicional** (`saldoCantidad >= cantidad` + `decrement`),
+  no un leer-y-escribir: la base garantiza que el saldo no quede negativo. Además, `bloquearLotes()`
+  hace `SELECT … FOR UPDATE` (SQL crudo; Prisma no lo expresa) al crear/editar/enviar, para que dos
+  solicitantes no reserven a la vez el mismo último saldo.
+- **El alcance NO es solo por almacén**, a diferencia de ingresos/stock: el `solicitador` ve LOS SUYOS
+  y el `aprobador`, los de SU UNIDAD (`EgresosService.alcance`). El decorador `@Roles` dice quién
+  puede intentar una acción; el service dice **sobre qué**.
+- **El `solicitador` ahora lee `stock`** (`stock.controller` + `almacenesPermitidos`): su pedido
+  apunta a un lote, así que necesita ver cuáles hay y con cuánto disponible. Está en el helper de
+  scope y no solo en el `@Roles` — si no, abrirle el endpoint le mostraría los otros ocho almacenes.
+- **Descartar un borrador lo BORRA de verdad**, a diferencia de todo lo demás: todavía no es un
+  documento (no tiene número) ni tocó stock.
+- El **número se estampa al enviar** y **el rechazo lo conserva** (el pedido rechazado vuelve a
+  BORRADOR pero ya es un documento con serie).
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 

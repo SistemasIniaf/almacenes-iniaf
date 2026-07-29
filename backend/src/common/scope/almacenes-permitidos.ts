@@ -17,7 +17,11 @@ export async function almacenesPermitidos(
   prisma: PrismaService,
   user: AuthenticatedUser,
 ): Promise<number[] | null> {
-  if (user.rol === Rol.responsable_almacen) {
+  // El solicitador ve SU almacen, igual que el responsable: necesita mirar el
+  // stock para elegir de que lote pide (el pedido apunta al lote, no al item).
+  // Que este aca y no solo en el @Roles del controlador es lo que impide que
+  // abrirle un endpoint le muestre de paso los otros ocho almacenes.
+  if (user.rol === Rol.responsable_almacen || user.rol === Rol.solicitador) {
     return user.almacenId != null ? [user.almacenId] : [];
   }
   if (user.rol === Rol.observador_almacen) {

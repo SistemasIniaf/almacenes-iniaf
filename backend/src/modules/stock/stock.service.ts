@@ -6,6 +6,7 @@ import {
   filtroAlmacen,
 } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
+import { reservadoPorLote } from '../../common/stock/reserva';
 import { EstadoIngreso } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
@@ -136,8 +137,26 @@ export class StockService {
       orderBy: [{ ingreso: { fechaIngreso: 'asc' } }, { id: 'asc' }],
     });
 
-    const lotesPorItem = new Map<number, typeof lotes>();
-    for (const lote of lotes) {
+    // 3-bis. Cuanto de cada lote esta comprometido por pedidos vivos. El
+    // solicitante elige el LOTE al pedir, asi que necesita ver el disponible
+    // real y no el saldo pelado: si no, dos pedidos se llevarian el mismo
+    // material. `disponible = saldo - reservado`.
+    const reservado = await reservadoPorLote(
+      this.prisma,
+      lotes.map((l) => l.id),
+    );
+
+    const lotesConReserva = lotes.map((lote) => {
+      const enReserva = reservado.get(lote.id) ?? 0;
+      return {
+        ...lote,
+        reservado: enReserva,
+        disponible: Number(lote.saldoCantidad) - enReserva,
+      };
+    });
+
+    const lotesPorItem = new Map<number, typeof lotesConReserva>();
+    for (const lote of lotesConReserva) {
       const acumulado = lotesPorItem.get(lote.itemId) ?? [];
       acumulado.push(lote);
       lotesPorItem.set(lote.itemId, acumulado);
