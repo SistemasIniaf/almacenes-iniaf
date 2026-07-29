@@ -33,12 +33,28 @@ enum EstadoIngreso {
   ANULADO
 }
 
-/// Tipo de movimiento del Kardex. Por ahora ENTRADA (ingreso confirmado) y
-/// REVERSION (anulacion de ingreso). SALIDA llega con Egresos.
+/// Tipo de movimiento del Kardex. ENTRADA (ingreso), SALIDA (egreso entregado) y
+/// REVERSION (anulacion de cualquiera de los dos).
 enum TipoMovimiento {
   ENTRADA
   SALIDA
   REVERSION
+}
+
+/// Estados del pedido de material. Circuito de DOS niveles confirmado con el
+/// encargado el 2026-07-29 (ver docs/decisiones-egresos.md).
+///
+/// BORRADOR -> PENDIENTE_APROBADOR -> PENDIENTE_RESPONSABLE_ALMACEN -> ENTREGADO
+///
+/// El RECHAZO no es un estado: es una transicion que devuelve a BORRADOR desde
+/// cualquier nivel. Queda registrado en EgresoHistorial con su motivo — si fuera
+/// un estado, un pedido rechazado y corregido perderia la traza.
+enum EstadoEgreso {
+  BORRADOR
+  PENDIENTE_APROBADOR
+  PENDIENTE_RESPONSABLE_ALMACEN
+  ENTREGADO
+  ANULADO
 }
 
 // ---------------------------------------------------------------------------
@@ -67,6 +83,7 @@ model Unidad {
   usuarios            Usuario[]
   almacenes           AlmacenUnidad[]
   ingresosSolicitados Ingreso[]
+  egresos             Egreso[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -86,6 +103,7 @@ model Almacen {
   observadores UsuarioAlmacenObservado[]
   unidades     AlmacenUnidad[]
   ingresos     Ingreso[]
+  egresos      Egreso[]
   movimientos  MovimientoKardex[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -138,9 +156,16 @@ model Usuario {
   almacenesObservados UsuarioAlmacenObservado[]
 
   // Relaciones con Ingreso (multiples, por eso llevan nombre).
-  ingresosRegistrados  Ingreso[] @relation("IngresoRegistradoPor")
-  ingresosConformidad  Ingreso[] @relation("IngresoResponsableConformidad")
-  ingresosAnulados     Ingreso[] @relation("IngresoAnuladoPor")
+  ingresosRegistrados Ingreso[] @relation("IngresoRegistradoPor")
+  ingresosConformidad Ingreso[] @relation("IngresoResponsableConformidad")
+  ingresosAnulados    Ingreso[] @relation("IngresoAnuladoPor")
+
+  // Relaciones con Egreso. La aprobacion del jefe de unidad NO tiene columna
+  // propia: vive en EgresoHistorial, que registra cada decision del circuito.
+  egresosSolicitados Egreso[]          @relation("EgresoSolicitante")
+  egresosEntregados  Egreso[]          @relation("EgresoEntregadoPor")
+  egresosAnulados    Egreso[]          @relation("EgresoAnuladoPor")
+  decisionesEgreso   EgresoHistorial[] @relation("EgresoHistorialUsuario")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -357,6 +382,11 @@ model IngresoDetalle {
 
   movimientos MovimientoKardex[]
 
+  /// Pedidos que salen de ESTE lote. De aca sale el stock RESERVADO: la suma de
+  /// las lineas cuyo egreso esta pendiente (o en un borrador de menos de 48 h).
+  /// La reserva no es una columna a proposito — ver docs/decisiones-egresos.md.
+  egresoDetalles EgresoDetalle[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -379,11 +409,19 @@ model MovimientoKardex {
   cantidad       Decimal @db.Decimal(12, 2)
   precioUnitario Decimal @map("precio_unitario") @db.Decimal(12, 5)
 
-  // Origen del movimiento (el ingreso y el lote que lo generaron).
+  // Origen del movimiento. Un movimiento viene de UN documento: o de un ingreso
+  // (ENTRADA / REVERSION de su anulacion) o de un egreso (SALIDA / REVERSION).
+  // De cual viene es lo que decide el SIGNO de una reversion — ver
+  // `KardexService.signo`.
   ingresoId        Int?            @map("ingreso_id")
   ingreso          Ingreso?        @relation(fields: [ingresoId], references: [id])
   ingresoDetalleId Int?            @map("ingreso_detalle_id")
   ingresoDetalle   IngresoDetalle? @relation(fields: [ingresoDetalleId], references: [id])
+
+  egresoId        Int?           @map("egreso_id")
+  egreso          Egreso?        @relation(fields: [egresoId], references: [id])
+  egresoDetalleId Int?           @map("egreso_detalle_id")
+  egresoDetalle   EgresoDetalle? @relation(fields: [egresoDetalleId], references: [id])
 
   /// Fecha del movimiento (la del documento; para el ingreso, su fechaRemision).
   fecha  DateTime
@@ -394,5 +432,127 @@ model MovimientoKardex {
   @@index([itemId, almacenId])
   @@index([ingresoId])
   @@index([ingresoDetalleId])
+  @@index([egresoId])
+  @@index([egresoDetalleId])
   @@map("movimientos_kardex")
+}
+
+/// Pedido de material (EGRESO). Circuito de dos niveles: lo crea un solicitador,
+/// lo aprueba el jefe de su unidad y lo entrega el responsable del almacen, que
+/// es quien descarga el stock. Ver docs/decisiones-egresos.md.
+///
+/// TRES MOMENTOS, TRES FECHAS:
+///   - `createdAt`   : se creo el borrador. De aca corren las 48 h de reserva.
+///   - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
+///   - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
+///
+/// El NUMERO se estampa al ENVIAR, no al crear: un borrador que se descarta no
+/// debe dejar un hueco en la serie del documento.
+model Egreso {
+  id     Int          @id @default(autoincrement())
+  estado EstadoEgreso @default(BORRADOR)
+
+  /// Correlativo por almacen + gestion, igual que el Ingreso. Nulos mientras
+  /// esta en BORRADOR (todavia no es un documento).
+  numero  Int?
+  gestion Int?
+
+  /// Heredados del solicitante y fijos: el almacen de donde sale el material y
+  /// la unidad que lo pide. Ver "Regla de negocio critica" en CLAUDE.md.
+  almacenId Int     @map("almacen_id")
+  almacen   Almacen @relation(fields: [almacenId], references: [id])
+  unidadId  Int     @map("unidad_id")
+  unidad    Unidad  @relation(fields: [unidadId], references: [id])
+
+  solicitanteId Int     @map("solicitante_id")
+  solicitante   Usuario @relation("EgresoSolicitante", fields: [solicitanteId], references: [id])
+
+  /// Para que se pide el material. Reemplaza al campo "actividad" del sistema
+  /// anterior; su "categoria"/«Programa» se elimino. Obligatoria (300).
+  justificacion String
+
+  fechaEnvio   DateTime? @map("fecha_envio")
+  fechaEntrega DateTime? @map("fecha_entrega")
+
+  /// Quien entrego (responsable del almacen).
+  entregadoPorId Int?     @map("entregado_por_id")
+  entregadoPor   Usuario? @relation("EgresoEntregadoPor", fields: [entregadoPorId], references: [id])
+
+  // Anulacion: mismas reglas que el Ingreso (motivo obligatorio, sin plazo).
+  anuladoPorId    Int?      @map("anulado_por_id")
+  anuladoPor      Usuario?  @relation("EgresoAnuladoPor", fields: [anuladoPorId], references: [id])
+  anuladoEn       DateTime? @map("anulado_en")
+  motivoAnulacion String?   @map("motivo_anulacion")
+
+  detalles    EgresoDetalle[]
+  historial   EgresoHistorial[]
+  movimientos MovimientoKardex[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([almacenId, gestion, numero])
+  @@index([almacenId])
+  @@index([unidadId])
+  @@index([solicitanteId])
+  // El calculo de stock reservado filtra por estado; el listado tambien.
+  @@index([estado])
+  @@map("egresos")
+}
+
+/// Linea de un Egreso. Apunta al LOTE (`IngresoDetalle`), no al item: el
+/// solicitante elige de que compra y de que fuente sale el material (decision
+/// del encargado, 2026-07-29). El item, la fuente y el precio de la salida se
+/// DERIVAN del lote, por eso no se repiten aca.
+model EgresoDetalle {
+  id       Int    @id @default(autoincrement())
+  egresoId Int    @map("egreso_id")
+  egreso   Egreso @relation(fields: [egresoId], references: [id])
+
+  ingresoDetalleId Int            @map("ingreso_detalle_id")
+  ingresoDetalle   IngresoDetalle @relation(fields: [ingresoDetalleId], references: [id])
+
+  cantidadSolicitada Decimal @map("cantidad_solicitada") @db.Decimal(12, 2)
+
+  /// La ajusta SOLO el responsable de almacen al entregar (el aprobador no toca
+  /// cantidades). Null hasta la entrega. Si falta stock fisico, entrega menos y
+  /// el pedido queda entregado con esta cantidad.
+  cantidadEntregada Decimal? @map("cantidad_entregada") @db.Decimal(12, 2)
+
+  observacion String?
+
+  movimientos MovimientoKardex[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([egresoId])
+  // Lo consulta el calculo de stock reservado (cuanto hay pedido de este lote).
+  @@index([ingresoDetalleId])
+  @@map("egreso_detalles")
+}
+
+/// Traza de cada decision del circuito: quien, cuando, de que estado a cual y
+/// por que. Nunca se borra. Es lo unico que conserva la historia de un pedido
+/// rechazado, porque el rechazo devuelve el egreso a BORRADOR y el estado
+/// anterior se pierde.
+model EgresoHistorial {
+  id       Int    @id @default(autoincrement())
+  egresoId Int    @map("egreso_id")
+  egreso   Egreso @relation(fields: [egresoId], references: [id])
+
+  /// Null en el alta (el pedido no venia de ningun estado).
+  estadoAnterior EstadoEgreso? @map("estado_anterior")
+  estadoNuevo    EstadoEgreso  @map("estado_nuevo")
+
+  usuarioId Int     @map("usuario_id")
+  usuario   Usuario @relation("EgresoHistorialUsuario", fields: [usuarioId], references: [id])
+
+  /// Obligatorio al rechazar y al anular (lo exige el service).
+  motivo String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([egresoId])
+  @@map("egreso_historial")
 }

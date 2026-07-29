@@ -62,7 +62,10 @@ export const ModelName = {
   Item: 'Item',
   Ingreso: 'Ingreso',
   IngresoDetalle: 'IngresoDetalle',
-  MovimientoKardex: 'MovimientoKardex'
+  MovimientoKardex: 'MovimientoKardex',
+  Egreso: 'Egreso',
+  EgresoDetalle: 'EgresoDetalle',
+  EgresoHistorial: 'EgresoHistorial'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -253,12 +256,63 @@ export const MovimientoKardexScalarFieldEnum = {
   precioUnitario: 'precioUnitario',
   ingresoId: 'ingresoId',
   ingresoDetalleId: 'ingresoDetalleId',
+  egresoId: 'egresoId',
+  egresoDetalleId: 'egresoDetalleId',
   fecha: 'fecha',
   motivo: 'motivo',
   createdAt: 'createdAt'
 } as const
 
 export type MovimientoKardexScalarFieldEnum = (typeof MovimientoKardexScalarFieldEnum)[keyof typeof MovimientoKardexScalarFieldEnum]
+
+
+export const EgresoScalarFieldEnum = {
+  id: 'id',
+  estado: 'estado',
+  numero: 'numero',
+  gestion: 'gestion',
+  almacenId: 'almacenId',
+  unidadId: 'unidadId',
+  solicitanteId: 'solicitanteId',
+  justificacion: 'justificacion',
+  fechaEnvio: 'fechaEnvio',
+  fechaEntrega: 'fechaEntrega',
+  entregadoPorId: 'entregadoPorId',
+  anuladoPorId: 'anuladoPorId',
+  anuladoEn: 'anuladoEn',
+  motivoAnulacion: 'motivoAnulacion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EgresoScalarFieldEnum = (typeof EgresoScalarFieldEnum)[keyof typeof EgresoScalarFieldEnum]
+
+
+export const EgresoDetalleScalarFieldEnum = {
+  id: 'id',
+  egresoId: 'egresoId',
+  ingresoDetalleId: 'ingresoDetalleId',
+  cantidadSolicitada: 'cantidadSolicitada',
+  cantidadEntregada: 'cantidadEntregada',
+  observacion: 'observacion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EgresoDetalleScalarFieldEnum = (typeof EgresoDetalleScalarFieldEnum)[keyof typeof EgresoDetalleScalarFieldEnum]
+
+
+export const EgresoHistorialScalarFieldEnum = {
+  id: 'id',
+  egresoId: 'egresoId',
+  estadoAnterior: 'estadoAnterior',
+  estadoNuevo: 'estadoNuevo',
+  usuarioId: 'usuarioId',
+  motivo: 'motivo',
+  createdAt: 'createdAt'
+} as const
+
+export type EgresoHistorialScalarFieldEnum = (typeof EgresoHistorialScalarFieldEnum)[keyof typeof EgresoHistorialScalarFieldEnum]
 
 
 export const SortOrder = {

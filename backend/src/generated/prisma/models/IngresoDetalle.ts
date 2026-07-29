@@ -275,6 +275,7 @@ export type IngresoDetalleWhereInput = {
   ingreso?: Prisma.XOR<Prisma.IngresoScalarRelationFilter, Prisma.IngresoWhereInput>
   item?: Prisma.XOR<Prisma.ItemScalarRelationFilter, Prisma.ItemWhereInput>
   movimientos?: Prisma.MovimientoKardexListRelationFilter
+  egresoDetalles?: Prisma.EgresoDetalleListRelationFilter
 }
 
 export type IngresoDetalleOrderByWithRelationInput = {
@@ -290,6 +291,7 @@ export type IngresoDetalleOrderByWithRelationInput = {
   ingreso?: Prisma.IngresoOrderByWithRelationInput
   item?: Prisma.ItemOrderByWithRelationInput
   movimientos?: Prisma.MovimientoKardexOrderByRelationAggregateInput
+  egresoDetalles?: Prisma.EgresoDetalleOrderByRelationAggregateInput
 }
 
 export type IngresoDetalleWhereUniqueInput = Prisma.AtLeast<{
@@ -308,6 +310,7 @@ export type IngresoDetalleWhereUniqueInput = Prisma.AtLeast<{
   ingreso?: Prisma.XOR<Prisma.IngresoScalarRelationFilter, Prisma.IngresoWhereInput>
   item?: Prisma.XOR<Prisma.ItemScalarRelationFilter, Prisma.ItemWhereInput>
   movimientos?: Prisma.MovimientoKardexListRelationFilter
+  egresoDetalles?: Prisma.EgresoDetalleListRelationFilter
 }, "id">
 
 export type IngresoDetalleOrderByWithAggregationInput = {
@@ -352,6 +355,7 @@ export type IngresoDetalleCreateInput = {
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
   item: Prisma.ItemCreateNestedOneWithoutIngresoDetallesInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleUncheckedCreateInput = {
@@ -365,6 +369,7 @@ export type IngresoDetalleUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleUpdateInput = {
@@ -377,6 +382,7 @@ export type IngresoDetalleUpdateInput = {
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
   item?: Prisma.ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateInput = {
@@ -390,6 +396,7 @@ export type IngresoDetalleUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleCreateManyInput = {
@@ -492,6 +499,11 @@ export type IngresoDetalleSumOrderByAggregateInput = {
 export type IngresoDetalleNullableScalarRelationFilter = {
   is?: Prisma.IngresoDetalleWhereInput | null
   isNot?: Prisma.IngresoDetalleWhereInput | null
+}
+
+export type IngresoDetalleScalarRelationFilter = {
+  is?: Prisma.IngresoDetalleWhereInput
+  isNot?: Prisma.IngresoDetalleWhereInput
 }
 
 export type IngresoDetalleCreateNestedManyWithoutItemInput = {
@@ -602,6 +614,20 @@ export type IngresoDetalleUpdateOneWithoutMovimientosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IngresoDetalleUpdateToOneWithWhereWithoutMovimientosInput, Prisma.IngresoDetalleUpdateWithoutMovimientosInput>, Prisma.IngresoDetalleUncheckedUpdateWithoutMovimientosInput>
 }
 
+export type IngresoDetalleCreateNestedOneWithoutEgresoDetallesInput = {
+  create?: Prisma.XOR<Prisma.IngresoDetalleCreateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput>
+  connectOrCreate?: Prisma.IngresoDetalleCreateOrConnectWithoutEgresoDetallesInput
+  connect?: Prisma.IngresoDetalleWhereUniqueInput
+}
+
+export type IngresoDetalleUpdateOneRequiredWithoutEgresoDetallesNestedInput = {
+  create?: Prisma.XOR<Prisma.IngresoDetalleCreateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput>
+  connectOrCreate?: Prisma.IngresoDetalleCreateOrConnectWithoutEgresoDetallesInput
+  upsert?: Prisma.IngresoDetalleUpsertWithoutEgresoDetallesInput
+  connect?: Prisma.IngresoDetalleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IngresoDetalleUpdateToOneWithWhereWithoutEgresoDetallesInput, Prisma.IngresoDetalleUpdateWithoutEgresoDetallesInput>, Prisma.IngresoDetalleUncheckedUpdateWithoutEgresoDetallesInput>
+}
+
 export type IngresoDetalleCreateWithoutItemInput = {
   cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -611,6 +637,7 @@ export type IngresoDetalleCreateWithoutItemInput = {
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleUncheckedCreateWithoutItemInput = {
@@ -623,6 +650,7 @@ export type IngresoDetalleUncheckedCreateWithoutItemInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleCreateOrConnectWithoutItemInput = {
@@ -675,6 +703,7 @@ export type IngresoDetalleCreateWithoutIngresoInput = {
   updatedAt?: Date | string
   item: Prisma.ItemCreateNestedOneWithoutIngresoDetallesInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleUncheckedCreateWithoutIngresoInput = {
@@ -687,6 +716,7 @@ export type IngresoDetalleUncheckedCreateWithoutIngresoInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleCreateOrConnectWithoutIngresoInput = {
@@ -724,6 +754,7 @@ export type IngresoDetalleCreateWithoutMovimientosInput = {
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
   item: Prisma.ItemCreateNestedOneWithoutIngresoDetallesInput
+  egresoDetalles?: Prisma.EgresoDetalleCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleUncheckedCreateWithoutMovimientosInput = {
@@ -736,6 +767,7 @@ export type IngresoDetalleUncheckedCreateWithoutMovimientosInput = {
   observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedCreateNestedManyWithoutIngresoDetalleInput
 }
 
 export type IngresoDetalleCreateOrConnectWithoutMovimientosInput = {
@@ -763,6 +795,7 @@ export type IngresoDetalleUpdateWithoutMovimientosInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
   item?: Prisma.ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateWithoutMovimientosInput = {
@@ -775,6 +808,73 @@ export type IngresoDetalleUncheckedUpdateWithoutMovimientosInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleNestedInput
+}
+
+export type IngresoDetalleCreateWithoutEgresoDetallesInput = {
+  cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
+  saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  observacion?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
+  item: Prisma.ItemCreateNestedOneWithoutIngresoDetallesInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutIngresoDetalleInput
+}
+
+export type IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput = {
+  id?: number
+  ingresoId: number
+  itemId: number
+  cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
+  saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  observacion?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
+}
+
+export type IngresoDetalleCreateOrConnectWithoutEgresoDetallesInput = {
+  where: Prisma.IngresoDetalleWhereUniqueInput
+  create: Prisma.XOR<Prisma.IngresoDetalleCreateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput>
+}
+
+export type IngresoDetalleUpsertWithoutEgresoDetallesInput = {
+  update: Prisma.XOR<Prisma.IngresoDetalleUpdateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedUpdateWithoutEgresoDetallesInput>
+  create: Prisma.XOR<Prisma.IngresoDetalleCreateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput>
+  where?: Prisma.IngresoDetalleWhereInput
+}
+
+export type IngresoDetalleUpdateToOneWithWhereWithoutEgresoDetallesInput = {
+  where?: Prisma.IngresoDetalleWhereInput
+  data: Prisma.XOR<Prisma.IngresoDetalleUpdateWithoutEgresoDetallesInput, Prisma.IngresoDetalleUncheckedUpdateWithoutEgresoDetallesInput>
+}
+
+export type IngresoDetalleUpdateWithoutEgresoDetallesInput = {
+  cantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
+  item?: Prisma.ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutIngresoDetalleNestedInput
+}
+
+export type IngresoDetalleUncheckedUpdateWithoutEgresoDetallesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  ingresoId?: Prisma.IntFieldUpdateOperationsInput | number
+  itemId?: Prisma.IntFieldUpdateOperationsInput | number
+  cantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleCreateManyItemInput = {
@@ -797,6 +897,7 @@ export type IngresoDetalleUpdateWithoutItemInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateWithoutItemInput = {
@@ -809,6 +910,7 @@ export type IngresoDetalleUncheckedUpdateWithoutItemInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateManyWithoutItemInput = {
@@ -842,6 +944,7 @@ export type IngresoDetalleUpdateWithoutIngresoInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   item?: Prisma.ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateWithoutIngresoInput = {
@@ -854,6 +957,7 @@ export type IngresoDetalleUncheckedUpdateWithoutIngresoInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
+  egresoDetalles?: Prisma.EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleNestedInput
 }
 
 export type IngresoDetalleUncheckedUpdateManyWithoutIngresoInput = {
@@ -874,10 +978,12 @@ export type IngresoDetalleUncheckedUpdateManyWithoutIngresoInput = {
 
 export type IngresoDetalleCountOutputType = {
   movimientos: number
+  egresoDetalles: number
 }
 
 export type IngresoDetalleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   movimientos?: boolean | IngresoDetalleCountOutputTypeCountMovimientosArgs
+  egresoDetalles?: boolean | IngresoDetalleCountOutputTypeCountEgresoDetallesArgs
 }
 
 /**
@@ -897,6 +1003,13 @@ export type IngresoDetalleCountOutputTypeCountMovimientosArgs<ExtArgs extends ru
   where?: Prisma.MovimientoKardexWhereInput
 }
 
+/**
+ * IngresoDetalleCountOutputType without action
+ */
+export type IngresoDetalleCountOutputTypeCountEgresoDetallesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoDetalleWhereInput
+}
+
 
 export type IngresoDetalleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -911,6 +1024,7 @@ export type IngresoDetalleSelect<ExtArgs extends runtime.Types.Extensions.Intern
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
   movimientos?: boolean | Prisma.IngresoDetalle$movimientosArgs<ExtArgs>
+  egresoDetalles?: boolean | Prisma.IngresoDetalle$egresoDetallesArgs<ExtArgs>
   _count?: boolean | Prisma.IngresoDetalleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ingresoDetalle"]>
 
@@ -959,6 +1073,7 @@ export type IngresoDetalleInclude<ExtArgs extends runtime.Types.Extensions.Inter
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
   movimientos?: boolean | Prisma.IngresoDetalle$movimientosArgs<ExtArgs>
+  egresoDetalles?: boolean | Prisma.IngresoDetalle$egresoDetallesArgs<ExtArgs>
   _count?: boolean | Prisma.IngresoDetalleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IngresoDetalleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -976,6 +1091,12 @@ export type $IngresoDetallePayload<ExtArgs extends runtime.Types.Extensions.Inte
     ingreso: Prisma.$IngresoPayload<ExtArgs>
     item: Prisma.$ItemPayload<ExtArgs>
     movimientos: Prisma.$MovimientoKardexPayload<ExtArgs>[]
+    /**
+     * Pedidos que salen de ESTE lote. De aca sale el stock RESERVADO: la suma de
+     * las lineas cuyo egreso esta pendiente (o en un borrador de menos de 48 h).
+     * La reserva no es una columna a proposito — ver docs/decisiones-egresos.md.
+     */
+    egresoDetalles: Prisma.$EgresoDetallePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1388,6 +1509,7 @@ export interface Prisma__IngresoDetalleClient<T, Null = never, ExtArgs extends r
   ingreso<T extends Prisma.IngresoDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.IngresoDefaultArgs<ExtArgs>>): Prisma.Prisma__IngresoClient<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   item<T extends Prisma.ItemDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ItemDefaultArgs<ExtArgs>>): Prisma.Prisma__ItemClient<runtime.Types.Result.GetResult<Prisma.$ItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   movimientos<T extends Prisma.IngresoDetalle$movimientosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.IngresoDetalle$movimientosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimientoKardexPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  egresoDetalles<T extends Prisma.IngresoDetalle$egresoDetallesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.IngresoDetalle$egresoDetallesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoDetallePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1848,6 +1970,30 @@ export type IngresoDetalle$movimientosArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.MovimientoKardexScalarFieldEnum | Prisma.MovimientoKardexScalarFieldEnum[]
+}
+
+/**
+ * IngresoDetalle.egresoDetalles
+ */
+export type IngresoDetalle$egresoDetallesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EgresoDetalle
+   */
+  select?: Prisma.EgresoDetalleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EgresoDetalle
+   */
+  omit?: Prisma.EgresoDetalleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoDetalleInclude<ExtArgs> | null
+  where?: Prisma.EgresoDetalleWhereInput
+  orderBy?: Prisma.EgresoDetalleOrderByWithRelationInput | Prisma.EgresoDetalleOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoDetalleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoDetalleScalarFieldEnum | Prisma.EgresoDetalleScalarFieldEnum[]
 }
 
 /**

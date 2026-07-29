@@ -287,6 +287,10 @@ export type UsuarioWhereInput = {
   ingresosRegistrados?: Prisma.IngresoListRelationFilter
   ingresosConformidad?: Prisma.IngresoListRelationFilter
   ingresosAnulados?: Prisma.IngresoListRelationFilter
+  egresosSolicitados?: Prisma.EgresoListRelationFilter
+  egresosEntregados?: Prisma.EgresoListRelationFilter
+  egresosAnulados?: Prisma.EgresoListRelationFilter
+  decisionesEgreso?: Prisma.EgresoHistorialListRelationFilter
 }
 
 export type UsuarioOrderByWithRelationInput = {
@@ -307,6 +311,10 @@ export type UsuarioOrderByWithRelationInput = {
   ingresosRegistrados?: Prisma.IngresoOrderByRelationAggregateInput
   ingresosConformidad?: Prisma.IngresoOrderByRelationAggregateInput
   ingresosAnulados?: Prisma.IngresoOrderByRelationAggregateInput
+  egresosSolicitados?: Prisma.EgresoOrderByRelationAggregateInput
+  egresosEntregados?: Prisma.EgresoOrderByRelationAggregateInput
+  egresosAnulados?: Prisma.EgresoOrderByRelationAggregateInput
+  decisionesEgreso?: Prisma.EgresoHistorialOrderByRelationAggregateInput
 }
 
 export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
@@ -330,6 +338,10 @@ export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
   ingresosRegistrados?: Prisma.IngresoListRelationFilter
   ingresosConformidad?: Prisma.IngresoListRelationFilter
   ingresosAnulados?: Prisma.IngresoListRelationFilter
+  egresosSolicitados?: Prisma.EgresoListRelationFilter
+  egresosEntregados?: Prisma.EgresoListRelationFilter
+  egresosAnulados?: Prisma.EgresoListRelationFilter
+  decisionesEgreso?: Prisma.EgresoHistorialListRelationFilter
 }, "id" | "usuario">
 
 export type UsuarioOrderByWithAggregationInput = {
@@ -383,6 +395,10 @@ export type UsuarioCreateInput = {
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateInput = {
@@ -401,6 +417,10 @@ export type UsuarioUncheckedCreateInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUpdateInput = {
@@ -418,6 +438,10 @@ export type UsuarioUpdateInput = {
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateInput = {
@@ -436,6 +460,10 @@ export type UsuarioUncheckedUpdateInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioCreateManyInput = {
@@ -699,6 +727,66 @@ export type UsuarioUpdateOneWithoutIngresosAnuladosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutIngresosAnuladosInput, Prisma.UsuarioUpdateWithoutIngresosAnuladosInput>, Prisma.UsuarioUncheckedUpdateWithoutIngresosAnuladosInput>
 }
 
+export type UsuarioCreateNestedOneWithoutEgresosSolicitadosInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosSolicitadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosSolicitadosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioCreateNestedOneWithoutEgresosEntregadosInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosEntregadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosEntregadosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioCreateNestedOneWithoutEgresosAnuladosInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosAnuladosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosAnuladosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioUpdateOneRequiredWithoutEgresosSolicitadosNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosSolicitadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosSolicitadosInput
+  upsert?: Prisma.UsuarioUpsertWithoutEgresosSolicitadosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutEgresosSolicitadosInput, Prisma.UsuarioUpdateWithoutEgresosSolicitadosInput>, Prisma.UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput>
+}
+
+export type UsuarioUpdateOneWithoutEgresosEntregadosNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosEntregadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosEntregadosInput
+  upsert?: Prisma.UsuarioUpsertWithoutEgresosEntregadosInput
+  disconnect?: Prisma.UsuarioWhereInput | boolean
+  delete?: Prisma.UsuarioWhereInput | boolean
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutEgresosEntregadosInput, Prisma.UsuarioUpdateWithoutEgresosEntregadosInput>, Prisma.UsuarioUncheckedUpdateWithoutEgresosEntregadosInput>
+}
+
+export type UsuarioUpdateOneWithoutEgresosAnuladosNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosAnuladosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutEgresosAnuladosInput
+  upsert?: Prisma.UsuarioUpsertWithoutEgresosAnuladosInput
+  disconnect?: Prisma.UsuarioWhereInput | boolean
+  delete?: Prisma.UsuarioWhereInput | boolean
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutEgresosAnuladosInput, Prisma.UsuarioUpdateWithoutEgresosAnuladosInput>, Prisma.UsuarioUncheckedUpdateWithoutEgresosAnuladosInput>
+}
+
+export type UsuarioCreateNestedOneWithoutDecisionesEgresoInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedCreateWithoutDecisionesEgresoInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutDecisionesEgresoInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioUpdateOneRequiredWithoutDecisionesEgresoNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedCreateWithoutDecisionesEgresoInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutDecisionesEgresoInput
+  upsert?: Prisma.UsuarioUpsertWithoutDecisionesEgresoInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutDecisionesEgresoInput, Prisma.UsuarioUpdateWithoutDecisionesEgresoInput>, Prisma.UsuarioUncheckedUpdateWithoutDecisionesEgresoInput>
+}
+
 export type UsuarioCreateWithoutUnidadInput = {
   nombre: string
   cargo?: string | null
@@ -713,6 +801,10 @@ export type UsuarioCreateWithoutUnidadInput = {
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutUnidadInput = {
@@ -730,6 +822,10 @@ export type UsuarioUncheckedCreateWithoutUnidadInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutUnidadInput = {
@@ -789,6 +885,10 @@ export type UsuarioCreateWithoutAlmacenInput = {
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenInput = {
@@ -806,6 +906,10 @@ export type UsuarioUncheckedCreateWithoutAlmacenInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenInput = {
@@ -848,6 +952,10 @@ export type UsuarioCreateWithoutAlmacenesObservadosInput = {
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
@@ -865,6 +973,10 @@ export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenesObservadosInput = {
@@ -897,6 +1009,10 @@ export type UsuarioUpdateWithoutAlmacenesObservadosInput = {
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
@@ -914,6 +1030,10 @@ export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioCreateWithoutIngresosConformidadInput = {
@@ -930,6 +1050,10 @@ export type UsuarioCreateWithoutIngresosConformidadInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
@@ -947,6 +1071,10 @@ export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosConformidadInput = {
@@ -968,6 +1096,10 @@ export type UsuarioCreateWithoutIngresosRegistradosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
@@ -985,6 +1117,10 @@ export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
   ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosRegistradosInput = {
@@ -1006,6 +1142,10 @@ export type UsuarioCreateWithoutIngresosAnuladosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
   ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
@@ -1023,6 +1163,10 @@ export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
   ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
   ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosAnuladosInput = {
@@ -1055,6 +1199,10 @@ export type UsuarioUpdateWithoutIngresosConformidadInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
@@ -1072,6 +1220,10 @@ export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosRegistradosInput = {
@@ -1099,6 +1251,10 @@ export type UsuarioUpdateWithoutIngresosRegistradosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
@@ -1116,6 +1272,10 @@ export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosAnuladosInput = {
@@ -1143,6 +1303,10 @@ export type UsuarioUpdateWithoutIngresosAnuladosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
@@ -1160,6 +1324,402 @@ export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioCreateWithoutEgresosSolicitadosInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  unidadId?: number | null
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioCreateOrConnectWithoutEgresosSolicitadosInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosSolicitadosInput>
+}
+
+export type UsuarioCreateWithoutEgresosEntregadosInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  unidadId?: number | null
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioCreateOrConnectWithoutEgresosEntregadosInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosEntregadosInput>
+}
+
+export type UsuarioCreateWithoutEgresosAnuladosInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  unidadId?: number | null
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
+}
+
+export type UsuarioCreateOrConnectWithoutEgresosAnuladosInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosAnuladosInput>
+}
+
+export type UsuarioUpsertWithoutEgresosSolicitadosInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosSolicitadosInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutEgresosSolicitadosInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosSolicitadosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput>
+}
+
+export type UsuarioUpdateWithoutEgresosSolicitadosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioUpsertWithoutEgresosEntregadosInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosEntregadosInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosEntregadosInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutEgresosEntregadosInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosEntregadosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosEntregadosInput>
+}
+
+export type UsuarioUpdateWithoutEgresosEntregadosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioUpsertWithoutEgresosAnuladosInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosAnuladosInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedCreateWithoutEgresosAnuladosInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutEgresosAnuladosInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutEgresosAnuladosInput, Prisma.UsuarioUncheckedUpdateWithoutEgresosAnuladosInput>
+}
+
+export type UsuarioUpdateWithoutEgresosAnuladosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+}
+
+export type UsuarioCreateWithoutDecisionesEgresoInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+}
+
+export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  unidadId?: number | null
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+}
+
+export type UsuarioCreateOrConnectWithoutDecisionesEgresoInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedCreateWithoutDecisionesEgresoInput>
+}
+
+export type UsuarioUpsertWithoutDecisionesEgresoInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedUpdateWithoutDecisionesEgresoInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedCreateWithoutDecisionesEgresoInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutDecisionesEgresoInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedUpdateWithoutDecisionesEgresoInput>
+}
+
+export type UsuarioUpdateWithoutDecisionesEgresoInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
 }
 
 export type UsuarioCreateManyUnidadInput = {
@@ -1189,6 +1749,10 @@ export type UsuarioUpdateWithoutUnidadInput = {
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutUnidadInput = {
@@ -1206,6 +1770,10 @@ export type UsuarioUncheckedUpdateWithoutUnidadInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateManyWithoutUnidadInput = {
@@ -1248,6 +1816,10 @@ export type UsuarioUpdateWithoutAlmacenInput = {
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
@@ -1265,6 +1837,10 @@ export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
   ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
   ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
   ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
 }
 
 export type UsuarioUncheckedUpdateManyWithoutAlmacenInput = {
@@ -1290,6 +1866,10 @@ export type UsuarioCountOutputType = {
   ingresosRegistrados: number
   ingresosConformidad: number
   ingresosAnulados: number
+  egresosSolicitados: number
+  egresosEntregados: number
+  egresosAnulados: number
+  decisionesEgreso: number
 }
 
 export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1297,6 +1877,10 @@ export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   ingresosRegistrados?: boolean | UsuarioCountOutputTypeCountIngresosRegistradosArgs
   ingresosConformidad?: boolean | UsuarioCountOutputTypeCountIngresosConformidadArgs
   ingresosAnulados?: boolean | UsuarioCountOutputTypeCountIngresosAnuladosArgs
+  egresosSolicitados?: boolean | UsuarioCountOutputTypeCountEgresosSolicitadosArgs
+  egresosEntregados?: boolean | UsuarioCountOutputTypeCountEgresosEntregadosArgs
+  egresosAnulados?: boolean | UsuarioCountOutputTypeCountEgresosAnuladosArgs
+  decisionesEgreso?: boolean | UsuarioCountOutputTypeCountDecisionesEgresoArgs
 }
 
 /**
@@ -1337,6 +1921,34 @@ export type UsuarioCountOutputTypeCountIngresosAnuladosArgs<ExtArgs extends runt
   where?: Prisma.IngresoWhereInput
 }
 
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountEgresosSolicitadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoWhereInput
+}
+
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountEgresosEntregadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoWhereInput
+}
+
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountEgresosAnuladosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoWhereInput
+}
+
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountDecisionesEgresoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoHistorialWhereInput
+}
+
 
 export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1356,6 +1968,10 @@ export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   ingresosRegistrados?: boolean | Prisma.Usuario$ingresosRegistradosArgs<ExtArgs>
   ingresosConformidad?: boolean | Prisma.Usuario$ingresosConformidadArgs<ExtArgs>
   ingresosAnulados?: boolean | Prisma.Usuario$ingresosAnuladosArgs<ExtArgs>
+  egresosSolicitados?: boolean | Prisma.Usuario$egresosSolicitadosArgs<ExtArgs>
+  egresosEntregados?: boolean | Prisma.Usuario$egresosEntregadosArgs<ExtArgs>
+  egresosAnulados?: boolean | Prisma.Usuario$egresosAnuladosArgs<ExtArgs>
+  decisionesEgreso?: boolean | Prisma.Usuario$decisionesEgresoArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["usuario"]>
 
@@ -1413,6 +2029,10 @@ export type UsuarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   ingresosRegistrados?: boolean | Prisma.Usuario$ingresosRegistradosArgs<ExtArgs>
   ingresosConformidad?: boolean | Prisma.Usuario$ingresosConformidadArgs<ExtArgs>
   ingresosAnulados?: boolean | Prisma.Usuario$ingresosAnuladosArgs<ExtArgs>
+  egresosSolicitados?: boolean | Prisma.Usuario$egresosSolicitadosArgs<ExtArgs>
+  egresosEntregados?: boolean | Prisma.Usuario$egresosEntregadosArgs<ExtArgs>
+  egresosAnulados?: boolean | Prisma.Usuario$egresosAnuladosArgs<ExtArgs>
+  decisionesEgreso?: boolean | Prisma.Usuario$decisionesEgresoArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UsuarioIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1433,6 +2053,10 @@ export type $UsuarioPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     ingresosRegistrados: Prisma.$IngresoPayload<ExtArgs>[]
     ingresosConformidad: Prisma.$IngresoPayload<ExtArgs>[]
     ingresosAnulados: Prisma.$IngresoPayload<ExtArgs>[]
+    egresosSolicitados: Prisma.$EgresoPayload<ExtArgs>[]
+    egresosEntregados: Prisma.$EgresoPayload<ExtArgs>[]
+    egresosAnulados: Prisma.$EgresoPayload<ExtArgs>[]
+    decisionesEgreso: Prisma.$EgresoHistorialPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1846,6 +2470,10 @@ export interface Prisma__UsuarioClient<T, Null = never, ExtArgs extends runtime.
   ingresosRegistrados<T extends Prisma.Usuario$ingresosRegistradosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$ingresosRegistradosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ingresosConformidad<T extends Prisma.Usuario$ingresosConformidadArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$ingresosConformidadArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ingresosAnulados<T extends Prisma.Usuario$ingresosAnuladosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$ingresosAnuladosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  egresosSolicitados<T extends Prisma.Usuario$egresosSolicitadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$egresosSolicitadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  egresosEntregados<T extends Prisma.Usuario$egresosEntregadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$egresosEntregadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  egresosAnulados<T extends Prisma.Usuario$egresosAnuladosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$egresosAnuladosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  decisionesEgreso<T extends Prisma.Usuario$decisionesEgresoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$decisionesEgresoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoHistorialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2418,6 +3046,102 @@ export type Usuario$ingresosAnuladosArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
+}
+
+/**
+ * Usuario.egresosSolicitados
+ */
+export type Usuario$egresosSolicitadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Egreso
+   */
+  select?: Prisma.EgresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Egreso
+   */
+  omit?: Prisma.EgresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoInclude<ExtArgs> | null
+  where?: Prisma.EgresoWhereInput
+  orderBy?: Prisma.EgresoOrderByWithRelationInput | Prisma.EgresoOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoScalarFieldEnum | Prisma.EgresoScalarFieldEnum[]
+}
+
+/**
+ * Usuario.egresosEntregados
+ */
+export type Usuario$egresosEntregadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Egreso
+   */
+  select?: Prisma.EgresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Egreso
+   */
+  omit?: Prisma.EgresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoInclude<ExtArgs> | null
+  where?: Prisma.EgresoWhereInput
+  orderBy?: Prisma.EgresoOrderByWithRelationInput | Prisma.EgresoOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoScalarFieldEnum | Prisma.EgresoScalarFieldEnum[]
+}
+
+/**
+ * Usuario.egresosAnulados
+ */
+export type Usuario$egresosAnuladosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Egreso
+   */
+  select?: Prisma.EgresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Egreso
+   */
+  omit?: Prisma.EgresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoInclude<ExtArgs> | null
+  where?: Prisma.EgresoWhereInput
+  orderBy?: Prisma.EgresoOrderByWithRelationInput | Prisma.EgresoOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoScalarFieldEnum | Prisma.EgresoScalarFieldEnum[]
+}
+
+/**
+ * Usuario.decisionesEgreso
+ */
+export type Usuario$decisionesEgresoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EgresoHistorial
+   */
+  select?: Prisma.EgresoHistorialSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EgresoHistorial
+   */
+  omit?: Prisma.EgresoHistorialOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoHistorialInclude<ExtArgs> | null
+  where?: Prisma.EgresoHistorialWhereInput
+  orderBy?: Prisma.EgresoHistorialOrderByWithRelationInput | Prisma.EgresoHistorialOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoHistorialWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoHistorialScalarFieldEnum | Prisma.EgresoHistorialScalarFieldEnum[]
 }
 
 /**

@@ -139,3 +139,34 @@ export type IngresoDetalle = Prisma.IngresoDetalleModel
  * confirmado) y REVERSION (anulacion). SALIDA llega con Egresos.
  */
 export type MovimientoKardex = Prisma.MovimientoKardexModel
+/**
+ * Model Egreso
+ * Pedido de material (EGRESO). Circuito de dos niveles: lo crea un solicitador,
+ * lo aprueba el jefe de su unidad y lo entrega el responsable del almacen, que
+ * es quien descarga el stock. Ver docs/decisiones-egresos.md.
+ * 
+ * TRES MOMENTOS, TRES FECHAS:
+ * - `createdAt`   : se creo el borrador. De aca corren las 48 h de reserva.
+ * - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
+ * - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
+ * 
+ * El NUMERO se estampa al ENVIAR, no al crear: un borrador que se descarta no
+ * debe dejar un hueco en la serie del documento.
+ */
+export type Egreso = Prisma.EgresoModel
+/**
+ * Model EgresoDetalle
+ * Linea de un Egreso. Apunta al LOTE (`IngresoDetalle`), no al item: el
+ * solicitante elige de que compra y de que fuente sale el material (decision
+ * del encargado, 2026-07-29). El item, la fuente y el precio de la salida se
+ * DERIVAN del lote, por eso no se repiten aca.
+ */
+export type EgresoDetalle = Prisma.EgresoDetalleModel
+/**
+ * Model EgresoHistorial
+ * Traza de cada decision del circuito: quien, cuando, de que estado a cual y
+ * por que. Nunca se borra. Es lo unico que conserva la historia de un pedido
+ * rechazado, porque el rechazo devuelve el egreso a BORRADOR y el estado
+ * anterior se pierde.
+ */
+export type EgresoHistorial = Prisma.EgresoHistorialModel

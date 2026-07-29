@@ -220,6 +220,7 @@ export type AlmacenWhereInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoListRelationFilter
   unidades?: Prisma.AlmacenUnidadListRelationFilter
   ingresos?: Prisma.IngresoListRelationFilter
+  egresos?: Prisma.EgresoListRelationFilter
   movimientos?: Prisma.MovimientoKardexListRelationFilter
 }
 
@@ -233,6 +234,7 @@ export type AlmacenOrderByWithRelationInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoOrderByRelationAggregateInput
   unidades?: Prisma.AlmacenUnidadOrderByRelationAggregateInput
   ingresos?: Prisma.IngresoOrderByRelationAggregateInput
+  egresos?: Prisma.EgresoOrderByRelationAggregateInput
   movimientos?: Prisma.MovimientoKardexOrderByRelationAggregateInput
 }
 
@@ -249,6 +251,7 @@ export type AlmacenWhereUniqueInput = Prisma.AtLeast<{
   observadores?: Prisma.UsuarioAlmacenObservadoListRelationFilter
   unidades?: Prisma.AlmacenUnidadListRelationFilter
   ingresos?: Prisma.IngresoListRelationFilter
+  egresos?: Prisma.EgresoListRelationFilter
   movimientos?: Prisma.MovimientoKardexListRelationFilter
 }, "id" | "nombre">
 
@@ -285,6 +288,7 @@ export type AlmacenCreateInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
 }
 
@@ -298,6 +302,7 @@ export type AlmacenUncheckedCreateInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
@@ -310,6 +315,7 @@ export type AlmacenUpdateInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -323,6 +329,7 @@ export type AlmacenUncheckedUpdateInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -463,6 +470,20 @@ export type AlmacenUpdateOneRequiredWithoutMovimientosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutMovimientosInput, Prisma.AlmacenUpdateWithoutMovimientosInput>, Prisma.AlmacenUncheckedUpdateWithoutMovimientosInput>
 }
 
+export type AlmacenCreateNestedOneWithoutEgresosInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutEgresosInput, Prisma.AlmacenUncheckedCreateWithoutEgresosInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutEgresosInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+}
+
+export type AlmacenUpdateOneRequiredWithoutEgresosNestedInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutEgresosInput, Prisma.AlmacenUncheckedCreateWithoutEgresosInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutEgresosInput
+  upsert?: Prisma.AlmacenUpsertWithoutEgresosInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutEgresosInput, Prisma.AlmacenUpdateWithoutEgresosInput>, Prisma.AlmacenUncheckedUpdateWithoutEgresosInput>
+}
+
 export type AlmacenCreateWithoutUnidadesInput = {
   nombre: string
   activo?: boolean
@@ -471,6 +492,7 @@ export type AlmacenCreateWithoutUnidadesInput = {
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
 }
 
@@ -483,6 +505,7 @@ export type AlmacenUncheckedCreateWithoutUnidadesInput = {
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
@@ -510,6 +533,7 @@ export type AlmacenUpdateWithoutUnidadesInput = {
   usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -522,6 +546,7 @@ export type AlmacenUncheckedUpdateWithoutUnidadesInput = {
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -533,6 +558,7 @@ export type AlmacenCreateWithoutUsuariosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
 }
 
@@ -545,6 +571,7 @@ export type AlmacenUncheckedCreateWithoutUsuariosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
@@ -572,6 +599,7 @@ export type AlmacenUpdateWithoutUsuariosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -584,6 +612,7 @@ export type AlmacenUncheckedUpdateWithoutUsuariosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -595,6 +624,7 @@ export type AlmacenCreateWithoutObservadoresInput = {
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
 }
 
@@ -607,6 +637,7 @@ export type AlmacenUncheckedCreateWithoutObservadoresInput = {
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
@@ -634,6 +665,7 @@ export type AlmacenUpdateWithoutObservadoresInput = {
   usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -646,6 +678,7 @@ export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -657,6 +690,7 @@ export type AlmacenCreateWithoutIngresosInput = {
   usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
 }
 
@@ -669,6 +703,7 @@ export type AlmacenUncheckedCreateWithoutIngresosInput = {
   usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
@@ -696,6 +731,7 @@ export type AlmacenUpdateWithoutIngresosInput = {
   usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -708,6 +744,7 @@ export type AlmacenUncheckedUpdateWithoutIngresosInput = {
   usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
@@ -720,6 +757,7 @@ export type AlmacenCreateWithoutMovimientosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutMovimientosInput = {
@@ -732,6 +770,7 @@ export type AlmacenUncheckedCreateWithoutMovimientosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
   unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutMovimientosInput = {
@@ -759,6 +798,7 @@ export type AlmacenUpdateWithoutMovimientosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutMovimientosInput = {
@@ -771,6 +811,73 @@ export type AlmacenUncheckedUpdateWithoutMovimientosInput = {
   observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
   unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
+}
+
+export type AlmacenCreateWithoutEgresosInput = {
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
+  ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
+}
+
+export type AlmacenUncheckedCreateWithoutEgresosInput = {
+  id?: number
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
+  ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
+}
+
+export type AlmacenCreateOrConnectWithoutEgresosInput = {
+  where: Prisma.AlmacenWhereUniqueInput
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutEgresosInput, Prisma.AlmacenUncheckedCreateWithoutEgresosInput>
+}
+
+export type AlmacenUpsertWithoutEgresosInput = {
+  update: Prisma.XOR<Prisma.AlmacenUpdateWithoutEgresosInput, Prisma.AlmacenUncheckedUpdateWithoutEgresosInput>
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutEgresosInput, Prisma.AlmacenUncheckedCreateWithoutEgresosInput>
+  where?: Prisma.AlmacenWhereInput
+}
+
+export type AlmacenUpdateToOneWithWhereWithoutEgresosInput = {
+  where?: Prisma.AlmacenWhereInput
+  data: Prisma.XOR<Prisma.AlmacenUpdateWithoutEgresosInput, Prisma.AlmacenUncheckedUpdateWithoutEgresosInput>
+}
+
+export type AlmacenUpdateWithoutEgresosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
+  ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
+}
+
+export type AlmacenUncheckedUpdateWithoutEgresosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
+  ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 
@@ -783,6 +890,7 @@ export type AlmacenCountOutputType = {
   observadores: number
   unidades: number
   ingresos: number
+  egresos: number
   movimientos: number
 }
 
@@ -791,6 +899,7 @@ export type AlmacenCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   observadores?: boolean | AlmacenCountOutputTypeCountObservadoresArgs
   unidades?: boolean | AlmacenCountOutputTypeCountUnidadesArgs
   ingresos?: boolean | AlmacenCountOutputTypeCountIngresosArgs
+  egresos?: boolean | AlmacenCountOutputTypeCountEgresosArgs
   movimientos?: boolean | AlmacenCountOutputTypeCountMovimientosArgs
 }
 
@@ -835,6 +944,13 @@ export type AlmacenCountOutputTypeCountIngresosArgs<ExtArgs extends runtime.Type
 /**
  * AlmacenCountOutputType without action
  */
+export type AlmacenCountOutputTypeCountEgresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EgresoWhereInput
+}
+
+/**
+ * AlmacenCountOutputType without action
+ */
 export type AlmacenCountOutputTypeCountMovimientosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MovimientoKardexWhereInput
 }
@@ -850,6 +966,7 @@ export type AlmacenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   observadores?: boolean | Prisma.Almacen$observadoresArgs<ExtArgs>
   unidades?: boolean | Prisma.Almacen$unidadesArgs<ExtArgs>
   ingresos?: boolean | Prisma.Almacen$ingresosArgs<ExtArgs>
+  egresos?: boolean | Prisma.Almacen$egresosArgs<ExtArgs>
   movimientos?: boolean | Prisma.Almacen$movimientosArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["almacen"]>
@@ -884,6 +1001,7 @@ export type AlmacenInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   observadores?: boolean | Prisma.Almacen$observadoresArgs<ExtArgs>
   unidades?: boolean | Prisma.Almacen$unidadesArgs<ExtArgs>
   ingresos?: boolean | Prisma.Almacen$ingresosArgs<ExtArgs>
+  egresos?: boolean | Prisma.Almacen$egresosArgs<ExtArgs>
   movimientos?: boolean | Prisma.Almacen$movimientosArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -897,6 +1015,7 @@ export type $AlmacenPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     observadores: Prisma.$UsuarioAlmacenObservadoPayload<ExtArgs>[]
     unidades: Prisma.$AlmacenUnidadPayload<ExtArgs>[]
     ingresos: Prisma.$IngresoPayload<ExtArgs>[]
+    egresos: Prisma.$EgresoPayload<ExtArgs>[]
     movimientos: Prisma.$MovimientoKardexPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1303,6 +1422,7 @@ export interface Prisma__AlmacenClient<T, Null = never, ExtArgs extends runtime.
   observadores<T extends Prisma.Almacen$observadoresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$observadoresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UsuarioAlmacenObservadoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   unidades<T extends Prisma.Almacen$unidadesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$unidadesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlmacenUnidadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ingresos<T extends Prisma.Almacen$ingresosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$ingresosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  egresos<T extends Prisma.Almacen$egresosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$egresosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   movimientos<T extends Prisma.Almacen$movimientosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$movimientosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimientoKardexPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1824,6 +1944,30 @@ export type Almacen$ingresosArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
+}
+
+/**
+ * Almacen.egresos
+ */
+export type Almacen$egresosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Egreso
+   */
+  select?: Prisma.EgresoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Egreso
+   */
+  omit?: Prisma.EgresoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EgresoInclude<ExtArgs> | null
+  where?: Prisma.EgresoWhereInput
+  orderBy?: Prisma.EgresoOrderByWithRelationInput | Prisma.EgresoOrderByWithRelationInput[]
+  cursor?: Prisma.EgresoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EgresoScalarFieldEnum | Prisma.EgresoScalarFieldEnum[]
 }
 
 /**
