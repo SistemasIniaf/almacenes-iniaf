@@ -16,6 +16,13 @@ export interface LoteStock {
   cantidad: string
   precioUnitario: string
   saldoCantidad: string
+  /**
+   * Comprometido por pedidos vivos (pendientes o borradores de menos de 48 h).
+   * Llega como number: lo calcula el backend, no es una columna.
+   */
+  reservado: number
+  /** `saldoCantidad − reservado`. Es lo que un egreso puede pedir de este lote. */
+  disponible: number
   observacion: string | null
   ingreso: {
     id: number

@@ -29,6 +29,7 @@ const SECCIONES: Record<string, string> = {
   stock: "Stock",
   kardex: "Kardex",
   ingresos: "Ingresos",
+  egresos: "Egresos",
 }
 
 export const DashboardLayout = () => {

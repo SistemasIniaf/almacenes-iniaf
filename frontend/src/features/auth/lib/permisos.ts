@@ -33,12 +33,27 @@ export const PERMISOS = {
   ],
   ingresosEscribir: ["super_admin", "admin", "responsable_almacen"],
 
-  /** Stock y kardex: solo lectura, los mismos que leen ingresos y mismo scope. */
+  /** Egresos: los ve todo el circuito. El alcance (los míos / los de mi unidad
+   * / los de mi almacén) lo aplica el backend, no la UI. Crear es solo del
+   * solicitador; las decisiones las habilita cada pantalla según el estado. */
+  egresosLeer: [
+    "super_admin",
+    "admin",
+    "solicitador",
+    "aprobador",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
+  egresosCrear: ["solicitador"],
+
+  /** Stock: el solicitador entra desde 2026-07-29 — su pedido apunta a un lote,
+   * así que necesita ver cuáles hay y con cuánto disponible. */
   stockLeer: [
     "super_admin",
     "admin",
     "responsable_almacen",
     "observador_almacen",
+    "solicitador",
   ],
   kardexLeer: [
     "super_admin",

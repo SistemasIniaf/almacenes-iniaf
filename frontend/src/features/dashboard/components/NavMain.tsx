@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  ArrowUpFromLine,
   BookOpen,
   Boxes,
   Building2,
@@ -110,6 +111,12 @@ const ITEMS: ItemMenu[] = [
     url: "/ingresos",
     icono: ArrowDownToLine,
     permiso: "ingresosLeer",
+  },
+  {
+    titulo: "Egresos",
+    url: "/egresos",
+    icono: ArrowUpFromLine,
+    permiso: "egresosLeer",
   },
 ]
 

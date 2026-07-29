@@ -4,6 +4,8 @@ import { LoginPage } from "@/features/auth/pages/LoginPage"
 import { DashboardLayout } from "@/features/dashboard/layout/DashboardLayout"
 import { DashboardHomePage } from "@/features/dashboard/pages/DashboardHomePage"
 import { AlmacenesPage } from "@/features/almacenes/AlmacenesPage"
+import { EgresoFormPage } from "@/features/egresos/pages/EgresoFormPage"
+import { EgresosPage } from "@/features/egresos/pages/EgresosPage"
 import { FuentesFinanciamientoPage } from "@/features/fuentes-financiamiento/FuentesFinanciamientoPage"
 import { IngresoFormPage } from "@/features/ingresos/pages/IngresoFormPage"
 import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
@@ -84,6 +86,18 @@ export const router = createBrowserRouter([
           {
             path: "ingresos/:id",
             element: <IngresoFormPage />,
+          },
+          {
+            path: "egresos",
+            element: <EgresosPage />,
+          },
+          {
+            path: "egresos/nuevo",
+            element: <EgresoFormPage />,
+          },
+          {
+            path: "egresos/:id",
+            element: <EgresoFormPage />,
           },
         ],
       },

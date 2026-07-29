@@ -237,7 +237,7 @@ Detalle de permisos: unidades es el único módulo donde `admin` **lee pero no e
 la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol.
 
 **Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`, `partidas`, `items`,
-`proveedores`, `fuentes-financiamiento`, `ingresos`, `stock`.
+`proveedores`, `fuentes-financiamiento`, `ingresos`, `stock`, `kardex`, `egresos`.
 
 Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `hooks/`, `pages/`):
 - Son **páginas con ruta**, no diálogo: `/ingresos` (listado), `/ingresos/nuevo` y `/ingresos/:id`
@@ -478,7 +478,8 @@ cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
 
-**EGRESOS — BACKEND YA IMPLEMENTADO** (2026-07-29). Falta el frontend.
+**EGRESOS — YA IMPLEMENTADO** (2026-07-29), backend y frontend. **Falta solo el PDF** de la
+«Solicitud de materiales».
 
 Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · `GET /egresos/:id` ·
 `POST /egresos` (borrador) · `PATCH` / `DELETE` (solo borrador, solo su dueño) · `POST /:id/enviar` ·
@@ -505,6 +506,26 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   documento (no tiene número) ni tocó stock.
 - El **número se estampa al enviar** y **el rechazo lo conserva** (el pedido rechazado vuelve a
   BORRADOR pero ya es un documento con serie).
+
+Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`, `pages/`):
+- **Una sola página para todo el ciclo**: `EgresoFormPage` es formulario editable si el pedido es un
+  BORRADOR **propio**, y ficha de solo lectura con botonera si no. Qué botones aparecen sale del
+  **estado + rol** (`puedeAprobar`, `puedeEntregar`, `puedeAnular`), no de un permiso global: el mismo
+  usuario ve «Aprobar» en un pedido y nada en otro.
+- **El listado abre en la bandeja** para quien decide algo (`pendientesMios=true`): al aprobador le
+  muestra lo que espera su firma y al responsable lo listo para entregar. Se puede apagar con el botón
+  «Solo mi bandeja».
+- **`useBuscarLotes`** (en `hooks/`) alimenta el selector: pide `GET /stock` de a 30 ítems y aplana a
+  lotes, **descartando los de `disponible === 0`**. El sistema anterior ofrecía lotes agotados y de ahí
+  salen sus saldos negativos. Como el combo busca contra el servidor, `EgresoLineas` recibe
+  `lotesIniciales` (los del propio pedido): sin ellos un lote ya elegido aparecería en blanco — y encima
+  puede estar en cero justamente porque **este** pedido lo reservó.
+- **`EntregaDialog` se monta solo al abrirse** (`{dialogoEntrega && <EntregaDialog …/>}`) y calcula las
+  cantidades propuestas en el `useState`. Sincronizarlas con un efecto sería `setState` dentro de
+  `useEffect`, que el lint del repo rechaza.
+- **Toda mutación invalida `stock` y `kardex`** además de `egresos` (`useInvalidarEgresos`): crear,
+  editar, enviar, rechazar y descartar mueven la RESERVA, y entregar/anular mueven el saldo. Sin eso el
+  disponible que ve el solicitante queda viejo.
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 
