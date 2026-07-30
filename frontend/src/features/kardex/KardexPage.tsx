@@ -30,6 +30,7 @@ import {
 } from "@/features/items/useBuscarItems"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
+import { cn } from "@/lib/utils"
 
 import type { MovimientoKardex } from "@/features/kardex/kardex.types"
 
@@ -50,18 +51,29 @@ const fecha = (iso: string) =>
     year: "numeric",
   })
 
-const VARIANTE: Record<
+/**
+ * Color del badge de cada movimiento. La SALIDA va en ámbar con clases
+ * explícitas —igual que los badges de rol— y no con el gris de `secondary`: la
+ * columna se lee de un vistazo y una salida no puede quedar tan neutra que se
+ * confunda con una entrada.
+ */
+const MOVIMIENTO_BADGE: Record<
   MovimientoKardex["tipo"],
-  "default" | "secondary" | "destructive"
+  { variant: "default" | "outline" | "destructive"; className?: string }
 > = {
-  ENTRADA: "default",
-  SALIDA: "secondary",
-  REVERSION: "destructive",
+  ENTRADA: { variant: "default" },
+  SALIDA: {
+    variant: "outline",
+    className:
+      "border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200",
+  },
+  REVERSION: { variant: "destructive" },
 }
 
-/** El formulario solo existe para el combo de ítem (usa react-hook-form). */
+/** Los combos con buscador (ítem y fuente) usan react-hook-form. */
 interface FormKardex {
   itemId: string
+  fuenteId: string
 }
 
 export function KardexPage() {
@@ -71,12 +83,12 @@ export function KardexPage() {
   const [params] = useSearchParams()
 
   const { control, watch } = useForm<FormKardex>({
-    defaultValues: { itemId: params.get("item") ?? "" },
+    defaultValues: { itemId: params.get("item") ?? "", fuenteId: TODAS },
   })
   const itemId = watch("itemId")
+  const fuenteId = watch("fuenteId")
 
   const [almacenId, setAlmacenId] = useState(params.get("almacen") ?? "")
-  const [fuenteId, setFuenteId] = useState(TODAS)
   const [gestion, setGestion] = useState(String(new Date().getFullYear()))
 
   const { data: almacenes = [] } = useAlmacenesActivos()
@@ -131,6 +143,16 @@ export function KardexPage() {
       value: String(i.id),
       label: `${i.codigo} — ${i.descripcion}`,
       busqueda: i.codigo,
+    })),
+  ]
+
+  // El sistema anterior obliga a elegir una fuente; acá "todas" es lo normal y
+  // filtrar, la excepción — por eso encabeza la lista.
+  const opcionesFuente = [
+    { value: TODAS, label: "Todas las fuentes" },
+    ...fuentes.map((fuente) => ({
+      value: String(fuente.id),
+      label: fuente.nombre,
     })),
   ]
 
@@ -198,22 +220,15 @@ export function KardexPage() {
         )}
 
         <div className={esResponsable ? "lg:col-span-5" : "lg:col-span-2"}>
-          <label className="mb-2 block text-sm font-medium">Fuente</label>
-          <Select value={fuenteId} onValueChange={setFuenteId}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {/* El sistema anterior obliga a elegir una fuente; acá "todas"
-                  es lo normal y filtrar, la excepción. */}
-              <SelectItem value={TODAS}>Todas las fuentes</SelectItem>
-              {fuentes.map((fuente) => (
-                <SelectItem key={fuente.id} value={String(fuente.id)}>
-                  {fuente.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ComboboxField
+            name="fuenteId"
+            label="Fuente"
+            control={control}
+            required={false}
+            options={opcionesFuente}
+            buscarPlaceholder="Buscar fuente..."
+            vacio="Ninguna fuente coincide."
+          />
         </div>
 
         <div className="lg:col-span-2">
@@ -332,8 +347,11 @@ export function KardexPage() {
                         </TableCell>
                         <TableCell>
                           <Badge
-                            variant={VARIANTE[m.tipo]}
-                            className="font-normal"
+                            variant={MOVIMIENTO_BADGE[m.tipo].variant}
+                            className={cn(
+                              "font-normal",
+                              MOVIMIENTO_BADGE[m.tipo].className
+                            )}
                           >
                             {m.tipo}
                           </Badge>
