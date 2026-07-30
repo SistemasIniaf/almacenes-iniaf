@@ -47,13 +47,13 @@ export async function descartarEgreso(id: number): Promise<void> {
   await api.delete(`/egresos/${id}`)
 }
 
-/** Lo manda al jefe de unidad. Acá el backend estampa el correlativo. */
+/** Lo manda al aprobador de unidad. Acá el backend estampa el correlativo. */
 export async function enviarEgreso(id: number): Promise<Egreso> {
   const { data } = await api.post<Egreso>(`/egresos/${id}/enviar`)
   return data
 }
 
-/** Nivel 1: el jefe de unidad. No ajusta cantidades. */
+/** Nivel 1: el aprobador de unidad. No ajusta cantidades. */
 export async function aprobarEgreso(id: number): Promise<Egreso> {
   const { data } = await api.post<Egreso>(`/egresos/${id}/aprobar`)
   return data

@@ -51,6 +51,9 @@ const loteSelect = {
       codigo: true,
       descripcion: true,
       unidadMedida: true,
+      // La foto de catalogo: el formulario la muestra junto a la linea, para
+      // reconocer el material sin depender de la descripcion.
+      imagenUrl: true,
       partida: { select: { id: true, codigo: true } },
     },
   },
@@ -83,7 +86,6 @@ const egresoFullSelect = {
       ingresoDetalleId: true,
       cantidadSolicitada: true,
       cantidadEntregada: true,
-      observacion: true,
       ingresoDetalle: { select: loteSelect },
     },
     orderBy: { id: 'asc' },
@@ -746,7 +748,6 @@ export class EgresosService {
     return {
       ingresoDetalleId: d.ingresoDetalleId,
       cantidadSolicitada: d.cantidadSolicitada,
-      observacion: d.observacion?.trim() || null,
     };
   }
 

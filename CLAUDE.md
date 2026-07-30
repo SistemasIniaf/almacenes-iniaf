@@ -53,7 +53,7 @@ almacenes-institucion/
 - **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
 - **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
-- **EgresoDetalle**: ítem, cantidad_solicitada, cantidad_aprobada (puede ajustarse en cada nivel de aprobación).
+- **EgresoDetalle**: apunta al **LOTE** (`ingreso_detalle_id`, no al ítem), `cantidadSolicitada` y `cantidadEntregada` (null hasta la entrega; la ajusta SOLO el `responsable_almacen`). **NO lleva observación por línea**, a diferencia de `IngresoDetalle`: lo que hay que aclarar de un pedido va en la `justificacion` de la cabecera, que es obligatoria. La columna existió y se quitó el 2026-07-30 (migración `20260730120000_egreso_detalle_sin_observacion`) por decisión del encargado — no volver a agregarla.
 - **EgresoHistorial**: registro de cada decisión (nivel, usuario, decisión, motivo, fecha) — trazabilidad completa, nunca se borra nada.
 - **Transaccion (Kardex)**: movimiento por ítem + almacén (entrada por Ingreso, salida por Egreso aprobado, reversión por anulación).
 
@@ -174,7 +174,7 @@ Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decision
 - **Servido**: **estáticas públicas** bajo `/uploads` vía `app.useStaticAssets` en `main.ts`. Quedan **FUERA** del prefijo global de la API y del `JwtAuthGuard` global — decisión deliberada para poder usarlas con `<img src>` directo. Trade-off aceptado: son adivinables solo por fuerza bruta (mitigado por el sufijo aleatorio); son fotos referenciales no sensibles.
 - **Endpoints** (solo `super_admin`/`admin`): `POST /items/:id/imagen` (campo multipart `imagen`; reemplaza y borra la anterior del disco) y `DELETE /items/:id/imagen` (limpia archivo + pone `imagenUrl=null`). El CRUD normal (`PATCH`) NO toca la imagen.
 - **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre el service de items y `main.ts`).
-- **Pendiente frontend**: falta el componente `ImageField` (subida con preview) para cuando se arme la feature de ítems en el front — ver convención de sufijo `*Field` más abajo.
+- **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
 - **Pendiente despliegue**: en `docker-compose.prod.yml`, montar `uploads/` como **volumen** para que las imágenes sobrevivan a reconstrucciones del contenedor.
 
 ## Roadmap de construcción actual
@@ -207,10 +207,14 @@ Con el paso 9 termina todo el backend que NO depende de reglas pendientes.
 - `src/routes/ProtectedRoute.tsx`: `ProtectedRoute` (privadas, recuerda el `from`) y
   `PublicOnlyRoute` (el login no se ve con sesión abierta).
 
-Nota: `GET /auth/me` devuelve el contenido del token y NO incluye `nombre` (solo llega en el
-login), por eso el usuario se cachea en `localStorage` — la fuente de verdad sigue siendo
-`/auth/me`, del cache solo se conserva `nombre`. Si algún día se agrega `nombre` a
-`AuthenticatedUser` en el backend, ese cache (`auth-storage.ts`) se puede borrar.
+**`GET /auth/me` devuelve el PERFIL, no el token** (cambio del 2026-07-30): va a la BD y agrega
+`nombre`, `cargo`, y `unidad`/`almacen` con sus nombres — el token solo lleva ids, y el nombre de
+una unidad puede cambiar sin que nadie vuelva a loguearse. `POST /auth/login` devuelve **la misma
+forma** (los dos llaman a `AuthService.perfil`). Con eso una pantalla puede mostrar de quién es el
+documento antes de que el documento exista: es lo que usa el formulario de egreso para mostrar
+solicitante, unidad y almacén al crear. El cache de `localStorage` (`auth-storage.ts`) ya no es
+indispensable y quedó solo para pintar la barra lateral sin parpadeo mientras `/auth/me` viaja: al
+rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
 
 **Piezas compartidas ya construidas** (reutilizarlas en cada CRUD nuevo, no reinventarlas):
 - `features/auth/lib/permisos.ts`: mapa `PERMISOS` que **espeja los `@Roles(...)` de cada
@@ -519,6 +523,81 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   salen sus saldos negativos. Como el combo busca contra el servidor, `EgresoLineas` recibe
   `lotesIniciales` (los del propio pedido): sin ellos un lote ya elegido aparecería en blanco — y encima
   puede estar en cero justamente porque **este** pedido lo reservó.
+- **La etiqueta del lote es `descripción — disp. N unidad` + la FUENTE, y nada más** (2026-07-30). Ni la
+  fecha ni el número de ingreso: el selector viejo los traía y solo alargaban la línea — para elegir de
+  dónde sale el material lo que decide es la fuente, que es de quien hay que rendir la plata. El número
+  sigue estando donde importa (el diálogo de la foto y la ficha del pedido). No reponerlos.
+- **El lote muestra la FOTO del ítem**: miniatura en cada opción de la lista desplegada y junto a la
+  línea elegida, ampliable en un diálogo (`FotoLote` en `EgresoLineas`). Sirve para no confundir ítems
+  de descripción casi igual. La foto viaja como `item.imagenUrl` en `GET /stock` y en `GET /egresos/:id`,
+  y se vuelve URL absoluta con `urlArchivo()` (las estáticas van fuera del prefijo de la API). El soporte
+  es del `ComboboxField` compartido (`ComboboxOption.imagen`): si **alguna** opción trae foto, las que no
+  muestran un marco vacío del mismo tamaño para que las filas no queden en zigzag.
+  **El botón cerrado del combo NO lleva miniatura**: lo haría más alto que los campos vecinos y
+  desalinearía toda la fila. `FotoLote` va **fuera del grid**, como bloque flex de la tarjeta, y mide
+  `size-16` = 64 px: el alto exacto de un campo con su rótulo (20 + 8 + 36), así llena la tarjeta de
+  arriba abajo sin desalinear nada. Dentro del grid gastaba una columna de ~115 px para dibujar 36.
+- **Los estados en curso son UNA serie: «Pendiente de envío / de aprobación / de entrega»** (elegido por
+  el usuario el 2026-07-30). Cada uno nombra el paso que falta, en el registro formal de la institución.
+  **Si cambiás uno, cambiá los tres**: que dos sigan un patrón y el tercero otro es exactamente lo que
+  hace que un estado se lea como de otro sistema. Rige también en los títulos de las tarjetas del inicio.
+- **La palabra «borrador» NO se le muestra al usuario**: hablaba del documento en vez del paso pendiente
+  y sonaba a algo sin terminar. **El enum de la BD sigue siendo `BORRADOR`** —renombrarlo costaría una
+  migración sin ganancia— así que la palabra vive en el código y en los comentarios, pero no en pantalla:
+  revisá los toasts y los diálogos si tocás esto.
+- **Dos juegos de etiquetas de estado**: `ESTADO_LABEL` es la de los badges y `ESTADO_DETALLE` la
+  explícita, que nombra a QUIÉN espera el pedido («Esperando al aprobador de unidad») — va en el selector
+  de filtros y en el campo Estado del PDF, que se lee sin el contexto de la pantalla.
+- **Las columnas que serían siempre iguales no se muestran**: al `solicitador` se le oculta *Solicitante*
+  (su alcance son solo SUS pedidos, así que repetiría su nombre en cada fila) y a quien ve un solo
+  almacén se le oculta *Unidad*. El `colSpan` de los estados vacíos se calcula sumando las condicionales
+  — si agregás una columna, actualizá esa cuenta.
+- **Vocabulario: «aprobador de unidad», NO «jefe de unidad»** (2026-07-30) — es como se llama el rol
+  en el sistema (`Rol.aprobador`). Rige en toda la UI: estado, historial, botón *Enviar a aprobador
+  unidad*, toasts. **El PDF es la excepción**: su pie de firmas dice «Jefe de Unidad» porque replica el
+  documento oficial del sistema anterior. **Se cambió a «Aprobador de Unidad» el 2026-07-30** por pedido
+  del usuario, y el pie pasó de 4 casillas a **3**: *Aprobador de Unidad · Encargado de Almacenes ·
+  Recibí conforme*. La casilla «Solicitante» se quitó porque quien pide es quien recibe — su nombre
+  salía dos veces en el mismo pie, y una tercera arriba en el bloque de datos.
+- **Enviar pide confirmación y NOMBRA al destinatario** (`EnviarDialog`, compartido por la ficha y el
+  listado): enviar no tiene vuelta atrás —el solicitante ya no puede editar ni cancelar— así que no se
+  dispara de un clic. El destinatario sale de **`GET /usuarios/mi-aprobador`** (el aprobador activo de
+  MI unidad; abierto al `solicitador` aunque no lea el padrón, porque es de su propia unidad y devuelve
+  una sola persona). Si la unidad no tiene aprobador activo el diálogo lo advierte en rojo pero **deja
+  enviar**: el backend tampoco lo impide y el pedido queda esperando, que es la regla acordada (no hay
+  suplencia).
+- **Si la validación falla, se avisa**: `handleSubmit(guardar, avisarInvalido)` saca un toast diciendo
+  qué falta, y `EgresoLineas` pinta el error del arreglo (ej. «Agregá al menos un ítem»), que no lo
+  pinta ningún campo. Sin las dos cosas el botón *Guardar* parecía no hacer nada cuando el problema
+  estaba en las líneas, más abajo en la página.
+- **Las acciones del borrador viven en el LISTADO, no en la ficha**: editar (✏), enviar (➤) y descartar
+  (🗑) son iconos de fila, y solo aparecen si el borrador es PROPIO (`egreso.solicitante.id === user.id`,
+  lo mismo que exige el backend — un admin ve borradores ajenos y tampoco puede tocarlos). En la ficha
+  quedan únicamente los pasos del circuito: *Guardar* y *Enviar a aprobador unidad*.
+- **La cabecera de la ficha NO repite unidad/almacén/solicitante**: eso vive en el bloque de datos, que
+  va FUERA del `<form>` para verse igual en edición y en lectura. Un pedido sin número muestra
+  «Pedido» a secas, no «Pedido —».
+- **El historial narra ACCIONES, no estados** (`describirPaso` en `egresos.types.ts`): cada renglón
+  dice qué hizo la persona («Aprobó el pedido») y a quién le queda la pelota («pasa al almacén»), y se
+  deriva de la transición `estadoAnterior → estadoNuevo`. Antes mostraba solo el estado nuevo, así que
+  se leía «Esperando entrega · PEDRO FERRANO» — que describe dónde quedó el pedido pero omite lo único
+  que importa del renglón: que Pedro lo aprobó. Se dibuja como línea de tiempo; los pasos que frenan el
+  circuito (rechazo y anulación) llevan el punto en rojo.
+- **El disponible se muestra como un campo más, pegado a Cantidad** (rótulo arriba, valor en negrita en
+  un renglón de la misma altura), no como una nota gris al costado: es el dato contra el que se escribe
+  la cantidad. Se pone **en rojo apenas lo pedido lo supera**, con un aviso corto. Es solo un aviso —
+  quien rechaza sigue siendo el backend al guardar (`validarDisponibilidad`), porque el disponible
+  puede haber cambiado mientras se llenaba el formulario.
+- **Un lote NO puede repetirse en dos líneas** (el mismo ÍTEM sí, desde lotes distintos). Si se repitiera,
+  cada línea mostraría el disponible entero sin descontar lo que pide la otra y se podría pedir el doble
+  de lo que hay. Se sostiene en tres lugares: el backend lo rechaza (`validarDisponibilidad`, la barrera
+  real), el `superRefine` de `egresos.schema.ts` lo marca en la línea culpable, y `opcionesPara(indice)`
+  de `EgresoLineas` directamente **no ofrece los lotes tomados por las otras líneas** — que es lo que
+  evita llegar al error.
+- **Quitar una línea es una «X» en la esquina de la tarjeta**, no un 🗑 en la fila: así no gasta una
+  columna del grid (se la queda el selector de lote, que es el que más texto necesita) ni entra en la
+  alineación de los inputs. En `IngresoLineas` **sigue siendo un 🗑 dentro de la celda del Subtotal** y
+  ahí se queda: no gasta columna propia y el pie del Total se alinea descontando su ancho (`pr-11`).
 - **`EntregaDialog` se monta solo al abrirse** (`{dialogoEntrega && <EntregaDialog …/>}`) y calcula las
   cantidades propuestas en el `useState`. Sincronizarlas con un efecto sería `setState` dentro de
   `useEffect`, que el lint del repo rechaza.
@@ -564,7 +643,7 @@ NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 - Componentes de formulario personalizados con sufijo **`*Field`**, no prefijo `Form*` (para no chocar con la familia oficial `Form/FormField/FormItem/FormControl` de shadcn, que no se usa aquí). Todos se componen sobre los primitivos `Field`, `FieldLabel`, `FieldError` de shadcn + `Controller` de react-hook-form, con tipado genérico `<T extends FieldValues>` y `Path<T>` para el `name`.
   - Nombres ya definidos: `InputField`, `SelectField`, `TextareaField`, `DateField`, `ComboboxField`, `NumberField`.
   - `ComboboxField` es obligatorio para elegir Ítem (catálogo grande, un `<select>` normal no escala).
-  - Falta construir un wrapper sobre `useFieldArray` para las líneas dinámicas de `EgresoDetalle`/`IngresoDetalle` (agregar/quitar ítems), compartido entre `EgresoForm` e `IngresoForm`.
+  - Las líneas dinámicas (`useFieldArray`) YA están hechas, pero **una por módulo**: `IngresoLineas` y `EgresoLineas`. No se compartieron porque piden cosas distintas — el ingreso elige ÍTEM y captura precio y observación; el egreso elige LOTE, muestra el disponible y la foto, y no lleva observación.
 - Validación con Zod; el schema de cada formulario debe reflejar el DTO/`class-validator` del backend correspondiente, para no duplicar reglas desalineadas entre frontend y backend.
 
 ## Documentos de análisis y decisiones (leer antes de tocar ingresos/egresos/stock)

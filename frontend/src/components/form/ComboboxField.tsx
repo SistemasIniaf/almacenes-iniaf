@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller } from "react-hook-form"
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
+import { Check, ChevronsUpDown, ImageOff, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +29,12 @@ export interface ComboboxOption {
   descripcion?: string
   /** Texto extra por el que también se puede buscar (ej. el código). */
   busqueda?: string
+  /**
+   * URL absoluta de una miniatura para esta opción (ej. la foto del ítem). Es
+   * opcional y por opción: en una lista donde solo algunos la tienen, los que no
+   * muestran un marco vacío del mismo tamaño para que las filas no se desalineen.
+   */
+  imagen?: string | null
 }
 
 interface ComboboxFieldProps<T extends FieldValues> {
@@ -73,6 +79,31 @@ interface ComboboxFieldProps<T extends FieldValues> {
 }
 
 /**
+ * Miniatura de una opción. Cuando la lista muestra fotos, las opciones SIN foto
+ * dejan el mismo hueco: si no, cada fila arrancaría en una sangría distinta y la
+ * lista se leería en zigzag.
+ */
+function Miniatura({ url, alt }: { url?: string | null; alt: string }) {
+  if (!url) {
+    return (
+      <span className="flex size-8 shrink-0 items-center justify-center rounded border border-dashed bg-muted/40">
+        <ImageOff className="size-3.5 text-muted-foreground/60" />
+      </span>
+    )
+  }
+  return (
+    <img
+      src={url}
+      alt={alt}
+      // `loading="lazy"`: la lista puede traer decenas de opciones y solo se ven
+      // unas pocas a la vez.
+      loading="lazy"
+      className="size-8 shrink-0 rounded border object-cover"
+    />
+  )
+}
+
+/**
  * Selector con buscador para listas largas donde un `<select>` no escala
  * (partidas del clasificador, catalogo de items — ver CLAUDE.md).
  *
@@ -108,6 +139,8 @@ export function ComboboxField<T extends FieldValues>({
   // item seleccionado, si no cmdk resalta el primero por defecto.
   const [resaltado, setResaltado] = useState("")
   const fieldId = id || `field-${name}`
+  // Basta con que UNA opción traiga foto para que la columna exista en todas.
+  const conImagenes = options.some((opcion) => opcion.imagen)
   const limpiarWheel = useRef<(() => void) | null>(null)
   // El nodo de la lista se guarda en estado (no en un ref) para poder scrollearlo
   // desde un efecto: leer un ref en render lo prohíbe el lint del repo.
@@ -197,6 +230,11 @@ export function ComboboxField<T extends FieldValues>({
                   disabled={disabled}
                   className="w-full justify-between font-normal"
                 >
+                  {/* El botón cerrado NO lleva miniatura, a propósito: la haría
+                      más alta que los campos de al lado y la fila quedaría
+                      desalineada. La foto se ve al desplegar la lista, y quien
+                      la necesite junto al campo la muestra por su cuenta (ver
+                      `FotoLote` en EgresoLineas). */}
                   <span
                     className={cn(
                       "truncate",
@@ -286,6 +324,9 @@ export function ComboboxField<T extends FieldValues>({
                                 : "opacity-0"
                             )}
                           />
+                          {conImagenes && (
+                            <Miniatura url={opcion.imagen} alt={opcion.label} />
+                          )}
                           <span className="min-w-0 truncate">
                             {opcion.label}
                             {opcion.descripcion && (

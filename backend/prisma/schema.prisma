@@ -519,7 +519,10 @@ model EgresoDetalle {
   /// el pedido queda entregado con esta cantidad.
   cantidadEntregada Decimal? @map("cantidad_entregada") @db.Decimal(12, 2)
 
-  observacion String?
+  /// NO lleva observacion por linea, a diferencia de `IngresoDetalle`: lo que hay
+  /// para aclarar de un pedido va en la `justificacion` de la cabecera (decision
+  /// del encargado, 2026-07-30). La columna existio y se quito en la migracion
+  /// `20260730_egreso_detalle_sin_observacion`.
 
   movimientos MovimientoKardex[]
 

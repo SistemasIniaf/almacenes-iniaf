@@ -5,7 +5,6 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsPositive,
   IsString,
   MaxLength,
@@ -27,11 +26,6 @@ export class EgresoDetalleDto {
   )
   @IsPositive({ message: 'La cantidad debe ser mayor a cero' })
   cantidadSolicitada!: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  observacion?: string;
 }
 
 /**

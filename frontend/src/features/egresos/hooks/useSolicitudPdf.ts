@@ -13,7 +13,7 @@ import type { Egreso } from "@/features/egresos/egresos.types"
  *
  * **Quién puede imprimirla**: almacén y administración
  * (`responsable_almacen` / `admin` / `super_admin`), NO el solicitante ni el
- * jefe de unidad — el documento oficial lo emite el almacén (decisión del
+ * aprobador de unidad — el documento oficial lo emite el almacén (decisión del
  * encargado, 2026-07-29).
  *
  * OJO: esto oculta el botón, no es una barrera de seguridad. El PDF se arma en

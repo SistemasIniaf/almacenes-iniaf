@@ -11,6 +11,7 @@ import {
   crearUsuario,
   desactivarUsuario,
   listarUsuarios,
+  obtenerMiAprobador,
 } from "@/features/usuarios/usuarios.api"
 import { getApiErrorMessage } from "@/lib/api"
 
@@ -30,6 +31,19 @@ export function useUsuarios(query: QueryUsuarios) {
     queryKey: usuariosKeys.lista(query),
     queryFn: () => listarUsuarios(query),
     placeholderData: keepPreviousData,
+  })
+}
+
+/**
+ * Quién aprueba mis pedidos. Lo pide el diálogo que confirma el envío, para
+ * nombrar a la persona que va a recibir la solicitud. `enabled` para no pedirlo
+ * antes de abrir el diálogo: el resto de la pantalla no lo necesita.
+ */
+export function useMiAprobador(habilitado = true) {
+  return useQuery({
+    queryKey: ["usuarios", "mi-aprobador"],
+    queryFn: obtenerMiAprobador,
+    enabled: habilitado,
   })
 }
 

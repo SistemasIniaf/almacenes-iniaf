@@ -36,7 +36,7 @@ interface EntregaDialogProps {
 
 /**
  * Entrega del material. Es el ÚNICO punto del circuito donde se ajustan
- * cantidades (el jefe de unidad solo aprueba o rechaza).
+ * cantidades (el aprobador de unidad solo aprueba o rechaza).
  *
  * Se arranca proponiendo lo pedido, que es el caso normal. Bajar una cantidad
  * cubre el faltante físico: se entrega menos y el pedido queda entregado con esa

@@ -1,4 +1,7 @@
-import { etiquetaNumero, ESTADO_LABEL } from "@/features/egresos/egresos.types"
+import {
+  etiquetaNumero,
+  ESTADO_DETALLE,
+} from "@/features/egresos/egresos.types"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
@@ -72,9 +75,13 @@ function firmas(egreso: Egreso): Content {
     (h) => h.estadoNuevo === "PENDIENTE_RESPONSABLE_ALMACEN"
   )
 
+  // TRES casillas. El solicitante firma UNA vez, como «Recibí conforme»: quien
+  // pide es quien recibe, así que una casilla «Solicitante» aparte repetía su
+  // nombre dos veces en el mismo pie —y una tercera arriba, en el bloque de
+  // datos—. «Aprobador de Unidad» y no «Jefe de Unidad»: se unificó con el
+  // vocabulario del sistema el 2026-07-30.
   const casillas: [string, string][] = [
-    ["Solicitante", egreso.solicitante.nombre],
-    ["Jefe de Unidad", aprobacion?.usuario.nombre ?? ""],
+    ["Aprobador de Unidad", aprobacion?.usuario.nombre ?? ""],
     ["Encargado de Almacenes", egreso.entregadoPor?.nombre ?? ""],
     ["Recibí conforme", egreso.solicitante.nombre],
   ]
@@ -174,7 +181,9 @@ export async function definicionSolicitud(
             [4, "Unidad solicitante", egreso.unidad.nombre],
             [4, "Solicitante", egreso.solicitante.nombre],
             [2, "Fecha de entrega", fecha(egreso.fechaEntrega)],
-            [2, "Estado", ESTADO_LABEL[egreso.estado]],
+            // En el papel va la etiqueta larga: se lee sin el contexto de la
+            // pantalla y no hay una columna que se estire.
+            [2, "Estado", ESTADO_DETALLE[egreso.estado]],
           ]),
         ],
         // La justificación ocupa la fila entera: reemplaza a la "actividad" del
@@ -209,13 +218,12 @@ export async function definicionSolicitud(
 
   const filas: TableCell[][] = egreso.detalles.map((detalle, indice) => {
     const lote = detalle.ingresoDetalle
-    const descripcion = detalle.observacion
-      ? `${lote.item.descripcion} (${detalle.observacion})`
-      : lote.item.descripcion
     return [
       { text: String(indice + 1), alignment: "center", fontSize: 7.5 },
       { text: lote.item.codigo, fontSize: 7.5 },
-      { text: descripcion, fontSize: 7.5 },
+      // Sin nota entre paréntesis, a diferencia de la nota de ingreso: la línea
+      // de egreso no lleva observación propia.
+      { text: lote.item.descripcion, fontSize: 7.5 },
       {
         text: lote.ingreso.fuenteFinanciamiento?.nombre ?? "—",
         fontSize: 7.5,

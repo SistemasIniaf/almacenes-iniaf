@@ -34,6 +34,19 @@ export async function listarSolicitadores(): Promise<Solicitador[]> {
   return data
 }
 
+/** Quien aprueba MIS pedidos: el aprobador activo de mi unidad. */
+export interface MiAprobador {
+  id: number
+  nombre: string
+  cargo: string | null
+}
+
+/** `null` si la unidad no tiene un aprobador activo designado. */
+export async function obtenerMiAprobador(): Promise<MiAprobador | null> {
+  const { data } = await api.get<MiAprobador | null>("/usuarios/mi-aprobador")
+  return data
+}
+
 export async function crearUsuario(
   payload: CreateUsuarioPayload
 ): Promise<Usuario> {

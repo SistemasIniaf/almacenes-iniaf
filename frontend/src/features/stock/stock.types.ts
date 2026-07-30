@@ -50,6 +50,8 @@ export interface ItemStock {
   codigo: string
   descripcion: string
   unidadMedida: string
+  /** Ruta relativa de la foto de catálogo (`/uploads/items/…`) o null. */
+  imagenUrl: string | null
   partida: PartidaStock
   /** Suma de los saldos de sus lotes. */
   saldoTotal: string

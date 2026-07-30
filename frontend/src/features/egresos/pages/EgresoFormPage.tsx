@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
 import {
   ArrowLeft,
   Ban,
@@ -9,7 +10,6 @@ import {
   Loader2,
   Printer,
   Send,
-  Trash2,
   X,
 } from "lucide-react"
 
@@ -39,12 +39,12 @@ import { TextareaField } from "@/components/form/TextareaField"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
 import { EntregaDialog } from "@/features/egresos/components/EntregaDialog"
+import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import {
   useActualizarEgreso,
   useAnularEgreso,
   useAprobarEgreso,
   useCrearEgreso,
-  useDescartarEgreso,
   useEgreso,
   useEnviarEgreso,
   useRechazarEgreso,
@@ -57,12 +57,16 @@ import {
   VALORES_INICIALES,
 } from "@/features/egresos/egresos.schema"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
+import { urlArchivo } from "@/lib/files"
 import {
   ESTADO_LABEL,
   ESTADO_VARIANT,
+  describirPaso,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
+import { cn } from "@/lib/utils"
 
+import type { FieldErrors } from "react-hook-form"
 import type { EgresoFormValues } from "@/features/egresos/egresos.schema"
 import type { LoteElegible } from "@/features/egresos/hooks/useBuscarLotes"
 
@@ -86,11 +90,10 @@ export function EgresoFormPage() {
   const aprobar = useAprobarEgreso()
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
-  const descartar = useDescartarEgreso()
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   const [dialogoEntrega, setDialogoEntrega] = useState(false)
-  const [dialogoDescartar, setDialogoDescartar] = useState(false)
+  const [dialogoEnviar, setDialogoEnviar] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
     "rechazar" | "anular" | null
   >(null)
@@ -135,8 +138,7 @@ export function EgresoFormPage() {
     enviar.isPending ||
     aprobar.isPending ||
     rechazar.isPending ||
-    anular.isPending ||
-    descartar.isPending
+    anular.isPending
 
   /**
    * Lotes que el pedido ya referencia. Van al selector porque su lista es una
@@ -149,11 +151,31 @@ export function EgresoFormPage() {
     itemCodigo: d.ingresoDetalle.item.codigo,
     itemDescripcion: d.ingresoDetalle.item.descripcion,
     unidadMedida: d.ingresoDetalle.item.unidadMedida,
+    imagen: urlArchivo(d.ingresoDetalle.item.imagenUrl),
     fuente: d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
     numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),
-    fechaIngreso: d.ingresoDetalle.ingreso.fechaIngreso,
     disponible: Number(d.ingresoDetalle.saldoCantidad),
   }))
+
+  /**
+   * El formulario no se envió porque algo no validó. Sin esto, el botón parecía
+   * no hacer NADA: los errores de las líneas quedan dentro de sus tarjetas, más
+   * abajo, y si no agregaste ninguna el error del arreglo no lo pintaba ningún
+   * campo. El toast dice qué falta y `handleSubmit` ya lleva el foco al primer
+   * campo con error.
+   */
+  function avisarInvalido(errores: FieldErrors<EgresoFormValues>) {
+    if (errores.detalles) {
+      const raiz = (errores.detalles as { root?: { message?: string } }).root
+      toast.error(
+        raiz?.message ??
+          errores.detalles.message ??
+          "Revisá los ítems del pedido: hay líneas incompletas."
+      )
+      return
+    }
+    toast.error("Faltan datos: revisá los campos marcados en rojo.")
+  }
 
   async function guardar(valores: EgresoFormValues) {
     try {
@@ -203,15 +225,17 @@ export function EgresoFormPage() {
             <ArrowLeft className="size-4" />
             Volver
           </Button>
+          {/* Sin número todavía (borrador): «Pedido» a secas. Antes salía
+              «Pedido —», con un guión suelto que no dice nada. La unidad, el
+              almacén y el solicitante NO van acá: están en el bloque de datos,
+              que se muestra igual en edición y en lectura. */}
           <h1 className="text-2xl font-semibold tracking-tight">
-            {esNuevo ? "Nuevo pedido" : `Pedido ${etiquetaNumero(egreso!)}`}
+            {esNuevo
+              ? "Nuevo pedido"
+              : egreso?.numero == null
+                ? "Pedido"
+                : `Pedido ${etiquetaNumero(egreso)}`}
           </h1>
-          {egreso && (
-            <p className="text-sm text-muted-foreground">
-              {egreso.unidad.nombre} · {egreso.almacen.nombre} · solicitó{" "}
-              {egreso.solicitante.nombre}
-            </p>
-          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -224,28 +248,21 @@ export function EgresoFormPage() {
           {editable && (
             <Button type="submit" form="egreso-form" disabled={ocupado}>
               {ocupado && <Loader2 className="size-4 animate-spin" />}
-              {esNuevo ? "Crear borrador" : "Guardar"}
+              Guardar
             </Button>
           )}
+          {/* Descartar NO está acá: es una acción de limpieza, no un paso del
+              circuito, y competía con los dos botones que sí lo son. Vive en el
+              listado, como acción de fila. */}
           {!esNuevo && editable && (
-            <>
-              <Button
-                variant="secondary"
-                disabled={ocupado}
-                onClick={() => void enviar.mutateAsync(id as number)}
-              >
-                <Send className="size-4" />
-                Enviar al jefe
-              </Button>
-              <Button
-                variant="outline"
-                disabled={ocupado}
-                onClick={() => setDialogoDescartar(true)}
-              >
-                <Trash2 className="size-4" />
-                Descartar
-              </Button>
-            </>
+            <Button
+              variant="secondary"
+              disabled={ocupado}
+              onClick={() => setDialogoEnviar(true)}
+            >
+              <Send className="size-4" />
+              Enviar a aprobador unidad
+            </Button>
           )}
 
           {/* Un borrador todavía no tiene número, así que no hay documento que
@@ -309,10 +326,48 @@ export function EgresoFormPage() {
         </div>
       )}
 
+      {/* De quién es el pedido. No se elige: el almacén y la unidad los hereda
+          del solicitante (ver "Regla de negocio crítica" en CLAUDE.md), así que
+          se muestran como dato, no como campo. Va FUERA del formulario para que
+          también se vea en la ficha de solo lectura — es el único lugar donde
+          figuran, desde que se quitó la línea repetida bajo el título. Al crear
+          salen del perfil (el registro todavía no existe); después, del propio
+          egreso, que es la fuente de verdad. */}
+      <div className="grid grid-cols-1 gap-4 rounded-md border bg-muted/40 p-3 sm:grid-cols-3">
+        <div>
+          <p className="text-xs text-muted-foreground">Solicitante</p>
+          <p className="text-sm font-medium">
+            {egreso?.solicitante.nombre ?? user?.nombre ?? "—"}
+          </p>
+          {(egreso?.solicitante.cargo ?? user?.cargo) && (
+            <p className="text-xs text-muted-foreground">
+              {egreso?.solicitante.cargo ?? user?.cargo}
+            </p>
+          )}
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Unidad solicitante</p>
+          <p className="text-sm font-medium">
+            {egreso?.unidad.nombre ?? user?.unidad?.nombre ?? "—"}
+          </p>
+          {(egreso?.unidad.sigla ?? user?.unidad?.sigla) && (
+            <p className="text-xs text-muted-foreground">
+              {egreso?.unidad.sigla ?? user?.unidad?.sigla}
+            </p>
+          )}
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Almacén</p>
+          <p className="text-sm font-medium">
+            {egreso?.almacen.nombre ?? user?.almacen?.nombre ?? "—"}
+          </p>
+        </div>
+      </div>
+
       {editable ? (
         <form
           id="egreso-form"
-          onSubmit={handleSubmit(guardar)}
+          onSubmit={handleSubmit(guardar, avisarInvalido)}
           className="flex flex-col gap-4 rounded-md border p-4"
         >
           <TextareaField
@@ -345,6 +400,11 @@ export function EgresoFormPage() {
                     <TableHead>Ítem</TableHead>
                     <TableHead>Fuente</TableHead>
                     <TableHead>Ingreso</TableHead>
+                    {/* La unidad va en columna propia, no pegada a cada número:
+                        así no hay que pluralizarla («4 PIEZA») ni inventar reglas
+                        para las abreviaturas, que son invariables (KG, LT, M2).
+                        Es la misma disposición que el PDF de la solicitud. */}
+                    <TableHead className="text-center">Unidad</TableHead>
                     <TableHead className="text-right">Pedido</TableHead>
                     <TableHead className="text-right">Entregado</TableHead>
                   </TableRow>
@@ -353,14 +413,7 @@ export function EgresoFormPage() {
                   {egreso.detalles.map((detalle) => (
                     <TableRow key={detalle.id}>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span>{detalle.ingresoDetalle.item.descripcion}</span>
-                          {detalle.observacion && (
-                            <span className="text-xs text-muted-foreground">
-                              {detalle.observacion}
-                            </span>
-                          )}
-                        </div>
+                        {detalle.ingresoDetalle.item.descripcion}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
@@ -369,11 +422,13 @@ export function EgresoFormPage() {
                       <TableCell className="text-muted-foreground">
                         {etiquetaNumero(detalle.ingresoDetalle.ingreso)}
                       </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        {Number(detalle.cantidadSolicitada)}{" "}
+                      <TableCell className="text-center whitespace-nowrap text-muted-foreground">
                         {detalle.ingresoDetalle.item.unidadMedida}
                       </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
+                      <TableCell className="text-right tabular-nums">
+                        {Number(detalle.cantidadSolicitada)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
                         {detalle.cantidadEntregada == null
                           ? "—"
                           : Number(detalle.cantidadEntregada)}
@@ -389,28 +444,68 @@ export function EgresoFormPage() {
 
       {egreso && egreso.historial.length > 0 && (
         <div className="rounded-md border p-4">
-          <h2 className="mb-3 text-sm font-medium">Historial</h2>
-          <ol className="flex flex-col gap-2 text-sm">
-            {egreso.historial.map((paso) => (
-              <li key={paso.id} className="flex flex-wrap gap-x-2">
-                <span className="text-muted-foreground">
-                  {fechaHora(paso.createdAt)}
-                </span>
-                <span className="font-medium">
-                  {ESTADO_LABEL[paso.estadoNuevo]}
-                </span>
-                <span className="text-muted-foreground">
-                  · {paso.usuario.nombre}
-                </span>
-                {paso.motivo && (
-                  <span className="w-full text-muted-foreground">
-                    Motivo: {paso.motivo}
-                  </span>
-                )}
-              </li>
-            ))}
+          <h2 className="mb-4 text-sm font-medium">Historial</h2>
+          {/* Línea de tiempo: cada paso cuenta QUÉ hizo la persona (no en qué
+              estado quedó el pedido, que es lo que se leía antes) y a quién le
+              queda la pelota. El hilo vertical se dibuja con el borde izquierdo
+              de cada <li>, salvo en el último, para que no sobre una colita. */}
+          <ol className="flex flex-col text-sm">
+            {egreso.historial.map((paso, indice) => {
+              const { accion, consecuencia } = describirPaso(paso)
+              const ultimo = indice === egreso.historial.length - 1
+              const rechazoOAnulacion =
+                paso.estadoNuevo === "BORRADOR" || paso.estadoNuevo === "ANULADO"
+
+              return (
+                <li
+                  key={paso.id}
+                  className={cn(
+                    "relative pb-4 pl-6",
+                    !ultimo && "border-l border-border"
+                  )}
+                >
+                  {/* El punto va sobre la línea: -left-[4.5px] = mitad del punto
+                      (9px) para que quede centrado sobre el borde de 1px. */}
+                  <span
+                    className={cn(
+                      "absolute top-1 -left-[4.5px] size-[9px] rounded-full ring-2 ring-background",
+                      rechazoOAnulacion ? "bg-destructive" : "bg-primary"
+                    )}
+                  />
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-medium">{accion}</span>
+                    <span className="text-muted-foreground">
+                      · {paso.usuario.nombre}
+                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {fechaHora(paso.createdAt)}
+                    </span>
+                  </div>
+                  {consecuencia && (
+                    <p className="text-xs text-muted-foreground">
+                      {consecuencia}
+                    </p>
+                  )}
+                  {paso.motivo && (
+                    <p className="mt-1 rounded border-l-2 border-destructive/40 bg-muted/40 px-2 py-1 text-xs">
+                      <span className="text-muted-foreground">Motivo: </span>
+                      {paso.motivo}
+                    </p>
+                  )}
+                </li>
+              )
+            })}
           </ol>
         </div>
+      )}
+
+      {/* Se monta solo al abrirse: así consulta el aprobador recién cuando hace
+          falta. */}
+      {dialogoEnviar && id != null && (
+        <EnviarDialog
+          egresoId={id}
+          onClose={() => setDialogoEnviar(false)}
+        />
       )}
 
       {/* Se monta solo al abrirlo: así las cantidades propuestas se calculan en
@@ -462,34 +557,6 @@ export function EgresoFormPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={dialogoDescartar} onOpenChange={setDialogoDescartar}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Descartar el borrador?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se elimina y libera el stock que tenía reservado. A diferencia del
-              resto del sistema, un borrador sí se borra: todavía no es un
-              documento ni movió existencias.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={ocupado}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={ocupado}
-              onClick={(event) => {
-                event.preventDefault()
-                void descartar
-                  .mutateAsync(id as number)
-                  .then(() => navigate("/egresos"))
-                  .catch(() => undefined)
-              }}
-            >
-              Descartar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

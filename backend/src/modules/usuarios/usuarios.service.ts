@@ -173,6 +173,21 @@ export class UsuariosService {
     });
   }
 
+  /**
+   * Quien aprueba los pedidos de una unidad: su `aprobador` ACTIVO (hay uno solo,
+   * lo garantiza el indice unico parcial `uq_aprobador_por_unidad`). Devuelve
+   * null si la unidad no tiene ninguno — caso real: el aprobador se dio de baja
+   * y todavia no se designo el reemplazo. Ahi los pedidos esperan (no hay
+   * suplencia, decision del encargado), y avisarlo ANTES de enviar le ahorra al
+   * solicitante preguntarse por que su pedido no avanza.
+   */
+  async aprobadorDeUnidad(unidadId: number) {
+    return this.prisma.usuario.findFirst({
+      where: { rol: Rol.aprobador, activo: true, unidadId },
+      select: { id: true, nombre: true, cargo: true },
+    });
+  }
+
   async update(id: number, dto: UpdateUsuarioDto) {
     const existente = await this.prisma.usuario.findUnique({
       where: { id },

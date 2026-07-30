@@ -10,7 +10,9 @@ import {
   Query,
 } from '@nestjs/common';
 
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { Rol } from '../../generated/prisma/enums';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { QueryUsuariosDto } from './dto/query-usuarios.dto';
@@ -41,6 +43,22 @@ export class UsuariosController {
   @Get('solicitadores')
   solicitadores() {
     return this.usuariosService.solicitadores();
+  }
+
+  /**
+   * Quien aprueba MIS pedidos: el aprobador activo de mi unidad. Lo usa el
+   * dialogo que confirma el envio de un egreso, para decir a quien le va a
+   * llegar. Abierto al `solicitador` —es de su propia unidad, no es leer el
+   * padron— y devuelve solo id, nombre y cargo.
+   *
+   * Va ANTES de `:id` a proposito: si no, Nest tomaria "mi-aprobador" como el
+   * parametro y `ParseIntPipe` responderia 400.
+   */
+  @Roles(Rol.super_admin, Rol.admin, Rol.solicitador)
+  @Get('mi-aprobador')
+  miAprobador(@CurrentUser() user: AuthenticatedUser) {
+    if (user.unidadId == null) return null;
+    return this.usuariosService.aprobadorDeUnidad(user.unidadId);
   }
 
   @Get(':id')

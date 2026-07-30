@@ -93,6 +93,10 @@ export class StockService {
         codigo: true,
         descripcion: true,
         unidadMedida: true,
+        // La foto de catalogo: el selector de lotes del egreso la muestra para
+        // que el solicitante reconozca el material sin depender de la
+        // descripcion. Es una ruta relativa, no el binario.
+        imagenUrl: true,
         partida: { select: { id: true, codigo: true, denominacion: true } },
       },
       // Por PARTIDA primero: asi los items de una misma partida quedan juntos y

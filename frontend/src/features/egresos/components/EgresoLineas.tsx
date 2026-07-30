@@ -1,13 +1,20 @@
 import { useState } from "react"
-import { useFieldArray, useWatch } from "react-hook-form"
-import { Plus, Trash2 } from "lucide-react"
+import { useFieldArray, useFormState, useWatch } from "react-hook-form"
+import { ImageOff, Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
-import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { cn } from "@/lib/utils"
 import {
   ITEMS_POR_BUSQUEDA,
   useBuscarLotes,
@@ -32,20 +39,81 @@ interface EgresoLineasProps {
   lotesIniciales?: LoteElegible[]
 }
 
-const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-BO")
-
 /**
- * Etiqueta del lote. Lleva lo mismo que el selector del sistema anterior
- * (fecha, descripción, saldo y fuente) porque es lo que el solicitante necesita
- * para decidir de qué compra sacar el material — pero muestra el DISPONIBLE, no
- * el saldo, y los agotados directamente no se ofrecen.
+ * Etiqueta del lote: descripción, disponible y fuente. Ni la FECHA ni el NÚMERO
+ * de ingreso van acá (2026-07-30): el selector viejo los traía y solo alargaban
+ * la línea — para elegir de dónde sale el material lo que decide es la fuente,
+ * que es de quien hay que rendir la plata. El número sigue estando donde importa:
+ * en el diálogo de la foto y en la ficha del pedido.
+ *
+ * Muestra el DISPONIBLE, no el saldo, y los agotados directamente no se ofrecen.
  */
 const aOpcion = (l: LoteElegible): ComboboxOption => ({
   value: String(l.id),
   label: `${l.itemDescripcion} — disp. ${l.disponible} ${l.unidadMedida}`,
-  descripcion: `${l.fuente} · ingreso ${l.numeroIngreso} · ${fecha(l.fechaIngreso)}`,
+  descripcion: l.fuente,
   busqueda: l.itemCodigo,
+  imagen: l.imagen,
 })
+
+/**
+ * Foto del ítem del lote elegido, ampliable al hacer clic. Sirve para confirmar
+ * de un vistazo que el lote es el material que se quiso pedir — dos ítems pueden
+ * tener descripciones casi iguales.
+ *
+ * Sin lote (línea recién agregada) o sin foto cargada muestra un marco vacío del
+ * mismo tamaño, para que la fila no cambie de alto al elegir.
+ *
+ * Mide `size-16` = 64 px, que es exactamente el alto de un campo con su rótulo
+ * (20 de la etiqueta + 8 del hueco + 36 del input). Así llena la tarjeta de
+ * arriba abajo sin desalinear nada: su borde superior cae sobre el de los
+ * rótulos y el inferior sobre el de los inputs. Si algún día cambia el alto de
+ * los campos, este número lo acompaña.
+ */
+function FotoLote({ lote }: { lote?: LoteElegible }) {
+  const [ampliada, setAmpliada] = useState(false)
+
+  if (!lote?.imagen) {
+    return (
+      <span className="flex size-16 shrink-0 items-center justify-center rounded border border-dashed bg-muted/40">
+        <ImageOff className="size-5 text-muted-foreground/60" />
+      </span>
+    )
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAmpliada(true)}
+        className="size-16 shrink-0 overflow-hidden rounded border transition-opacity hover:opacity-80"
+        aria-label={`Ver foto de ${lote.itemDescripcion}`}
+      >
+        <img
+          src={lote.imagen}
+          alt={lote.itemDescripcion}
+          className="size-full object-cover"
+        />
+      </button>
+
+      <Dialog open={ampliada} onOpenChange={setAmpliada}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{lote.itemDescripcion}</DialogTitle>
+            <DialogDescription>
+              {lote.itemCodigo} · ingreso {lote.numeroIngreso} · {lote.fuente}
+            </DialogDescription>
+          </DialogHeader>
+          <img
+            src={lote.imagen}
+            alt={lote.itemDescripcion}
+            className="max-h-[60vh] w-full rounded object-contain"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
 export function EgresoLineas({
   control,
@@ -76,6 +144,32 @@ export function EgresoLineas({
 
   const lineas = useWatch({ control, name: "detalles" })
 
+  const { errors } = useFormState({ control, name: "detalles" })
+  const errorDetalles = errors.detalles as
+    | { message?: string; root?: { message?: string } }
+    | undefined
+  const mensajeDetalles = errorDetalles?.root?.message ?? errorDetalles?.message
+
+  /**
+   * Lotes ya tomados por OTRAS líneas: el combo de esta no los ofrece. Sin este
+   * filtro se puede pedir dos veces el mismo lote y cada línea muestra el
+   * disponible entero, sin descontar lo que pide la otra — así se llega a pedir
+   * más de lo que hay. El backend lo rechaza igual (`validarDisponibilidad`),
+   * pero recién al guardar y con el pedido ya armado.
+   *
+   * Se excluye a sí misma para no borrar su propia selección de la lista.
+   */
+  const opcionesPara = (indice: number) => {
+    const tomados = new Set(
+      (lineas ?? [])
+        .map((linea, i) => (i === indice ? "" : (linea?.ingresoDetalleId ?? "")))
+        .filter(Boolean)
+    )
+    return tomados.size === 0
+      ? opciones
+      : opciones.filter((opcion) => !tomados.has(opcion.value))
+  }
+
   function cargarMas() {
     // No se pide otra tanda mientras hay una en vuelo: si no, acercarse al final
     // encadena pedidos que nadie hizo.
@@ -84,25 +178,24 @@ export function EgresoLineas({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <FieldLabel>
-          Ítems del pedido<span className="text-red-500">*</span>
-        </FieldLabel>
-        {!disabled && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ ...LINEA_VACIA })}
-          >
-            <Plus className="size-4" />
-            Agregar ítem
-          </Button>
-        )}
-      </div>
+      <FieldLabel>
+        Ítems del pedido<span className="text-red-500">*</span>
+      </FieldLabel>
+
+      {/* Error del ARREGLO (ej. «Agregá al menos un ítem»): no lo pinta ningún
+          campo, así que sin esto el formulario se negaba a enviarse sin decir
+          por qué. react-hook-form lo deja en `.root` por ser un field array. */}
+      {mensajeDetalles && (
+        <p className="text-sm text-destructive">{mensajeDetalles}</p>
+      )}
 
       {fields.length === 0 && (
-        <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p
+          className={cn(
+            "text-center text-sm text-muted-foreground",
+            mensajeDetalles && "text-destructive"
+          )}
+        >
           Todavía no agregaste ítems. Cada línea sale de un lote concreto: elegís
           de qué compra y de qué fuente se descuenta el material.
         </p>
@@ -111,86 +204,125 @@ export function EgresoLineas({
       {fields.map((field, indice) => {
         const elegido = lineas?.[indice]?.ingresoDetalleId
         const lote = elegido ? porId.get(Number(elegido)) : undefined
+        const pedido = Number(lineas?.[indice]?.cantidadSolicitada)
+        const excedido = lote != null && pedido > lote.disponible
 
         return (
-          <div key={field.id} className="rounded-md border p-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
-              <div className="sm:col-span-7">
-                <ComboboxField
-                  name={`detalles.${indice}.ingresoDetalleId`}
-                  label="Lote"
-                  control={control}
-                  disabled={disabled}
-                  options={opciones}
-                  placeholder="Buscá el ítem y elegí de qué lote sale"
-                  vacio="Ningún lote con disponible coincide."
-                  buscarPlaceholder="Buscar por código o descripción..."
-                  search={termino}
-                  onSearchChange={setTermino}
-                  loading={isFetching}
-                  onSelectOption={(opcion) => {
-                    const encontrado = encontrados.find(
-                      (l) => String(l.id) === opcion.value
-                    )
-                    if (encontrado) setVistos((previos) => [...previos, encontrado])
-                  }}
-                  onEndReached={cargarMas}
-                  footer={
-                    hasNextPage
-                      ? `Mostrando ${encontrados.length} — scrolleá para ver más`
-                      : undefined
-                  }
-                />
-              </div>
+          <div key={field.id} className="relative rounded-md border p-3">
+            {/* Quitar la línea va en la esquina de la tarjeta, no en la fila de
+                campos: así no gasta una columna del grid —se la queda el selector
+                de lote, que es el que más texto necesita— ni participa de la
+                alineación de los inputs. La esquina queda libre porque la última
+                columna (Disponible) alinea su texto abajo. */}
+            {!disabled && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-1.5 right-1.5 size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => remove(indice)}
+                aria-label="Quitar ítem"
+              >
+                <X className="size-4" />
+              </Button>
+            )}
 
-              <div className="sm:col-span-2">
-                <NumberField
-                  name={`detalles.${indice}.cantidadSolicitada`}
-                  label="Cantidad"
-                  control={control}
-                  disabled={disabled}
-                  // Las flechas mueven de a 1; los decimales se escriben igual.
-                  step="any"
-                  min={0}
-                />
-              </div>
+            {/* La foto va FUERA del grid: como bloque flex ocupa solo sus 64 px
+                y el resto del ancho queda entero para los campos. Cuando gastaba
+                una columna del grid se reservaban ~115 px para dibujar 36. */}
+            <div className="flex gap-3">
+              <FotoLote lote={lote} />
 
-              <div className="flex items-end sm:col-span-2">
-                <p className="pb-2 text-xs text-muted-foreground">
-                  {lote
-                    ? `Disponible: ${lote.disponible} ${lote.unidadMedida}`
-                    : "—"}
-                </p>
-              </div>
-
-              {!disabled && (
-                <div className="flex items-end justify-end sm:col-span-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => remove(indice)}
-                    aria-label="Quitar ítem"
-                  >
-                    <Trash2 className="size-4 text-destructive" />
-                  </Button>
+              <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-12">
+                <div className="sm:col-span-8">
+                  <ComboboxField
+                    name={`detalles.${indice}.ingresoDetalleId`}
+                    label="Lote"
+                    control={control}
+                    disabled={disabled}
+                    options={opcionesPara(indice)}
+                    placeholder="Buscá el ítem y elegí de qué lote sale"
+                    vacio="Ningún lote con disponible coincide."
+                    buscarPlaceholder="Buscar por código o descripción..."
+                    search={termino}
+                    onSearchChange={setTermino}
+                    loading={isFetching}
+                    onSelectOption={(opcion) => {
+                      const encontrado = encontrados.find(
+                        (l) => String(l.id) === opcion.value
+                      )
+                      if (encontrado)
+                        setVistos((previos) => [...previos, encontrado])
+                    }}
+                    onEndReached={cargarMas}
+                    footer={
+                      hasNextPage
+                        ? `Mostrando ${encontrados.length} — scrolleá para ver más`
+                        : undefined
+                    }
+                  />
                 </div>
-              )}
 
-              <div className="sm:col-span-12">
-                <InputField
-                  name={`detalles.${indice}.observacion`}
-                  label="Observación"
-                  control={control}
-                  required={false}
-                  disabled={disabled}
-                  placeholder="Opcional: aclaración de esta línea"
-                />
+                {/* El disponible va DEBAJO del campo de cantidad, no en una
+                    columna aparte: ahí cae justo donde está el cursor mientras
+                    se escribe el número, que es cuando el dato sirve. Se pone en
+                    rojo apenas lo pedido lo supera — el backend igual lo rechaza
+                    al guardar, pero avisar acá evita llegar hasta ahí. */}
+                <div className="sm:col-span-4">
+                  <NumberField
+                    name={`detalles.${indice}.cantidadSolicitada`}
+                    label="Cantidad"
+                    control={control}
+                    disabled={disabled}
+                    // Las flechas mueven de a 1; los decimales se escriben igual.
+                    step="any"
+                    min={0}
+                  />
+                  <p
+                    className={cn(
+                      "mt-1.5 text-xs",
+                      excedido
+                        ? "font-medium text-destructive"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {lote
+                      ? excedido
+                        ? `Solo hay ${lote.disponible} ${lote.unidadMedida} disponibles`
+                        : `Disponible: ${lote.disponible} ${lote.unidadMedida}`
+                      : "Elegí un lote para ver el disponible"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         )
       })}
+
+      {/* El botón va DEBAJO de las líneas y ocupa todo el ancho: es donde el ojo
+          termina de leer la última fila y hacia dónde sigue el trabajo. Arriba a
+          la derecha, en tamaño chico, se perdía contra el título. El borde
+          punteado lo lee como «acá se agrega otra», no como una acción del
+          formulario que compita con Guardar. */}
+      {!disabled && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => append({ ...LINEA_VACIA })}
+          className={cn(
+            // Punteado PERO con el color de acción: en modo claro, un `outline`
+            // gris sobre fondo blanco no se lee como botón. El fondo tenue y el
+            // texto en primario lo hacen visible sin volverlo sólido — sólido
+            // está reservado para «Guardar», que es el submit del formulario.
+            "h-11 w-full border-dashed border-primary/50 bg-primary/5 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary",
+            mensajeDetalles &&
+              "border-destructive/60 bg-destructive/5 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+          )}
+        >
+          <Plus className="size-4" />
+          Agregar ítem
+        </Button>
+      )}
 
       {fields.length > 0 && encontrados.length >= ITEMS_POR_BUSQUEDA && (
         <p className="text-xs text-muted-foreground">

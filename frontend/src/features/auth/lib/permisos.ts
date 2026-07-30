@@ -47,7 +47,7 @@ export const PERMISOS = {
   egresosCrear: ["solicitador"],
 
   /** Imprimir la «Solicitud de materiales»: almacén y administración. NO el
-   * solicitante ni el jefe de unidad — el documento oficial lo emite el
+   * solicitante ni el aprobador de unidad — el documento oficial lo emite el
    * almacén (decisión del encargado, 2026-07-29). Es una regla de circuito, no
    * una barrera: el PDF se arma en el navegador con datos que `GET /egresos/:id`
    * ya devuelve, así que no hay endpoint que proteger. */
@@ -71,6 +71,11 @@ export const PERMISOS = {
 
   usuariosLeer: ["super_admin", "admin"],
   usuariosEscribir: ["super_admin", "admin"],
+
+  /** `GET /usuarios/mi-aprobador`: quién aprueba MIS pedidos. El solicitador
+   * entra aunque no lea el padrón — es de su propia unidad y devuelve una sola
+   * persona, para nombrarla al confirmar el envío de un egreso. */
+  miAprobadorLeer: ["super_admin", "admin", "solicitador"],
 
   /** Items: la lectura queda abierta a cualquier autenticado — el solicitador
    * necesita el catalogo para armar sus egresos. Solo la escritura es admin. */

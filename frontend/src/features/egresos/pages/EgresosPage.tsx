@@ -1,7 +1,26 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Inbox, Loader2, Plus, Printer, Search } from "lucide-react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import {
+  Inbox,
+  Loader2,
+  Pencil,
+  Plus,
+  Printer,
+  Search,
+  Send,
+  Trash2,
+} from "lucide-react"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,10 +43,15 @@ import {
 import { DataPagination } from "@/components/data/DataPagination"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
-import { useEgresos } from "@/features/egresos/hooks/useEgresos"
+import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
+import {
+  useDescartarEgreso,
+  useEgresos,
+} from "@/features/egresos/hooks/useEgresos"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { IconAction } from "@/components/data/IconAction"
 import {
+  ESTADO_DETALLE,
   ESTADO_LABEL,
   ESTADO_VARIANT,
   etiquetaNumero,
@@ -36,7 +60,10 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
 import { usePagination } from "@/hooks/use-pagination"
 
-import type { EstadoEgreso } from "@/features/egresos/egresos.types"
+import type {
+  EgresoListItem,
+  EstadoEgreso,
+} from "@/features/egresos/egresos.types"
 
 type FiltroEstado = EstadoEgreso | "todos"
 
@@ -54,6 +81,7 @@ const fecha = (iso: string | null) =>
 export function EgresosPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const puedeCrear = tienePermiso(user, "egresosCrear")
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
@@ -62,10 +90,25 @@ export function EgresosPage() {
   const tieneBandeja =
     user?.rol === "aprobador" || user?.rol === "responsable_almacen"
 
+  // Las tarjetas de la home enlazan acá con el estado ya elegido (?estado=…).
+  // Es solo el valor INICIAL: a partir de ahí manda el selector, que no escribe
+  // en la URL. Si viene un estado, la bandeja arranca apagada — combinarlos daría
+  // cero resultados en cuanto el estado pedido no sea el de la bandeja del rol.
+  const estadoUrl = params.get("estado") as EstadoEgreso | null
+  const estadoInicial: FiltroEstado =
+    estadoUrl && ESTADOS.includes(estadoUrl) ? estadoUrl : "todos"
+
+  const descartar = useDescartarEgreso()
+  // Enviar y descartar piden confirmación: los dos son sin vuelta atrás.
+  const [aEnviar, setAEnviar] = useState<EgresoListItem | null>(null)
+  const [aDescartar, setADescartar] = useState<EgresoListItem | null>(null)
+
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
-  const [estado, setEstado] = useState<FiltroEstado>("todos")
-  const [soloBandeja, setSoloBandeja] = useState(tieneBandeja)
+  const [estado, setEstado] = useState<FiltroEstado>(estadoInicial)
+  const [soloBandeja, setSoloBandeja] = useState(
+    tieneBandeja && estadoInicial === "todos"
+  )
   const busquedaDiferida = useDebouncedValue(busqueda)
 
   const { data, isPending, isError, error } = useEgresos({
@@ -87,7 +130,28 @@ export function EgresosPage() {
     user?.rol === "admin" ||
     user?.rol === "responsable_almacen" ||
     user?.rol === "observador_almacen"
-  const columnas = (veVariasUnidades ? 7 : 6) + (puedeImprimir ? 1 : 0)
+  // El solicitador solo ve SUS pedidos (lo aplica el alcance del backend), así
+  // que la columna repetiría su nombre en todas las filas. Para el resto sí
+  // distingue de quién es cada pedido.
+  const veVariosSolicitantes = user?.rol !== "solicitador"
+
+  /**
+   * Editar, enviar y descartar solo valen sobre un borrador PROPIO — es lo mismo
+   * que exige el backend (`exigirSolicitante` + `exigirEstado`). Se compara por
+   * id de solicitante y no por rol: un admin ve borradores ajenos en el listado y
+   * tampoco puede tocarlos.
+   */
+  const puedeGestionar = (egreso: EgresoListItem) =>
+    egreso.estado === "BORRADOR" && egreso.solicitante.id === user?.id
+
+  // La columna de acciones aparece si el rol puede hacer ALGO en alguna fila.
+  const hayAcciones = puedeImprimir || puedeCrear
+  // Fijas: Nº, Fecha, Justificación, Ítems, Estado.
+  const columnas =
+    5 +
+    (veVariasUnidades ? 1 : 0) +
+    (veVariosSolicitantes ? 1 : 0) +
+    (hayAcciones ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-4">
@@ -95,8 +159,8 @@ export function EgresosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Egresos</h1>
           <p className="text-sm text-muted-foreground">
-            Pedidos de material: los arma el solicitante, los aprueba el jefe de
-            unidad y los entrega el responsable del almacén.
+            Pedidos de material: los arma el solicitante, los aprueba el
+            aprobador de su unidad y los entrega el responsable del almacén.
           </p>
         </div>
 
@@ -143,9 +207,11 @@ export function EgresosPage() {
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectItem value="todos">Todos los estados</SelectItem>
+            {/* En el selector va la etiqueta LARGA: hay ancho de sobra y elegir
+                un filtro es justo cuando conviene saber a quién le toca. */}
             {ESTADOS.map((valor) => (
               <SelectItem key={valor} value={valor}>
-                {ESTADO_LABEL[valor]}
+                {ESTADO_DETALLE[valor]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -159,11 +225,11 @@ export function EgresosPage() {
               <TableHead>Nº</TableHead>
               <TableHead>Fecha</TableHead>
               {veVariasUnidades && <TableHead>Unidad</TableHead>}
-              <TableHead>Solicitante</TableHead>
+              {veVariosSolicitantes && <TableHead>Solicitante</TableHead>}
               <TableHead>Justificación</TableHead>
               <TableHead className="text-center">Ítems</TableHead>
               <TableHead>Estado</TableHead>
-              {puedeImprimir && (
+              {hayAcciones && (
                 <TableHead className="text-right">Acciones</TableHead>
               )}
             </TableRow>
@@ -224,7 +290,9 @@ export function EgresosPage() {
                       {egreso.unidad.sigla}
                     </TableCell>
                   )}
-                  <TableCell>{egreso.solicitante.nombre}</TableCell>
+                  {veVariosSolicitantes && (
+                    <TableCell>{egreso.solicitante.nombre}</TableCell>
+                  )}
                   <TableCell className="max-w-xs truncate text-muted-foreground">
                     {egreso.justificacion}
                   </TableCell>
@@ -236,14 +304,34 @@ export function EgresosPage() {
                       {ESTADO_LABEL[egreso.estado]}
                     </Badge>
                   </TableCell>
-                  {puedeImprimir && (
+                  {hayAcciones && (
                     <TableCell
-                      className="text-right"
-                      // La fila navega al detalle: el botón no debe arrastrar
-                      // ese clic.
+                      className="text-right whitespace-nowrap"
+                      // La fila navega al detalle: los botones no deben
+                      // arrastrar ese clic.
                       onClick={(event) => event.stopPropagation()}
                     >
-                      {egreso.estado !== "BORRADOR" && (
+                      {puedeGestionar(egreso) && (
+                        <>
+                          <IconAction
+                            icono={Pencil}
+                            etiqueta="Editar el pedido"
+                            onClick={() => navigate(`/egresos/${egreso.id}`)}
+                          />
+                          <IconAction
+                            icono={Send}
+                            etiqueta="Enviar a aprobador unidad"
+                            onClick={() => setAEnviar(egreso)}
+                          />
+                          <IconAction
+                            icono={Trash2}
+                            etiqueta="Descartar el pedido"
+                            destructiva
+                            onClick={() => setADescartar(egreso)}
+                          />
+                        </>
+                      )}
+                      {puedeImprimir && egreso.estado !== "BORRADOR" && (
                         <IconAction
                           icono={
                             generandoId === egreso.id ? Loader2 : Printer
@@ -269,6 +357,48 @@ export function EgresosPage() {
           entidad="egresos"
         />
       )}
+
+      {aEnviar && (
+        <EnviarDialog
+          egresoId={aEnviar.id}
+          onClose={() => setAEnviar(null)}
+        />
+      )}
+
+      <AlertDialog
+        open={aDescartar !== null}
+        onOpenChange={(abierto) => !abierto && setADescartar(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Descartar el pedido?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se elimina y libera el stock que tenía reservado. A diferencia del
+              resto del sistema, un pedido sin enviar sí se borra: todavía no es
+              un documento ni movió existencias.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={descartar.isPending}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={descartar.isPending}
+              onClick={(event) => {
+                event.preventDefault()
+                if (!aDescartar) return
+                void descartar
+                  .mutateAsync(aDescartar.id)
+                  .then(() => setADescartar(null))
+                  .catch(() => undefined)
+              }}
+            >
+              Descartar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

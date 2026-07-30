@@ -7,11 +7,42 @@ export type EstadoEgreso =
   | "ENTREGADO"
   | "ANULADO"
 
-/** Etiquetas del circuito, como las lee quien las mira en pantalla. */
+/**
+ * Etiqueta CORTA, para los badges de las tablas y la ficha. Dice qué falta, en
+ * dos palabras: en una celda de tabla, «Esperando al aprobador de unidad»
+ * empujaba el ancho de toda la columna.
+ */
 export const ESTADO_LABEL: Record<EstadoEgreso, string> = {
-  BORRADOR: "Borrador",
-  PENDIENTE_APROBADOR: "Esperando al jefe de unidad",
-  PENDIENTE_RESPONSABLE_ALMACEN: "Esperando entrega",
+  // Los tres estados en curso forman UNA serie —PENDIENTE DE ENVÍO → DE
+  // APROBACIÓN → DE ENTREGA→ ENTREGADO—: cada uno nombra el paso que falta, en el
+  // registro formal que usa la institución. Si cambiás uno, cambiá los tres: que
+  // dos sigan un patrón y el tercero otro es lo que hace que un estado se lea
+  // como de otro sistema.
+  //
+  // «Borrador» quedó fuera de la pantalla (2026-07-30): hablaba del documento y
+  // no del paso pendiente, y sonaba a algo sin terminar. En la BD el enum SIGUE
+  // llamándose BORRADOR — es interno y renombrarlo costaría una migración sin
+  // ninguna ganancia.
+  BORRADOR: "Pendiente de envío",
+  PENDIENTE_APROBADOR: "Pendiente de aprobación",
+  PENDIENTE_RESPONSABLE_ALMACEN: "Pendiente de entrega",
+  ENTREGADO: "Entregado",
+  ANULADO: "Anulado",
+}
+
+/**
+ * Etiqueta LARGA, donde hay lugar y conviene ser explícito: el selector de
+ * filtros y el campo «Estado» del PDF. Nombra a QUIÉN espera el pedido, que es
+ * lo único que la etiqueta corta no dice.
+ *
+ * «Aprobador de unidad» y no «jefe de unidad»: es como se llama el rol en el
+ * sistema (enum `Rol.aprobador`). El único lugar donde sobrevive «Jefe» es el
+ * pie de firmas del PDF, que replica el documento oficial.
+ */
+export const ESTADO_DETALLE: Record<EstadoEgreso, string> = {
+  BORRADOR: "Pendiente de envío",
+  PENDIENTE_APROBADOR: "Esperando al aprobador de unidad",
+  PENDIENTE_RESPONSABLE_ALMACEN: "Esperando entrega en almacén",
   ENTREGADO: "Entregado",
   ANULADO: "Anulado",
 }
@@ -25,6 +56,53 @@ export const ESTADO_VARIANT: Record<
   PENDIENTE_RESPONSABLE_ALMACEN: "secondary",
   ENTREGADO: "default",
   ANULADO: "destructive",
+}
+
+/**
+ * Qué HIZO la persona en cada paso del historial, en pasado. Se deriva de la
+ * transición (de qué estado a cuál), no del estado nuevo a secas: mostrar
+ * «Esperando entrega · PEDRO FERRANO» describe dónde quedó el pedido, pero deja
+ * afuera lo único que importa del renglón, que Pedro lo APROBÓ.
+ *
+ * El segundo texto dice a quién le queda la pelota, que es lo que la gente
+ * quiere saber al mirar un pedido en curso.
+ */
+export function describirPaso(paso: {
+  estadoAnterior: EstadoEgreso | null
+  estadoNuevo: EstadoEgreso
+}): { accion: string; consecuencia?: string } {
+  const { estadoAnterior: de, estadoNuevo: a } = paso
+
+  if (de === null) return { accion: "Creó el pedido" }
+
+  if (a === "ANULADO") {
+    return de === "ENTREGADO"
+      ? {
+          accion: "Anuló la entrega",
+          consecuencia: "el material volvió a sus lotes",
+        }
+      : { accion: "Anuló el pedido" }
+  }
+
+  if (a === "BORRADOR") {
+    return {
+      accion: "Rechazó el pedido",
+      consecuencia: "vuelve al solicitante para corregirlo",
+    }
+  }
+
+  if (a === "PENDIENTE_APROBADOR") {
+    return {
+      accion: "Envió el pedido",
+      consecuencia: "pasa al aprobador de unidad",
+    }
+  }
+
+  if (a === "PENDIENTE_RESPONSABLE_ALMACEN") {
+    return { accion: "Aprobó el pedido", consecuencia: "pasa al almacén" }
+  }
+
+  return { accion: "Entregó el material", consecuencia: "se descontó del stock" }
 }
 
 interface RefNombre {
@@ -46,6 +124,8 @@ export interface LoteDeLinea {
     codigo: string
     descripcion: string
     unidadMedida: string
+    /** Ruta relativa de la foto de catálogo (`/uploads/items/…`) o null. */
+    imagenUrl: string | null
     partida: { id: number; codigo: string }
   }
   ingreso: {
@@ -63,7 +143,6 @@ export interface EgresoDetalle {
   cantidadSolicitada: string
   /** Null hasta la entrega. La ajusta solo el responsable de almacén. */
   cantidadEntregada: string | null
-  observacion: string | null
   ingresoDetalle: LoteDeLinea
 }
 
@@ -134,7 +213,6 @@ export interface QueryEgresos extends PaginationQuery {
 export interface LineaPayload {
   ingresoDetalleId: number
   cantidadSolicitada: number
-  observacion?: string
 }
 
 export interface CreateEgresoPayload {

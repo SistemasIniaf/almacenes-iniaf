@@ -70,7 +70,7 @@ export function useCrearEgreso() {
     mutationFn: (payload: CreateEgresoPayload) => crearEgreso(payload),
     onSuccess: () => {
       invalidar()
-      toast.success("Pedido creado como borrador")
+      toast.success("Pedido guardado. Falta enviarlo al aprobador de unidad")
     },
     // Los errores útiles los arma el backend (sin disponible suficiente, lote
     // de otro almacén, ingreso anulado): se muestran tal cual.
@@ -85,7 +85,7 @@ export function useActualizarEgreso() {
       actualizarEgreso(id, payload),
     onSuccess: () => {
       invalidar()
-      toast.success("Borrador guardado")
+      toast.success("Cambios guardados")
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })
@@ -97,7 +97,7 @@ export function useDescartarEgreso() {
     mutationFn: (id: number) => descartarEgreso(id),
     onSuccess: () => {
       invalidar()
-      toast.success("Borrador descartado")
+      toast.success("Pedido descartado")
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })
@@ -110,7 +110,7 @@ export function useEnviarEgreso() {
     onSuccess: (egreso) => {
       invalidar()
       toast.success(
-        `Pedido ${String(egreso.numero).padStart(3, "0")}/${egreso.gestion} enviado al jefe de unidad`
+        `Pedido ${String(egreso.numero).padStart(3, "0")}/${egreso.gestion} enviado al aprobador de unidad`
       )
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),

@@ -51,7 +51,6 @@ export type EgresoDetalleMinAggregateOutputType = {
   ingresoDetalleId: number | null
   cantidadSolicitada: runtime.Decimal | null
   cantidadEntregada: runtime.Decimal | null
-  observacion: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,7 +61,6 @@ export type EgresoDetalleMaxAggregateOutputType = {
   ingresoDetalleId: number | null
   cantidadSolicitada: runtime.Decimal | null
   cantidadEntregada: runtime.Decimal | null
-  observacion: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -73,7 +71,6 @@ export type EgresoDetalleCountAggregateOutputType = {
   ingresoDetalleId: number
   cantidadSolicitada: number
   cantidadEntregada: number
-  observacion: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -102,7 +99,6 @@ export type EgresoDetalleMinAggregateInputType = {
   ingresoDetalleId?: true
   cantidadSolicitada?: true
   cantidadEntregada?: true
-  observacion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -113,7 +109,6 @@ export type EgresoDetalleMaxAggregateInputType = {
   ingresoDetalleId?: true
   cantidadSolicitada?: true
   cantidadEntregada?: true
-  observacion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -124,7 +119,6 @@ export type EgresoDetalleCountAggregateInputType = {
   ingresoDetalleId?: true
   cantidadSolicitada?: true
   cantidadEntregada?: true
-  observacion?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -222,7 +216,6 @@ export type EgresoDetalleGroupByOutputType = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal
   cantidadEntregada: runtime.Decimal | null
-  observacion: string | null
   createdAt: Date
   updatedAt: Date
   _count: EgresoDetalleCountAggregateOutputType | null
@@ -256,7 +249,6 @@ export type EgresoDetalleWhereInput = {
   ingresoDetalleId?: Prisma.IntFilter<"EgresoDetalle"> | number
   cantidadSolicitada?: Prisma.DecimalFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.DecimalNullableFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.StringNullableFilter<"EgresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
   egreso?: Prisma.XOR<Prisma.EgresoScalarRelationFilter, Prisma.EgresoWhereInput>
@@ -270,7 +262,6 @@ export type EgresoDetalleOrderByWithRelationInput = {
   ingresoDetalleId?: Prisma.SortOrder
   cantidadSolicitada?: Prisma.SortOrder
   cantidadEntregada?: Prisma.SortOrderInput | Prisma.SortOrder
-  observacion?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   egreso?: Prisma.EgresoOrderByWithRelationInput
@@ -287,7 +278,6 @@ export type EgresoDetalleWhereUniqueInput = Prisma.AtLeast<{
   ingresoDetalleId?: Prisma.IntFilter<"EgresoDetalle"> | number
   cantidadSolicitada?: Prisma.DecimalFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.DecimalNullableFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.StringNullableFilter<"EgresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
   egreso?: Prisma.XOR<Prisma.EgresoScalarRelationFilter, Prisma.EgresoWhereInput>
@@ -301,7 +291,6 @@ export type EgresoDetalleOrderByWithAggregationInput = {
   ingresoDetalleId?: Prisma.SortOrder
   cantidadSolicitada?: Prisma.SortOrder
   cantidadEntregada?: Prisma.SortOrderInput | Prisma.SortOrder
-  observacion?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EgresoDetalleCountOrderByAggregateInput
@@ -320,7 +309,6 @@ export type EgresoDetalleScalarWhereWithAggregatesInput = {
   ingresoDetalleId?: Prisma.IntWithAggregatesFilter<"EgresoDetalle"> | number
   cantidadSolicitada?: Prisma.DecimalWithAggregatesFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.DecimalNullableWithAggregatesFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.StringNullableWithAggregatesFilter<"EgresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EgresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EgresoDetalle"> | Date | string
 }
@@ -328,7 +316,6 @@ export type EgresoDetalleScalarWhereWithAggregatesInput = {
 export type EgresoDetalleCreateInput = {
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   egreso: Prisma.EgresoCreateNestedOneWithoutDetallesInput
@@ -342,7 +329,6 @@ export type EgresoDetalleUncheckedCreateInput = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutEgresoDetalleInput
@@ -351,7 +337,6 @@ export type EgresoDetalleUncheckedCreateInput = {
 export type EgresoDetalleUpdateInput = {
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   egreso?: Prisma.EgresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -365,7 +350,6 @@ export type EgresoDetalleUncheckedUpdateInput = {
   ingresoDetalleId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleNestedInput
@@ -377,7 +361,6 @@ export type EgresoDetalleCreateManyInput = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -385,7 +368,6 @@ export type EgresoDetalleCreateManyInput = {
 export type EgresoDetalleUpdateManyMutationInput = {
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -396,7 +378,6 @@ export type EgresoDetalleUncheckedUpdateManyInput = {
   ingresoDetalleId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -422,7 +403,6 @@ export type EgresoDetalleCountOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   cantidadSolicitada?: Prisma.SortOrder
   cantidadEntregada?: Prisma.SortOrder
-  observacion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -441,7 +421,6 @@ export type EgresoDetalleMaxOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   cantidadSolicitada?: Prisma.SortOrder
   cantidadEntregada?: Prisma.SortOrder
-  observacion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -452,7 +431,6 @@ export type EgresoDetalleMinOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   cantidadSolicitada?: Prisma.SortOrder
   cantidadEntregada?: Prisma.SortOrder
-  observacion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -576,7 +554,6 @@ export type NullableDecimalFieldUpdateOperationsInput = {
 export type EgresoDetalleCreateWithoutIngresoDetalleInput = {
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   egreso: Prisma.EgresoCreateNestedOneWithoutDetallesInput
@@ -588,7 +565,6 @@ export type EgresoDetalleUncheckedCreateWithoutIngresoDetalleInput = {
   egresoId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutEgresoDetalleInput
@@ -629,7 +605,6 @@ export type EgresoDetalleScalarWhereInput = {
   ingresoDetalleId?: Prisma.IntFilter<"EgresoDetalle"> | number
   cantidadSolicitada?: Prisma.DecimalFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.DecimalNullableFilter<"EgresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.StringNullableFilter<"EgresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EgresoDetalle"> | Date | string
 }
@@ -637,7 +612,6 @@ export type EgresoDetalleScalarWhereInput = {
 export type EgresoDetalleCreateWithoutMovimientosInput = {
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   egreso: Prisma.EgresoCreateNestedOneWithoutDetallesInput
@@ -650,7 +624,6 @@ export type EgresoDetalleUncheckedCreateWithoutMovimientosInput = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -674,7 +647,6 @@ export type EgresoDetalleUpdateToOneWithWhereWithoutMovimientosInput = {
 export type EgresoDetalleUpdateWithoutMovimientosInput = {
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   egreso?: Prisma.EgresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -687,7 +659,6 @@ export type EgresoDetalleUncheckedUpdateWithoutMovimientosInput = {
   ingresoDetalleId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -695,7 +666,6 @@ export type EgresoDetalleUncheckedUpdateWithoutMovimientosInput = {
 export type EgresoDetalleCreateWithoutEgresoInput = {
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ingresoDetalle: Prisma.IngresoDetalleCreateNestedOneWithoutEgresoDetallesInput
@@ -707,7 +677,6 @@ export type EgresoDetalleUncheckedCreateWithoutEgresoInput = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutEgresoDetalleInput
@@ -744,7 +713,6 @@ export type EgresoDetalleCreateManyIngresoDetalleInput = {
   egresoId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -752,7 +720,6 @@ export type EgresoDetalleCreateManyIngresoDetalleInput = {
 export type EgresoDetalleUpdateWithoutIngresoDetalleInput = {
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   egreso?: Prisma.EgresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -764,7 +731,6 @@ export type EgresoDetalleUncheckedUpdateWithoutIngresoDetalleInput = {
   egresoId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleNestedInput
@@ -775,7 +741,6 @@ export type EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleInput = {
   egresoId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -785,7 +750,6 @@ export type EgresoDetalleCreateManyEgresoInput = {
   ingresoDetalleId: number
   cantidadSolicitada: runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -793,7 +757,6 @@ export type EgresoDetalleCreateManyEgresoInput = {
 export type EgresoDetalleUpdateWithoutEgresoInput = {
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneRequiredWithoutEgresoDetallesNestedInput
@@ -805,7 +768,6 @@ export type EgresoDetalleUncheckedUpdateWithoutEgresoInput = {
   ingresoDetalleId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleNestedInput
@@ -816,7 +778,6 @@ export type EgresoDetalleUncheckedUpdateManyWithoutEgresoInput = {
   ingresoDetalleId?: Prisma.IntFieldUpdateOperationsInput | number
   cantidadSolicitada?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   cantidadEntregada?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -858,7 +819,6 @@ export type EgresoDetalleSelect<ExtArgs extends runtime.Types.Extensions.Interna
   ingresoDetalleId?: boolean
   cantidadSolicitada?: boolean
   cantidadEntregada?: boolean
-  observacion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
@@ -873,7 +833,6 @@ export type EgresoDetalleSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   ingresoDetalleId?: boolean
   cantidadSolicitada?: boolean
   cantidadEntregada?: boolean
-  observacion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
@@ -886,7 +845,6 @@ export type EgresoDetalleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   ingresoDetalleId?: boolean
   cantidadSolicitada?: boolean
   cantidadEntregada?: boolean
-  observacion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
@@ -899,12 +857,11 @@ export type EgresoDetalleSelectScalar = {
   ingresoDetalleId?: boolean
   cantidadSolicitada?: boolean
   cantidadEntregada?: boolean
-  observacion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EgresoDetalleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "egresoId" | "ingresoDetalleId" | "cantidadSolicitada" | "cantidadEntregada" | "observacion" | "createdAt" | "updatedAt", ExtArgs["result"]["egresoDetalle"]>
+export type EgresoDetalleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "egresoId" | "ingresoDetalleId" | "cantidadSolicitada" | "cantidadEntregada" | "createdAt" | "updatedAt", ExtArgs["result"]["egresoDetalle"]>
 export type EgresoDetalleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
   ingresoDetalle?: boolean | Prisma.IngresoDetalleDefaultArgs<ExtArgs>
@@ -925,6 +882,12 @@ export type $EgresoDetallePayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     egreso: Prisma.$EgresoPayload<ExtArgs>
     ingresoDetalle: Prisma.$IngresoDetallePayload<ExtArgs>
+    /**
+     * NO lleva observacion por linea, a diferencia de `IngresoDetalle`: lo que hay
+     * para aclarar de un pedido va en la `justificacion` de la cabecera (decision
+     * del encargado, 2026-07-30). La columna existio y se quito en la migracion
+     * `20260730_egreso_detalle_sin_observacion`.
+     */
     movimientos: Prisma.$MovimientoKardexPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -938,7 +901,6 @@ export type $EgresoDetallePayload<ExtArgs extends runtime.Types.Extensions.Inter
      * el pedido queda entregado con esta cantidad.
      */
     cantidadEntregada: runtime.Decimal | null
-    observacion: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["egresoDetalle"]>
@@ -1372,7 +1334,6 @@ export interface EgresoDetalleFieldRefs {
   readonly ingresoDetalleId: Prisma.FieldRef<"EgresoDetalle", 'Int'>
   readonly cantidadSolicitada: Prisma.FieldRef<"EgresoDetalle", 'Decimal'>
   readonly cantidadEntregada: Prisma.FieldRef<"EgresoDetalle", 'Decimal'>
-  readonly observacion: Prisma.FieldRef<"EgresoDetalle", 'String'>
   readonly createdAt: Prisma.FieldRef<"EgresoDetalle", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EgresoDetalle", 'DateTime'>
 }

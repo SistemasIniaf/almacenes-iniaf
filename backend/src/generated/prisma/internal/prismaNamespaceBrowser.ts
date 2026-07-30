@@ -294,7 +294,6 @@ export const EgresoDetalleScalarFieldEnum = {
   ingresoDetalleId: 'ingresoDetalleId',
   cantidadSolicitada: 'cantidadSolicitada',
   cantidadEntregada: 'cantidadEntregada',
-  observacion: 'observacion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
