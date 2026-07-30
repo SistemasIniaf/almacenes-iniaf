@@ -41,15 +41,25 @@ export const ROL_BADGE_CLASS: Record<Rol, string> = {
     "border-dashed border-border bg-transparent text-muted-foreground",
 }
 
-/** Usuario autenticado tal como lo devuelve `GET /auth/me`. */
+/**
+ * Perfil del usuario autenticado, tal como lo devuelven `POST /auth/login` y
+ * `GET /auth/me` — los dos entregan la misma forma.
+ *
+ * Trae MÁS que el token: el nombre, el cargo y los nombres de unidad y almacén,
+ * que el backend lee de la BD. Con eso, una pantalla puede mostrar de quién es
+ * el documento antes de que el documento exista (el egreso hereda unidad y
+ * almacén del solicitante).
+ */
 export interface AuthUser {
   id: number
   usuario: string
+  nombre: string
+  cargo: string | null
   rol: Rol
   unidadId: number | null
   almacenId: number | null
-  /** Solo viene en la respuesta del login, no en `/auth/me`. */
-  nombre?: string
+  unidad: { id: number; nombre: string; sigla: string } | null
+  almacen: { id: number; nombre: string } | null
 }
 
 export interface LoginRequest {
@@ -60,5 +70,5 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string
   refreshToken: string
-  user: AuthUser & { nombre: string }
+  user: AuthUser
 }

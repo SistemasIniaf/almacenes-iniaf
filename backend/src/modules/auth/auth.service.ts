@@ -16,8 +16,23 @@ export interface TokensRespuesta {
   refreshToken: string;
 }
 
+/**
+ * Perfil del usuario logueado. Es MAS que el contenido del token: agrega el
+ * nombre, el cargo y los nombres de la unidad y el almacen, que el token no
+ * lleva (seria payload que viaja en cada request para datos que casi no cambian).
+ * Lo consumen la barra lateral y los formularios que muestran de quien es el
+ * documento — el egreso, por ejemplo, hereda unidad y almacen del solicitante y
+ * los muestra antes de que exista el registro.
+ */
+export interface PerfilUsuario extends AuthenticatedUser {
+  nombre: string;
+  cargo: string | null;
+  unidad: { id: number; nombre: string; sigla: string } | null;
+  almacen: { id: number; nombre: string } | null;
+}
+
 export interface LoginRespuesta extends TokensRespuesta {
-  user: AuthenticatedUser & { nombre: string };
+  user: PerfilUsuario;
 }
 
 @Injectable()
@@ -52,17 +67,35 @@ export class AuthService {
       almacenId: usuario.almacenId,
     });
 
-    return {
-      ...tokens,
-      user: {
-        id: usuario.id,
-        usuario: usuario.usuario,
-        nombre: usuario.nombre,
-        rol: usuario.rol,
-        unidadId: usuario.unidadId,
-        almacenId: usuario.almacenId,
+    // El perfil se arma con la misma consulta que `GET /auth/me`, para que el
+    // login y la rehidratacion devuelvan exactamente la misma forma.
+    return { ...tokens, user: await this.perfil(usuario.id) };
+  }
+
+  /**
+   * Perfil completo desde la BD. NO se sirve del token: ahi solo viajan los ids,
+   * y el nombre de la unidad o del almacen puede cambiar sin que el usuario
+   * vuelva a loguearse.
+   */
+  async perfil(usuarioId: number): Promise<PerfilUsuario> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: {
+        id: true,
+        usuario: true,
+        nombre: true,
+        cargo: true,
+        rol: true,
+        unidadId: true,
+        almacenId: true,
+        unidad: { select: { id: true, nombre: true, sigla: true } },
+        almacen: { select: { id: true, nombre: true } },
       },
-    };
+    });
+    // El token es valido pero el usuario ya no existe (o lo borraron): la sesion
+    // no vale nada.
+    if (!usuario) throw new UnauthorizedException('La sesion ya no es valida');
+    return usuario;
   }
 
   /** Emite nuevos tokens a partir de un usuario ya validado por el refresh guard. */

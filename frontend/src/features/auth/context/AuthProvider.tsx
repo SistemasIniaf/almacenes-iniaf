@@ -42,12 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (cache && !cancelado) setUser(cache)
 
       try {
+        // `/auth/me` ya trae el perfil completo (nombre, cargo, unidad y
+        // almacén): se pisa entero, sin conservar nada del cache.
         const perfil = await me()
         if (cancelado) return
-        // El servidor manda; solo `nombre` se conserva del cache (ver auth-storage).
-        const actualizado: AuthUser = { ...perfil, nombre: cache?.nombre }
-        setUser(actualizado)
-        setStoredUser(actualizado)
+        setUser(perfil)
+        setStoredUser(perfil)
       } catch {
         // 401 con refresh fallido: el interceptor ya limpio los tokens.
         if (!cancelado) limpiarSesion()

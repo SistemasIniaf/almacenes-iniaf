@@ -40,9 +40,13 @@ export class AuthController {
     return this.authService.refresh(user);
   }
 
-  /** Devuelve el usuario autenticado (perfil). */
+  /**
+   * Perfil del usuario autenticado. Va a la BD en vez de devolver el token
+   * decodificado: hace falta el nombre, el cargo y los nombres de unidad y
+   * almacen, que el token no lleva.
+   */
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser) {
-    return user;
+    return this.authService.perfil(user.id);
   }
 }
