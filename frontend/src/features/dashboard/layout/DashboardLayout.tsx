@@ -39,7 +39,13 @@ export const DashboardLayout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      {/* `min-w-0` es lo que hace que las tablas anchas scrolleen DENTRO de su
+          caja en vez de estirar la página entera. El inset es un item flex y,
+          por defecto, un item flex no puede achicarse por debajo de su contenido
+          (`min-width: auto`): sin esto la tabla lo ensancha, el `overflow-x-auto`
+          que ya trae el contenedor de la tabla nunca se activa y termina
+          apareciendo una barra horizontal a nivel de toda la pantalla. */}
+      <SidebarInset className="min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />

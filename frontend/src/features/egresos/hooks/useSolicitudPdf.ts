@@ -2,14 +2,16 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { obtenerEgreso } from "@/features/egresos/egresos.api"
+import { etiquetaNumero } from "@/features/egresos/egresos.types"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { useVisorPdf } from "@/hooks/use-visor-pdf"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
 
 /**
- * Abre la «Solicitud de materiales» en PDF, en una pestaña con el visor del
- * navegador. Hermano de `useNotaIngreso`.
+ * Genera la «Solicitud de materiales» en PDF y la deja lista para el visor
+ * embebido (`PdfDialog`). Hermano de `useNotaIngreso`.
  *
  * **Quién puede imprimirla**: almacén y administración
  * (`responsable_almacen` / `admin` / `super_admin`), NO el solicitante ni el
@@ -27,12 +29,10 @@ export function useSolicitudPdf() {
 
   /** Id del egreso que se está generando, para el spinner de ESA fila. */
   const [generandoId, setGenerandoId] = useState<number | null>(null)
+  const { pdf, mostrarPdf, cerrarPdf } = useVisorPdf()
 
   async function abrirSolicitud(egreso: Egreso | number) {
     const id = typeof egreso === "number" ? egreso : egreso.id
-    // La pestaña se abre AHORA, dentro del gesto del clic. Si se abriera al
-    // terminar de generar el PDF, el navegador la bloquearía como emergente.
-    const ventana = window.open("", "_blank")
     setGenerandoId(id)
     try {
       const completo =
@@ -41,12 +41,12 @@ export function useSolicitudPdf() {
       const { crearSolicitudPdf, nombreArchivo } = await import(
         "@/features/egresos/lib/solicitud-pdf"
       )
-      const pdf = await crearSolicitudPdf(completo)
-      // Si el navegador igual bloqueó la pestaña, se descarga el archivo.
-      if (ventana) await pdf.open(ventana)
-      else await pdf.download(nombreArchivo(completo))
+      const documento = await crearSolicitudPdf(completo)
+      mostrarPdf(await documento.getBlob(), {
+        nombre: nombreArchivo(completo),
+        etiqueta: `Pedido ${etiquetaNumero(completo)}`,
+      })
     } catch (error) {
-      ventana?.close()
       toast.error(
         error instanceof Error
           ? `No se pudo generar la solicitud: ${error.message}`
@@ -57,5 +57,5 @@ export function useSolicitudPdf() {
     }
   }
 
-  return { abrirSolicitud, generandoId, puedeImprimir }
+  return { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf }
 }

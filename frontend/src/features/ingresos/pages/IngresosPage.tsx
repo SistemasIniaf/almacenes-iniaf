@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, Loader2, Pencil, Plus, Printer, Search } from "lucide-react"
+import { Eye, FileText, Loader2, Pencil, Plus, Search } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -23,12 +23,15 @@ import {
 } from "@/components/ui/table"
 import { DataPagination } from "@/components/data/DataPagination"
 import { IconAction } from "@/components/data/IconAction"
+import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useIngresos } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
+import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   ESTADO_LABEL,
+  ESTADO_PUNTO,
   etiquetaNumero,
 } from "@/features/ingresos/ingresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
@@ -41,11 +44,6 @@ import type {
 } from "@/features/ingresos/ingresos.types"
 
 type FiltroEstado = EstadoIngreso | "todos"
-
-const ESTADO_VARIANT: Record<EstadoIngreso, "default" | "destructive"> = {
-  CONFIRMADO: "default",
-  ANULADO: "destructive",
-}
 
 /** Con ceros a la izquierda, igual que en la nota impresa: 27/06/2026. */
 function fecha(iso: string | null): string {
@@ -79,7 +77,7 @@ export function IngresosPage() {
   const [estado, setEstado] = useState<FiltroEstado>("todos")
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const { abrirNota, generandoId } = useNotaIngreso()
+  const { abrirNota, generandoId, pdf, cerrarPdf } = useNotaIngreso()
 
   const { data, isPending, isError, error } = useIngresos({
     page,
@@ -145,7 +143,7 @@ export function IngresosPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -249,9 +247,9 @@ export function IngresosPage() {
                     {ingreso.observacion || "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ESTADO_VARIANT[ingreso.estado]}>
+                    <BadgeEstado tono={ESTADO_PUNTO[ingreso.estado]}>
                       {ESTADO_LABEL[ingreso.estado]}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
                   <TableCell
                     className="text-right"
@@ -268,16 +266,37 @@ export function IngresosPage() {
                       icono={puedeEditar(ingreso) ? Pencil : Eye}
                       etiqueta={puedeEditar(ingreso) ? "Editar" : "Ver"}
                       onClick={() => navigate(`/ingresos/${ingreso.id}`)}
+                      // El color acompaña al verbo, no al botón: ámbar cuando de
+                      // verdad se edita, turquesa cuando solo se consulta.
+                      className={
+                        puedeEditar(ingreso)
+                          ? TONO_ACCION.editar
+                          : TONO_ACCION.ver
+                      }
                     />
                     <IconAction
                       // Imprime sin pasar por el detalle. La fila del listado no
                       // trae las líneas ni el proveedor completo, así que el hook
                       // pide el detalle antes de armar el PDF.
-                      icono={generandoId === ingreso.id ? Loader2 : Printer}
+                      icono={generandoId === ingreso.id ? Loader2 : FileText}
                       cargando={generandoId === ingreso.id}
-                      etiqueta="Imprimir"
+                      etiqueta="Ver la nota en PDF"
                       onClick={() => abrirNota(ingreso.id)}
                       disabled={generandoId != null}
+                      className={TONO_ACCION.pdf}
+                      // Macizo (relleno del color del texto, trazo del color del
+                      // fondo) y un punto más grande que el resto: es la acción
+                      // que más se busca en la fila.
+                      //
+                      // El `size-5` va SIEMPRE, también con el spinner: si el
+                      // tamaño cambiara al empezar a generar, la fila daría un
+                      // salto. Lo único que se saca es el relleno — un `Loader2`
+                      // macizo sería una mancha girando.
+                      iconoClassName={
+                        generandoId === ingreso.id
+                          ? "size-5"
+                          : `size-5 ${MACIZO}`
+                      }
                     />
                   </TableCell>
                 </TableRow>
@@ -293,6 +312,10 @@ export function IngresosPage() {
           onPageSizeChange={setPageSize}
           entidad="ingresos"
         />
+      )}
+
+      {pdf && (
+        <PdfDialog titulo="Nota de ingreso" {...pdf} onClose={cerrarPdf} />
       )}
     </div>
   )

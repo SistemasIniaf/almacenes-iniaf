@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { useFieldArray, useFormState, useWatch } from "react-hook-form"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
+import { cn } from "@/lib/utils"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import {
   ITEMS_POR_BUSQUEDA,
@@ -125,34 +126,19 @@ export function IngresoLineas({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Ítems del ingreso</span>
-        {!disabled && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              append({
-                itemId: "",
-                cantidad: "",
-                precioUnitario: "",
-                observacion: "",
-              })
-            }
-          >
-            <Plus className="size-4" />
-            Agregar ítem
-          </Button>
-        )}
-      </div>
+      <span className="text-sm font-medium">Ítems del ingreso</span>
 
       {mensajeDetalles && (
         <p className="text-sm text-destructive">{mensajeDetalles}</p>
       )}
 
       {fields.length === 0 && (
-        <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+        <p
+          className={cn(
+            "text-center text-sm text-muted-foreground",
+            mensajeDetalles && "text-destructive"
+          )}
+        >
           Sin ítems todavía.{" "}
           {disabled ? "" : "Agregá al menos uno para registrar el ingreso."}
         </p>
@@ -174,8 +160,24 @@ export function IngresoLineas({
         return (
           <div
             key={campo.id}
-            className="flex flex-col gap-2 rounded-md border p-3"
+            className="relative flex flex-col gap-2 rounded-md border p-3"
           >
+            {/* Quitar la línea: «X» en la esquina de la tarjeta, igual que en
+                egresos. Antes era un 🗑 dentro de la celda del Subtotal, lo que
+                obligaba a descontar su ancho en el pie del Total. */}
+            {!disabled && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-1.5 right-1.5 size-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => remove(index)}
+                aria-label="Quitar ítem"
+              >
+                <X className="size-4" />
+              </Button>
+            )}
+
             {/*
               Grilla de 12 columnas DESDE lg. Antes arrancaba en sm y a 768 px los
               rotulos Cantidad/Prec.unit./Subtotal se pisaban entre si; en md
@@ -237,27 +239,15 @@ export function IngresoLineas({
                 disabled={disabled}
                 className="lg:col-span-1"
               />
-              {/* Subtotal (derivado) + botón eliminar en la misma celda: el monto
-                  alineado a la derecha y el 🗑 pegado a su lado, sin gastar una
-                  columna solo para el icono. */}
-              <div className="flex flex-col gap-2 lg:col-span-1">
+              {/* Subtotal (derivado). El `pr-7` le deja lugar a la «X» de la
+                  esquina, que cae justo sobre esta columna; el pie del Total
+                  usa el mismo valor para quedar alineado con el monto. */}
+              <div className="flex flex-col gap-2 lg:col-span-1 lg:pr-7">
                 <FieldLabel className="lg:text-right">Subtotal</FieldLabel>
                 <div className="flex h-9 items-center justify-end">
                   <span className="text-sm font-medium tabular-nums">
                     {moneda(subtotal)}
                   </span>
-                  {!disabled && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-9 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => remove(index)}
-                      aria-label="Quitar ítem"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>
@@ -272,15 +262,46 @@ export function IngresoLineas({
         )
       })}
 
+      {/* El botón va DEBAJO de las líneas y ocupa todo el ancho: es donde el ojo
+          termina de leer la última fila y hacia dónde sigue el trabajo. Arriba a
+          la derecha, en tamaño chico, se perdía contra el título. El borde
+          punteado lo lee como «acá se agrega otra», no como una acción del
+          formulario que compita con el submit.
+
+          Las clases son LAS MISMAS que en `EgresoLineas`: los dos formularios de
+          líneas tienen que verse hermanos, así que si cambia uno, cambian los dos. */}
+      {!disabled && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            append({
+              itemId: "",
+              cantidad: "",
+              precioUnitario: "",
+              observacion: "",
+            })
+          }
+          className={cn(
+            "h-11 w-full border-dashed border-primary/50 bg-primary/5 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary",
+            mensajeDetalles &&
+              "border-destructive/60 bg-destructive/5 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+          )}
+        >
+          <Plus className="size-4" />
+          Agregar ítem
+        </Button>
+      )}
+
       {/* Total: replica la grilla de 12 columnas para que el valor caiga bajo la
-          columna Subtotal (col-span-3). El pr-11 lo desplaza a la izquierda el
-          ancho del 🗑 (size-9 + gap-2) para quedar justo bajo el monto de arriba. */}
+          columna Subtotal. El `pr-7` es el mismo que usa esa columna, para
+          dejarle lugar a la «X» de la esquina y quedar bajo el monto de arriba. */}
       {fields.length > 0 && (
         <div className="flex items-center justify-between gap-2 text-sm lg:grid lg:grid-cols-12 lg:items-center lg:gap-2">
           <span className="text-muted-foreground lg:col-span-9 lg:text-right">
             Total del ingreso:
           </span>
-          <span className="text-base font-semibold tabular-nums lg:col-span-3 lg:pr-11 lg:text-right">
+          <span className="text-base font-semibold tabular-nums lg:col-span-3 lg:pr-7 lg:text-right">
             Bs {moneda(totalGeneral)}
           </span>
         </div>

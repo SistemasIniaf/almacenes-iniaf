@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -194,7 +195,7 @@ export function UsuariosPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -279,9 +280,9 @@ export function UsuariosPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={usuario.activo ? "default" : "destructive"}>
+                    <BadgeEstado tono={usuario.activo ? "ok" : "neutro"}>
                       {usuario.activo ? "Activo" : "Inactivo"}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
                   {puedeEscribir && (
                     <TableCell className="text-right">

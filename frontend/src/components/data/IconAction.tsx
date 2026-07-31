@@ -4,6 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 import type { LucideIcon } from "lucide-react"
 
@@ -17,6 +18,18 @@ interface IconActionProps {
   destructiva?: boolean
   /** Hace girar el icono mientras la accion esta en curso. */
   cargando?: boolean
+  /**
+   * Color propio del icono, para acciones que se identifican por su color sin
+   * ser destructivas — el rojo del PDF, por ejemplo. No usar `destructiva` para
+   * eso: ahi el rojo significa «cuidado», no «documento».
+   */
+  className?: string
+  /**
+   * Clases para el SVG. Sirve para invertir un icono de lucide, que se dibuja
+   * con trazo y sin relleno: con `fill-current stroke-background` queda macizo
+   * del color del texto y sus líneas internas se ven del color del fondo.
+   */
+  iconoClassName?: string
 }
 
 /**
@@ -33,6 +46,8 @@ export function IconAction({
   disabled = false,
   destructiva = false,
   cargando = false,
+  className,
+  iconoClassName,
 }: IconActionProps) {
   return (
     <Tooltip>
@@ -40,17 +55,25 @@ export function IconAction({
         <span className="inline-flex">
           <Button
             variant="ghost"
-            size="sm"
+            // `icon-sm` y no `sm`: el botón queda cuadrado, sin el `px-2.5` que
+            // separaba de más los iconos de una misma fila.
+            size="icon-sm"
             onClick={onClick}
             disabled={disabled}
             aria-label={etiqueta}
-            className={
-              destructiva && !disabled
-                ? "text-destructive hover:bg-destructive/10 hover:text-destructive"
-                : undefined
-            }
+            className={cn(
+              destructiva &&
+                !disabled &&
+                "text-destructive hover:bg-destructive/10 hover:text-destructive",
+              !disabled && className
+            )}
           >
-            <Icono className={cargando ? "size-4 animate-spin" : "size-4"} />
+            <Icono
+              className={cn(
+                cargando ? "size-4 animate-spin" : "size-4",
+                iconoClassName
+              )}
+            />
           </Button>
         </span>
       </TooltipTrigger>

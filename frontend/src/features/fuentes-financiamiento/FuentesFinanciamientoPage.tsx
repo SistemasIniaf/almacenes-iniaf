@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -153,7 +153,7 @@ export function FuentesFinanciamientoPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -213,9 +213,9 @@ export function FuentesFinanciamientoPage() {
                     {fuente.codigo ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={fuente.activo ? "default" : "destructive"}>
+                    <BadgeEstado tono={fuente.activo ? "ok" : "neutro"}>
                       {fuente.activo ? "Activa" : "Inactiva"}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
                   {puedeEscribir && (
                     <TableCell className="text-right">

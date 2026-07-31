@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Ban, Loader2, Printer, Save } from "lucide-react"
+import { ArrowLeft, Ban, FileText, Loader2, Save } from "lucide-react"
 
 import {
   AlertDialog,
@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,6 +38,7 @@ import {
   useUnidadesDeAlmacen,
 } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
+import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   aPayload,
   aPayloadEdicion,
@@ -47,16 +48,12 @@ import {
 } from "@/features/ingresos/ingresos.schema"
 import {
   ESTADO_LABEL,
+  ESTADO_PUNTO,
   etiquetaNumero,
 } from "@/features/ingresos/ingresos.types"
 
 import type { ComboboxOption } from "@/components/form/ComboboxField"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
-
-const ESTADO_VARIANT: Record<string, "default" | "destructive"> = {
-  CONFIRMADO: "default",
-  ANULADO: "destructive",
-}
 
 /**
  * Agrega al selector lo que el ingreso YA referencia, si el catálogo activo no
@@ -99,7 +96,7 @@ export function IngresoFormPage() {
 
   const [dialogoAnular, setDialogoAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
-  const { abrirNota, generandoId } = useNotaIngreso()
+  const { abrirNota, generandoId, pdf, cerrarPdf } = useNotaIngreso()
 
   const { control, handleSubmit, reset, watch } = useForm<IngresoFormValues>({
     resolver: zodResolver(ingresoSchema),
@@ -209,9 +206,9 @@ export function IngresoFormPage() {
             </h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {!esNuevo && estado && (
-                <Badge variant={ESTADO_VARIANT[estado]}>
+                <BadgeEstado tono={ESTADO_PUNTO[estado]}>
                   {ESTADO_LABEL[estado]}
-                </Badge>
+                </BadgeEstado>
               )}
               {/* El almacén se muestra acá y no como campo del formulario:
                   salvo que un admin lo esté eligiendo, es un dato fijo. */}
@@ -230,12 +227,14 @@ export function IngresoFormPage() {
               onClick={() => ingreso && abrirNota(ingreso)}
               disabled={generandoId != null}
             >
+              {/* Mismo icono que en el listado. Acá NO va en rojo: dentro de un
+                  botón con texto, el rojo se lee como acción peligrosa. */}
               {generandoId != null ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <Printer className="size-4" />
+                <FileText className="size-4" />
               )}
-              Imprimir
+              Ver PDF
             </Button>
           )}
           {estado === "CONFIRMADO" && (
@@ -561,6 +560,10 @@ export function IngresoFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {pdf && (
+        <PdfDialog titulo="Nota de ingreso" {...pdf} onClose={cerrarPdf} />
+      )}
     </div>
   )
 }

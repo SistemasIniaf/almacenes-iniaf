@@ -44,79 +44,107 @@ interface ItemMenu {
 const CLASE_ACTIVO =
   "data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90 data-[active=true]:hover:text-primary-foreground"
 
+interface GrupoMenu {
+  /** Sin título, el grupo va suelto y sin encabezado (el caso de «Inicio»). */
+  titulo?: string
+  items: ItemMenu[]
+}
+
 /**
- * Menu real del sistema. Se agregan entradas a medida que se construye cada
- * feature — NO listar modulos sin ruta todavia (quedarian como enlaces muertos).
- * Pendientes: egresos y reportes (dependen de reglas
- * de negocio todavia sin confirmar — ver CLAUDE.md).
+ * Menu real del sistema, agrupado por lo que la gente viene a HACER, no por
+ * cómo está armado el sistema. Antes todo colgaba de un único «Administración»,
+ * lo que además era falso: registrar un ingreso o pedir material es la tarea
+ * diaria del almacén, no una tarea administrativa.
+ *
+ * «Administración» va primero por pedido del usuario: quien la ve es admin o
+ * super_admin, y para ellos es su tarea principal. Al resto de los roles el
+ * grupo ni se les dibuja, así que no les mete distancia hasta lo suyo. Dentro,
+ * el orden es usuarios → unidades → almacenes.
+ *
+ * El resto sigue el uso: se mueve material todos los días, se consulta seguido
+ * y se toca un catálogo de vez en cuando.
+ *
+ * Un grupo cuyos ítems no pasan el filtro de permisos NO se dibuja: el
+ * solicitante, por ejemplo, no ve encabezados vacíos de secciones que no puede
+ * abrir. NO listar módulos sin ruta todavía: quedarían como enlaces muertos.
  */
-const ITEMS: ItemMenu[] = [
-  { titulo: "Inicio", url: "/", icono: LayoutDashboard },
+const GRUPOS: GrupoMenu[] = [
+  { items: [{ titulo: "Inicio", url: "/", icono: LayoutDashboard }] },
   {
-    titulo: "Unidades",
-    url: "/unidades",
-    icono: Building2,
-    permiso: "unidadesLeer",
+    titulo: "Administración",
+    items: [
+      {
+        titulo: "Usuarios",
+        url: "/usuarios",
+        icono: Users,
+        permiso: "usuariosLeer",
+      },
+      {
+        titulo: "Unidades",
+        url: "/unidades",
+        icono: Building2,
+        permiso: "unidadesLeer",
+      },
+      {
+        titulo: "Almacenes",
+        url: "/almacenes",
+        icono: Warehouse,
+        permiso: "almacenesLeer",
+      },
+    ],
   },
   {
-    titulo: "Almacenes",
-    url: "/almacenes",
-    icono: Warehouse,
-    permiso: "almacenesLeer",
+    titulo: "Movimientos",
+    items: [
+      {
+        titulo: "Ingresos",
+        url: "/ingresos",
+        icono: ArrowDownToLine,
+        permiso: "ingresosLeer",
+      },
+      {
+        titulo: "Egresos",
+        url: "/egresos",
+        icono: ArrowUpFromLine,
+        permiso: "egresosLeer",
+      },
+    ],
   },
   {
-    titulo: "Usuarios",
-    url: "/usuarios",
-    icono: Users,
-    permiso: "usuariosLeer",
+    titulo: "Consultas",
+    items: [
+      { titulo: "Stock", url: "/stock", icono: Boxes, permiso: "stockLeer" },
+      {
+        titulo: "Kardex",
+        url: "/kardex",
+        icono: BookOpen,
+        permiso: "kardexLeer",
+      },
+    ],
   },
   {
-    titulo: "Partidas",
-    url: "/partidas",
-    icono: ListTree,
-    permiso: "partidasLeer",
-  },
-  {
-    titulo: "Ítems",
-    url: "/items",
-    icono: Package,
-    permiso: "itemsLeer",
-  },
-  {
-    titulo: "Proveedores",
-    url: "/proveedores",
-    icono: Truck,
-    permiso: "proveedoresLeer",
-  },
-  {
-    titulo: "Fuentes de financiamiento",
-    url: "/fuentes-financiamiento",
-    icono: Landmark,
-    permiso: "fuentesLeer",
-  },
-  {
-    titulo: "Stock",
-    url: "/stock",
-    icono: Boxes,
-    permiso: "stockLeer",
-  },
-  {
-    titulo: "Kardex",
-    url: "/kardex",
-    icono: BookOpen,
-    permiso: "kardexLeer",
-  },
-  {
-    titulo: "Ingresos",
-    url: "/ingresos",
-    icono: ArrowDownToLine,
-    permiso: "ingresosLeer",
-  },
-  {
-    titulo: "Egresos",
-    url: "/egresos",
-    icono: ArrowUpFromLine,
-    permiso: "egresosLeer",
+    titulo: "Catálogos",
+    items: [
+      { titulo: "Ítems", url: "/items", icono: Package, permiso: "itemsLeer" },
+      {
+        titulo: "Partidas",
+        url: "/partidas",
+        icono: ListTree,
+        permiso: "partidasLeer",
+      },
+      {
+        titulo: "Proveedores",
+        url: "/proveedores",
+        icono: Truck,
+        permiso: "proveedoresLeer",
+      },
+      {
+        titulo: "Fuentes de financiamiento",
+        url: "/fuentes-financiamiento",
+        icono: Landmark,
+        permiso: "fuentesLeer",
+      },
+    ],
   },
 ]
 
@@ -124,9 +152,14 @@ export function NavMain() {
   const { user } = useAuth()
   const { pathname } = useLocation()
 
-  const visibles = ITEMS.filter(
-    (item) => !item.permiso || tienePermiso(user, item.permiso)
-  )
+  // Se filtran los ítems y recién después se descartan los grupos que quedaron
+  // sin ninguno: si no, un rol vería el encabezado de una sección vacía.
+  const grupos = GRUPOS.map((grupo) => ({
+    ...grupo,
+    items: grupo.items.filter(
+      (item) => !item.permiso || tienePermiso(user, item.permiso)
+    ),
+  })).filter((grupo) => grupo.items.length > 0)
 
   /**
    * Inicio ("/") solo está activo en la raíz exacta; el resto también cuando la
@@ -140,25 +173,31 @@ export function NavMain() {
   }
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Administración</SidebarGroupLabel>
-      <SidebarMenu>
-        {visibles.map((item) => (
-          <SidebarMenuItem key={item.url}>
-            <SidebarMenuButton
-              asChild
-              isActive={estaActivo(item.url)}
-              tooltip={item.titulo}
-              className={CLASE_ACTIVO}
-            >
-              <Link to={item.url}>
-                <item.icono />
-                <span>{item.titulo}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      {grupos.map((grupo, indice) => (
+        <SidebarGroup key={grupo.titulo ?? `grupo-${indice}`}>
+          {grupo.titulo && (
+            <SidebarGroupLabel>{grupo.titulo}</SidebarGroupLabel>
+          )}
+          <SidebarMenu>
+            {grupo.items.map((item) => (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={estaActivo(item.url)}
+                  tooltip={item.titulo}
+                  className={CLASE_ACTIVO}
+                >
+                  <Link to={item.url}>
+                    <item.icono />
+                    <span>{item.titulo}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }

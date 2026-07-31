@@ -1,6 +1,16 @@
+import type { TonoPunto } from "@/components/data/tonos-estado"
 import type { PaginationQuery } from "@/lib/types"
 
 export type EstadoIngreso = "CONFIRMADO" | "ANULADO"
+
+/**
+ * Color del punto del badge (ver `BadgeEstado`). Vive acá y no en cada página
+ * porque el listado y la ficha tienen que pintar igual el mismo estado.
+ */
+export const ESTADO_PUNTO: Record<EstadoIngreso, TonoPunto> = {
+  CONFIRMADO: "ok",
+  ANULADO: "alto",
+}
 
 interface RefNombre {
   id: number

@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -149,7 +149,7 @@ export function ProveedoresPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -219,11 +219,9 @@ export function ProveedoresPage() {
                     {proveedor.telefono ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={proveedor.activo ? "default" : "destructive"}
-                    >
+                    <BadgeEstado tono={proveedor.activo ? "ok" : "neutro"}>
                       {proveedor.activo ? "Activo" : "Inactivo"}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
                   {puedeEscribir && (
                     <TableCell className="text-right">

@@ -1,3 +1,4 @@
+import type { TonoPunto } from "@/components/data/tonos-estado"
 import type { PaginationQuery } from "@/lib/types"
 
 export type EstadoEgreso =
@@ -47,15 +48,19 @@ export const ESTADO_DETALLE: Record<EstadoEgreso, string> = {
   ANULADO: "Anulado",
 }
 
-export const ESTADO_VARIANT: Record<
-  EstadoEgreso,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  BORRADOR: "outline",
-  PENDIENTE_APROBADOR: "secondary",
-  PENDIENTE_RESPONSABLE_ALMACEN: "secondary",
-  ENTREGADO: "default",
-  ANULADO: "destructive",
+/**
+ * Color del punto del badge. El badge es siempre igual y solo cambia el punto
+ * (ver `BadgeEstado`), así que esto es lo único que distingue un estado de otro
+ * a la distancia.
+ */
+export const ESTADO_PUNTO: Record<EstadoEgreso, TonoPunto> = {
+  // Todavía no salió: no espera a nadie más que a su autor.
+  BORRADOR: "neutro",
+  PENDIENTE_APROBADOR: "espera",
+  // Ya pasó la aprobación: avanzó un paso y está en manos del almacén.
+  PENDIENTE_RESPONSABLE_ALMACEN: "proceso",
+  ENTREGADO: "ok",
+  ANULADO: "alto",
 }
 
 /**
@@ -70,24 +75,46 @@ export const ESTADO_VARIANT: Record<
 export function describirPaso(paso: {
   estadoAnterior: EstadoEgreso | null
   estadoNuevo: EstadoEgreso
-}): { accion: string; consecuencia?: string } {
+}): {
+  accion: string
+  consecuencia?: string
+  /** Verbo suelto, para armar «Aprobó el 20/03/2026, 14:12». */
+  verbo: string
+  /**
+   * Con qué sombrero actuó la persona. Se deduce de la transición —el circuito
+   * define quién puede hacer cada paso— y no del rol guardado en su usuario:
+   * un admin puede aprobar en lugar del aprobador, y aun así el paso que quedó
+   * registrado es la aprobación de la unidad.
+   */
+  actor: string
+} {
   const { estadoAnterior: de, estadoNuevo: a } = paso
 
-  if (de === null) return { accion: "Creó el pedido" }
+  if (de === null) {
+    return { accion: "Creó el pedido", verbo: "Creó", actor: "Solicitante" }
+  }
 
   if (a === "ANULADO") {
     return de === "ENTREGADO"
       ? {
           accion: "Anuló la entrega",
           consecuencia: "el material volvió a sus lotes",
+          verbo: "Anuló",
+          actor: "Encargado de almacén",
         }
-      : { accion: "Anuló el pedido" }
+      : { accion: "Anuló el pedido", verbo: "Anuló", actor: "Almacén" }
   }
 
   if (a === "BORRADOR") {
     return {
       accion: "Rechazó el pedido",
       consecuencia: "vuelve al solicitante para corregirlo",
+      verbo: "Rechazó",
+      // Rechazan los dos niveles; de dónde venía dice cuál fue.
+      actor:
+        de === "PENDIENTE_APROBADOR"
+          ? "Aprobador de unidad"
+          : "Encargado de almacén",
     }
   }
 
@@ -95,14 +122,26 @@ export function describirPaso(paso: {
     return {
       accion: "Envió el pedido",
       consecuencia: "pasa al aprobador de unidad",
+      verbo: "Envió",
+      actor: "Solicitante",
     }
   }
 
   if (a === "PENDIENTE_RESPONSABLE_ALMACEN") {
-    return { accion: "Aprobó el pedido", consecuencia: "pasa al almacén" }
+    return {
+      accion: "Aprobó el pedido",
+      consecuencia: "pasa al almacén",
+      verbo: "Aprobó",
+      actor: "Aprobador de unidad",
+    }
   }
 
-  return { accion: "Entregó el material", consecuencia: "se descontó del stock" }
+  return {
+    accion: "Entregó el material",
+    consecuencia: "se descontó del stock",
+    verbo: "Entregó",
+    actor: "Encargado de almacén",
+  }
 }
 
 interface RefNombre {

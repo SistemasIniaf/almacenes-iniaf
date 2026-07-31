@@ -7,8 +7,10 @@ import {
   ArrowLeft,
   Ban,
   Check,
+  TrendingUp,
   Loader2,
-  Printer,
+  FileText,
+  Save,
   Send,
   X,
 } from "lucide-react"
@@ -23,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
@@ -40,6 +42,8 @@ import { useAuth } from "@/features/auth/hooks/useAuth"
 import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
 import { EntregaDialog } from "@/features/egresos/components/EntregaDialog"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
+import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
+import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   useActualizarEgreso,
   useAnularEgreso,
@@ -60,21 +64,13 @@ import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
 import {
   ESTADO_LABEL,
-  ESTADO_VARIANT,
-  describirPaso,
+  ESTADO_PUNTO,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
-import { cn } from "@/lib/utils"
 
 import type { FieldErrors } from "react-hook-form"
 import type { EgresoFormValues } from "@/features/egresos/egresos.schema"
 import type { LoteElegible } from "@/features/egresos/hooks/useBuscarLotes"
-
-const fechaHora = (iso: string) =>
-  new Date(iso).toLocaleString("es-BO", {
-    dateStyle: "short",
-    timeStyle: "short",
-  })
 
 export function EgresoFormPage() {
   const { id: idParam } = useParams()
@@ -90,10 +86,12 @@ export function EgresoFormPage() {
   const aprobar = useAprobarEgreso()
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
-  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
+  const { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf } =
+    useSolicitudPdf()
 
   const [dialogoEntrega, setDialogoEntrega] = useState(false)
   const [dialogoEnviar, setDialogoEnviar] = useState(false)
+  const [historialAbierto, setHistorialAbierto] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
     "rechazar" | "anular" | null
   >(null)
@@ -152,7 +150,8 @@ export function EgresoFormPage() {
     itemDescripcion: d.ingresoDetalle.item.descripcion,
     unidadMedida: d.ingresoDetalle.item.unidadMedida,
     imagen: urlArchivo(d.ingresoDetalle.item.imagenUrl),
-    fuente: d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
+    fuente:
+      d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
     numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),
     disponible: Number(d.ingresoDetalle.saldoCantidad),
   }))
@@ -219,7 +218,7 @@ export function EgresoFormPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 mb-1"
+            className="mb-1 -ml-2"
             onClick={() => navigate("/egresos")}
           >
             <ArrowLeft className="size-4" />
@@ -240,20 +239,27 @@ export function EgresoFormPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {estado && (
-            <Badge variant={ESTADO_VARIANT[estado]}>
+            <BadgeEstado tono={ESTADO_PUNTO[estado]}>
               {ESTADO_LABEL[estado]}
-            </Badge>
+            </BadgeEstado>
           )}
 
-          {editable && (
-            <Button type="submit" form="egreso-form" disabled={ocupado}>
-              {ocupado && <Loader2 className="size-4 animate-spin" />}
-              Guardar
+          {/* Acá arriba van solo las acciones sobre el DOCUMENTO (enviar,
+              aprobar, entregar, anular, imprimir). El submit del formulario está
+              al pie, dentro del propio form, como en el de ingresos.
+
+              Descartar tampoco está acá: es una acción de limpieza, no un paso
+              del circuito. Vive en el listado, como acción de fila. */}
+          {!esNuevo && (
+            <Button
+              variant="outline"
+              onClick={() => setHistorialAbierto(true)}
+            >
+              <TrendingUp className="size-4" />
+              Historial
             </Button>
           )}
-          {/* Descartar NO está acá: es una acción de limpieza, no un paso del
-              circuito, y competía con los dos botones que sí lo son. Vive en el
-              listado, como acción de fila. */}
+
           {!esNuevo && editable && (
             <Button
               variant="secondary"
@@ -273,12 +279,14 @@ export function EgresoFormPage() {
               disabled={generandoId === egreso.id}
               onClick={() => void abrirSolicitud(egreso)}
             >
+              {/* Mismo icono que en el listado. Acá NO va en rojo: dentro de un
+                  botón con texto, el rojo se lee como acción peligrosa. */}
               {generandoId === egreso.id ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                <Printer className="size-4" />
+                <FileText className="size-4" />
               )}
-              Imprimir
+              Ver PDF
             </Button>
           )}
 
@@ -384,6 +392,20 @@ export function EgresoFormPage() {
             disabled={ocupado}
             lotesIniciales={lotesIniciales}
           />
+
+          {/* Acción principal al pie del formulario, dentro del card — igual que
+              el de ingresos. Queda al final de lo que hay que completar, no en
+              la barra de arriba junto a las acciones del documento. */}
+          <div className="mt-2 flex justify-end">
+            <Button type="submit" disabled={ocupado}>
+              {ocupado ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              Guardar
+            </Button>
+          </div>
         </form>
       ) : (
         egreso && (
@@ -393,7 +415,7 @@ export function EgresoFormPage() {
               <p className="text-sm">{egreso.justificacion}</p>
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border bg-card">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -442,70 +464,28 @@ export function EgresoFormPage() {
         )
       )}
 
-      {egreso && egreso.historial.length > 0 && (
-        <div className="rounded-md border p-4">
-          <h2 className="mb-4 text-sm font-medium">Historial</h2>
-          {/* Línea de tiempo: cada paso cuenta QUÉ hizo la persona (no en qué
-              estado quedó el pedido, que es lo que se leía antes) y a quién le
-              queda la pelota. El hilo vertical se dibuja con el borde izquierdo
-              de cada <li>, salvo en el último, para que no sobre una colita. */}
-          <ol className="flex flex-col text-sm">
-            {egreso.historial.map((paso, indice) => {
-              const { accion, consecuencia } = describirPaso(paso)
-              const ultimo = indice === egreso.historial.length - 1
-              const rechazoOAnulacion =
-                paso.estadoNuevo === "BORRADOR" || paso.estadoNuevo === "ANULADO"
+      {/* El historial NO se muestra acá: se abre a pedido, con el botón
+          «Historial» de la barra de arriba, igual que desde el listado. La ficha
+          es para trabajar el pedido; la traza se consulta cuando hace falta. */}
+      {historialAbierto && id != null && (
+        <HistorialSheet
+          egresoId={id}
+          onClose={() => setHistorialAbierto(false)}
+        />
+      )}
 
-              return (
-                <li
-                  key={paso.id}
-                  className={cn(
-                    "relative pb-4 pl-6",
-                    !ultimo && "border-l border-border"
-                  )}
-                >
-                  {/* El punto va sobre la línea: -left-[4.5px] = mitad del punto
-                      (9px) para que quede centrado sobre el borde de 1px. */}
-                  <span
-                    className={cn(
-                      "absolute top-1 -left-[4.5px] size-[9px] rounded-full ring-2 ring-background",
-                      rechazoOAnulacion ? "bg-destructive" : "bg-primary"
-                    )}
-                  />
-                  <div className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="font-medium">{accion}</span>
-                    <span className="text-muted-foreground">
-                      · {paso.usuario.nombre}
-                    </span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {fechaHora(paso.createdAt)}
-                    </span>
-                  </div>
-                  {consecuencia && (
-                    <p className="text-xs text-muted-foreground">
-                      {consecuencia}
-                    </p>
-                  )}
-                  {paso.motivo && (
-                    <p className="mt-1 rounded border-l-2 border-destructive/40 bg-muted/40 px-2 py-1 text-xs">
-                      <span className="text-muted-foreground">Motivo: </span>
-                      {paso.motivo}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
-          </ol>
-        </div>
+      {pdf && (
+        <PdfDialog
+          titulo="Solicitud de materiales"
+          {...pdf}
+          onClose={cerrarPdf}
+        />
       )}
 
       {/* Se monta solo al abrirse: así consulta el aprobador recién cuando hace
           falta. */}
       {dialogoEnviar && id != null && (
-        <EnviarDialog
-          egresoId={id}
-          onClose={() => setDialogoEnviar(false)}
-        />
+        <EnviarDialog egresoId={id} onClose={() => setDialogoEnviar(false)} />
       )}
 
       {/* Se monta solo al abrirlo: así las cantidades propuestas se calculan en
@@ -556,7 +536,6 @@ export function EgresoFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   )
 }

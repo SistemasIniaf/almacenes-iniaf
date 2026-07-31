@@ -137,7 +137,7 @@ export function PartidasPage() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         {isPending && (
           <div className="flex flex-col gap-2 p-3">
             {Array.from({ length: 8 }).map((_, fila) => (

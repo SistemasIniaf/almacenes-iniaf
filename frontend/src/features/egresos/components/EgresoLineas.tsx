@@ -146,8 +146,7 @@ export function EgresoLineas({
 
   const { errors } = useFormState({ control, name: "detalles" })
   const errorDetalles = errors.detalles as
-    | { message?: string; root?: { message?: string } }
-    | undefined
+    { message?: string; root?: { message?: string } } | undefined
   const mensajeDetalles = errorDetalles?.root?.message ?? errorDetalles?.message
 
   /**
@@ -162,7 +161,9 @@ export function EgresoLineas({
   const opcionesPara = (indice: number) => {
     const tomados = new Set(
       (lineas ?? [])
-        .map((linea, i) => (i === indice ? "" : (linea?.ingresoDetalleId ?? "")))
+        .map((linea, i) =>
+          i === indice ? "" : (linea?.ingresoDetalleId ?? "")
+        )
         .filter(Boolean)
     )
     return tomados.size === 0
@@ -196,8 +197,8 @@ export function EgresoLineas({
             mensajeDetalles && "text-destructive"
           )}
         >
-          Todavía no agregaste ítems. Cada línea sale de un lote concreto: elegís
-          de qué compra y de qué fuente se descuenta el material.
+          Todavía no agregaste ítems. Cada línea sale de un lote concreto:
+          elegís de qué compra y de qué fuente se descuenta el material.
         </p>
       )}
 
@@ -234,7 +235,7 @@ export function EgresoLineas({
               <FotoLote lote={lote} />
 
               <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-12">
-                <div className="sm:col-span-8">
+                <div className="sm:col-span-9">
                   <ComboboxField
                     name={`detalles.${indice}.ingresoDetalleId`}
                     label="Lote"
@@ -268,7 +269,7 @@ export function EgresoLineas({
                     se escribe el número, que es cuando el dato sirve. Se pone en
                     rojo apenas lo pedido lo supera — el backend igual lo rechaza
                     al guardar, pero avisar acá evita llegar hasta ahí. */}
-                <div className="sm:col-span-4">
+                <div className="sm:col-span-3">
                   <NumberField
                     name={`detalles.${indice}.cantidadSolicitada`}
                     label="Cantidad"

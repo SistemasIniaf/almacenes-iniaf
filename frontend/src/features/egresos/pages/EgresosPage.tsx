@@ -1,11 +1,12 @@
 import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
+  TrendingUp,
   Inbox,
   Loader2,
   Pencil,
   Plus,
-  Printer,
+  FileText,
   Search,
   Send,
   Trash2,
@@ -21,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -40,20 +40,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { DataPagination } from "@/components/data/DataPagination"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
+import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
+import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   useDescartarEgreso,
   useEgresos,
 } from "@/features/egresos/hooks/useEgresos"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { IconAction } from "@/components/data/IconAction"
+import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
 import {
   ESTADO_DETALLE,
   ESTADO_LABEL,
-  ESTADO_VARIANT,
+  ESTADO_PUNTO,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
@@ -83,7 +87,8 @@ export function EgresosPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const puedeCrear = tienePermiso(user, "egresosCrear")
-  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
+  const { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf } =
+    useSolicitudPdf()
 
   // Quien decide algo en el circuito arranca en SU bandeja: lo que espera su
   // firma. El resto ve todo lo que le toca por alcance.
@@ -102,6 +107,7 @@ export function EgresosPage() {
   // Enviar y descartar piden confirmación: los dos son sin vuelta atrás.
   const [aEnviar, setAEnviar] = useState<EgresoListItem | null>(null)
   const [aDescartar, setADescartar] = useState<EgresoListItem | null>(null)
+  const [historialDe, setHistorialDe] = useState<number | null>(null)
 
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
@@ -144,14 +150,10 @@ export function EgresosPage() {
   const puedeGestionar = (egreso: EgresoListItem) =>
     egreso.estado === "BORRADOR" && egreso.solicitante.id === user?.id
 
-  // La columna de acciones aparece si el rol puede hacer ALGO en alguna fila.
-  const hayAcciones = puedeImprimir || puedeCrear
-  // Fijas: Nº, Fecha, Justificación, Ítems, Estado.
+  // Fijas: Nº, Fecha, Justificación, Ítems, Estado y Acciones — esta última
+  // siempre está, porque «Ver historial» lo puede usar cualquier rol.
   const columnas =
-    5 +
-    (veVariasUnidades ? 1 : 0) +
-    (veVariosSolicitantes ? 1 : 0) +
-    (hayAcciones ? 1 : 0)
+    6 + (veVariasUnidades ? 1 : 0) + (veVariosSolicitantes ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-4">
@@ -218,7 +220,7 @@ export function EgresosPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -229,9 +231,7 @@ export function EgresosPage() {
               <TableHead>Justificación</TableHead>
               <TableHead className="text-center">Ítems</TableHead>
               <TableHead>Estado</TableHead>
-              {hayAcciones && (
-                <TableHead className="text-right">Acciones</TableHead>
-              )}
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -300,49 +300,74 @@ export function EgresosPage() {
                     {egreso._count.detalles}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={ESTADO_VARIANT[egreso.estado]}>
+                    <BadgeEstado tono={ESTADO_PUNTO[egreso.estado]}>
                       {ESTADO_LABEL[egreso.estado]}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
-                  {hayAcciones && (
-                    <TableCell
-                      className="text-right whitespace-nowrap"
-                      // La fila navega al detalle: los botones no deben
-                      // arrastrar ese clic.
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {puedeGestionar(egreso) && (
-                        <>
-                          <IconAction
-                            icono={Pencil}
-                            etiqueta="Editar el pedido"
-                            onClick={() => navigate(`/egresos/${egreso.id}`)}
-                          />
-                          <IconAction
-                            icono={Send}
-                            etiqueta="Enviar a aprobador unidad"
-                            onClick={() => setAEnviar(egreso)}
-                          />
-                          <IconAction
-                            icono={Trash2}
-                            etiqueta="Descartar el pedido"
-                            destructiva
-                            onClick={() => setADescartar(egreso)}
-                          />
-                        </>
-                      )}
-                      {puedeImprimir && egreso.estado !== "BORRADOR" && (
+                  <TableCell
+                    className="text-right whitespace-nowrap"
+                    // La fila navega al detalle: los botones no deben arrastrar
+                    // ese clic.
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {puedeGestionar(egreso) && (
+                      <>
                         <IconAction
-                          icono={
-                            generandoId === egreso.id ? Loader2 : Printer
-                          }
-                          etiqueta="Imprimir solicitud"
-                          onClick={() => void abrirSolicitud(egreso.id)}
-                          disabled={generandoId === egreso.id}
+                          icono={Pencil}
+                          etiqueta="Editar el pedido"
+                          onClick={() => navigate(`/egresos/${egreso.id}`)}
+                          className={TONO_ACCION.editar}
                         />
-                      )}
-                    </TableCell>
-                  )}
+                        <IconAction
+                          icono={Send}
+                          etiqueta="Enviar a aprobador unidad"
+                          onClick={() => setAEnviar(egreso)}
+                          className={TONO_ACCION.enviar}
+                        />
+                      </>
+                    )}
+                    {puedeImprimir && egreso.estado !== "BORRADOR" && (
+                      <IconAction
+                        icono={generandoId === egreso.id ? Loader2 : FileText}
+                        etiqueta="Ver la solicitud en PDF"
+                        onClick={() => void abrirSolicitud(egreso.id)}
+                        disabled={generandoId === egreso.id}
+                        className={TONO_ACCION.pdf}
+                        // Macizo (relleno del color del texto, trazo del color
+                        // del fondo) y un punto más grande que el resto: es la
+                        // acción que más se busca en la fila.
+                        //
+                        // El `size-5` va SIEMPRE, también con el spinner: si el
+                        // tamaño cambiara al empezar a generar, la fila daría un
+                        // salto. Lo único que se saca es el relleno — un
+                        // `Loader2` macizo sería una mancha girando.
+                        iconoClassName={
+                          generandoId === egreso.id ? "size-5" : `size-5 ${MACIZO}`
+                        }
+                      />
+                    )}
+                    {/* Disponible para todos: ver quién movió el pedido y cuándo
+                        es lo que más se consulta, y hasta ahora costaba entrar a
+                        la ficha. */}
+                    <IconAction
+                      icono={TrendingUp}
+                      etiqueta="Ver historial"
+                      onClick={() => setHistorialDe(egreso.id)}
+                      className={TONO_ACCION.ver}
+                    />
+
+                    {/* Descartar va SIEMPRE al final: es la única irreversible,
+                        y separarla de las demás baja la chance de un clic por
+                        inercia. */}
+                    {puedeGestionar(egreso) && (
+                      <IconAction
+                        icono={Trash2}
+                        etiqueta="Descartar el pedido"
+                        destructiva
+                        onClick={() => setADescartar(egreso)}
+                      />
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
           </TableBody>
@@ -362,6 +387,23 @@ export function EgresosPage() {
         <EnviarDialog
           egresoId={aEnviar.id}
           onClose={() => setAEnviar(null)}
+        />
+      )}
+
+      {/* Se monta solo al abrirse: el historial no viaja en el listado y el
+          panel tiene que pedir el detalle del pedido. */}
+      {historialDe != null && (
+        <HistorialSheet
+          egresoId={historialDe}
+          onClose={() => setHistorialDe(null)}
+        />
+      )}
+
+      {pdf && (
+        <PdfDialog
+          titulo="Solicitud de materiales"
+          {...pdf}
+          onClose={cerrarPdf}
         />
       )}
 

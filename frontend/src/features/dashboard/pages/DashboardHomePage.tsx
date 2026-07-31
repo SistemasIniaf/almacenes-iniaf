@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react"
 
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +35,7 @@ import {
 } from "@/features/dashboard/hooks/useResumen"
 import {
   ESTADO_LABEL,
-  ESTADO_VARIANT,
+  ESTADO_PUNTO,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
 import { useEgresos } from "@/features/egresos/hooks/useEgresos"
@@ -320,9 +321,9 @@ export function DashboardHomePage() {
                       {pedido._count.detalles}
                     </TableCell>
                     <TableCell className="pr-6">
-                      <Badge variant={ESTADO_VARIANT[pedido.estado]}>
+                      <BadgeEstado tono={ESTADO_PUNTO[pedido.estado]}>
                         {ESTADO_LABEL[pedido.estado]}
-                      </Badge>
+                      </BadgeEstado>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -577,6 +577,12 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
 - **La cabecera de la ficha NO repite unidad/almacén/solicitante**: eso vive en el bloque de datos, que
   va FUERA del `<form>` para verse igual en edición y en lectura. Un pedido sin número muestra
   «Pedido» a secas, no «Pedido —».
+- **El historial se ve DESDE el listado**, con un ícono ⏱ «Ver historial» en cada fila que abre un panel
+  lateral (`HistorialSheet`, sobre el `Sheet` de shadcn). Ver quién movió el pedido es lo que más se
+  consulta y antes costaba entrar a la ficha. El panel **se monta recién al abrirse**: el historial no
+  viaja en el listado (`GET /egresos` devuelve la forma liviana), así que pide el detalle — montarlo
+  siempre dispararía una consulta por fila. La línea de tiempo vive en `HistorialEgreso` y la comparten
+  el panel y la ficha: el dato es uno solo y tiene que contarse igual en los dos lados.
 - **El historial narra ACCIONES, no estados** (`describirPaso` en `egresos.types.ts`): cada renglón
   dice qué hizo la persona («Aprobó el pedido») y a quién le queda la pelota («pasa al almacén»), y se
   deriva de la transición `estadoAnterior → estadoNuevo`. Antes mostraba solo el estado nuevo, así que
@@ -596,8 +602,14 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   evita llegar al error.
 - **Quitar una línea es una «X» en la esquina de la tarjeta**, no un 🗑 en la fila: así no gasta una
   columna del grid (se la queda el selector de lote, que es el que más texto necesita) ni entra en la
-  alineación de los inputs. En `IngresoLineas` **sigue siendo un 🗑 dentro de la celda del Subtotal** y
-  ahí se queda: no gasta columna propia y el pie del Total se alinea descontando su ancho (`pr-11`).
+  alineación de los inputs. **`IngresoLineas` sigue el mismo patrón** desde el 2026-07-31, para que los
+  dos formularios de líneas se vean hermanos: la «X» cae sobre la columna Subtotal, así que esa celda y
+  el pie del Total llevan `pr-7` para dejarle lugar (antes el 🗑 vivía dentro de la celda y el Total
+  descontaba su ancho con `pr-11`).
+- **El botón «Agregar ítem» va DEBAJO de las líneas, a todo el ancho**, en los dos formularios: es donde
+  el ojo termina de leer la última fila. Punteado con el color primario, para leerse como «acá se agrega
+  otra» sin competir con el submit, que es el único sólido. **Las clases están duplicadas en
+  `EgresoLineas` y `IngresoLineas` y tienen que quedar IGUALES**: si retocás una, retocá la otra.
 - **`EntregaDialog` se monta solo al abrirse** (`{dialogoEntrega && <EntregaDialog …/>}`) y calcula las
   cantidades propuestas en el `useState`. Sincronizarlas con un efecto sería `setState` dentro de
   `useEffect`, que el lint del repo rechaza.
@@ -612,9 +624,15 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   categoría se eliminó. El pie imprime los nombres de quienes ya actuaron (solicitante, jefe de unidad
   —sale del historial—, encargado) sobre líneas para firmar a mano. Un ANULADO lleva marca de agua.
   **Solo la imprimen `responsable_almacen`, `admin` y `super_admin`** (`egresosImprimir`), NO el
-  solicitante ni el jefe de unidad: el documento oficial lo emite el almacén. Ojo: eso **oculta el
+  solicitante ni el aprobador de unidad: el documento oficial lo emite el almacén. Ojo: eso **oculta el
   botón, no es una barrera** — el PDF se arma en el navegador con datos que `GET /egresos/:id` ya
-  devuelve, así que no hay endpoint que proteger. Un BORRADOR no se imprime: todavía no tiene número.
+  devuelve, así que no hay endpoint que proteger.
+  **Se abre en un visor DENTRO de la app** (`SolicitudPdfDialog`), no en una pestaña: el PDF se genera
+  como object URL (`getBlob()`) y va en un `<iframe>`, que aporta gratis el zoom, las miniaturas y el
+  imprimir del navegador. Así desapareció el baile del bloqueador de emergentes —había que llamar a
+  `window.open` dentro del gesto del clic y aun así a veces se bloqueaba—. **El object URL se revoca al
+  cerrar** (`cerrarPdf`): si no, cada PDF generado queda reservando memoria. La nota de ingreso todavía
+  usa el esquema viejo de pestaña; si se unifica, es acá donde está el patrón. Un BORRADOR no se imprime: todavía no tiene número.
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 

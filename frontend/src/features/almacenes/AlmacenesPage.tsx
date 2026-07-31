@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
+import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -151,7 +151,7 @@ export function AlmacenesPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -212,9 +212,9 @@ export function AlmacenesPage() {
                     {almacen.unidades.length}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={almacen.activo ? "default" : "destructive"}>
+                    <BadgeEstado tono={almacen.activo ? "ok" : "neutro"}>
                       {almacen.activo ? "Activo" : "Inactivo"}
-                    </Badge>
+                    </BadgeEstado>
                   </TableCell>
                   {puedeEscribir && (
                     <TableCell className="text-right">
