@@ -266,7 +266,10 @@ export class StockService {
    */
   async partidasConStock(query: QueryStockDto, user: AuthenticatedUser) {
     // Sin el filtro de partida: si no, el selector se quedaria con la elegida.
-    const whereLote = await this.where({ ...query, partidaId: undefined }, user);
+    const whereLote = await this.where(
+      { ...query, partidaId: undefined },
+      user,
+    );
 
     const items = await this.prisma.ingresoDetalle.groupBy({
       by: ['itemId'],
