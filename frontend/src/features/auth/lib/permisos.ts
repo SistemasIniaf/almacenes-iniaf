@@ -1,5 +1,3 @@
-import { ROLES } from "@/features/auth/lib/auth.types"
-
 import type { AuthUser, Rol } from "@/features/auth/lib/auth.types"
 
 /**
@@ -54,13 +52,17 @@ export const PERMISOS = {
   egresosImprimir: ["super_admin", "admin", "responsable_almacen"],
 
   /** Stock: el solicitador entra desde 2026-07-29 — su pedido apunta a un lote,
-   * así que necesita ver cuáles hay y con cuánto disponible. */
+   * así que necesita ver cuáles hay y con cuánto disponible. El aprobador, desde
+   * 2026-07-31: firma sabiendo si queda material (entre que se arma el pedido y
+   * su firma pueden pasar días). Los dos ven SOLO su almacén — eso lo aplica
+   * `almacenesPermitidos` en el backend, no este mapa. */
   stockLeer: [
     "super_admin",
     "admin",
     "responsable_almacen",
     "observador_almacen",
     "solicitador",
+    "aprobador",
   ],
   kardexLeer: [
     "super_admin",
@@ -77,9 +79,18 @@ export const PERMISOS = {
    * persona, para nombrarla al confirmar el envío de un egreso. */
   miAprobadorLeer: ["super_admin", "admin", "solicitador"],
 
-  /** Items: la lectura queda abierta a cualquier autenticado — el solicitador
-   * necesita el catalogo para armar sus egresos. Solo la escritura es admin. */
-  itemsLeer: ROLES,
+  /** Items: la lectura era de CUALQUIER autenticado «porque el solicitador
+   * necesita el catálogo para armar sus egresos». Eso valía cuando la línea del
+   * egreso apuntaba a un ítem; desde el 2026-07-29 apunta a un LOTE y su
+   * selector consulta `GET /stock`. El 2026-07-31 se recortó a quienes de verdad
+   * lo consumen: el buscador del KARDEX y el selector de ítem del formulario de
+   * INGRESO. Solo la escritura es admin. */
+  itemsLeer: [
+    "super_admin",
+    "admin",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
   itemsEscribir: ["super_admin", "admin"],
 
   /** Partidas: lectura super_admin/admin; solo super_admin activa/desactiva. */

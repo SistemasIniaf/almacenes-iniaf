@@ -23,10 +23,23 @@ import { UpdateItemDto } from './dto/update-item.dto';
 
 /**
  * Items: catalogo compartido por todos los almacenes. La escritura es
- * administrativa (super_admin/admin); la lectura queda abierta a cualquier
- * usuario autenticado porque el solicitador necesita el catalogo para armar
- * sus egresos (ver ComboboxField de Item en CLAUDE.md).
+ * administrativa (super_admin/admin).
+ *
+ * La LECTURA estaba abierta a cualquier autenticado «porque el solicitador
+ * necesita el catalogo para armar sus egresos». Eso valia cuando la linea del
+ * egreso apuntaba a un ITEM; desde el 2026-07-29 apunta a un LOTE y su selector
+ * consulta `GET /stock`. Asi que el 2026-07-31 se recorto a quienes de verdad lo
+ * consumen: el buscador del KARDEX y el selector de item del formulario de
+ * INGRESO. Solicitador y aprobador ya no lo necesitan — eran 23.000 registros
+ * que no usaban para nada.
  */
+const ROLES_LECTURA = [
+  Rol.super_admin,
+  Rol.admin,
+  Rol.responsable_almacen,
+  Rol.observador_almacen,
+] as const;
+
 @Controller('items')
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
@@ -38,11 +51,13 @@ export class ItemsController {
     return this.itemsService.create(dto);
   }
 
+  @Roles(...ROLES_LECTURA)
   @Get()
   findAll(@Query() query: QueryItemsDto) {
     return this.itemsService.findAll(query);
   }
 
+  @Roles(...ROLES_LECTURA)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.itemsService.findOne(id);

@@ -8,13 +8,17 @@ import { QueryStockDto } from './dto/query-stock.dto';
 import { StockService } from './stock.service';
 
 /**
- * Existencias, solo lectura, con scope por almacen: el responsable y el
- * solicitador ven el suyo, el observador los que observa, admin/super_admin
- * todos (ver `almacenesPermitidos`).
+ * Existencias, solo lectura, con scope por almacen: responsable, solicitador y
+ * aprobador ven el suyo, el observador los que observa, admin/super_admin todos
+ * (ver `almacenesPermitidos`).
  *
  * El SOLICITADOR entra desde 2026-07-29: su pedido apunta a un LOTE, asi que
  * necesita ver que lotes hay y cuanto disponible tiene cada uno. Sin esto no
  * puede armar un egreso.
+ *
+ * El APROBADOR entra desde 2026-07-31: firma sabiendo si queda material. El
+ * disponible se valido cuando se armo el pedido, pero entre eso y su firma
+ * pueden pasar dias y otro pedido puede haberse llevado el lote.
  */
 @Roles(
   Rol.super_admin,
@@ -22,6 +26,7 @@ import { StockService } from './stock.service';
   Rol.responsable_almacen,
   Rol.observador_almacen,
   Rol.solicitador,
+  Rol.aprobador,
 )
 @Controller('stock')
 export class StockController {
