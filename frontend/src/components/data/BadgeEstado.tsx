@@ -25,10 +25,11 @@ export function BadgeEstado({ tono, children }: BadgeEstadoProps) {
   return (
     <Badge
       variant="secondary"
-      // Gris con tinte AZULADO (`slate`), no el `secondary` del tema, que es
-      // neutro puro: al lado del verde institucional un gris frío se lee como
-      // fondo y no compite, mientras que el neutro tiraba a beige.
-      className="gap-1.5 bg-slate-100 font-normal text-slate-700 dark:bg-slate-700 dark:text-slate-100"
+      // En CLARO, gris con tinte azulado (`slate`) en vez del `secondary` del
+      // tema, que es neutro puro y al lado del verde institucional tiraba a
+      // beige. En OSCURO manda el `secondary` del tema: ahí el neutro ya
+      // funciona y un slate propio se despegaba del resto de la interfaz.
+      className="gap-1.5 bg-slate-100 font-normal text-slate-700 dark:bg-secondary dark:text-secondary-foreground"
     >
       <span
         className={cn("size-1.5 shrink-0 rounded-full", PUNTO[tono])}

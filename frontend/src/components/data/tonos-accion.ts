@@ -19,8 +19,13 @@ export const TONO_ACCION = {
   /** Mover el documento al siguiente paso del circuito. */
   enviar:
     "text-sky-600 hover:bg-sky-50 hover:text-sky-700 dark:text-sky-400 dark:hover:bg-sky-950 dark:hover:text-sky-300",
-  /** Rojo «documento PDF», no el rojo de peligro. */
-  pdf: "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-950 dark:hover:text-red-400",
+  /**
+   * Rojo «documento PDF», no el rojo de peligro. Va un par de pasos MÁS CLARO
+   * que el rojo del tema: este icono se dibuja macizo, y en una figura rellena
+   * un rojo pleno ocupa tanta superficie que grita. Al pasar el mouse sube al
+   * tono lleno, así que el estado interactivo no se pierde.
+   */
+  pdf: "text-red-500 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300",
 } as const
 
 /**
