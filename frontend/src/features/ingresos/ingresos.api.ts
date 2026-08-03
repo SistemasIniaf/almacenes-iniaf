@@ -3,6 +3,7 @@ import { api } from "@/lib/api"
 import type { PaginatedResult } from "@/lib/types"
 import type {
   CreateIngresoPayload,
+  FilaReporteIngreso,
   Ingreso,
   IngresoListItem,
   QueryIngresos,
@@ -13,6 +14,19 @@ export async function listarIngresos(
   query: QueryIngresos
 ): Promise<PaginatedResult<IngresoListItem>> {
   const { data } = await api.get<PaginatedResult<IngresoListItem>>("/ingresos", {
+    params: query,
+  })
+  return data
+}
+
+/**
+ * Los ingresos del rango sin paginar, para el reporte imprimible. Se agrega en
+ * el servidor por la misma razón que el de stock: un reporte no se pagina.
+ */
+export async function reporteIngresos(
+  query: QueryIngresos
+): Promise<FilaReporteIngreso[]> {
+  const { data } = await api.get<FilaReporteIngreso[]>("/ingresos/reporte", {
     params: query,
   })
   return data

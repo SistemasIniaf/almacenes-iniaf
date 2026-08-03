@@ -36,8 +36,12 @@ export function useAlmacenes(query: QueryAlmacenes) {
 /**
  * Almacenes activos para poblar selectores (ej. el formulario de usuarios).
  * Son 9+ en total: una sola pagina alcanza de sobra.
+ *
+ * `enabled` sirve para no pedirlos cuando el selector ni siquiera se dibuja:
+ * `GET /almacenes` no está abierto a todos los roles, así que una pantalla que
+ * lo muestra solo a algunos debe pedirlo solo para ellos.
  */
-export function useAlmacenesActivos() {
+export function useAlmacenesActivos({ enabled = true } = {}) {
   const query = {
     page: 1,
     pageSize: 100,
@@ -49,6 +53,7 @@ export function useAlmacenesActivos() {
     queryFn: () => listarAlmacenes(query),
     select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 

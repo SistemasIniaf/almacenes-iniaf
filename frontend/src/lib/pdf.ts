@@ -66,3 +66,33 @@ export async function cargarPdfMake() {
   pdfMake.addFontContainer(helvetica.default ?? helvetica)
   return pdfMake
 }
+
+/** Lo que devuelve `pdfMake.createPdf(...)`, en lo que acá se usa. */
+interface DocumentoPdf {
+  open: (ventana: Window) => void | Promise<void>
+  download: (nombre: string) => void | Promise<void>
+}
+
+/**
+ * Abre una pestaña en blanco para un PDF que todavía no existe.
+ *
+ * **Hay que llamarla DENTRO del gesto del clic**, antes de cualquier `await`:
+ * si la pestaña se abriera después de generar el documento, el navegador la
+ * bloquearía como emergente.
+ */
+export function abrirPestanaPdf(): Window | null {
+  return window.open("", "_blank")
+}
+
+/**
+ * Muestra el documento en la pestaña ya abierta y, si el navegador la bloqueó
+ * igual, lo descarga — que es la única salida que queda sin pestaña.
+ */
+export async function mostrarPdf(
+  ventana: Window | null,
+  documento: DocumentoPdf,
+  nombre: string
+): Promise<void> {
+  if (ventana) await documento.open(ventana)
+  else await documento.download(nombre)
+}

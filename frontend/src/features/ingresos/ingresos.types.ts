@@ -102,6 +102,12 @@ export interface IngresoListItem {
   numeroFactura: string | null
   /** Es columna del listado: dice de qué fue la compra. */
   observacion: string | null
+  /**
+   * Suma de las líneas (cantidad × precio), ya calculada por el backend con dos
+   * decimales. No es una columna de la tabla `ingresos`: el listado no trae los
+   * detalles, así que el total no se puede derivar en el navegador.
+   */
+  total: string
   createdAt: string
   updatedAt: string
   almacen: RefNombre
@@ -116,6 +122,27 @@ export interface QueryIngresos extends PaginationQuery {
   almacenId?: number
   proveedorId?: number
   fuenteFinanciamientoId?: number
+  /**
+   * Rango sobre la FECHA DE INGRESO (`YYYY-MM-DD`), la de efecto contable —
+   * no la de remisión. Ambos extremos son inclusivos.
+   */
+  desde?: string
+  hasta?: string
+}
+
+/**
+ * Fila del reporte imprimible (`GET /ingresos/reporte`): sin paginar y en orden
+ * cronológico. Es más liviana que la del listado — solo lo que se imprime.
+ */
+export interface FilaReporteIngreso {
+  id: number
+  estado: EstadoIngreso
+  numero: number | null
+  gestion: number | null
+  fechaIngreso: string
+  observacion: string | null
+  almacen: RefNombre
+  total: string
 }
 
 /** Una línea en el payload (número, no string). */

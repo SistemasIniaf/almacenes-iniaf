@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   TrendingUp,
+  FileSpreadsheet,
   Inbox,
   Loader2,
   Pencil,
@@ -42,15 +43,17 @@ import {
 } from "@/components/ui/table"
 import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { DataPagination } from "@/components/data/DataPagination"
+import { DateRangeFilter } from "@/components/data/DateRangeFilter"
+import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
-import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   useDescartarEgreso,
   useEgresos,
 } from "@/features/egresos/hooks/useEgresos"
+import { useReporteEgresos } from "@/features/egresos/hooks/useReporteEgresos"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { IconAction } from "@/components/data/IconAction"
 import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
@@ -62,14 +65,19 @@ import {
 } from "@/features/egresos/egresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
+import { aIsoLocal } from "@/lib/fechas"
 import { usePagination } from "@/hooks/use-pagination"
 
+import type { DateRange } from "react-day-picker"
+import type { FiltrosEgresos } from "@/features/egresos/hooks/useReporteEgresos"
 import type {
   EgresoListItem,
   EstadoEgreso,
 } from "@/features/egresos/egresos.types"
 
 type FiltroEstado = EstadoEgreso | "todos"
+
+const TODOS = "todos"
 
 const ESTADOS: EstadoEgreso[] = [
   "BORRADOR",
@@ -87,8 +95,7 @@ export function EgresosPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const puedeCrear = tienePermiso(user, "egresosCrear")
-  const { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf } =
-    useSolicitudPdf()
+  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   // Quien decide algo en el circuito arranca en SU bandeja: lo que espera su
   // firma. El resto ve todo lo que le toca por alcance.
@@ -109,21 +116,62 @@ export function EgresosPage() {
   const [aDescartar, setADescartar] = useState<EgresoListItem | null>(null)
   const [historialDe, setHistorialDe] = useState<number | null>(null)
 
+  // El ALMACÉN solo se muestra a quien ve más de uno, igual que en ingresos y
+  // en stock. Al responsable no le aporta: todas sus filas son del suyo.
+  // (Hasta el 2026-08-03 acá iba la UNIDAD; el encargado pidió el almacén, que
+  // es de dónde sale el material.)
+  const veVariosAlmacenes =
+    user?.rol === "super_admin" ||
+    user?.rol === "admin" ||
+    user?.rol === "observador_almacen"
+
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>(estadoInicial)
   const [soloBandeja, setSoloBandeja] = useState(
     tieneBandeja && estadoInicial === "todos"
   )
+  const [almacenId, setAlmacenId] = useState<string>(TODOS)
+  const [rango, setRango] = useState<DateRange | undefined>()
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const { data, isPending, isError, error } = useEgresos({
-    page,
-    pageSize,
+  const {
+    abrirReporte,
+    generando: generandoReporte,
+  } = useReporteEgresos()
+
+  // Solo hace falta para el selector, así que se pide únicamente a quien lo ve.
+  const { data: almacenes = [] } = useAlmacenesActivos({
+    enabled: veVariosAlmacenes,
+  })
+
+  /**
+   * Los filtros, en un solo objeto: el listado le agrega la paginación y el
+   * reporte lo usa tal cual. Así el papel sale con lo mismo que está en
+   * pantalla, sin poder desalinearse.
+   */
+  const filtros: FiltrosEgresos = {
     q: busquedaDiferida || undefined,
     estado: estado === "todos" ? undefined : estado,
     pendientesMios: soloBandeja || undefined,
+    almacenId: almacenId === TODOS ? undefined : Number(almacenId),
+    // En hora local: el rango se eligió en un calendario, y pasarlo por UTC
+    // correría el día para quien está en un huso negativo (Bolivia, UTC-4).
+    desde: rango?.from ? aIsoLocal(rango.from) : undefined,
+    hasta: rango?.to ? aIsoLocal(rango.to) : undefined,
+  }
+
+  const { data, isPending, isError, error } = useEgresos({
+    ...filtros,
+    page,
+    pageSize,
   })
+
+  /** El almacén del encabezado del reporte: `null` = todos (nacional). */
+  const almacenReporte =
+    almacenId === TODOS
+      ? null
+      : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? null)
 
   function cambiarFiltro(accion: () => void) {
     accion()
@@ -131,11 +179,6 @@ export function EgresosPage() {
   }
 
   const egresos = data?.data ?? []
-  const veVariasUnidades =
-    user?.rol === "super_admin" ||
-    user?.rol === "admin" ||
-    user?.rol === "responsable_almacen" ||
-    user?.rol === "observador_almacen"
   // El solicitador solo ve SUS pedidos (lo aplica el alcance del backend), así
   // que la columna repetiría su nombre en todas las filas. Para el resto sí
   // distingue de quién es cada pedido.
@@ -153,7 +196,7 @@ export function EgresosPage() {
   // Fijas: Nº, Fecha, Justificación, Ítems, Estado y Acciones — esta última
   // siempre está, porque «Ver historial» lo puede usar cualquier rol.
   const columnas =
-    6 + (veVariasUnidades ? 1 : 0) + (veVariosSolicitantes ? 1 : 0)
+    6 + (veVariosAlmacenes ? 1 : 0) + (veVariosSolicitantes ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-4">
@@ -166,12 +209,28 @@ export function EgresosPage() {
           </p>
         </div>
 
-        {puedeCrear && (
-          <Button onClick={() => navigate("/egresos/nuevo")}>
-            <Plus className="size-4" />
-            Nuevo pedido
+        <div className="flex items-center gap-2">
+          {/* Fuera del `puedeCrear`: el reporte es lectura, así que lo saca
+              cualquiera que llegue al listado. */}
+          <Button
+            variant="outline"
+            onClick={() => abrirReporte(filtros, almacenReporte)}
+            disabled={generandoReporte}
+          >
+            {generandoReporte ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="size-4" />
+            )}
+            Reporte
           </Button>
-        )}
+          {puedeCrear && (
+            <Button onClick={() => navigate("/egresos/nuevo")}>
+              <Plus className="size-4" />
+              Nuevo pedido
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -187,6 +246,36 @@ export function EgresosPage() {
             aria-label="Buscar egresos"
           />
         </div>
+
+        {/* El rango corre sobre la misma fecha que muestra la columna «Fecha»:
+            la de envío y, mientras el pedido es borrador, la de creación. */}
+        <DateRangeFilter
+          value={rango}
+          onChange={(nuevo) => cambiarFiltro(() => setRango(nuevo))}
+          className="sm:w-60"
+          aria-label="Filtrar por fecha"
+        />
+
+        {veVariosAlmacenes && (
+          <Select
+            value={almacenId}
+            onValueChange={(valor) =>
+              cambiarFiltro(() => setAlmacenId(valor))
+            }
+          >
+            <SelectTrigger className="sm:w-56" aria-label="Filtrar por almacén">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectItem value={TODOS}>Todos los almacenes</SelectItem>
+              {almacenes.map((almacen) => (
+                <SelectItem key={almacen.id} value={String(almacen.id)}>
+                  {almacen.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {tieneBandeja && (
           <Button
@@ -226,7 +315,7 @@ export function EgresosPage() {
             <TableRow>
               <TableHead>Nº</TableHead>
               <TableHead>Fecha</TableHead>
-              {veVariasUnidades && <TableHead>Unidad</TableHead>}
+              {veVariosAlmacenes && <TableHead>Almacén</TableHead>}
               {veVariosSolicitantes && <TableHead>Solicitante</TableHead>}
               <TableHead>Justificación</TableHead>
               <TableHead className="text-center">Ítems</TableHead>
@@ -285,9 +374,9 @@ export function EgresosPage() {
                   <TableCell className="whitespace-nowrap text-muted-foreground">
                     {fecha(egreso.fechaEnvio ?? egreso.createdAt)}
                   </TableCell>
-                  {veVariasUnidades && (
-                    <TableCell className="text-muted-foreground">
-                      {egreso.unidad.sigla}
+                  {veVariosAlmacenes && (
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {egreso.almacen.nombre}
                     </TableCell>
                   )}
                   {veVariosSolicitantes && (
@@ -399,13 +488,11 @@ export function EgresosPage() {
         />
       )}
 
-      {pdf && (
-        <PdfDialog
-          titulo="Solicitud de materiales"
-          {...pdf}
-          onClose={cerrarPdf}
-        />
-      )}
+      
+
+      {/* Visor propio: nunca están abiertos los dos a la vez, pero cada hook
+          maneja su object URL y lo revoca al cerrarse. */}
+      
 
       <AlertDialog
         open={aDescartar !== null}

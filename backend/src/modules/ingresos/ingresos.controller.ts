@@ -52,6 +52,21 @@ export class IngresosController {
     return this.ingresosService.findAll(query, user);
   }
 
+  /**
+   * Los ingresos del rango sin paginar, para el reporte imprimible.
+   *
+   * VA ANTES de `:id`: Nest resuelve las rutas por orden de declaracion y
+   * abajo, `/ingresos/reporte` entraria por `findOne` y reventaria el
+   * `ParseIntPipe`.
+   */
+  @Get('reporte')
+  reporte(
+    @Query() query: QueryIngresosDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ingresosService.reporte(query, user);
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,

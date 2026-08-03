@@ -2,6 +2,7 @@ import {
   etiquetaNumero,
   ESTADO_DETALLE,
 } from "@/features/egresos/egresos.types"
+import { cantidad } from "@/lib/formato"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
@@ -29,11 +30,9 @@ const ANCHO_UTIL = 792 - MARGEN * 2
 /** Tal cual lo titula el reporte del sistema anterior. */
 const TITULO_DOCUMENTO = "SOLICITUD DE MATERIALES Y/O SUMINISTROS DE ALMACEN"
 
-const numero = (n: number) =>
-  n.toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+// Cantidades con el formato de todo el sistema (`lib/formato.ts`): enteras sin
+// decimales, que es como se piden los paquetes y las piezas.
+const numero = cantidad
 
 const fecha = (iso: string | null) =>
   iso

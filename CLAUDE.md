@@ -415,6 +415,58 @@ Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y 
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
 El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO se guarda formateado.
 
+**Listado de ingresos — buscador, columna Total, filtro de almacén y rango de fechas** (2026-08-03):
+- **El buscador `q` mira `proceso_c31`, `certificacion` y `observacion`** — antes eran nota de
+  remisión, C31 y Nº de factura. Son los datos por los que de verdad se busca un ingreso. La
+  migración `20260803150000_ingresos_busqueda_campos` crea los índices GIN de los dos campos nuevos y
+  **dropea los de las columnas que ya no se consultan**: un índice GIN de trigramas no es gratis, se
+  mantiene en cada INSERT/UPDATE de la tabla.
+- **`total` lo calcula el backend** y viaja en la fila del listado. No es una columna de la tabla ni
+  se puede resolver con un `groupBy` de Prisma, que agrega columnas sueltas y no un PRODUCTO
+  (`cantidad × precio`): `ingresoListSelect` trae las líneas, `totalDeLineas()` las suma y el `map`
+  las descarta, así el listado sigue devolviendo la forma liviana. **Se quitó la columna Proveedor**
+  (el dato sigue viajando; lo usa el filtro `proveedorId` de la API).
+- **El filtro de almacén** se muestra a quien ve más de uno (`admin`, `super_admin`,
+  `observador_almacen`), igual que la columna Almacén. Para que funcionara hubo que arreglar
+  **`filtroAlmacen()`** en `common/scope/`: ignoraba el `almacenId` pedido si el usuario tenía scope
+  propio, así que el observador —que ve varios— no podía filtrar entre ellos. Ahora **el scope acota
+  y la query afina**: se intersectan, y pedir uno fuera del scope devuelve *ninguno*, no *todos*. El
+  cambio es del helper compartido, así que también arregla stock. Y se abrió `GET /almacenes` al
+  `observador_almacen` (necesita los NOMBRES para el selector; leer el catálogo no dice nada de qué
+  puede ver de cada almacén — eso lo acota `almacenesPermitidos`).
+- **El rango de fechas es sobre `fechaIngreso`**, la de efecto contable, NO sobre la de remisión: así
+  el reporte coincide con lo que movió el Kardex. Ambos extremos **inclusivos** — `hasta` se lleva al
+  día siguiente y se compara con `lt`, porque la fecha guardada tiene hora y un `lte` sobre la
+  medianoche dejaría afuera todo lo registrado ese día. Se interpretan en **UTC**, igual que el
+  kardex.
+  Lo elige **`components/data/DateRangeFilter.tsx`** (`Popover` + `Calendar` en modo `range`, dos
+  meses a la vista y atajos *Este mes · Mes pasado · Esta gestión · Gestión anterior*). No es un campo
+  de react-hook-form —como sí lo es `DatePickerField`— sino un filtro suelto: recibe valor y callback.
+  **El panel NO se cierra solo al elegir**, igual que el Range Picker de shadcn. Cerrarlo «cuando el
+  rango esté completo» parece buena idea y NO funciona: en react-day-picker v9 el PRIMER clic ya
+  devuelve `{from: X, to: X}` —los dos extremos en el mismo día—, así que la condición se cumple
+  enseguida y el panel se cierra antes de poder elegir el segundo día. Los atajos sí cierran: aplican
+  un rango entero de una. No reponer el auto-cierre.
+  Reemplazó a dos `<input type="date">`, con los que había que tipear las dos fechas sin ver el
+  calendario y nada impedía cerrar un rango al revés. **La fecha se serializa con `aIsoLocal()` de
+  `lib/fechas.ts`, NO con `toISOString()`**: en un huso negativo (Bolivia, UTC-4) el ISO devuelve el
+  día anterior para todo lo elegido antes de las 20:00, y un rango del 1 al 31 viajaría como 31/12 al
+  30/01. Ese helper vive suelto porque un archivo que exporta un componente no puede exportar además
+  funciones sin romper el fast-refresh de Vite.
+- **Reporte «Registro de ingresos»** (`GET /ingresos/reporte` + `lib/reporte-ingresos-pdf.ts`): una
+  línea por documento con `Nº · Nº ingreso · fecha · [almacén] · observación · total`, sin paginar y
+  en orden **cronológico ascendente** (en el papel se lee como un libro, no como una bandeja). La
+  **columna Almacén solo aparece sin filtrar almacén**: con uno elegido repetiría el mismo nombre en
+  cada fila y además ya está en la línea «OFICINA:» de la cabecera — misma regla que en las
+  pantallas. Al ocultarla, sus 120 pt se los queda la observación y el `colSpan` del total baja de 5
+  a 4 (pdfmake exige tantas celdas vacías como columnas absorba). El
+  endpoint **va declarado ANTES de `@Get(':id')`** o Nest lo tomaría por un id y reventaría el
+  `ParseIntPipe`. Comparte el `where` con el listado (`armarWhere`) para que el papel no pueda
+  desalinearse de la pantalla; en el frontend eso lo sostiene un único objeto `filtros` que usan los
+  dos. **Los ANULADOS salen pero no suman**: en gris, con el importe entre paréntesis y una nota al
+  pie con cuántos fueron y por cuánto. Ocultarlos haría que el reporte no cuadre con el listado, que
+  sí los muestra.
+
 **STOCK (consulta): YA IMPLEMENTADO** — `GET /stock` + página `/stock`, solo lectura.
 
 **No hay tabla de existencias**: el saldo vive en cada línea de ingreso (el LOTE) y el stock de un
@@ -429,8 +481,10 @@ proponer consumirlos. Filtros: `q` (código/descripción), `almacenId`, `fuenteF
 **recalcula el saldo**, no solo esconde lotes: el mismo filtro alimenta el `groupBy` y el detalle.
 
 **Partida**: los ítems se ordenan por `partida.codigo` y la pantalla encabeza cada grupo
-(`32100 · Papel`), como el reporte «Estado de almacenes» del sistema anterior — que sale por fuente y,
-dentro, por partida. El selector se alimenta de **`GET /stock/partidas`** y NO del catálogo de
+(`32100 · Papel`), igual que el reporte «consolidado por ítem» — que desde el 2026-08-03 agrupa **solo
+por partida** y lleva la fuente en columna (antes abría un bloque por financiador, como el sistema
+anterior; el encargado pidió el cambio porque un ítem comprado con tres fuentes aparecía en tres
+lugares distintos del papel). El selector se alimenta de **`GET /stock/partidas`** y NO del catálogo de
 partidas: leer ese catálogo está reservado a `admin`/`super_admin` (ver `PERMISOS`) y quien más mira
 el stock es el `responsable_almacen`; además así solo se ofrecen partidas que tienen existencias. Ese
 endpoint reusa el mismo `where` que el listado, salvo el propio filtro de partida.
@@ -446,12 +500,30 @@ mandar miles de lotes al navegador) y respetan los filtros que estén puestos en
 
 | Reporte | Qué es | Archivo |
 |---|---|---|
-| **Estado de almacenes** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **fuente** y dentro por **partida**. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` |
-| **Estado consolidado** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. Sin filtrar almacén se titula solo **«NACIONAL»** y omite la línea de OFICINA — en el sistema anterior eso era una tercera entrada de menú; acá es el mismo reporte con el filtro vacío. | `estado-consolidado-pdf.ts` |
+| **Estado de almacenes consolidado por ÍTEM** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **partida**, con la **fuente como COLUMNA** de cada renglón y subtotal por partida. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` |
+| **Estado de almacenes consolidado por PARTIDA** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. Sin filtrar almacén agrega **«— NACIONAL»** al título y omite la línea de OFICINA — en el sistema anterior eso era una tercera entrada de menú; acá es el mismo reporte con el filtro vacío. | `estado-consolidado-pdf.ts` |
 
-Los dos comparten membrete, pie y formatos en `features/stock/lib/comun-reporte.ts` — si cada uno
-armara su encabezado, en dos cambios dejan de verse hermanos. Agregan lo que el reporte viejo no
-traía: subtotales, total general y «Página N de M».
+Los **nombres los fijó la institución el 2026-08-03** (antes: «Estado de almacenes» y «Estado
+consolidado de almacenes y suministros»). Nombran el eje por el que agrupa cada uno, que es lo único
+que los diferencia. En el código el `TipoReporteStock` sigue siendo `"detalle" | "consolidado"`: son
+identificadores internos y renombrarlos no cambiaría nada de lo que ve el usuario.
+
+Los dos comparten membrete, pie y formatos en **`lib/reporte-comun.ts`** — si cada uno armara su
+encabezado, en dos cambios dejan de verse hermanos. Agregan lo que el reporte viejo no traía:
+subtotales, total general y «Página N de M». Ese archivo **vivía en `features/stock/lib/`** y se
+movió a `lib/` cuando lo necesitó el reporte de ingresos: importar de otro feature es la señal de
+que la pieza ya no era de ese feature. Su `encabezadoReporte` acepta una **`leyenda`** opcional que
+reemplaza el «AL: …» cuando el reporte es de un PERÍODO y no una foto a una fecha.
+
+**Los formatos numéricos son UNO SOLO: `lib/formato.ts`** (2026-08-03). Tres funciones, y los tres
+casos NO se muestran igual aunque los tres sean números: **`moneda`** (importes) siempre con 2
+decimales, porque un total contable se lee en columna y tiene que alinearse · **`cantidad`** sin
+decimales cuando es entera —se cuentan paquetes y piezas, así que «195,00 PAQUETE» sobra: es `195`—
+y con 2 solo si hay fracción · **`precio`** con 2 decimales de piso y hasta 5 si los tiene, sin ceros
+de relleno: la columna es `Decimal(12,5)` porque un unitario puede ser fino (`0,00125` el gramo), no
+porque todo precio tenga cinco decimales, y `25,00000` era ruido que además desalineaba la columna.
+`lib/reporte-comun.ts` las **re-exporta** para los PDF: un reporte que redondea distinto de la tabla
+de la que salió es un reporte que no cuadra. Antes cada pantalla y cada PDF tenían su propio helper.
 
 **La base de los PDF vive en `lib/pdf.ts`** (carga de pdfmake con el interop de CommonJS, fuente
 Helvetica y los logos como data URL); la nota de ingreso y este reporte la comparten y cada uno pone
@@ -478,6 +550,25 @@ es el único lugar a tocar.
 A diferencia del sistema anterior, **la fuente es un filtro opcional**: allá hay que elegir una sí o
 sí y no existe vista consolidada; acá, sin filtro, salen todas juntas. Desde la pantalla de stock,
 cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la URL.
+
+**Orden de los filtros: gestión → almacén → fuente → ítem** (2026-08-03). Va de lo general a lo
+específico, que es como se acota una consulta al libro; el ítem queda último y con el ancho sobrante
+porque es el que más texto muestra.
+
+**Reporte de kardex** (`GET /kardex/reporte` + `lib/reporte-kardex-pdf.ts`, 2026-08-03): calcado del
+que emitía el sistema anterior. Dos diferencias con el kardex de PANTALLA, y son el sentido del
+reporte:
+- **Sale de TODOS los ítems del almacén**, no del que esté elegido. El `itemId` del `QueryReporteKardexDto`
+  es **opcional** (en el de pantalla es obligatorio) y solo sirve para acotarlo. Por eso el botón no
+  exige ítem: pide almacén y gestión.
+- **Separa por FUENTE aunque no se filtre.** En pantalla, sin filtro, las fuentes salen juntas —es lo
+  cómodo para operar—; en el papel cada financiador rinde su plata por separado, así que **cada
+  ítem+fuente es un BLOQUE** con su cabecera, su saldo de apertura, sus totales y su línea de
+  observaciones para anotar a mano. Cada bloque arranca en hoja nueva: así se puede separar el
+  archivo por ítem, como se guardaba en papel.
+Doce columnas (cantidad y valor del mismo movimiento, por separado) obligan a hoja **apaisada**. Solo
+salen los bloques con movimientos en la gestión o con saldo que viene de antes: un ítem que nunca tocó
+ese almacén no imprime una hoja en blanco.
 
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
@@ -627,12 +718,23 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   solicitante ni el aprobador de unidad: el documento oficial lo emite el almacén. Ojo: eso **oculta el
   botón, no es una barrera** — el PDF se arma en el navegador con datos que `GET /egresos/:id` ya
   devuelve, así que no hay endpoint que proteger.
-  **Se abre en un visor DENTRO de la app** (`SolicitudPdfDialog`), no en una pestaña: el PDF se genera
-  como object URL (`getBlob()`) y va en un `<iframe>`, que aporta gratis el zoom, las miniaturas y el
-  imprimir del navegador. Así desapareció el baile del bloqueador de emergentes —había que llamar a
-  `window.open` dentro del gesto del clic y aun así a veces se bloqueaba—. **El object URL se revoca al
-  cerrar** (`cerrarPdf`): si no, cada PDF generado queda reservando memoria. La nota de ingreso todavía
-  usa el esquema viejo de pestaña; si se unifica, es acá donde está el patrón. Un BORRADOR no se imprime: todavía no tiene número.
+  Se abre en una **PESTAÑA nueva**, como todos los PDF del sistema (ver abajo). Un BORRADOR no se
+  imprime: todavía no tiene número.
+
+**TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
+había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
+dentro de un `<iframe>`); **no gustó y se eliminó** — no reponerlo. El patrón único vive en
+`lib/pdf.ts`:
+
+- **`abrirPestanaPdf()`** se llama DENTRO del gesto del clic, **antes de cualquier `await`**. Si la
+  pestaña se abriera después de generar el documento, el navegador la bloquearía como emergente. Este
+  es el detalle que se olvida al copiar el patrón a un módulo nuevo.
+- **`mostrarPdf(ventana, documento, nombre)`** vuelca el PDF en esa pestaña y, si el navegador la
+  bloqueó igual, lo descarga — la única salida que queda sin pestaña.
+- Si algo falla, el `catch` hace `ventana?.close()`: si no, queda una pestaña en blanco abierta.
+
+Lo usan los cinco: nota de ingreso, solicitud de egreso, registro de ingresos, registro de egresos y
+los dos estados de almacenes.
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 

@@ -6,31 +6,40 @@ import {
   moneda,
   pieReporte,
   precio,
-} from "@/features/stock/lib/comun-reporte"
+} from "@/lib/reporte-comun"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
-import type { DatosReporte } from "@/features/stock/lib/comun-reporte"
+import type { DatosReporte } from "@/lib/reporte-comun"
 import type { FilaReporteStock } from "@/features/stock/stock.types"
 import type { TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
 
 /**
- * Reporte «Estado de almacenes», calcado del que emitía el sistema anterior:
- * el DETALLE, agrupado por FUENTE y, dentro, por PARTIDA.
+ * Reporte «Estado de almacenes consolidado por ÍTEM»: el DETALLE, agrupado por
+ * PARTIDA, con la FUENTE como columna de cada renglón.
  *
  * Es la vista para **rendir** (qué hay, de cada financiador y objeto del
  * gasto), complementaria de la pantalla de stock, que es la vista para
  * **operar** (qué hay y de qué compra vino). El resumen contable, sin ítems, es
  * el otro reporte: `estado-consolidado-pdf.ts`.
+ *
+ * **La fuente era un bloque y pasó a ser columna** (2026-08-03, pedido del
+ * encargado). El sistema anterior abría una sección por financiador y repetía
+ * las partidas dentro de cada una, así que un ítem comprado con tres fuentes
+ * aparecía en tres lugares distintos del papel y encontrarlo obligaba a
+ * recorrerlo entero. Con la fuente en columna, cada ítem sale una sola vez por
+ * partida y sus financiadores quedan uno debajo del otro. Los totales no
+ * cambian: es la misma plata reagrupada, y sigue cuadrando con el consolidado.
  */
 
-const TITULO = "ESTADO DE ALMACENES CONSOLIDADO"
+/** Nombre oficial del reporte (lo fijó la institución el 2026-08-03). */
+const TITULO = "ESTADO DE ALMACENES CONSOLIDADO POR ÍTEM"
 
 export interface DatosReporteStock extends DatosReporte {
   filas: FilaReporteStock[]
 }
 
 export function nombreArchivoReporte(datos: DatosReporteStock): string {
-  return `estado-almacenes-${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
+  return `estado-almacenes-por-item-${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
 }
 
 export async function crearEstadoAlmacenesPdf(datos: DatosReporteStock) {
@@ -44,10 +53,14 @@ export async function definicionEstadoAlmacenes(
   const logos = await logosMembrete()
   const { filas, almacen, emitidoEn, usuario } = datos
 
+  // CÓDIGO · DETALLE · FUENTE · UNIDAD · CANTIDAD · P/U · VALOR
+  const COLUMNAS = 7
+
   const cuerpo: TableCell[][] = [
     [
       { text: "CÓDIGO", style: "th" },
       { text: "DETALLE", style: "th" },
+      { text: "FUENTE FIN.", style: "th" },
       { text: "UNIDAD", style: "th", alignment: "center" },
       { text: "CANTIDAD", style: "th", alignment: "right" },
       { text: "P/U", style: "th", alignment: "right" },
@@ -55,18 +68,19 @@ export async function definicionEstadoAlmacenes(
     ],
   ]
 
-  const filaTotalFuente = (nombre: string, monto: number): TableCell[] => [
+  /** Celdas vacías que exige pdfmake por cada columna que absorbe un colSpan. */
+  const relleno = (cuantas: number): TableCell[] =>
+    Array.from({ length: cuantas }, () => ({}) as TableCell)
+
+  const filaSubtotal = (etiqueta: string, monto: number): TableCell[] => [
     {
-      text: `Total ${nombre}`,
-      colSpan: 5,
+      text: etiqueta,
+      colSpan: COLUMNAS - 1,
       alignment: "right",
       bold: true,
       fillColor: "#f4f4f4",
     },
-    {},
-    {},
-    {},
-    {},
+    ...relleno(COLUMNAS - 2),
     {
       text: moneda(monto),
       alignment: "right",
@@ -88,79 +102,65 @@ export async function definicionEstadoAlmacenes(
       margin?: [number, number, number, number]
     }
   ): TableCell[] => [
-    { text: texto, colSpan: 6, ...estilo },
-    {},
-    {},
-    {},
-    {},
-    {},
+    { text: texto, colSpan: COLUMNAS, ...estilo },
+    ...relleno(COLUMNAS - 1),
   ]
 
-  // Un solo recorrido, insertando los encabezados cuando cambia la fuente o la
-  // partida. Las filas ya vienen ordenadas por fuente → partida → descripción
-  // desde el backend.
-  let fuenteActual: string | null = null
+  // Un solo recorrido, abriendo un encabezado cada vez que cambia la partida.
+  // Las filas ya vienen ordenadas por partida → ítem → fuente desde el backend.
   let partidaActual: string | null = null
-  let totalFuente = 0
+  let totalPartida = 0
   let total = 0
 
   for (const fila of filas) {
-    const fuente = fila.fuente?.nombre ?? "SIN FUENTE"
-    if (fuente !== fuenteActual) {
-      if (fuenteActual !== null) {
-        cuerpo.push(filaTotalFuente(fuenteActual, totalFuente))
+    const partida = `${fila.item.partida.codigo} · ${fila.item.partida.denominacion}`
+    if (partida !== partidaActual) {
+      if (partidaActual !== null) {
+        cuerpo.push(filaSubtotal("Subtotal partida:", totalPartida))
       }
       cuerpo.push(
-        filaGrupo(fuente.toUpperCase(), {
+        filaGrupo(partida.toUpperCase(), {
           bold: true,
           fontSize: 8,
           fillColor: "#e4e4e4",
           margin: [0, 1, 0, 1],
         })
       )
-      fuenteActual = fuente
-      partidaActual = null
-      totalFuente = 0
-    }
-
-    const partida = `${fila.item.partida.codigo} · ${fila.item.partida.denominacion}`
-    if (partida !== partidaActual) {
-      cuerpo.push(
-        filaGrupo(partida, {
-          italics: true,
-          color: "#444444",
-          margin: [8, 1, 0, 1],
-        })
-      )
       partidaActual = partida
+      totalPartida = 0
     }
 
     cuerpo.push([
       { text: fila.item.codigo, noWrap: true },
-      { text: fila.item.descripcion },
+      {
+        // La observación de la línea del ingreso se imprime pegada a la
+        // descripción, igual que en la nota de ingreso: "BOTAS DE AGUA
+        // (COLOR NEGRO)". Es lo que distingue dos lotes del mismo ítem.
+        text: fila.observacion
+          ? `${fila.item.descripcion} (${fila.observacion})`
+          : fila.item.descripcion,
+      },
+      { text: fila.fuente?.nombre ?? "SIN FUENTE" },
       { text: fila.item.unidadMedida, alignment: "center" },
       { text: cantidad(fila.cantidad), alignment: "right" },
       { text: precio(fila.precioUnitario), alignment: "right" },
       { text: moneda(fila.valor), alignment: "right" },
     ])
 
-    totalFuente += fila.valor
+    totalPartida += fila.valor
     total += fila.valor
   }
 
-  if (fuenteActual !== null) {
-    cuerpo.push(filaTotalFuente(fuenteActual, totalFuente))
+  if (partidaActual !== null) {
+    cuerpo.push(filaSubtotal("Subtotal partida:", totalPartida))
     cuerpo.push([
       {
         text: "TOTAL GENERAL Bs",
-        colSpan: 5,
+        colSpan: COLUMNAS - 1,
         alignment: "right",
         bold: true,
       },
-      {},
-      {},
-      {},
-      {},
+      ...relleno(COLUMNAS - 2),
       { text: moneda(total), alignment: "right", bold: true },
     ])
   }
@@ -169,7 +169,7 @@ export async function definicionEstadoAlmacenes(
     pageSize: "LETTER",
     pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
     info: {
-      title: `Estado de almacenes ${fechaCorta(emitidoEn)}`,
+      title: `Estado de almacenes por ítem ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
@@ -182,7 +182,10 @@ export async function definicionEstadoAlmacenes(
         : {
             table: {
               headerRows: 1,
-              widths: [58, "*", 42, 52, 54, 58],
+              // Suman el ancho útil (544 pt). La fuente se lleva 88: los
+              // nombres largos («DNPS-RECURSOS ESPECÍFICOS») parten en dos
+              // líneas, que es preferible a robarle ancho al detalle.
+              widths: [56, "*", 88, 38, 48, 50, 56],
               body: cuerpo,
             },
             layout: {

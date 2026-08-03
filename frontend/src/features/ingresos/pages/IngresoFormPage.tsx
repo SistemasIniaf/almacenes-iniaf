@@ -38,7 +38,6 @@ import {
   useUnidadesDeAlmacen,
 } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
-import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   aPayload,
   aPayloadEdicion,
@@ -96,7 +95,7 @@ export function IngresoFormPage() {
 
   const [dialogoAnular, setDialogoAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
-  const { abrirNota, generandoId, pdf, cerrarPdf } = useNotaIngreso()
+  const { abrirNota, generandoId } = useNotaIngreso()
 
   const { control, handleSubmit, reset, watch } = useForm<IngresoFormValues>({
     resolver: zodResolver(ingresoSchema),
@@ -561,9 +560,7 @@ export function IngresoFormPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {pdf && (
-        <PdfDialog titulo="Nota de ingreso" {...pdf} onClose={cerrarPdf} />
-      )}
+      
     </div>
   )
 }

@@ -47,17 +47,12 @@ import {
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { usePagination } from "@/hooks/use-pagination"
 import { getApiErrorMessage } from "@/lib/api"
+import { cantidad, moneda, precio } from "@/lib/formato"
 
 import type { TipoReporteStock } from "@/features/stock/useStock"
 import type { ItemStock, LoteStock } from "@/features/stock/stock.types"
 
 const TODOS = "todos"
-
-const numero = (valor: string | number, decimales = 2) =>
-  Number(valor).toLocaleString("es-BO", {
-    minimumFractionDigits: decimales,
-    maximumFractionDigits: decimales,
-  })
 
 const fecha = (iso: string | null) =>
   iso
@@ -183,17 +178,23 @@ export function StockPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72">
+            {/* Los dos nombres los fijó la institución: dicen por qué eje
+                agrupa cada uno, que es lo único que los diferencia. */}
             <DropdownMenuItem onClick={() => imprimir("detalle")}>
               <div>
-                <div className="font-medium">Estado de almacenes</div>
+                <div className="font-medium">
+                  Estado de almacenes consolidado por ítem
+                </div>
                 <div className="text-xs text-muted-foreground">
-                  Detalle por ítem, agrupado por fuente y partida.
+                  Detalle de cada ítem, con su fuente, agrupado por partida.
                 </div>
               </div>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => imprimir("consolidado")}>
               <div>
-                <div className="font-medium">Estado consolidado</div>
+                <div className="font-medium">
+                  Estado de almacenes consolidado por partida
+                </div>
                 <div className="text-xs text-muted-foreground">
                   Resumen valorizado por partida y fuente, sin ítems.
                 </div>
@@ -380,10 +381,10 @@ export function StockPage() {
                         {item.unidadMedida}
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums">
-                        {numero(item.saldoTotal)}
+                        {cantidad(item.saldoTotal)}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {numero(valorItem(item))}
+                        {moneda(valorItem(item))}
                       </TableCell>
                       {/* Atajo al kardex del ítem: es la pregunta que sigue
                           naturalmente a "¿cuánto hay?" — "¿y cómo llegó a eso?".
@@ -482,14 +483,14 @@ export function StockPage() {
                                       {lote.ingreso.proveedor?.nombre ?? "—"}
                                     </TableCell>
                                     <TableCell className="py-1.5 text-right text-xs tabular-nums">
-                                      {numero(lote.precioUnitario, 5)}
+                                      {precio(lote.precioUnitario)}
                                     </TableCell>
                                     <TableCell className="py-1.5 text-right text-xs tabular-nums">
-                                      {numero(lote.saldoCantidad)} de{" "}
-                                      {numero(lote.cantidad)}
+                                      {cantidad(lote.saldoCantidad)} de{" "}
+                                      {cantidad(lote.cantidad)}
                                     </TableCell>
                                     <TableCell className="py-1.5 text-right text-xs tabular-nums">
-                                      {numero(valorLote(lote))}
+                                      {moneda(valorLote(lote))}
                                     </TableCell>
                                   </TableRow>
                                 ))}

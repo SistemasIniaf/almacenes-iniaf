@@ -80,6 +80,13 @@ export interface FilaReporteStock {
     partida: PartidaStock
   }
   fuente: { id: number; nombre: string } | null
+  /**
+   * Nota libre de la línea del ingreso («COLOR NEGRO»). Se imprime entre
+   * paréntesis junto a la descripción, igual que en la nota de ingreso, y por
+   * eso también separa filas: dos lotes que se distinguen por la observación no
+   * son el mismo renglón.
+   */
+  observacion: string | null
   precioUnitario: number
   cantidad: number
   valor: number

@@ -9,6 +9,16 @@ import { TipoMovimiento } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { QueryKardexDto } from './dto/query-kardex.dto';
+import { QueryReporteKardexDto } from './dto/query-reporte-kardex.dto';
+
+/** `001/2026`, como se imprime en todos los documentos. */
+function formatearNumero(
+  numero?: number | null,
+  gestion?: number | null,
+): string | null {
+  if (numero == null || gestion == null) return null;
+  return `${String(numero).padStart(3, '0')}/${gestion}`;
+}
 
 /**
  * Kardex: el libro de movimientos de un item en un almacen, con saldo corriente.
@@ -154,6 +164,232 @@ export class KardexService {
       saldoFinal: saldo,
       movimientos: filas,
     };
+  }
+
+  /**
+   * Reporte de kardex: un BLOQUE por ITEM + FUENTE, con sus movimientos, el
+   * saldo corriente y los totales del bloque. Calcado del que emitia el sistema
+   * anterior.
+   *
+   * Dos diferencias con el kardex de PANTALLA:
+   * - **Sale de todos los items del almacen**, no de uno. El `itemId` es
+   *   opcional y solo sirve para acotarlo.
+   * - **Separa por FUENTE aunque no se filtre.** En pantalla, sin filtro, las
+   *   fuentes salen juntas (que es lo comodo para operar); en el papel cada
+   *   financiador rinde su plata por separado, asi que cada uno lleva su bloque
+   *   con su saldo y sus totales.
+   *
+   * Solo salen los bloques con algo que mostrar: movimientos en la gestion o
+   * saldo que viene de antes. Un item que nunca toco este almacen no imprime
+   * una hoja en blanco.
+   */
+  async reporte(query: QueryReporteKardexDto, user: AuthenticatedUser) {
+    const almacenId = await this.resolverAlmacen(query.almacenId, user);
+    const gestion = query.gestion ?? new Date().getFullYear();
+
+    const almacen = await this.prisma.almacen.findUnique({
+      where: { id: almacenId },
+      select: { id: true, nombre: true },
+    });
+    if (!almacen) throw new NotFoundException('No existe el almacén');
+
+    const filtroFuente = query.fuenteFinanciamientoId
+      ? {
+          ingresoDetalle: {
+            ingreso: {
+              fuenteFinanciamientoId: query.fuenteFinanciamientoId,
+            },
+          },
+        }
+      : {};
+
+    const base = {
+      almacenId,
+      ...(query.itemId ? { itemId: query.itemId } : {}),
+      ...filtroFuente,
+    };
+    const inicio = new Date(Date.UTC(gestion, 0, 1));
+    const fin = new Date(Date.UTC(gestion + 1, 0, 1));
+
+    const seleccion = {
+      id: true,
+      tipo: true,
+      fecha: true,
+      cantidad: true,
+      precioUnitario: true,
+      motivo: true,
+      itemId: true,
+      ingresoId: true,
+      item: {
+        select: {
+          id: true,
+          codigo: true,
+          descripcion: true,
+          unidadMedida: true,
+          partida: { select: { id: true, codigo: true } },
+        },
+      },
+      ingreso: {
+        select: {
+          numero: true,
+          gestion: true,
+          proveedor: { select: { nombre: true } },
+        },
+      },
+      egreso: {
+        select: {
+          numero: true,
+          gestion: true,
+          unidad: { select: { sigla: true, nombre: true } },
+          solicitante: { select: { nombre: true } },
+        },
+      },
+      ingresoDetalle: {
+        select: {
+          ingreso: {
+            select: {
+              fuenteFinanciamiento: { select: { id: true, nombre: true } },
+            },
+          },
+        },
+      },
+    } as const;
+
+    const [anteriores, movimientos] = await Promise.all([
+      this.prisma.movimientoKardex.findMany({
+        where: { ...base, fecha: { lt: inicio } },
+        select: seleccion,
+      }),
+      this.prisma.movimientoKardex.findMany({
+        where: { ...base, fecha: { gte: inicio, lt: fin } },
+        select: seleccion,
+        orderBy: [{ fecha: 'asc' }, { id: 'asc' }],
+      }),
+    ]);
+
+    type Movimiento = (typeof movimientos)[number];
+    /** Un bloque del reporte: item + fuente. */
+    const clave = (m: Movimiento) =>
+      `${m.itemId}|${m.ingresoDetalle?.ingreso.fuenteFinanciamiento?.id ?? 0}`;
+
+    const bloques = new Map<
+      string,
+      {
+        item: Movimiento['item'];
+        fuente: { id: number; nombre: string } | null;
+        saldoInicial: number;
+        valorInicial: number;
+        movimientos: Movimiento[];
+      }
+    >();
+
+    const nuevo = (m: Movimiento) => ({
+      item: m.item,
+      fuente: m.ingresoDetalle?.ingreso.fuenteFinanciamiento ?? null,
+      saldoInicial: 0,
+      valorInicial: 0,
+      movimientos: [] as Movimiento[],
+    });
+
+    // Lo anterior a la gestion no se lista: se acumula como saldo de apertura,
+    // en cantidad y en valor (cada movimiento con SU precio).
+    for (const m of anteriores) {
+      const k = clave(m);
+      const bloque = bloques.get(k) ?? nuevo(m);
+      const signo = this.signo(m);
+      bloque.saldoInicial += signo * Number(m.cantidad);
+      bloque.valorInicial +=
+        signo * Number(m.cantidad) * Number(m.precioUnitario);
+      bloques.set(k, bloque);
+    }
+
+    for (const m of movimientos) {
+      const k = clave(m);
+      const bloque = bloques.get(k) ?? nuevo(m);
+      bloque.movimientos.push(m);
+      bloques.set(k, bloque);
+    }
+
+    const filas = [...bloques.values()]
+      // Un bloque sin movimientos en la gestion y sin saldo de apertura no
+      // aporta nada al papel.
+      .filter((b) => b.movimientos.length > 0 || b.saldoInicial !== 0)
+      .map((bloque) => {
+        let saldo = bloque.saldoInicial;
+        let valor = bloque.valorInicial;
+        let entradas = 0;
+        let salidas = 0;
+        let valorEntradas = 0;
+        let valorSalidas = 0;
+
+        const renglones = bloque.movimientos.map((m) => {
+          const cantidad = Number(m.cantidad);
+          const precio = Number(m.precioUnitario);
+          const signo = this.signo(m);
+          const monto = cantidad * precio;
+
+          saldo += signo * cantidad;
+          valor += signo * monto;
+          if (signo > 0) {
+            entradas += cantidad;
+            valorEntradas += monto;
+          } else {
+            salidas += cantidad;
+            valorSalidas += monto;
+          }
+
+          const documento = m.ingreso
+            ? formatearNumero(m.ingreso.numero, m.ingreso.gestion)
+            : formatearNumero(m.egreso?.numero, m.egreso?.gestion);
+
+          return {
+            id: m.id,
+            fecha: m.fecha,
+            tipo: m.tipo,
+            // "I" o "E" como en el reporte anterior: de que documento viene.
+            origen: m.ingresoId != null ? 'I' : 'E',
+            documento,
+            // Para una entrada, de quien vino; para una salida, a quien fue.
+            detalle: m.ingreso
+              ? (m.ingreso.proveedor?.nombre ?? '—')
+              : m.egreso
+                ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
+                : (m.motivo ?? '—'),
+            precioUnitario: precio,
+            entrada: signo > 0 ? cantidad : 0,
+            salida: signo < 0 ? cantidad : 0,
+            saldo,
+            valorEntrada: signo > 0 ? monto : 0,
+            valorSalida: signo < 0 ? monto : 0,
+            valorSaldo: valor,
+          };
+        });
+
+        return {
+          item: bloque.item,
+          fuente: bloque.fuente,
+          saldoInicial: bloque.saldoInicial,
+          valorInicial: bloque.valorInicial,
+          movimientos: renglones,
+          totales: {
+            entradas,
+            salidas,
+            saldo,
+            valorEntradas,
+            valorSalidas,
+            valorSaldo: valor,
+          },
+        };
+      })
+      // Por partida y descripcion, como el resto de los reportes.
+      .sort(
+        (a, b) =>
+          a.item.partida.codigo.localeCompare(b.item.partida.codigo) ||
+          a.item.descripcion.localeCompare(b.item.descripcion) ||
+          (a.fuente?.nombre ?? 'ZZZ').localeCompare(b.fuente?.nombre ?? 'ZZZ'),
+      );
+
+    return { almacen, gestion, bloques: filas };
   }
 
   /** El responsable usa su almacen; los demas tienen que decir cual. */

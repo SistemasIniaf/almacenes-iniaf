@@ -33,8 +33,13 @@ export function usePartidasConStock(query: QueryStock) {
 }
 
 /**
- * Genera el reporte «Estado de almacenes» y lo abre en una pestaña con el visor
- * de PDF del navegador, igual que la nota de ingreso.
+ * Genera un reporte de existencias y lo abre en una pestaña con el visor de PDF
+ * del navegador.
+ *
+ * `detalle` es «Estado de almacenes consolidado por ÍTEM» y `consolidado`, el
+ * «…por PARTIDA». Los valores del tipo quedaron con los nombres viejos a
+ * propósito: renombrarlos tocaría los dos módulos de PDF sin cambiar nada de lo
+ * que ve el usuario, y son nombres internos.
  */
 export type TipoReporteStock = "detalle" | "consolidado"
 

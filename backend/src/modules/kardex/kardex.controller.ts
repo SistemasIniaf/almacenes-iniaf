@@ -5,6 +5,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { QueryKardexDto } from './dto/query-kardex.dto';
+import { QueryReporteKardexDto } from './dto/query-reporte-kardex.dto';
 import { KardexService } from './kardex.service';
 
 /**
@@ -28,5 +29,17 @@ export class KardexController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.kardexService.findAll(query, user);
+  }
+
+  /**
+   * El kardex de TODOS los items del almacen, sin paginar, para el reporte
+   * imprimible. A diferencia de `findAll`, el item es opcional.
+   */
+  @Get('reporte')
+  reporte(
+    @Query() query: QueryReporteKardexDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.kardexService.reporte(query, user);
   }
 }

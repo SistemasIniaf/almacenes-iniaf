@@ -3,9 +3,13 @@ import { MARGEN_PDF } from "@/lib/pdf"
 import type { Content, DynamicContent } from "pdfmake/interfaces"
 
 /**
- * Piezas comunes de los reportes de stock (detalle y consolidado): membrete,
- * pie y formatos. Los dos salen del mismo dato y tienen que verse hermanos; si
- * cada uno arma su encabezado por su cuenta, en dos cambios ya no coinciden.
+ * Piezas comunes de TODOS los reportes imprimibles: membrete, pie y formatos.
+ * Los reportes salen del mismo dato y tienen que verse hermanos; si cada uno
+ * arma su encabezado por su cuenta, en dos cambios ya no coinciden.
+ *
+ * Vivía en `features/stock/lib/` cuando solo lo usaban los dos reportes de
+ * existencias. Se movió acá al sumarse el de ingresos: importar de otro feature
+ * es la señal de que la pieza ya no era de ese feature.
  *
  * Medidas en PUNTOS (1 pulgada = 72 pt). Carta vertical: 612 x 792 pt, menos
  * 34 pt de margen por lado = 544 pt útiles.
@@ -13,19 +17,10 @@ import type { Content, DynamicContent } from "pdfmake/interfaces"
 
 export const ANCHO_UTIL = 612 - MARGEN_PDF * 2
 
-export const moneda = (n: number) =>
-  n.toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
-
-export const cantidad = moneda
-
-export const precio = (n: number) =>
-  n.toLocaleString("es-BO", {
-    minimumFractionDigits: 5,
-    maximumFractionDigits: 5,
-  })
+// Los formatos numéricos son los MISMOS que en pantalla (`lib/formato.ts`): un
+// reporte que redondea distinto de la tabla de la que salió es un reporte que
+// no cuadra. Se re-exportan para que cada PDF importe de un solo lugar.
+export { cantidad, moneda, precio } from "@/lib/formato"
 
 export const fechaCorta = (fecha: Date) =>
   fecha.toLocaleDateString("es-BO", {
@@ -43,11 +38,18 @@ export interface DatosReporte {
   usuario: string
 }
 
-/** Membrete: logos a los lados y, al centro, institución + título + fecha. */
+/**
+ * Membrete: logos a los lados y, al centro, institución + título + fecha.
+ *
+ * `leyenda` reemplaza la línea «AL: …» cuando el reporte no es una foto a una
+ * fecha sino un PERÍODO (ej. «DEL 01/01/2026 AL 31/12/2026»). Lo usa el reporte
+ * de ingresos; los de existencias no la pasan y siguen mostrando el «AL:».
+ */
 export function encabezadoReporte(
   titulo: string,
   logos: { iniaf: string; ministerio: string },
-  emitidoEn: Date
+  emitidoEn: Date,
+  leyenda?: string
 ): Content {
   return {
     columns: [
@@ -62,7 +64,7 @@ export function encabezadoReporte(
           },
           { text: titulo, fontSize: 10, bold: true, margin: [0, 2, 0, 0] },
           {
-            text: `AL: ${fechaCorta(emitidoEn)}`,
+            text: leyenda ?? `AL: ${fechaCorta(emitidoEn)}`,
             fontSize: 9,
             bold: true,
             margin: [0, 1, 0, 0],
@@ -83,13 +85,21 @@ export function encabezadoReporte(
  */
 export const esNacional = (almacen: string | null) => almacen === null
 
+/** Ancho útil de una Carta APAISADA (792 - márgenes). */
+export const ANCHO_UTIL_APAISADO = 792 - MARGEN_PDF * 2
+
 /**
  * Raya bajo el membrete y la línea de OFICINA / GESTIÓN. Con `almacen` en
  * `null` (todos) se omite la oficina, como el consolidado nacional.
+ *
+ * `ancho` es el de la raya: por defecto el de la hoja vertical. Un reporte
+ * apaisado (el de egresos) tiene que pasar `ANCHO_UTIL_APAISADO`, si no la raya
+ * termina a media hoja.
  */
 export function datosCabecera(
   almacen: string | null,
-  emitidoEn: Date
+  emitidoEn: Date,
+  ancho: number = ANCHO_UTIL
 ): Content[] {
   const gestion = {
     text: [{ text: "GESTIÓN: ", bold: true }, String(emitidoEn.getFullYear())],
@@ -98,9 +108,7 @@ export function datosCabecera(
 
   return [
     {
-      canvas: [
-        { type: "line", x1: 0, y1: 0, x2: ANCHO_UTIL, y2: 0, lineWidth: 1 },
-      ],
+      canvas: [{ type: "line", x1: 0, y1: 0, x2: ancho, y2: 0, lineWidth: 1 }],
       margin: [0, 4, 0, 0],
     },
     almacen === null

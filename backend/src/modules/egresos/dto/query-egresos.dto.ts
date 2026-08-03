@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -46,4 +47,16 @@ export class QueryEgresosDto extends PaginationQueryDto {
   @Transform(toBoolean)
   @IsBoolean()
   pendientesMios?: boolean;
+
+  /**
+   * Rango sobre la fecha que muestra el listado: la de ENVIO y, mientras es
+   * borrador, la de creacion. Ambos extremos inclusivos, en UTC.
+   */
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  desde?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  hasta?: string;
 }

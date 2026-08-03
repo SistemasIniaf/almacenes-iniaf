@@ -2,16 +2,15 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { obtenerEgreso } from "@/features/egresos/egresos.api"
-import { etiquetaNumero } from "@/features/egresos/egresos.types"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useAuth } from "@/features/auth/hooks/useAuth"
-import { useVisorPdf } from "@/hooks/use-visor-pdf"
+import { abrirPestanaPdf, mostrarPdf } from "@/lib/pdf"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
 
 /**
- * Genera la «Solicitud de materiales» en PDF y la deja lista para el visor
- * embebido (`PdfDialog`). Hermano de `useNotaIngreso`.
+ * Genera la «Solicitud de materiales» en PDF y la abre en una PESTAÑA nueva,
+ * con el visor del navegador. Hermano de `useNotaIngreso`.
  *
  * **Quién puede imprimirla**: almacén y administración
  * (`responsable_almacen` / `admin` / `super_admin`), NO el solicitante ni el
@@ -29,10 +28,12 @@ export function useSolicitudPdf() {
 
   /** Id del egreso que se está generando, para el spinner de ESA fila. */
   const [generandoId, setGenerandoId] = useState<number | null>(null)
-  const { pdf, mostrarPdf, cerrarPdf } = useVisorPdf()
 
   async function abrirSolicitud(egreso: Egreso | number) {
     const id = typeof egreso === "number" ? egreso : egreso.id
+    // La pestaña se abre AHORA, dentro del gesto del clic: si se abriera
+    // después de generar, el navegador la bloquearía como emergente.
+    const ventana = abrirPestanaPdf()
     setGenerandoId(id)
     try {
       const completo =
@@ -42,11 +43,9 @@ export function useSolicitudPdf() {
         "@/features/egresos/lib/solicitud-pdf"
       )
       const documento = await crearSolicitudPdf(completo)
-      mostrarPdf(await documento.getBlob(), {
-        nombre: nombreArchivo(completo),
-        etiqueta: `Pedido ${etiquetaNumero(completo)}`,
-      })
+      await mostrarPdf(ventana, documento, nombreArchivo(completo))
     } catch (error) {
+      ventana?.close()
       toast.error(
         error instanceof Error
           ? `No se pudo generar la solicitud: ${error.message}`
@@ -57,5 +56,5 @@ export function useSolicitudPdf() {
     }
   }
 
-  return { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf }
+  return { abrirSolicitud, generandoId, puedeImprimir }
 }

@@ -1,4 +1,5 @@
 import { etiquetaNumero } from "@/features/ingresos/ingresos.types"
+import { cantidad, moneda, precio } from "@/lib/formato"
 import { montoALiteral } from "@/lib/numero-literal"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
@@ -31,11 +32,8 @@ const ANCHO_UTIL = 792 - MARGEN * 2
 /** Tal cual lo titula la institución (así figura en el reporte anterior). */
 const TITULO_DOCUMENTO = "INGRESO ALMACEN MATERIAL Y/O SUMINISTROS"
 
-const moneda = (n: number) =>
-  n.toLocaleString("es-BO", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+// Los formatos son los de todo el sistema (`lib/formato.ts`): el documento
+// impreso tiene que decir los mismos números que la pantalla de la que salió.
 
 const fecha = (iso: string | null) =>
   iso
@@ -268,8 +266,8 @@ export async function definicionNotaIngreso(
           },
           { text: linea.item.codigo, noWrap: true },
           { text: linea.item.unidadMedida, alignment: "center" },
-          { text: moneda(linea.cantidad), alignment: "right" },
-          { text: moneda(linea.precio), alignment: "right" },
+          { text: cantidad(linea.cantidad), alignment: "right" },
+          { text: precio(linea.precio), alignment: "right" },
           { text: moneda(linea.subtotal), alignment: "right" },
         ]),
         [

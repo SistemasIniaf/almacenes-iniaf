@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
+import { Loader2, Printer } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -24,25 +26,22 @@ import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
 import { useKardex } from "@/features/kardex/useKardex"
+import { useReporteKardex } from "@/features/kardex/useReporteKardex"
 import {
   ITEMS_POR_BUSQUEDA,
   useBuscarItems,
 } from "@/features/items/useBuscarItems"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
+import { cantidad, precio } from "@/lib/formato"
 import { cn } from "@/lib/utils"
 
 import type { MovimientoKardex } from "@/features/kardex/kardex.types"
 
 const TODAS = "todas"
 
-const numero = (n: number | string | null, decimales = 2) =>
-  n == null
-    ? "—"
-    : Number(n).toLocaleString("es-BO", {
-        minimumFractionDigits: decimales,
-        maximumFractionDigits: decimales,
-      })
+/** Cantidad del libro; `null` es «no aplica» en esa columna (entrada o salida). */
+const numero = (n: number | string | null) => (n == null ? "—" : cantidad(n))
 
 const fecha = (iso: string) =>
   new Date(iso).toLocaleDateString("es-BO", {
@@ -93,6 +92,7 @@ export function KardexPage() {
 
   const { data: almacenes = [] } = useAlmacenesActivos()
   const { data: fuentes = [] } = useFuentesActivas()
+  const { abrirReporte, generando: generandoReporte } = useReporteKardex()
 
   // Buscador de ítems contra el servidor (el catálogo no entra en el navegador).
   const [busqueda, setBusqueda] = useState("")
@@ -164,17 +164,97 @@ export function KardexPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Kardex</h1>
-        <p className="text-sm text-muted-foreground">
-          Libro de movimientos de un ítem en un almacén, con el saldo corriendo.
-          Hoy hay entradas y reversiones de ingresos anulados; las salidas
-          aparecerán cuando exista el módulo de egresos.
-        </p>
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Kardex</h1>
+          <p className="text-sm text-muted-foreground">
+            Libro de movimientos de un ítem en un almacén, con el saldo
+            corriendo. El reporte, en cambio, sale de <strong>todos</strong> los
+            ítems del almacén: un bloque por ítem y fuente.
+          </p>
+        </div>
+
+        {/* No exige ítem elegido: el reporte es del almacén entero. Sí necesita
+            el almacén, que el responsable ya tiene resuelto. */}
+        <Button
+          type="button"
+          variant="outline"
+          className="shrink-0"
+          disabled={generandoReporte || (!esResponsable && !almacenId)}
+          onClick={() =>
+            void abrirReporte({
+              almacenId: almacenId ? Number(almacenId) : undefined,
+              gestion: Number(gestion),
+              fuenteFinanciamientoId:
+                fuenteId === TODAS ? undefined : Number(fuenteId),
+            })
+          }
+        >
+          {generandoReporte ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Printer className="size-4" />
+          )}
+          Reporte
+        </Button>
       </div>
 
+      {/*
+        Orden de los filtros: gestión → almacén → fuente → ítem. Va de lo más
+        general a lo más específico, que es como se acota una consulta al libro:
+        primero el período y el almacén, después el financiador y recién al
+        final el ítem concreto. El ítem queda último y con el ancho que sobra
+        porque es el que más texto muestra (código + descripción).
+      */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-12">
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-2">
+          <label className="mb-2 block text-sm font-medium">Gestión</label>
+          <Select value={gestion} onValueChange={setGestion}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {gestiones.map((anio) => (
+                <SelectItem key={anio} value={anio}>
+                  {anio}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* El responsable no elige almacén: el kardex es del suyo. */}
+        {!esResponsable && (
+          <div className="lg:col-span-3">
+            <label className="mb-2 block text-sm font-medium">Almacén</label>
+            <Select value={almacenId} onValueChange={setAlmacenId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Elegí el almacén" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {almacenes.map((almacen) => (
+                  <SelectItem key={almacen.id} value={String(almacen.id)}>
+                    {almacen.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="lg:col-span-3">
+          <ComboboxField
+            name="fuenteId"
+            label="Fuente"
+            control={control}
+            required={false}
+            options={opcionesFuente}
+            buscarPlaceholder="Buscar fuente..."
+            vacio="Ninguna fuente coincide."
+          />
+        </div>
+
+        <div className={esResponsable ? "lg:col-span-7" : "lg:col-span-4"}>
           <ComboboxField
             name="itemId"
             label="Ítem"
@@ -198,53 +278,6 @@ export function KardexPage() {
                   : null
             }
           />
-        </div>
-
-        {/* El responsable no elige almacén: el kardex es del suyo. */}
-        {!esResponsable && (
-          <div className="lg:col-span-3">
-            <label className="mb-2 block text-sm font-medium">Almacén</label>
-            <Select value={almacenId} onValueChange={setAlmacenId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Elegí el almacén" />
-              </SelectTrigger>
-              <SelectContent position="popper">
-                {almacenes.map((almacen) => (
-                  <SelectItem key={almacen.id} value={String(almacen.id)}>
-                    {almacen.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className={esResponsable ? "lg:col-span-5" : "lg:col-span-2"}>
-          <ComboboxField
-            name="fuenteId"
-            label="Fuente"
-            control={control}
-            required={false}
-            options={opcionesFuente}
-            buscarPlaceholder="Buscar fuente..."
-            vacio="Ninguna fuente coincide."
-          />
-        </div>
-
-        <div className="lg:col-span-2">
-          <label className="mb-2 block text-sm font-medium">Gestión</label>
-          <Select value={gestion} onValueChange={setGestion}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              {gestiones.map((anio) => (
-                <SelectItem key={anio} value={anio}>
-                  {anio}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -371,7 +404,7 @@ export function KardexPage() {
                           {m.fuente?.nombre ?? "—"}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {numero(m.precioUnitario, 5)}
+                          {precio(m.precioUnitario)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
                           {numero(m.entrada)}

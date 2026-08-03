@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
-import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
+import {
+  almacenesPermitidos,
+  filtroAlmacen,
+} from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import {
   EstadoIngreso,
@@ -21,6 +24,51 @@ import { CreateIngresoDto } from './dto/create-ingreso.dto';
 import { IngresoDetalleDto } from './dto/ingreso-detalle.dto';
 import { QueryIngresosDto } from './dto/query-ingresos.dto';
 import { UpdateIngresoDto } from './dto/update-ingreso.dto';
+
+/**
+ * Rango sobre `fechaIngreso` para el `where` de Prisma.
+ *
+ * Los dos extremos son INCLUSIVOS: `hasta` se lleva al dia siguiente y se
+ * compara con `lt`, porque la fecha guardada tiene hora y un `lte` sobre la
+ * medianoche dejaria afuera todo lo registrado ese mismo dia. Se interpretan
+ * en UTC, igual que el kardex (`Date.UTC` en `KardexService.findAll`).
+ */
+function rangoFechaIngreso(
+  desde?: string,
+  hasta?: string,
+): { fechaIngreso?: { gte?: Date; lt?: Date } } {
+  if (!desde && !hasta) return {};
+
+  const aUtc = (valor: string, sumarDias = 0) => {
+    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
+    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
+  };
+
+  return {
+    fechaIngreso: {
+      ...(desde ? { gte: aUtc(desde) } : {}),
+      ...(hasta ? { lt: aUtc(hasta, 1) } : {}),
+    },
+  };
+}
+
+/**
+ * Total de un ingreso: la suma de sus lineas (cantidad x precio).
+ *
+ * No es una columna de la tabla y no se puede resolver con un `groupBy` de
+ * Prisma, que solo agrega columnas sueltas y no un producto. Con una pagina de
+ * filas —o un reporte de un rango— el costo de sumarlo aca es despreciable.
+ */
+function totalDeLineas(
+  detalles: { cantidad: unknown; precioUnitario: unknown }[],
+): string {
+  return detalles
+    .reduce(
+      (suma, d) => suma + Number(d.cantidad) * Number(d.precioUnitario),
+      0,
+    )
+    .toFixed(2);
+}
 
 /** Cadena vacia o solo espacios -> null; recorta el resto. */
 function normalizar(valor?: string): string | null | undefined {
@@ -69,6 +117,9 @@ const ingresoListSelect = {
   proveedor: { select: { id: true, nombre: true } },
   fuenteFinanciamiento: { select: { id: true, nombre: true } },
   _count: { select: { detalles: true } },
+  // Solo para sumar el total de la cabecera (ver `findAll`); las lineas
+  // completas las trae `ingresoFullSelect`.
+  detalles: { select: { cantidad: true, precioUnitario: true } },
 } as const;
 
 const ingresoFullSelect = {
@@ -137,34 +188,47 @@ export class IngresosService {
   // Lectura
   // ---------------------------------------------------------------------------
 
-  async findAll(query: QueryIngresosDto, user: AuthenticatedUser) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-
+  /**
+   * `where` del listado, compartido con el reporte imprimible: los dos tienen
+   * que responder a los MISMOS filtros o el papel no coincidiria con lo que se
+   * ve en pantalla.
+   */
+  private async armarWhere(query: QueryIngresosDto, user: AuthenticatedUser) {
+    // Los tres campos por los que se busca un ingreso en la practica. Cada uno
+    // tiene su indice GIN (migracion 20260803150000_ingresos_busqueda_campos):
+    // agregar una columna aca sin su indice deja la busqueda andando pero con
+    // scan secuencial.
     const idsBusqueda = query.q
       ? await buscarIdsPorTexto(
           this.prisma,
           'ingresos',
-          ['nota_remision', 'proceso_c31', 'numero_factura'],
+          ['proceso_c31', 'certificacion', 'observacion'],
           query.q,
         )
       : null;
 
     const scope = await this.almacenesPermitidos(user);
 
-    const where = {
-      ...(scope !== null ? { almacenId: { in: scope } } : {}),
-      ...(query.almacenId && scope === null
-        ? { almacenId: query.almacenId }
-        : {}),
+    return {
+      // El helper compartido cruza el scope del rol con el almacen pedido; no
+      // repetir la regla aca (la misma la aplican stock y kardex).
+      ...filtroAlmacen(scope, query.almacenId),
       ...(query.estado ? { estado: query.estado } : {}),
       ...(query.gestion ? { gestion: query.gestion } : {}),
       ...(query.proveedorId ? { proveedorId: query.proveedorId } : {}),
       ...(query.fuenteFinanciamientoId
         ? { fuenteFinanciamientoId: query.fuenteFinanciamientoId }
         : {}),
+      ...rangoFechaIngreso(query.desde, query.hasta),
       ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
     };
+  }
+
+  async findAll(query: QueryIngresosDto, user: AuthenticatedUser) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+
+    const where = await this.armarWhere(query, user);
 
     const [data, total] = await Promise.all([
       this.prisma.ingreso.findMany({
@@ -177,7 +241,45 @@ export class IngresosService {
       this.prisma.ingreso.count({ where }),
     ]);
 
-    return paginated(data, total, page, pageSize);
+    // Las lineas se descartan despues de sumarlas: el listado sigue devolviendo
+    // la forma liviana.
+    const filas = data.map(({ detalles, ...ingreso }) => ({
+      ...ingreso,
+      total: totalDeLineas(detalles),
+    }));
+
+    return paginated(filas, total, page, pageSize);
+  }
+
+  /**
+   * Los ingresos del rango, SIN paginar, para el reporte imprimible.
+   *
+   * Responde a los mismos filtros que el listado (incluido el rango de fechas)
+   * pero en orden CRONOLOGICO ascendente: en el papel se lee como un libro, no
+   * como una bandeja de novedades.
+   */
+  async reporte(query: QueryIngresosDto, user: AuthenticatedUser) {
+    const where = await this.armarWhere(query, user);
+
+    const ingresos = await this.prisma.ingreso.findMany({
+      where,
+      select: {
+        id: true,
+        estado: true,
+        numero: true,
+        gestion: true,
+        fechaIngreso: true,
+        observacion: true,
+        almacen: { select: { id: true, nombre: true } },
+        detalles: { select: { cantidad: true, precioUnitario: true } },
+      },
+      orderBy: [{ fechaIngreso: 'asc' }, { id: 'asc' }],
+    });
+
+    return ingresos.map(({ detalles, ...ingreso }) => ({
+      ...ingreso,
+      total: totalDeLineas(detalles),
+    }));
   }
 
   async findOne(id: number, user: AuthenticatedUser) {

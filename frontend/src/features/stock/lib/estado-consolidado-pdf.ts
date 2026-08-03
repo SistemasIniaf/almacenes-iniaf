@@ -5,16 +5,19 @@ import {
   fechaCorta,
   moneda,
   pieReporte,
-} from "@/features/stock/lib/comun-reporte"
+} from "@/lib/reporte-comun"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
-import type { DatosReporte } from "@/features/stock/lib/comun-reporte"
+import type { DatosReporte } from "@/lib/reporte-comun"
 import type { FilaReporteStock } from "@/features/stock/stock.types"
 import type { TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
 
 /**
- * Reporte «Estado consolidado de almacenes y suministros», calcado del que
- * emitía el sistema anterior.
+ * Reporte «Estado de almacenes consolidado por PARTIDA», calcado del que
+ * emitía el sistema anterior (allá se llamaba «Estado consolidado de almacenes
+ * y suministros»; la institución fijó el nombre actual el 2026-08-03, en pareja
+ * con el «consolidado por ítem» — los dos nombres dicen por qué eje agrupa cada
+ * uno, que es lo único que los diferencia).
  *
  * Es el **resumen contable**: no lista ítems, solo cuánta plata hay parada por
  * PARTIDA (el objeto del gasto) y, dentro, por FUENTE (el financiador), con
@@ -29,8 +32,8 @@ import type { TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
  */
 const titulo = (almacen: string | null) =>
   esNacional(almacen)
-    ? "ESTADO CONSOLIDADO NACIONAL DE ALMACENES Y SUMINISTROS"
-    : "ESTADO CONSOLIDADO DE ALMACENES Y SUMINISTROS"
+    ? "ESTADO DE ALMACENES CONSOLIDADO POR PARTIDA — NACIONAL"
+    : "ESTADO DE ALMACENES CONSOLIDADO POR PARTIDA"
 
 export interface DatosConsolidado extends DatosReporte {
   filas: FilaReporteStock[]
@@ -38,7 +41,7 @@ export interface DatosConsolidado extends DatosReporte {
 
 export function nombreArchivoConsolidado(datos: DatosConsolidado): string {
   const alcance = esNacional(datos.almacen) ? "nacional-" : ""
-  return `estado-consolidado-${alcance}${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
+  return `estado-almacenes-por-partida-${alcance}${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
 }
 
 export async function crearEstadoConsolidadoPdf(datos: DatosConsolidado) {
@@ -159,7 +162,7 @@ export async function definicionEstadoConsolidado(
     pageSize: "LETTER",
     pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
     info: {
-      title: `${esNacional(almacen) ? "Estado consolidado nacional" : "Estado consolidado"} ${fechaCorta(emitidoEn)}`,
+      title: `Estado de almacenes por partida${esNacional(almacen) ? " (nacional)" : ""} ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },

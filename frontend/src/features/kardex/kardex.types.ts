@@ -47,3 +47,64 @@ export interface QueryKardex {
   gestion?: number
   fuenteFinanciamientoId?: number
 }
+
+/** Igual que `QueryKardex`, pero el ítem es OPCIONAL: el reporte sale de todos. */
+export interface QueryReporteKardex {
+  itemId?: number
+  almacenId?: number
+  gestion?: number
+  fuenteFinanciamientoId?: number
+}
+
+/** Un renglón del reporte: además de la cantidad, lleva el valor en Bs. */
+export interface RenglonReporteKardex {
+  id: number
+  fecha: string
+  tipo: TipoMovimiento
+  /** `I` si viene de un ingreso, `E` de un egreso — como el reporte anterior. */
+  origen: "I" | "E"
+  documento: string | null
+  /** Proveedor en una entrada; unidad / solicitante en una salida. */
+  detalle: string
+  precioUnitario: number
+  entrada: number
+  salida: number
+  saldo: number
+  valorEntrada: number
+  valorSalida: number
+  valorSaldo: number
+}
+
+/**
+ * Un BLOQUE del reporte: el libro de un ítem con UNA fuente.
+ *
+ * El papel separa por fuente aunque la pantalla no lo haga: cada financiador
+ * rinde su plata por separado, así que cada uno lleva su saldo y sus totales.
+ */
+export interface BloqueReporteKardex {
+  item: {
+    id: number
+    codigo: string
+    descripcion: string
+    unidadMedida: string
+    partida: { id: number; codigo: string }
+  }
+  fuente: RefNombre | null
+  saldoInicial: number
+  valorInicial: number
+  movimientos: RenglonReporteKardex[]
+  totales: {
+    entradas: number
+    salidas: number
+    saldo: number
+    valorEntradas: number
+    valorSalidas: number
+    valorSaldo: number
+  }
+}
+
+export interface ReporteKardex {
+  almacen: RefNombre
+  gestion: number
+  bloques: BloqueReporteKardex[]
+}

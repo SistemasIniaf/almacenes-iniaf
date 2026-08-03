@@ -23,6 +23,36 @@ import { MotivoDto } from './dto/decision-egreso.dto';
 import { QueryEgresosDto } from './dto/query-egresos.dto';
 import { UpdateEgresoDto } from './dto/update-egreso.dto';
 
+/**
+ * Rango de fechas del listado de egresos.
+ *
+ * El egreso tiene TRES fechas y el filtro usa la MISMA que muestra la columna
+ * «Fecha» de la pantalla: `fechaEnvio` (cuando entro al circuito y se volvio un
+ * documento) y, mientras es borrador y no la tiene, `createdAt`. Filtrar por
+ * otra haria que la tabla escondiera filas cuya fecha visible cae dentro del
+ * rango.
+ *
+ * Ambos extremos INCLUSIVOS: `hasta` se lleva al dia siguiente y se compara con
+ * `lt`, porque la fecha guardada tiene hora. En UTC, igual que el kardex.
+ */
+function rangoFechaEgreso(desde?: string, hasta?: string) {
+  if (!desde && !hasta) return {};
+
+  const aUtc = (valor: string, sumarDias = 0) => {
+    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
+    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
+  };
+
+  const entre = {
+    ...(desde ? { gte: aUtc(desde) } : {}),
+    ...(hasta ? { lt: aUtc(hasta, 1) } : {}),
+  };
+
+  return {
+    OR: [{ fechaEnvio: entre }, { fechaEnvio: null, createdAt: entre }],
+  };
+}
+
 const egresoListSelect = {
   id: true,
   estado: true,
@@ -111,10 +141,18 @@ export class EgresosService {
   // Lectura
   // ---------------------------------------------------------------------------
 
-  async findAll(query: QueryEgresosDto, user: AuthenticatedUser) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-
+  /**
+   * `where` del listado, compartido con el reporte imprimible: los dos tienen
+   * que responder a los MISMOS filtros o el papel no coincidiria con lo que se
+   * ve en pantalla.
+   *
+   * Va con `AND` explicito y NO con spreads sobre un mismo objeto. El alcance
+   * del rol trae `almacenId` (responsable/observador) o `unidadId` (aprobador),
+   * y un spread posterior con la misma clave lo PISA: mandar `?almacenId=2` le
+   * mostraba al responsable los egresos de otro almacen. Con `AND` las dos
+   * condiciones se exigen juntas y el filtro solo puede acotar.
+   */
+  private async armarWhere(query: QueryEgresosDto, user: AuthenticatedUser) {
     const idsBusqueda = query.q
       ? await buscarIdsPorTexto(
           this.prisma,
@@ -124,15 +162,27 @@ export class EgresosService {
         )
       : null;
 
-    const where = {
-      ...(await this.alcance(user)),
-      ...(query.estado ? { estado: query.estado } : {}),
-      ...(query.gestion ? { gestion: query.gestion } : {}),
-      ...(query.unidadId ? { unidadId: query.unidadId } : {}),
-      ...(query.almacenId ? { almacenId: query.almacenId } : {}),
-      ...(query.pendientesMios ? this.filtroBandeja(user) : {}),
-      ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
+    return {
+      AND: [
+        await this.alcance(user),
+        {
+          ...(query.estado ? { estado: query.estado } : {}),
+          ...(query.gestion ? { gestion: query.gestion } : {}),
+          ...(query.unidadId ? { unidadId: query.unidadId } : {}),
+          ...(query.almacenId ? { almacenId: query.almacenId } : {}),
+          ...(idsBusqueda ? { id: { in: idsBusqueda } } : {}),
+        },
+        query.pendientesMios ? this.filtroBandeja(user) : {},
+        rangoFechaEgreso(query.desde, query.hasta),
+      ],
     };
+  }
+
+  async findAll(query: QueryEgresosDto, user: AuthenticatedUser) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+
+    const where = await this.armarWhere(query, user);
 
     const [data, total] = await Promise.all([
       this.prisma.egreso.findMany({
@@ -146,6 +196,62 @@ export class EgresosService {
     ]);
 
     return paginated(data, total, page, pageSize);
+  }
+
+  /**
+   * Los egresos del rango, SIN paginar, para el reporte imprimible. Hermano de
+   * `IngresosService.reporte`.
+   *
+   * Orden CRONOLOGICO ascendente: en el papel se lee como un libro, no como una
+   * bandeja de novedades.
+   *
+   * El valor de cada pedido sale de `cantidadEntregada ?? cantidadSolicitada`
+   * por el precio de SU lote: lo entregado si ya salio y lo pedido mientras
+   * espera. Por eso la fila lleva el estado — un pendiente vale lo que se
+   * estima, no lo que salio del almacen.
+   */
+  async reporte(query: QueryEgresosDto, user: AuthenticatedUser) {
+    const where = await this.armarWhere(query, user);
+
+    const egresos = await this.prisma.egreso.findMany({
+      where,
+      select: {
+        id: true,
+        estado: true,
+        numero: true,
+        gestion: true,
+        fechaEnvio: true,
+        fechaEntrega: true,
+        justificacion: true,
+        createdAt: true,
+        almacen: { select: { id: true, nombre: true } },
+        unidad: { select: { id: true, sigla: true } },
+        solicitante: { select: { id: true, nombre: true } },
+        detalles: {
+          select: {
+            cantidadSolicitada: true,
+            cantidadEntregada: true,
+            // El precio de la salida sale del LOTE: la linea no lo repite.
+            ingresoDetalle: { select: { precioUnitario: true } },
+          },
+        },
+      },
+      orderBy: [{ fechaEnvio: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
+
+    return egresos.map(({ detalles, ...egreso }) => ({
+      ...egreso,
+      items: detalles.length,
+      total: detalles
+        .reduce(
+          (suma, d) =>
+            suma +
+            Number(d.cantidadEntregada ?? d.cantidadSolicitada) *
+              Number(d.ingresoDetalle.precioUnitario),
+          0,
+        )
+        .toFixed(2),
+    }));
   }
 
   async findOne(id: number, user: AuthenticatedUser) {

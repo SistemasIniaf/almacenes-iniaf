@@ -10,6 +10,13 @@ export const PERMISOS = {
   unidadesLeer: ["super_admin", "admin"],
   unidadesEscribir: ["super_admin"],
 
+  /**
+   * OJO: `almacenesLeer` gobierna el ítem de MENÚ (gestionar el catálogo), no
+   * la lectura de `GET /almacenes`, que es más amplia — el
+   * `responsable_almacen` y el `observador_almacen` también la tienen, porque
+   * necesitan los nombres para los selectores y filtros. Esos hooks
+   * (`useAlmacenesActivos`) no consultan este permiso.
+   */
   almacenesLeer: ["super_admin", "admin"],
   almacenesEscribir: ["super_admin", "admin"],
 

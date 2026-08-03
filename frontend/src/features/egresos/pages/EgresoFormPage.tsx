@@ -43,7 +43,6 @@ import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
 import { EntregaDialog } from "@/features/egresos/components/EntregaDialog"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
-import { PdfDialog } from "@/components/pdf/PdfDialog"
 import {
   useActualizarEgreso,
   useAnularEgreso,
@@ -86,8 +85,7 @@ export function EgresoFormPage() {
   const aprobar = useAprobarEgreso()
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
-  const { abrirSolicitud, generandoId, puedeImprimir, pdf, cerrarPdf } =
-    useSolicitudPdf()
+  const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   const [dialogoEntrega, setDialogoEntrega] = useState(false)
   const [dialogoEnviar, setDialogoEnviar] = useState(false)
@@ -474,13 +472,7 @@ export function EgresoFormPage() {
         />
       )}
 
-      {pdf && (
-        <PdfDialog
-          titulo="Solicitud de materiales"
-          {...pdf}
-          onClose={cerrarPdf}
-        />
-      )}
+      
 
       {/* Se monta solo al abrirse: así consulta el aprobador recién cuando hace
           falta. */}

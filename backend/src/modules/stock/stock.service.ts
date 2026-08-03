@@ -180,11 +180,11 @@ export class StockService {
   /**
    * Filas del reporte «Estado de almacenes», sin paginar.
    *
-   * Replica el agrupamiento del reporte del sistema anterior: por FUENTE y,
-   * dentro, por PARTIDA. Cada fila es **item + fuente + precio** — que es el
-   * lote, sumando los que comparten los tres. Los lotes de un mismo item,
-   * fuente y precio son indistinguibles en el papel, y separarlos solo agregaria
-   * renglones repetidos.
+   * Agrupadas por PARTIDA; la fuente va como COLUMNA de cada renglon. Cada fila
+   * es **item + fuente + precio + observacion** — que es el lote, sumando los
+   * que comparten los cuatro. Los lotes que coinciden en todo eso son
+   * indistinguibles en el papel, y separarlos solo agregaria renglones
+   * repetidos.
    *
    * Se agrega aca y no en el navegador: son todas las existencias, no una
    * pagina, y el catalogo real puede dar miles de lotes.
@@ -197,6 +197,9 @@ export class StockService {
       select: {
         precioUnitario: true,
         saldoCantidad: true,
+        // Nota libre de la linea del ingreso ("COLOR NEGRO"). Se imprime entre
+        // parentesis al lado de la descripcion, igual que en la nota de ingreso.
+        observacion: true,
         item: {
           select: {
             id: true,
@@ -219,15 +222,20 @@ export class StockService {
       {
         item: (typeof lotes)[number]['item'];
         fuente: { id: number; nombre: string } | null;
+        observacion: string | null;
         precioUnitario: number;
         cantidad: number;
       }
     >();
 
+    // La OBSERVACION entra en la clave junto con item, fuente y precio: el
+    // criterio de agrupamiento es "lo que en el papel se ve igual", y la
+    // observacion se imprime. Dos lotes de botas a un mismo precio pero uno
+    // "COLOR NEGRO" y otro "COLOR CAFE" son dos renglones, no uno.
     for (const lote of lotes) {
       const fuente = lote.ingreso.fuenteFinanciamiento;
       const precio = Number(lote.precioUnitario);
-      const clave = `${lote.item.id}|${fuente?.id ?? 0}|${precio}`;
+      const clave = `${lote.item.id}|${fuente?.id ?? 0}|${precio}|${lote.observacion ?? ''}`;
       const acumulada = filas.get(clave);
       if (acumulada) {
         acumulada.cantidad += Number(lote.saldoCantidad);
@@ -235,12 +243,19 @@ export class StockService {
         filas.set(clave, {
           item: lote.item,
           fuente,
+          observacion: lote.observacion,
           precioUnitario: precio,
           cantidad: Number(lote.saldoCantidad),
         });
       }
     }
 
+    // Orden: PARTIDA -> item -> fuente. La partida es el unico eje de
+    // agrupamiento del reporte; la fuente es una COLUMNA de cada renglon, asi
+    // que solo desempata para que un item con dos financiadores salga siempre
+    // en el mismo orden. (Hasta el 2026-08-03 la fuente era el eje de arriba y
+    // el reporte abria un bloque por cada una — el encargado pidio verla en
+    // columna: buscar un item obligaba a recorrer todos los bloques.)
     const sinFuente = 'ZZZ'; // al final, si alguna vez falta
     return [...filas.values()]
       .map((fila) => ({
@@ -249,11 +264,13 @@ export class StockService {
       }))
       .sort(
         (a, b) =>
+          a.item.partida.codigo.localeCompare(b.item.partida.codigo) ||
+          a.item.descripcion.localeCompare(b.item.descripcion) ||
           (a.fuente?.nombre ?? sinFuente).localeCompare(
             b.fuente?.nombre ?? sinFuente,
           ) ||
-          a.item.partida.codigo.localeCompare(b.item.partida.codigo) ||
-          a.item.descripcion.localeCompare(b.item.descripcion),
+          a.precioUnitario - b.precioUnitario ||
+          (a.observacion ?? '').localeCompare(b.observacion ?? ''),
       );
   }
 

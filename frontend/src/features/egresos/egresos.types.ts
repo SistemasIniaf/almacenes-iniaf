@@ -247,6 +247,37 @@ export interface QueryEgresos extends PaginationQuery {
   unidadId?: number
   /** `true` = solo los que esperan una decisión mía (la bandeja del rol). */
   pendientesMios?: boolean
+  /**
+   * Rango (`YYYY-MM-DD`) sobre la fecha que muestra el listado: la de ENVÍO y,
+   * mientras el pedido es borrador, la de creación. Extremos inclusivos.
+   */
+  desde?: string
+  hasta?: string
+}
+
+/**
+ * Fila del reporte imprimible (`GET /egresos/reporte`): sin paginar y en orden
+ * cronológico. Más liviana que la del listado — solo lo que se imprime.
+ */
+export interface FilaReporteEgreso {
+  id: number
+  estado: EstadoEgreso
+  numero: number | null
+  gestion: number | null
+  fechaEnvio: string | null
+  fechaEntrega: string | null
+  justificacion: string
+  createdAt: string
+  almacen: RefNombre
+  unidad: { id: number; sigla: string }
+  solicitante: RefNombre
+  items: number
+  /**
+   * Lo que vale el pedido: `cantidadEntregada ?? cantidadSolicitada` por el
+   * precio de su lote. Lo entregado si ya salió, lo pedido mientras espera —
+   * por eso la fila del reporte lleva también el estado.
+   */
+  total: string
 }
 
 export interface LineaPayload {

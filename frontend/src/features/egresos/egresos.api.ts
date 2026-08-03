@@ -6,6 +6,7 @@ import type {
   Egreso,
   EgresoListItem,
   EntregaPayload,
+  FilaReporteEgreso,
   QueryEgresos,
   UpdateEgresoPayload,
 } from "@/features/egresos/egresos.types"
@@ -14,6 +15,19 @@ export async function listarEgresos(
   query: QueryEgresos
 ): Promise<PaginatedResult<EgresoListItem>> {
   const { data } = await api.get<PaginatedResult<EgresoListItem>>("/egresos", {
+    params: query,
+  })
+  return data
+}
+
+/**
+ * Los egresos del rango sin paginar, para el reporte imprimible. Se agrega en
+ * el servidor por la misma razón que el de ingresos: un reporte no se pagina.
+ */
+export async function reporteEgresos(
+  query: QueryEgresos
+): Promise<FilaReporteEgreso[]> {
+  const { data } = await api.get<FilaReporteEgreso[]>("/egresos/reporte", {
     params: query,
   })
   return data

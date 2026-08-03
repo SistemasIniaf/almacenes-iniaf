@@ -47,6 +47,21 @@ export class EgresosController {
     return this.egresosService.findAll(query, user);
   }
 
+  /**
+   * Los egresos del rango sin paginar, para el reporte imprimible.
+   *
+   * VA ANTES de `:id`: Nest resuelve las rutas por orden de declaracion y
+   * abajo, `/egresos/reporte` entraria por `findOne` y reventaria el
+   * `ParseIntPipe`.
+   */
+  @Get('reporte')
+  reporte(
+    @Query() query: QueryEgresosDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.egresosService.reporte(query, user);
+  }
+
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,

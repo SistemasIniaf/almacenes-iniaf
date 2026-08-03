@@ -44,14 +44,23 @@ export async function almacenesPermitidos(
  * Filtro de almacen listo para el `where` de Prisma, combinando el scope del
  * usuario con el almacen que haya pedido en la query.
  *
- * El `almacenId` de la query solo se respeta si el usuario no tiene scope
- * propio; si lo tiene, manda el scope (que un responsable pida otro almacen no
- * puede ampliar lo que ve).
+ * El scope ACOTA, la query AFINA: el almacen pedido se cruza contra lo
+ * permitido, nunca lo amplia. Pedir uno que no esta en el scope devuelve
+ * "ninguno" (array vacio) y no "todos" — que es el error clasico de tratar el
+ * array vacio como falta de filtro.
+ *
+ * Que el cruce sea una interseccion y no un "si tiene scope, ignoro la query"
+ * es lo que le permite al `observador_almacen` filtrar ENTRE los almacenes que
+ * observa: ve varios, asi que elegir uno es una necesidad real y no un intento
+ * de ver de mas.
  */
 export function filtroAlmacen(
   scope: number[] | null,
   almacenIdPedido?: number,
 ): { almacenId?: number | { in: number[] } } {
-  if (scope !== null) return { almacenId: { in: scope } };
-  return almacenIdPedido ? { almacenId: almacenIdPedido } : {};
+  if (scope === null) {
+    return almacenIdPedido ? { almacenId: almacenIdPedido } : {};
+  }
+  if (!almacenIdPedido) return { almacenId: { in: scope } };
+  return { almacenId: { in: scope.filter((id) => id === almacenIdPedido) } };
 }

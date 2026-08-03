@@ -1,12 +1,18 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { EstadoIngreso } from '../../../generated/prisma/enums';
 
 /** Filtros y buscador del listado de ingresos (extiende la paginacion base). */
 export class QueryIngresosDto extends PaginationQueryDto {
-  /** Busca en nota de remision, proceso/C31 y Nº de factura. */
+  /** Busca en proceso/C31, certificacion y observacion. */
   @IsOptional()
   @IsString()
   q?: string;
@@ -35,4 +41,17 @@ export class QueryIngresosDto extends PaginationQueryDto {
   @Type(() => Number)
   @IsInt()
   fuenteFinanciamientoId?: number;
+
+  /**
+   * Rango sobre la FECHA DE INGRESO (la de efecto contable), no sobre la de
+   * remision: el reporte tiene que coincidir con lo que movio el Kardex. Ambos
+   * extremos son INCLUSIVOS y se interpretan en UTC, igual que el kardex.
+   */
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  desde?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  hasta?: string;
 }

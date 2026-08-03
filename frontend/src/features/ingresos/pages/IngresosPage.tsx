@@ -1,6 +1,14 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Eye, FileText, Loader2, Pencil, Plus, Search } from "lucide-react"
+import {
+  Eye,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+} from "lucide-react"
 
 import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
@@ -22,13 +30,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { DataPagination } from "@/components/data/DataPagination"
+import { DateRangeFilter } from "@/components/data/DateRangeFilter"
 import { IconAction } from "@/components/data/IconAction"
 import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
+import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useIngresos } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
-import { PdfDialog } from "@/components/pdf/PdfDialog"
+import { useReporteIngresos } from "@/features/ingresos/hooks/useReporteIngresos"
 import {
   ESTADO_LABEL,
   ESTADO_PUNTO,
@@ -36,14 +46,26 @@ import {
 } from "@/features/ingresos/ingresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
+import { aIsoLocal } from "@/lib/fechas"
 import { usePagination } from "@/hooks/use-pagination"
 
+import type { DateRange } from "react-day-picker"
+import type { FiltrosIngresos } from "@/features/ingresos/hooks/useReporteIngresos"
 import type {
   EstadoIngreso,
   IngresoListItem,
 } from "@/features/ingresos/ingresos.types"
 
 type FiltroEstado = EstadoIngreso | "todos"
+
+const TODOS = "todos"
+
+/** Importe con separador de miles y dos decimales, como en el resto del sistema. */
+const importe = (valor: string) =>
+  Number(valor).toLocaleString("es-BO", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 
 /** Con ceros a la izquierda, igual que en la nota impresa: 27/06/2026. */
 function fecha(iso: string | null): string {
@@ -75,16 +97,47 @@ export function IngresosPage() {
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>("todos")
+  const [almacenId, setAlmacenId] = useState<string>(TODOS)
+  const [rango, setRango] = useState<DateRange | undefined>()
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const { abrirNota, generandoId, pdf, cerrarPdf } = useNotaIngreso()
+  const { abrirNota, generandoId } = useNotaIngreso()
+  const {
+    abrirReporte,
+    generando: generandoReporte,
+  } = useReporteIngresos()
 
-  const { data, isPending, isError, error } = useIngresos({
-    page,
-    pageSize,
+  // Solo hace falta para el selector, así que se pide únicamente a quien lo ve.
+  const { data: almacenes = [] } = useAlmacenesActivos({
+    enabled: veVariosAlmacenes,
+  })
+
+  /**
+   * Los filtros, en un solo objeto: el listado le agrega la paginación y el
+   * reporte lo usa tal cual. Así el papel sale con lo mismo que está en
+   * pantalla, sin poder desalinearse.
+   */
+  const filtros: FiltrosIngresos = {
     q: busquedaDiferida || undefined,
     estado: estado === "todos" ? undefined : estado,
+    almacenId: almacenId === TODOS ? undefined : Number(almacenId),
+    // En hora local: el rango se eligió en un calendario, y pasarlo por UTC
+    // correría el día para quien está en un huso negativo (Bolivia, UTC-4).
+    desde: rango?.from ? aIsoLocal(rango.from) : undefined,
+    hasta: rango?.to ? aIsoLocal(rango.to) : undefined,
+  }
+
+  const { data, isPending, isError, error } = useIngresos({
+    ...filtros,
+    page,
+    pageSize,
   })
+
+  /** El almacén del encabezado del reporte: `null` = todos (nacional). */
+  const almacenReporte =
+    almacenId === TODOS
+      ? null
+      : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? null)
 
   function cambiarFiltro(accion: () => void) {
     accion()
@@ -92,7 +145,8 @@ export function IngresosPage() {
   }
 
   const ingresos = data?.data ?? []
-  // Nº · fecha · C31 · estado · [almacén] · proveedor · observación · acciones
+  // Nº · fecha ingreso · fecha remisión · C31 · [almacén] · observación ·
+  // total · estado · acciones
   const columnas = veVariosAlmacenes ? 9 : 8
 
   return (
@@ -105,12 +159,28 @@ export function IngresosPage() {
             para corregir un error se anula el ingreso.
           </p>
         </div>
-        {puedeEscribir && (
-          <Button onClick={() => navigate("/ingresos/nuevo")}>
-            <Plus className="size-4" />
-            Nuevo ingreso
+        <div className="flex items-center gap-2">
+          {/* Fuera del `puedeEscribir`: el reporte es lectura, así que también
+              lo saca el observador de almacén. */}
+          <Button
+            variant="outline"
+            onClick={() => abrirReporte(filtros, almacenReporte)}
+            disabled={generandoReporte}
+          >
+            {generandoReporte ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="size-4" />
+            )}
+            Reporte
           </Button>
-        )}
+          {puedeEscribir && (
+            <Button onClick={() => navigate("/ingresos/nuevo")}>
+              <Plus className="size-4" />
+              Nuevo ingreso
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -121,18 +191,50 @@ export function IngresosPage() {
             onChange={(e) =>
               cambiarFiltro(() => setBusqueda(e.target.value))
             }
-            placeholder="Buscar por nota / C31 / factura..."
+            placeholder="Buscar por C31 / certificación / observación..."
             className="pl-9"
             aria-label="Buscar ingresos"
           />
         </div>
+
+        {/* El rango es sobre la FECHA DE INGRESO (la de efecto contable), no
+            sobre la de remisión: así lo filtrado coincide con lo que movió el
+            Kardex, y es lo que se lleva el reporte. */}
+        <DateRangeFilter
+          value={rango}
+          onChange={(nuevo) => cambiarFiltro(() => setRango(nuevo))}
+          className="sm:w-60"
+          aria-label="Filtrar por fecha de ingreso"
+        />
+        {/* Solo para quien ve más de un almacén; al responsable no le aporta
+            (todas sus filas son del suyo). El backend cruza igual lo que se
+            pida contra el scope del rol: el filtro afina, no amplía. */}
+        {veVariosAlmacenes && (
+          <Select
+            value={almacenId}
+            onValueChange={(v) => cambiarFiltro(() => setAlmacenId(v))}
+          >
+            <SelectTrigger className="sm:w-56" aria-label="Filtrar por almacén">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              <SelectItem value={TODOS}>Todos los almacenes</SelectItem>
+              {almacenes.map((almacen) => (
+                <SelectItem key={almacen.id} value={String(almacen.id)}>
+                  {almacen.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         <Select
           value={estado}
           onValueChange={(v) =>
             cambiarFiltro(() => setEstado(v as FiltroEstado))
           }
         >
-          <SelectTrigger className="sm:w-48" aria-label="Filtrar por estado">
+          <SelectTrigger className="sm:w-44" aria-label="Filtrar por estado">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -163,8 +265,12 @@ export function IngresosPage() {
                   toda la columna. Entero se lee en el formulario y en el PDF. */}
               <TableHead>Proc. C31</TableHead>
               {veVariosAlmacenes && <TableHead>Almacén</TableHead>}
-              <TableHead>Proveedor</TableHead>
               <TableHead>Observación</TableHead>
+              {/* Lo que costó el ingreso: es el dato que más se busca de una
+                  fila y no estaba en ninguna parte del listado. A la derecha y
+                  con cifras de ancho fijo para poder compararlas de un vistazo
+                  entre filas. */}
+              <TableHead className="text-right">Total (Bs)</TableHead>
               <TableHead>Estado</TableHead>
               {/* La columna va siempre: imprimir y ver los puede usar también
                   quien solo tiene lectura (observador de almacén). */}
@@ -200,8 +306,10 @@ export function IngresosPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
-                  {estado !== "todos"
-                    ? "Ningún ingreso con ese estado."
+                  {estado !== "todos" ||
+                  almacenId !== TODOS ||
+                  busquedaDiferida
+                    ? "Ningún ingreso con esos filtros."
                     : "Todavía no hay ingresos registrados."}
                 </TableCell>
               </TableRow>
@@ -231,9 +339,6 @@ export function IngresosPage() {
                       {ingreso.almacen.nombre}
                     </TableCell>
                   )}
-                  <TableCell className="text-muted-foreground">
-                    {ingreso.proveedor?.nombre ?? "—"}
-                  </TableCell>
                   {/*
                     Completa, sin recortar: es el texto que dice de qué fue la
                     compra. Va en cuerpo más chico y parte en varias líneas.
@@ -245,6 +350,9 @@ export function IngresosPage() {
                   */}
                   <TableCell className="w-full max-w-0 text-xs leading-snug whitespace-normal text-muted-foreground">
                     {ingreso.observacion || "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-medium tabular-nums whitespace-nowrap">
+                    {importe(ingreso.total)}
                   </TableCell>
                   <TableCell>
                     <BadgeEstado tono={ESTADO_PUNTO[ingreso.estado]}>
@@ -314,9 +422,11 @@ export function IngresosPage() {
         />
       )}
 
-      {pdf && (
-        <PdfDialog titulo="Nota de ingreso" {...pdf} onClose={cerrarPdf} />
-      )}
+      
+
+      {/* Visor propio: nunca están abiertos los dos a la vez, pero cada hook
+          maneja su object URL y lo revoca al cerrarse. */}
+      
     </div>
   )
 }
