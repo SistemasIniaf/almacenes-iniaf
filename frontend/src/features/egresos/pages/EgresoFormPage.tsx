@@ -177,8 +177,12 @@ export function EgresoFormPage() {
   async function guardar(valores: EgresoFormValues) {
     try {
       if (esNuevo) {
-        const creado = await crear.mutateAsync(aPayload(valores))
-        navigate(`/egresos/${creado.id}`)
+        // Al listado, no a la ficha del pedido recién creado: guardar termina la
+        // tarea, y quedarse en el formulario se leía como que no había pasado
+        // nada. Desde la tabla se ve el pedido con su estado y a un clic están
+        // sus acciones (enviar, editar, descartar), que viven ahí.
+        await crear.mutateAsync(aPayload(valores))
+        navigate("/egresos")
       } else {
         await actualizar.mutateAsync({
           id: id as number,
