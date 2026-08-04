@@ -59,7 +59,15 @@ interface GrupoMenu {
  * «Administración» va primero por pedido del usuario: quien la ve es admin o
  * super_admin, y para ellos es su tarea principal. Al resto de los roles el
  * grupo ni se les dibuja, así que no les mete distancia hasta lo suyo. Dentro,
- * el orden es usuarios → unidades → almacenes.
+ * el orden es usuarios → unidades → almacenes → partidas → fuentes de
+ * financiamiento: primero quién opera y dónde, después con qué se clasifica y
+ * con qué plata se compra.
+ *
+ * Partidas y fuentes SUBIERON acá desde «Catálogos» (2026-08-03, por pedido del
+ * usuario). No son catálogos de trabajo diario como ítems o proveedores —que el
+ * almacén consulta y da de alta seguido—, sino estructura del sistema que casi
+ * nadie toca: las partidas vienen del seed oficial y solo el super_admin las
+ * activa o desactiva. En «Catálogos» quedan las dos que sí se usan a diario.
  *
  * El resto sigue el uso: se mueve material todos los días, se consulta seguido
  * y se toca un catálogo de vez en cuando.
@@ -90,6 +98,18 @@ const GRUPOS: GrupoMenu[] = [
         url: "/almacenes",
         icono: Warehouse,
         permiso: "almacenesLeer",
+      },
+      {
+        titulo: "Partidas",
+        url: "/partidas",
+        icono: ListTree,
+        permiso: "partidasLeer",
+      },
+      {
+        titulo: "Fuentes de financiamiento",
+        url: "/fuentes-financiamiento",
+        icono: Landmark,
+        permiso: "fuentesLeer",
       },
     ],
   },
@@ -127,22 +147,10 @@ const GRUPOS: GrupoMenu[] = [
     items: [
       { titulo: "Ítems", url: "/items", icono: Package, permiso: "itemsLeer" },
       {
-        titulo: "Partidas",
-        url: "/partidas",
-        icono: ListTree,
-        permiso: "partidasLeer",
-      },
-      {
         titulo: "Proveedores",
         url: "/proveedores",
         icono: Truck,
         permiso: "proveedoresLeer",
-      },
-      {
-        titulo: "Fuentes de financiamiento",
-        url: "/fuentes-financiamiento",
-        icono: Landmark,
-        permiso: "fuentesLeer",
       },
     ],
   },
