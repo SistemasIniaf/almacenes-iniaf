@@ -37,7 +37,7 @@ almacenes-institucion/
 - **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir (prop `mayusculas`, transforma el valor real, no con `text-transform` de CSS) y el service lo normaliza igual, porque la API es la fuente de verdad. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
 - **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
   - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total.
-  - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que NO gestiona Unidades ni Partidas.
+  - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que **NO gestiona los tres catálogos estructurales: Unidades, Almacenes ni Partidas** (cambio del 2026-08-03: antes sí gestionaba Almacenes). Los **lee** —los necesita para poblar los selectores al crear usuarios— pero no los crea, edita ni desactiva. La regla vive en los `@Roles` de cada controlador (escritura `super_admin`, lectura `super_admin` + `admin`) y la espeja `PERMISOS` en el frontend.
   - `solicitador`: unidad y almacén requeridos (fijo, destino de sus egresos). Varios por unidad.
   - `aprobador`: unidad Y almacén requeridos (igual que `solicitador`). Único ACTIVO por unidad; el almacén NO es único (varios aprobadores pueden compartir almacén).
   - `responsable_almacen`: unidad Y almacén requeridos (la unidad se agregó el 2026-07-21; antes no la llevaba). Único ACTIVO por almacén.
@@ -228,17 +228,59 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
   filtro reinicia a la página 1 (`resetPage`), porque los índices anteriores dejan de valer. El
   tamaño inicial es **`PAGE_SIZE` de `lib/types.ts` (10)**. El backend sigue con `pageSize=20`
   por defecto para quien consuma la API directo; el frontend siempre lo manda explícito.
+- **Los listados se envuelven SIEMPRE en `rounded-md border bg-card shadow-sm`** y la fila de
+  encabezados lleva `bg-muted`, que ya viene puesto en `ui/table.tsx` (2026-08-03). No es
+  decoración: en modo **claro** `--card` y `--background` son los dos blanco puro, así que el
+  `bg-card` no dibuja ninguna superficie y la tabla quedaba apoyada solo en un borde `0.925`
+  —se perdía contra la página—. En oscuro no pasaba porque ahí los dos tokens sí difieren. Dos
+  cosas que se olvidan al copiar el patrón: el contenedor de `Table` lleva `rounded-[inherit]`
+  para que el fondo del encabezado no asome en escuadra por encima de las esquinas redondeadas,
+  y una tabla **anidada** (la de lotes en `StockPage`, dentro de una fila ya tintada) pisa el
+  fondo con `bg-transparent` — dos superficies encima se enturbian.
 - `hooks/use-debounced-value.ts`: para los buscadores (no una petición por tecla).
-- `components/ui/sonner.tsx` + `<Toaster>` en `main.tsx` para feedback de mutaciones. OJO: el
+- `components/ui/sonner.tsx` + `<Toaster>` en `main.tsx` para feedback de mutaciones. Va
+  **`position="top-center"`** (2026-08-03, pedido del usuario): el sistema se usa en pantallas
+  anchas y arriba a la derecha el aviso caía lejos de donde estaba la vista. OJO: el
   generador de shadcn lo trae importando `useTheme` de `next-themes`; se reconectó al
   `ThemeProvider` propio y se desinstaló `next-themes`. Si se regenera, revisar ese import.
+- **Tema claro/oscuro**: `components/theme-provider.tsx` (propio, tres estados —
+  `dark`/`light`/`system`— persistidos en `localStorage` bajo la clave `theme`) y
+  `components/ThemeToggle.tsx`, el **switch** de la cabecera, al lado del `UserMenu`. El
+  **default es `dark`** y se pasa explícito en `main.tsx`; solo rige para quien nunca eligió.
+  Cuatro detalles que cuestan descubrir:
+  - El tema se aplica **dos veces**: un script inline en `index.html` pone la clase en el
+    `<html>` **antes del primer pintado**, y recién después el provider toma el control en su
+    efecto. Sin el script la app pintaba en blanco y saltaba a oscuro en cada carga. Si cambiás
+    la clave de storage o el default, **hay que tocar los dos lados**.
+  - El provider expone **`resolvedTheme`** (`theme`, o el del sistema si vale `"system"`), que es
+    lo que el switch necesita para saber si va prendido. Lo sigue **`useSyncExternalStore`** sobre
+    el `matchMedia` y NO un `useState` + efecto: el lint del repo rechaza `setState` dentro de
+    `useEffect`, y así el valor ya está en el primer render. Ese hook reemplazó al listener que el
+    efecto montaba aparte — ahora la suscripción al modo del sistema está en un solo lugar.
+  - La lógica de alternar vive en `toggleTheme` del provider, compartida con el atajo de teclado
+    «d». Duplicarla es olvidarse del caso `system`, que salta al CONTRARIO del que rige. Alternar
+    **saca** el tema de `"system"`: elegir a mano es decir que no se siga al SO.
+  - El switch está armado **sobre el primitivo de Radix directamente** (del paquete unificado
+    `radix-ui`, que ya es dependencia), no sobre un `ui/switch.tsx`: de un wrapper genérico habría
+    que pisar tamaño, colores de los dos estados, pulgar y recorrido —todo salvo el cableado— y
+    además necesita meterle hijos al riel. **Emite `data-state="checked"`, no el `data-checked` de
+    `checkbox`/`radio-group`** de este mismo repo: es cosa de `@radix-ui/react-switch`, así que
+    copiarle las clases al checkbox deja un switch que no reacciona al prenderse.
+  - **Forma**: píldora de 52×28 con el sol y la luna dibujados SIEMPRE dentro del riel (izquierda y
+    derecha) y el pulgar tapando al del modo que no rige — o sea que el mismo movimiento descubre
+    uno y cubre el otro, sin lógica de mostrar/esconder. Prendido = oscuro = pulgar a la
+    **izquierda**: el sentido lo da el ícono que queda a la vista, no de qué lado cae el pulgar.
+  - **El riel va `bg-foreground`**, el inverso de la página (píldora oscura sobre fondo claro y al
+    revés). Pintarlo del color del MODO —negro en oscuro, como en la referencia que se tomó— es lo
+    que hacía que no se notara: se confundía con el fondo de la cabecera.
 
 **Módulo `unidades` — YA HECHO** (plantilla a copiar para el resto): `unidades.types.ts`,
 `unidades.schema.ts` (zod espejo del DTO), `unidades.api.ts`, `useUnidades.ts` (queries +
 mutations con toast e invalidación), `UnidadFormDialog.tsx` (crear/editar en un solo diálogo),
 `UnidadesPage.tsx` (buscador + filtro de estado + tabla + baja lógica con confirmación).
-Detalle de permisos: unidades es el único módulo donde `admin` **lee pero no escribe**, así que
-la página oculta el botón "Nueva unidad" y la columna de acciones para ese rol.
+Detalle de permisos: unidades es uno de los tres módulos donde `admin` **lee pero no escribe**
+(los otros son `almacenes` y `partidas`), así que la página oculta el botón "Nueva unidad" y la
+columna de acciones para ese rol — `AlmacenesPage` hace lo mismo con `almacenesEscribir`.
 
 **Módulos de frontend ya hechos**: `unidades`, `almacenes`, `usuarios`, `partidas`, `items`,
 `proveedores`, `fuentes-financiamiento`, `ingresos`, `stock`, `kardex`, `egresos`.
@@ -661,6 +703,11 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   qué falta, y `EgresoLineas` pinta el error del arreglo (ej. «Agregá al menos un ítem»), que no lo
   pinta ningún campo. Sin las dos cosas el botón *Guardar* parecía no hacer nada cuando el problema
   estaba en las líneas, más abajo en la página.
+- **Al crear, se vuelve al LISTADO** (`navigate("/egresos")`, 2026-08-03). Antes se quedaba en la
+  ficha del pedido recién creado y se leía como que el botón no había hecho nada. El listado
+  además es donde viven las acciones del borrador (enviar, editar, descartar). El pedido nuevo
+  aparece arriba de todo: el orden es `createdAt desc` y el `solicitador` no tiene bandeja, así
+  que el filtro `pendientesMios` arranca apagado para él y no se lo esconde.
 - **Las acciones del borrador viven en el LISTADO, no en la ficha**: editar (✏), enviar (➤) y descartar
   (🗑) son iconos de fila, y solo aparecen si el borrador es PROPIO (`egreso.solicitante.id === user.id`,
   lo mismo que exige el backend — un admin ve borradores ajenos y tampoco puede tocarlos). En la ficha
