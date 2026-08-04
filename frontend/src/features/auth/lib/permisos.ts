@@ -16,9 +16,13 @@ export const PERMISOS = {
    * `responsable_almacen` y el `observador_almacen` también la tienen, porque
    * necesitan los nombres para los selectores y filtros. Esos hooks
    * (`useAlmacenesActivos`) no consultan este permiso.
+   *
+   * Escritura solo super_admin, igual que unidades y partidas: son los tres
+   * catálogos estructurales del sistema (2026-08-03). El admin sigue leyendo,
+   * porque necesita el selector de almacén al crear usuarios.
    */
   almacenesLeer: ["super_admin", "admin"],
-  almacenesEscribir: ["super_admin", "admin"],
+  almacenesEscribir: ["super_admin"],
 
   proveedoresLeer: ["super_admin", "admin", "responsable_almacen"],
   proveedoresEscribir: ["super_admin", "admin"],

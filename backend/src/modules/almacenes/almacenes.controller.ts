@@ -18,14 +18,17 @@ import { QueryAlmacenesDto } from './dto/query-almacenes.dto';
 import { UpdateAlmacenDto } from './dto/update-almacen.dto';
 
 /**
- * Gestion de almacenes (CRUD simple). super_admin y admin tienen acceso total
- * (a diferencia de unidades/partidas, admin SI gestiona almacenes — ver CLAUDE.md).
+ * Gestion de almacenes (CRUD simple). Escritura solo super_admin — igual que
+ * unidades y partidas: son los tres catalogos estructurales del sistema y los
+ * gestiona un unico rol (ver CLAUDE.md). Lectura tambien admin, para poblar
+ * selectores al crear usuarios.
  */
 @Roles(Rol.super_admin, Rol.admin)
 @Controller('almacenes')
 export class AlmacenesController {
   constructor(private readonly almacenesService: AlmacenesService) {}
 
+  @Roles(Rol.super_admin)
   @Post()
   create(@Body() dto: CreateAlmacenDto) {
     return this.almacenesService.create(dto);
@@ -58,12 +61,14 @@ export class AlmacenesController {
     return this.almacenesService.findOne(id);
   }
 
+  @Roles(Rol.super_admin)
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAlmacenDto) {
     return this.almacenesService.update(id, dto);
   }
 
   /** Baja logica (desactiva). */
+  @Roles(Rol.super_admin)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.almacenesService.remove(id);
