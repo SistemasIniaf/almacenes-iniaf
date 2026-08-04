@@ -13,7 +13,15 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme
+  /**
+   * El tema que REALMENTE rige: igual que `theme`, salvo cuando vale "system",
+   * donde resuelve al del sistema operativo. Es lo que necesita cualquier UI
+   * que tenga que dibujarse segun el modo actual (el switch de la cabecera).
+   */
+  resolvedTheme: ResolvedTheme
   setTheme: (theme: Theme) => void
+  /** Alterna claro/oscuro. Desde "system" salta al contrario del que rige. */
+  toggleTheme: () => void
 }
 
 const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)"
@@ -37,6 +45,23 @@ function getSystemTheme(): ResolvedTheme {
   }
 
   return "light"
+}
+
+/**
+ * El tema del sistema, leido como fuente externa. Va con `useSyncExternalStore`
+ * y no con un `useState` + efecto porque el lint del repo (reglas del React
+ * Compiler) rechaza `setState` dentro de `useEffect`, y porque asi el valor ya
+ * esta disponible en el PRIMER render, sin un frame con el dato viejo.
+ * `getSystemTheme` devuelve un string, o sea que la comparacion por identidad
+ * que hace React no puede lazar un bucle de renders.
+ */
+function subscribeSystemTheme(onChange: () => void) {
+  const mediaQuery = window.matchMedia(COLOR_SCHEME_QUERY)
+  mediaQuery.addEventListener("change", onChange)
+
+  return () => {
+    mediaQuery.removeEventListener("change", onChange)
+  }
 }
 
 function disableTransitionsTemporarily() {
@@ -93,6 +118,14 @@ export function ThemeProvider({
     return defaultTheme
   })
 
+  const systemTheme = React.useSyncExternalStore(
+    subscribeSystemTheme,
+    getSystemTheme
+  )
+
+  const resolvedTheme: ResolvedTheme =
+    theme === "system" ? systemTheme : theme
+
   const setTheme = React.useCallback(
     (nextTheme: Theme) => {
       localStorage.setItem(storageKey, nextTheme)
@@ -101,17 +134,29 @@ export function ThemeProvider({
     [storageKey]
   )
 
+  /**
+   * Lo comparten el switch de la cabecera (`ThemeToggle`) y el atajo de teclado
+   * «d». Vive aca y no en cada uno porque la parte que se olvida al duplicarla
+   * es el caso "system": desde ahi hay que saltar al CONTRARIO del que rige,
+   * no a un valor fijo. Al alternar, el tema deja de ser "system": elegir a mano
+   * es justamente decir que no se siga al sistema operativo.
+   */
+  const toggleTheme = React.useCallback(() => {
+    const nextTheme: ResolvedTheme = resolvedTheme === "dark" ? "light" : "dark"
+
+    localStorage.setItem(storageKey, nextTheme)
+    setThemeState(nextTheme)
+  }, [resolvedTheme, storageKey])
+
   const applyTheme = React.useCallback(
-    (nextTheme: Theme) => {
+    (nextTheme: ResolvedTheme) => {
       const root = document.documentElement
-      const resolvedTheme =
-        nextTheme === "system" ? getSystemTheme() : nextTheme
       const restoreTransitions = disableTransitionOnChange
         ? disableTransitionsTemporarily()
         : null
 
       root.classList.remove("light", "dark")
-      root.classList.add(resolvedTheme)
+      root.classList.add(nextTheme)
 
       if (restoreTransitions) {
         restoreTransitions()
@@ -120,24 +165,12 @@ export function ThemeProvider({
     [disableTransitionOnChange]
   )
 
+  // Un solo efecto: `resolvedTheme` ya cambia solo cuando el sistema cambia de
+  // modo (lo sigue `useSyncExternalStore`), asi que aca no hace falta repetir la
+  // suscripcion al `matchMedia` como antes.
   React.useEffect(() => {
-    applyTheme(theme)
-
-    if (theme !== "system") {
-      return undefined
-    }
-
-    const mediaQuery = window.matchMedia(COLOR_SCHEME_QUERY)
-    const handleChange = () => {
-      applyTheme("system")
-    }
-
-    mediaQuery.addEventListener("change", handleChange)
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange)
-    }
-  }, [theme, applyTheme])
+    applyTheme(resolvedTheme)
+  }, [resolvedTheme, applyTheme])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -157,19 +190,7 @@ export function ThemeProvider({
         return
       }
 
-      setThemeState((currentTheme) => {
-        const nextTheme =
-          currentTheme === "dark"
-            ? "light"
-            : currentTheme === "light"
-              ? "dark"
-              : getSystemTheme() === "dark"
-                ? "light"
-                : "dark"
-
-        localStorage.setItem(storageKey, nextTheme)
-        return nextTheme
-      })
+      toggleTheme()
     }
 
     window.addEventListener("keydown", handleKeyDown)
@@ -177,7 +198,7 @@ export function ThemeProvider({
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [storageKey])
+  }, [toggleTheme])
 
   React.useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -207,9 +228,11 @@ export function ThemeProvider({
   const value = React.useMemo(
     () => ({
       theme,
+      resolvedTheme,
       setTheme,
+      toggleTheme,
     }),
-    [theme, setTheme]
+    [theme, resolvedTheme, setTheme, toggleTheme]
   )
 
   return (

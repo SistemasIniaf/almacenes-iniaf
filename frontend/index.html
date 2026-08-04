@@ -5,6 +5,31 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>vite-app</title>
+    <!--
+      Aplica el tema ANTES del primer pintado. El ThemeProvider lo hace en un
+      efecto, que corre despues de montar: con el oscuro por defecto eso se veia
+      como un fogonazo blanco en cada carga. Tiene que quedar en sintonia con
+      main.tsx: mismo storageKey ("theme") y mismo default ("dark").
+    -->
+    <script>
+      ;(function () {
+        try {
+          var guardado = localStorage.getItem("theme")
+          var tema =
+            guardado === "light" || guardado === "dark"
+              ? guardado
+              : guardado === "system"
+                ? window.matchMedia("(prefers-color-scheme: dark)").matches
+                  ? "dark"
+                  : "light"
+                : "dark"
+          document.documentElement.classList.add(tema)
+        } catch (error) {
+          // localStorage bloqueado (modo privado): se cae al default.
+          document.documentElement.classList.add("dark")
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

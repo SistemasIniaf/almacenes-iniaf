@@ -14,13 +14,17 @@ import { ThemeProvider } from "@/components/theme-provider.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
+    {/* Oscuro por defecto (pedido del usuario). Solo rige para quien nunca
+        eligió: si ya hay tema guardado en localStorage, manda ese. */}
+    <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
         {/* AuthProvider envuelve al router (no al reves): las rutas dependen de la sesion. */}
         <AuthProvider>
           <TooltipProvider>
             <RouterProvider router={router} />
-            <Toaster position="top-right" richColors />
+            {/* Centrado arriba: el sistema se usa en pantallas anchas y en la
+                esquina derecha el aviso caía lejos de donde estaba la vista. */}
+            <Toaster position="top-center" richColors />
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

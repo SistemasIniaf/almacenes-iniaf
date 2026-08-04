@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom"
 
 import { AppSidebar } from "@/features/dashboard/components/AppSidebar"
 import { UserMenu } from "@/features/dashboard/components/UserMenu"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -73,7 +74,8 @@ export const DashboardLayout = () => {
             </Breadcrumb>
 
             {/* Usuario a la derecha, como en la mayoría de los sistemas. */}
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-3">
+              <ThemeToggle />
               <UserMenu />
             </div>
           </div>
