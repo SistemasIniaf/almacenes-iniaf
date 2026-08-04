@@ -593,9 +593,19 @@ A diferencia del sistema anterior, **la fuente es un filtro opcional**: allá ha
 sí y no existe vista consolidada; acá, sin filtro, salen todas juntas. Desde la pantalla de stock,
 cada ítem tiene un atajo «Ver kardex» que lleva el ítem y el almacén por la URL.
 
-**Orden de los filtros: gestión → almacén → fuente → ítem** (2026-08-03). Va de lo general a lo
-específico, que es como se acota una consulta al libro; el ítem queda último y con el ancho sobrante
-porque es el que más texto muestra.
+**Filtros: gestión → almacén → fuente → rango de fechas → ítem** (2026-08-04). Van de lo general a lo
+específico, que es como se acota una consulta al libro; el ítem queda último porque es el que más
+texto muestra (para quien elige almacén se pasa entero a la segunda fila).
+
+**El rango de fechas MUEVE el saldo de apertura**, no solo esconde renglones: pedir marzo abre con el
+saldo al 1/3, no con el de enero — si no, el saldo corriente de la primera fila no cerraría. Lo
+resuelve `ventana()` en `kardex.service`, compartida por la pantalla y el reporte: sin rango la
+ventana es la gestión entera (del 1/1 al 31/12), con rango mandan los extremos, ambos inclusivos y en
+UTC.
+
+**El ítem sigue siendo obligatorio en la PANTALLA** (confirmado con el usuario el 2026-08-04): el
+saldo corriente no significa nada mezclando ítems. El reporte es el que sale de todos — esa es la
+división de trabajo entre los dos, no un olvido.
 
 **Reporte de kardex** (`GET /kardex/reporte` + `lib/reporte-kardex-pdf.ts`, 2026-08-03): calcado del
 que emitía el sistema anterior. Dos diferencias con el kardex de PANTALLA, y son el sentido del

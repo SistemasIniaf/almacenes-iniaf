@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, Min } from 'class-validator';
 
 /**
  * Filtros del reporte de kardex.
@@ -33,4 +33,19 @@ export class QueryReporteKardexDto {
   @IsInt()
   @Min(1)
   fuenteFinanciamientoId?: number;
+
+  /**
+   * Rango de fechas del libro. Ambos extremos INCLUSIVOS, en UTC.
+   *
+   * Con rango, el saldo de apertura pasa a ser el de `desde` (un extracto de
+   * marzo abre con el saldo al 1/3, no con el de enero). Sin rango, la ventana
+   * es la gestion entera.
+   */
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  desde?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  hasta?: string;
 }

@@ -46,6 +46,13 @@ export interface QueryKardex {
   almacenId?: number
   gestion?: number
   fuenteFinanciamientoId?: number
+  /**
+   * Rango de fechas (`YYYY-MM-DD`), ambos extremos inclusivos. Con rango, el
+   * saldo de apertura pasa a ser el de `desde`: un extracto de marzo abre con
+   * el saldo al 1/3, no con el de enero.
+   */
+  desde?: string
+  hasta?: string
 }
 
 /** Igual que `QueryKardex`, pero el ítem es OPCIONAL: el reporte sale de todos. */
@@ -54,6 +61,8 @@ export interface QueryReporteKardex {
   almacenId?: number
   gestion?: number
   fuenteFinanciamientoId?: number
+  desde?: string
+  hasta?: string
 }
 
 /** Un renglón del reporte: además de la cantidad, lleva el valor en Bs. */
@@ -61,10 +70,19 @@ export interface RenglonReporteKardex {
   id: number
   fecha: string
   tipo: TipoMovimiento
-  /** `I` si viene de un ingreso, `E` de un egreso — como el reporte anterior. */
-  origen: "I" | "E"
+  /**
+   * `I` si viene de un ingreso y `E` de un egreso —como el reporte anterior—
+   * más `R` para la REVERSIÓN, que no existía allá. Sin ese tercer valor, la
+   * reversión de un egreso se imprime como `E` con la cantidad en la columna
+   * ENTRADA, y se lee como un error del reporte.
+   */
+  origen: "I" | "E" | "R"
   documento: string | null
-  /** Proveedor en una entrada; unidad / solicitante en una salida. */
+  /**
+   * Proveedor en una entrada; unidad / solicitante en una salida. La reversión
+   * antepone «REVERSIÓN ·» y agrega su motivo entre paréntesis: es lo único que
+   * explica por qué el renglón existe.
+   */
   detalle: string
   precioUnitario: number
   entrada: number
@@ -106,5 +124,16 @@ export interface BloqueReporteKardex {
 export interface ReporteKardex {
   almacen: RefNombre
   gestion: number
+  /**
+   * Los criterios con los que se sacó, ya resueltos a NOMBRE (no ids). El
+   * reporte los imprime: una hoja archivada sin ellos no se puede reproducir ni
+   * auditar. `null` en cada uno significa «sin filtrar».
+   */
+  filtros: {
+    desde: string | null
+    hasta: string | null
+    fuente: RefNombre | null
+    item: { id: number; codigo: string; descripcion: string } | null
+  }
   bloques: BloqueReporteKardex[]
 }

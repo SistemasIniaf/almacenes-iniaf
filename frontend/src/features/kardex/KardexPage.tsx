@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ComboboxField } from "@/components/form/ComboboxField"
+import { DateRangeFilter } from "@/components/data/DateRangeFilter"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
@@ -33,9 +34,11 @@ import {
 } from "@/features/items/useBuscarItems"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
+import { aIsoLocal } from "@/lib/fechas"
 import { cantidad, precio } from "@/lib/formato"
 import { cn } from "@/lib/utils"
 
+import type { DateRange } from "react-day-picker"
 import type { MovimientoKardex } from "@/features/kardex/kardex.types"
 
 const TODAS = "todas"
@@ -89,6 +92,27 @@ export function KardexPage() {
 
   const [almacenId, setAlmacenId] = useState(params.get("almacen") ?? "")
   const [gestion, setGestion] = useState(String(new Date().getFullYear()))
+  const [rango, setRango] = useState<DateRange | undefined>()
+
+  /**
+   * Los filtros del libro, en un solo objeto que usan la pantalla y el reporte.
+   * El rango acota qué movimientos se listan y mueve el saldo de apertura — un
+   * extracto de marzo abre con el saldo al 1/3.
+   *
+   * **El ítem va incluido**: si hay uno elegido, el reporte sale de ESE ítem, no
+   * del almacén entero. El papel tiene que decir lo mismo que la pantalla; para
+   * el reporte completo se deja el selector vacío, que es lo que lo vuelve
+   * opcional en el backend.
+   */
+  const filtros = {
+    itemId: itemId ? Number(itemId) : undefined,
+    almacenId: almacenId ? Number(almacenId) : undefined,
+    gestion: Number(gestion),
+    fuenteFinanciamientoId: fuenteId === TODAS ? undefined : Number(fuenteId),
+    // En hora local: pasarlo por UTC correría el día en un huso negativo.
+    desde: rango?.from ? aIsoLocal(rango.from) : undefined,
+    hasta: rango?.to ? aIsoLocal(rango.to) : undefined,
+  }
 
   const { data: almacenes = [] } = useAlmacenesActivos()
   const { data: fuentes = [] } = useFuentesActivas()
@@ -114,15 +138,7 @@ export function KardexPage() {
   const listo = Boolean(itemId) && (esResponsable || Boolean(almacenId))
 
   const { data, isPending, isError, error } = useKardex(
-    listo
-      ? {
-          itemId: Number(itemId),
-          almacenId: almacenId ? Number(almacenId) : undefined,
-          gestion: Number(gestion),
-          fuenteFinanciamientoId:
-            fuenteId === TODAS ? undefined : Number(fuenteId),
-        }
-      : null
+    listo ? { ...filtros, itemId: Number(itemId) } : null
   )
 
   // El ítem elegido tiene que seguir con etiqueta aunque la búsqueda cambie.
@@ -169,26 +185,21 @@ export function KardexPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Kardex</h1>
           <p className="text-sm text-muted-foreground">
             Libro de movimientos de un ítem en un almacén, con el saldo
-            corriendo. El reporte, en cambio, sale de <strong>todos</strong> los
-            ítems del almacén: un bloque por ítem y fuente.
+            corriendo. El reporte sale con los mismos filtros; si no elegís
+            ítem, trae <strong>todos</strong> los del almacén, un bloque por
+            ítem y fuente.
           </p>
         </div>
 
-        {/* No exige ítem elegido: el reporte es del almacén entero. Sí necesita
-            el almacén, que el responsable ya tiene resuelto. */}
+        {/* No exige ítem elegido —sin él sale el almacén entero— pero sí lo
+            respeta cuando lo hay. El almacén es lo único obligatorio, y el
+            responsable ya lo tiene resuelto. */}
         <Button
           type="button"
           variant="outline"
           className="shrink-0"
           disabled={generandoReporte || (!esResponsable && !almacenId)}
-          onClick={() =>
-            void abrirReporte({
-              almacenId: almacenId ? Number(almacenId) : undefined,
-              gestion: Number(gestion),
-              fuenteFinanciamientoId:
-                fuenteId === TODAS ? undefined : Number(fuenteId),
-            })
-          }
+          onClick={() => void abrirReporte(filtros)}
         >
           {generandoReporte ? (
             <Loader2 className="size-4 animate-spin" />
@@ -200,11 +211,12 @@ export function KardexPage() {
       </div>
 
       {/*
-        Orden de los filtros: gestión → almacén → fuente → ítem. Va de lo más
-        general a lo más específico, que es como se acota una consulta al libro:
-        primero el período y el almacén, después el financiador y recién al
-        final el ítem concreto. El ítem queda último y con el ancho que sobra
-        porque es el que más texto muestra (código + descripción).
+        Orden de los filtros: gestión → almacén → fuente → fechas → ítem. Va de
+        lo más general a lo más específico, que es como se acota una consulta al
+        libro: primero el período y el almacén, después el financiador, el rango
+        fino y recién al final el ítem concreto. El ítem queda último y con el
+        ancho que sobra porque es el que más texto muestra (código + descripción);
+        para quien elige almacén, se pasa a la segunda fila entero.
       */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-12">
         <div className="lg:col-span-2">
@@ -254,7 +266,21 @@ export function KardexPage() {
           />
         </div>
 
-        <div className={esResponsable ? "lg:col-span-7" : "lg:col-span-4"}>
+        {/* Acota el libro dentro de la gestión. Mueve además el saldo de
+            apertura: pedir marzo abre con el saldo al 1/3, no con el de
+            enero — si no, el saldo corriente no cerraría. */}
+        <div className="lg:col-span-4">
+          <label className="mb-2 block text-sm font-medium">Fechas</label>
+          <DateRangeFilter
+            value={rango}
+            onChange={setRango}
+            placeholder="Toda la gestión"
+            className="w-full"
+            aria-label="Filtrar por rango de fechas"
+          />
+        </div>
+
+        <div className={esResponsable ? "lg:col-span-3" : "lg:col-span-12"}>
           <ComboboxField
             name="itemId"
             label="Ítem"
@@ -299,7 +325,9 @@ export function KardexPage() {
               <span className="text-muted-foreground">
                 {data.item.partida.codigo} · {data.item.partida.denominacion}
               </span>
-              <span className="text-muted-foreground">{data.almacen.nombre}</span>
+              <span className="text-muted-foreground">
+                {data.almacen.nombre}
+              </span>
               <span className="ml-auto">
                 Saldo final:{" "}
                 <span className="font-semibold tabular-nums">
@@ -341,7 +369,10 @@ export function KardexPage() {
                       colSpan={columnas}
                       className="py-8 text-center text-sm text-destructive"
                     >
-                      {getApiErrorMessage(error, "No se pudo cargar el kardex.")}
+                      {getApiErrorMessage(
+                        error,
+                        "No se pudo cargar el kardex."
+                      )}
                     </TableCell>
                   </TableRow>
                 )}

@@ -1,7 +1,8 @@
 import {
+  ALTO_MEMBRETE,
   datosCabecera,
   esNacional,
-  encabezadoReporte,
+  membreteRepetido,
   fechaCorta,
   moneda,
   pieReporte,
@@ -160,15 +161,22 @@ export async function definicionEstadoConsolidado(
 
   return {
     pageSize: "LETTER",
-    pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
+    // El margen superior le reserva el lugar al membrete, que va como `header`
+    // para repetirse en todas las páginas.
+    pageMargins: [
+      MARGEN_PDF,
+      MARGEN_PDF + ALTO_MEMBRETE,
+      MARGEN_PDF,
+      MARGEN_PDF,
+    ],
     info: {
       title: `Estado de almacenes por partida${esNacional(almacen) ? " (nacional)" : ""} ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
+    header: membreteRepetido(titulo(almacen), logos, emitidoEn),
     content: [
-      encabezadoReporte(titulo(almacen), logos, emitidoEn),
       ...datosCabecera(almacen, emitidoEn),
       grupos.length === 0
         ? { text: "Sin existencias para los filtros elegidos.", italics: true }

@@ -21,6 +21,34 @@ function formatearNumero(
 }
 
 /**
+ * Los dos cortes del libro: desde donde se listan los movimientos y hasta
+ * donde. Todo lo ANTERIOR a `inicio` se acumula como saldo de apertura.
+ *
+ * Sin rango, la ventana es la GESTION entera (del 1/1 al 31/12), que es como
+ * funcionaba antes. Con rango, los extremos mandan: si se pide del 1/3 al 31/3,
+ * la apertura pasa a ser el saldo AL 1/3 — que es lo correcto, un extracto de
+ * marzo no abre con el saldo de enero.
+ *
+ * `hasta` es inclusivo (se lleva al dia siguiente y se compara con `lt`, porque
+ * la fecha guardada tiene hora). Todo en UTC.
+ */
+function ventana(
+  gestion: number,
+  desde?: string,
+  hasta?: string,
+): { inicio: Date; fin: Date } {
+  const aUtc = (valor: string, sumarDias = 0) => {
+    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
+    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
+  };
+
+  return {
+    inicio: desde ? aUtc(desde) : new Date(Date.UTC(gestion, 0, 1)),
+    fin: hasta ? aUtc(hasta, 1) : new Date(Date.UTC(gestion + 1, 0, 1)),
+  };
+}
+
+/**
  * Kardex: el libro de movimientos de un item en un almacen, con saldo corriente.
  *
  * No hay tabla de saldos que consultar — el saldo de cada renglon se calcula
@@ -86,8 +114,7 @@ export class KardexService {
       : {};
 
     const base = { itemId: item.id, almacenId, ...filtroFuente };
-    const inicio = new Date(Date.UTC(gestion, 0, 1));
-    const fin = new Date(Date.UTC(gestion + 1, 0, 1));
+    const { inicio, fin } = ventana(gestion, query.desde, query.hasta);
 
     const seleccion = {
       id: true,
@@ -98,6 +125,11 @@ export class KardexService {
       motivo: true,
       ingresoId: true,
       ingreso: {
+        select: { id: true, numero: true, gestion: true },
+      },
+      // El numero del EGRESO tambien: una salida sin documento en la columna
+      // deja el renglon sin rastro de a que pedido pertenece.
+      egreso: {
         select: { id: true, numero: true, gestion: true },
       },
       ingresoDetalle: {
@@ -142,11 +174,11 @@ export class KardexService {
         fecha: m.fecha,
         tipo: m.tipo,
         motivo: m.motivo,
-        // El documento que lo origino, ya formateado como se imprime.
+        // El documento que lo origino, ya formateado como se imprime. Puede ser
+        // un ingreso o un egreso: un movimiento viene de UNO de los dos.
         documento:
-          m.ingreso?.numero != null && m.ingreso.gestion != null
-            ? `${String(m.ingreso.numero).padStart(3, '0')}/${m.ingreso.gestion}`
-            : null,
+          formatearNumero(m.ingreso?.numero, m.ingreso?.gestion) ??
+          formatearNumero(m.egreso?.numero, m.egreso?.gestion),
         ingresoId: m.ingresoId,
         fuente: m.ingresoDetalle?.ingreso.fuenteFinanciamiento ?? null,
         precioUnitario: m.precioUnitario,
@@ -208,8 +240,25 @@ export class KardexService {
       ...(query.itemId ? { itemId: query.itemId } : {}),
       ...filtroFuente,
     };
-    const inicio = new Date(Date.UTC(gestion, 0, 1));
-    const fin = new Date(Date.UTC(gestion + 1, 0, 1));
+    const { inicio, fin } = ventana(gestion, query.desde, query.hasta);
+
+    // Los filtros aplicados, con NOMBRE y no con id: el reporte los imprime
+    // para que la hoja diga con que criterios se saco. Un reporte archivado sin
+    // eso no se puede volver a reproducir ni auditar.
+    const [fuenteFiltrada, itemFiltrado] = await Promise.all([
+      query.fuenteFinanciamientoId
+        ? this.prisma.fuenteFinanciamiento.findUnique({
+            where: { id: query.fuenteFinanciamientoId },
+            select: { id: true, nombre: true },
+          })
+        : null,
+      query.itemId
+        ? this.prisma.item.findUnique({
+            where: { id: query.itemId },
+            select: { id: true, codigo: true, descripcion: true },
+          })
+        : null,
+    ]);
 
     const seleccion = {
       id: true,
@@ -342,19 +391,36 @@ export class KardexService {
             ? formatearNumero(m.ingreso.numero, m.ingreso.gestion)
             : formatearNumero(m.egreso?.numero, m.egreso?.gestion);
 
+          // "I" / "E" como en el reporte anterior, mas "R" para la REVERSION.
+          // Sin ese tercer valor la reversion de un egreso se imprimia como "E"
+          // con la cantidad en la columna ENTRADA, que se lee como un error.
+          const origen =
+            m.tipo === TipoMovimiento.REVERSION
+              ? 'R'
+              : m.ingresoId != null
+                ? 'I'
+                : 'E';
+
+          // De quien vino (entrada) o a quien fue (salida). La REVERSION suma
+          // ademas su motivo: es lo unico que explica por que el renglon existe,
+          // y la pantalla tambien lo muestra.
+          const contraparte = m.ingreso
+            ? (m.ingreso.proveedor?.nombre ?? '—')
+            : m.egreso
+              ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
+              : '—';
+          const detalle =
+            m.tipo === TipoMovimiento.REVERSION
+              ? `REVERSIÓN · ${contraparte}${m.motivo ? ` (${m.motivo})` : ''}`
+              : contraparte;
+
           return {
             id: m.id,
             fecha: m.fecha,
             tipo: m.tipo,
-            // "I" o "E" como en el reporte anterior: de que documento viene.
-            origen: m.ingresoId != null ? 'I' : 'E',
+            origen,
             documento,
-            // Para una entrada, de quien vino; para una salida, a quien fue.
-            detalle: m.ingreso
-              ? (m.ingreso.proveedor?.nombre ?? '—')
-              : m.egreso
-                ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
-                : (m.motivo ?? '—'),
+            detalle,
             precioUnitario: precio,
             entrada: signo > 0 ? cantidad : 0,
             salida: signo < 0 ? cantidad : 0,
@@ -389,7 +455,17 @@ export class KardexService {
           (a.fuente?.nombre ?? 'ZZZ').localeCompare(b.fuente?.nombre ?? 'ZZZ'),
       );
 
-    return { almacen, gestion, bloques: filas };
+    return {
+      almacen,
+      gestion,
+      filtros: {
+        desde: query.desde ?? null,
+        hasta: query.hasta ?? null,
+        fuente: fuenteFiltrada,
+        item: itemFiltrado,
+      },
+      bloques: filas,
+    };
   }
 
   /** El responsable usa su almacen; los demas tienen que decir cual. */

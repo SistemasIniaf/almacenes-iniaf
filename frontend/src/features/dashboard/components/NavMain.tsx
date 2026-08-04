@@ -106,7 +106,10 @@ const GRUPOS: GrupoMenu[] = [
         permiso: "partidasLeer",
       },
       {
-        titulo: "Fuentes de financiamiento",
+        // Abreviado (elección del usuario): el nombre completo partía en dos
+        // renglones y era el único ítem del menú que lo hacía. El nombre entero
+        // sigue en el breadcrumb y en el título de la página.
+        titulo: "Fuentes de financ.",
         url: "/fuentes-financiamiento",
         icono: Landmark,
         permiso: "fuentesLeer",

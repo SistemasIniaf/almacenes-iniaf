@@ -79,6 +79,48 @@ export function encabezadoReporte(
 }
 
 /**
+ * Alto que reserva el membrete cuando se repite en cada página.
+ *
+ * Lo manda el logo del Ministerio: 62 pt de ancho por su proporción dan **51 pt
+ * de alto** (el del INIAF mide 39 y el bloque central de texto, ~40). Los pt de
+ * más son para la raya que lo cierra y el aire hasta la tabla. Si se cambian los
+ * logos o el tamaño del título, hay que revisar este número: es lo que separa el
+ * membrete del contenido, y quedarse corto los superpone.
+ */
+export const ALTO_MEMBRETE = 66
+
+/**
+ * Membrete listo para el **`header`** del documento, o sea repetido en TODAS las
+ * páginas. Incluye la raya que lo cierra.
+ *
+ * Va como `header` y no dentro de `content` porque ahí solo saldría en la
+ * primera hoja, y estos son documentos oficiales: una página suelta sin membrete
+ * no se puede identificar. Quien lo use tiene que reservarle el espacio en
+ * `pageMargins[1]` (`MARGEN_PDF + ALTO_MEMBRETE`), y los márgenes laterales van
+ * acá dentro: el header se dibuja sobre la hoja entera, sin respetar los del
+ * documento — lo mismo que hace `pieReporte`.
+ */
+export function membreteRepetido(
+  titulo: string,
+  logos: { iniaf: string; ministerio: string },
+  emitidoEn: Date,
+  opciones: { leyenda?: string; ancho?: number } = {}
+): DynamicContent {
+  const { leyenda, ancho = ANCHO_UTIL } = opciones
+
+  return () => ({
+    stack: [
+      encabezadoReporte(titulo, logos, emitidoEn, leyenda),
+      {
+        canvas: [{ type: "line", x1: 0, y1: 0, x2: ancho, y2: 0, lineWidth: 1 }],
+        margin: [0, 4, 0, 0],
+      },
+    ],
+    margin: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, 0],
+  })
+}
+
+/**
  * ¿El reporte abarca TODOS los almacenes? Cuando es así, el sistema anterior lo
  * titula «NACIONAL» y saca la línea de OFICINA del encabezado — ahí tiene dos
  * entradas de menú distintas; acá es el mismo reporte sin filtrar almacén.
@@ -89,17 +131,15 @@ export const esNacional = (almacen: string | null) => almacen === null
 export const ANCHO_UTIL_APAISADO = 792 - MARGEN_PDF * 2
 
 /**
- * Raya bajo el membrete y la línea de OFICINA / GESTIÓN. Con `almacen` en
- * `null` (todos) se omite la oficina, como el consolidado nacional.
+ * Línea de OFICINA / GESTIÓN, bajo el membrete. Con `almacen` en `null` (todos)
+ * se omite la oficina, como el consolidado nacional.
  *
- * `ancho` es el de la raya: por defecto el de la hoja vertical. Un reporte
- * apaisado (el de egresos) tiene que pasar `ANCHO_UTIL_APAISADO`, si no la raya
- * termina a media hoja.
+ * **Ya no dibuja la raya**: la trae el membrete, que ahora se repite en todas
+ * las páginas y tiene que cerrarse solo. Esto va únicamente en la primera.
  */
 export function datosCabecera(
   almacen: string | null,
-  emitidoEn: Date,
-  ancho: number = ANCHO_UTIL
+  emitidoEn: Date
 ): Content[] {
   const gestion = {
     text: [{ text: "GESTIÓN: ", bold: true }, String(emitidoEn.getFullYear())],
@@ -107,10 +147,6 @@ export function datosCabecera(
   }
 
   return [
-    {
-      canvas: [{ type: "line", x1: 0, y1: 0, x2: ancho, y2: 0, lineWidth: 1 }],
-      margin: [0, 4, 0, 0],
-    },
     almacen === null
       ? { ...gestion, margin: [0, 6, 0, 6] }
       : {

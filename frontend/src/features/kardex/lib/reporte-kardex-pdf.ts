@@ -1,7 +1,8 @@
 import {
+  ALTO_MEMBRETE,
   ANCHO_UTIL_APAISADO,
-  encabezadoReporte,
   fechaCorta,
+  membreteRepetido,
   moneda,
   pieReporte,
 } from "@/lib/reporte-comun"
@@ -46,45 +47,101 @@ export async function crearReporteKardexPdf(datos: DatosReporteKardex) {
   return pdfMake.createPdf(await definicionReporteKardex(datos))
 }
 
-const fechaMovimiento = (iso: string) => {
+/**
+ * Celda numérica que no aplica en ese renglón (una entrada no tiene salida).
+ *
+ * Va con guion y NO en blanco: es un documento que se archiva firmado, y un
+ * hueco vacío en una columna de cantidades se puede completar a mano después.
+ * Es la misma razón por la que el pie lleva la línea de observaciones rayada.
+ */
+const SIN_VALOR = "—"
+
+/**
+ * `YYYY-MM-DD` → 01/01/2026, partiendo la cadena y sin pasar por `Date`: la
+ * conversión a hora local correría el día en un huso negativo.
+ */
+const fechaIso = (iso: string) => {
   const [anio, mes, dia] = iso.slice(0, 10).split("-")
   return `${dia}/${mes}/${anio}`
 }
 
-/** Ficha del ítem: lo que encabeza cada bloque. */
-function cabeceraBloque(
-  bloque: BloqueReporteKardex,
-  almacen: string
-): Content {
+/**
+ * El PERÍODO que cubre el libro. Sin rango es la gestión entera; con rango, los
+ * extremos — que es además lo que mueve el saldo de apertura.
+ */
+function periodo(reporte: ReporteKardex): string {
+  const { desde, hasta } = reporte.filtros
+  if (desde && hasta) return `DEL ${fechaIso(desde)} AL ${fechaIso(hasta)}`
+  if (desde) return `DESDE EL ${fechaIso(desde)} · GESTIÓN ${reporte.gestion}`
+  if (hasta) return `HASTA EL ${fechaIso(hasta)} · GESTIÓN ${reporte.gestion}`
+  return `GESTIÓN ${reporte.gestion}`
+}
+
+/**
+ * Leyenda del membrete: ALMACÉN y PERÍODO, los dos datos que valen para el
+ * documento ENTERO.
+ *
+ * Van acá y no en una línea aparte porque el membrete se repite en todas las
+ * páginas, y cada bloque arranca en hoja nueva: si el almacén fuera al pie del
+ * membrete, a partir de la segunda hoja no se sabría de qué almacén es el libro.
+ */
+const leyendaMembrete = (reporte: ReporteKardex) =>
+  `${reporte.almacen.nombre.toUpperCase()} · ${periodo(reporte)}`
+
+/**
+ * Los filtros que ACOTAN el reporte, solo si se aplicó alguno.
+ *
+ * Nombra únicamente fuente e ítem, y solo cuando están filtrados: cada bloque ya
+ * dice SU fuente y SU ítem, así que agregar «FUENTE: Todas» al lado de un bloque
+ * que dice «FUENTE: BANCO MUNDIAL» se lee como una contradicción. Sin filtros
+ * devuelve `null` y no se dibuja nada — el alcance completo ya lo dice el
+ * membrete.
+ */
+function filtrosAplicados(reporte: ReporteKardex): Content | null {
+  const { fuente, item } = reporte.filtros
+  if (!fuente && !item) return null
+
+  const partes: string[] = []
+  if (item) partes.push(`ÍTEM: ${item.codigo} — ${item.descripcion}`)
+  if (fuente) partes.push(`FUENTE: ${fuente.nombre}`)
+
+  return {
+    text: [
+      { text: "Filtrado por — ", bold: true },
+      partes.join("   ·   "),
+    ],
+    fontSize: 7.5,
+    color: "#444444",
+    margin: [0, 6, 0, 0],
+  }
+}
+
+/**
+ * Ficha del bloque: lo que identifica a ESE ítem con ESA fuente.
+ *
+ * NO lleva el almacén: es el mismo para todo el reporte y ya está en el
+ * membrete, que además se repite en cada página. Repetirlo por bloque era lo que
+ * hacía ver la primera hoja como datos duplicados.
+ */
+function cabeceraBloque(bloque: BloqueReporteKardex): Content {
   const dato = (etiqueta: string, valor: string) => ({
     text: [{ text: `${etiqueta}: `, bold: true }, valor],
     fontSize: 7,
   })
 
   return {
-    stack: [
+    columns: [
+      { ...dato("CÓDIGO", bloque.item.codigo), width: 100 },
+      { ...dato("ÍTEM", bloque.item.descripcion), width: "*" },
+      { ...dato("PARTIDA", bloque.item.partida.codigo), width: 70 },
+      { ...dato("UNIDAD", bloque.item.unidadMedida), width: 80 },
       {
-        columns: [
-          dato("ALMACÉN", almacen),
-          dato("CÓDIGO", bloque.item.codigo),
-          dato("PARTIDA", bloque.item.partida.codigo),
-          dato("UNIDAD", bloque.item.unidadMedida),
-        ],
-        columnGap: 6,
-      },
-      {
-        columns: [
-          { ...dato("ÍTEM", bloque.item.descripcion), width: "*" },
-          {
-            ...dato("FUENTE", bloque.fuente?.nombre ?? "SIN FUENTE"),
-            width: 260,
-          },
-        ],
-        columnGap: 6,
-        margin: [0, 1, 0, 0],
+        ...dato("FUENTE", bloque.fuente?.nombre ?? "SIN FUENTE"),
+        width: 180,
       },
     ],
-    margin: [0, 6, 0, 3],
+    columnGap: 6,
+    margin: [0, 8, 0, 3],
   }
 }
 
@@ -120,9 +177,11 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
     {},
     {},
     { text: cantidad(bloque.saldoInicial), alignment: "right", italics: true },
-    {},
-    {},
-    {},
+    // P/U, INGRESO y EGRESO no aplican en la apertura: es un saldo arrastrado,
+    // no un movimiento. Con guion, no en blanco.
+    { text: SIN_VALOR, alignment: "right", italics: true },
+    { text: SIN_VALOR, alignment: "right", italics: true },
+    { text: SIN_VALOR, alignment: "right", italics: true },
     {
       text: moneda(bloque.valorInicial),
       alignment: "right",
@@ -131,21 +190,43 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
   ])
 
   for (const m of bloque.movimientos) {
+    // La reversión se marca: deshace un movimiento anterior, así que su
+    // cantidad cae en la columna contraria a la que uno esperaría por el tipo
+    // de documento. Sin la marca, un renglón «E» con la cantidad en ENTRADA se
+    // lee como un error del reporte.
+    const esReversion = m.origen === "R"
+    const estilo = esReversion
+      ? { italics: true, color: "#8a4b00" }
+      : undefined
+
     cuerpo.push([
-      { text: fechaMovimiento(m.fecha), alignment: "center" },
-      { text: m.documento ?? "—", alignment: "center" },
-      { text: m.origen, alignment: "center" },
-      { text: m.detalle },
-      { text: m.entrada ? cantidad(m.entrada) : "", alignment: "right" },
-      { text: m.salida ? cantidad(m.salida) : "", alignment: "right" },
-      { text: cantidad(m.saldo), alignment: "right" },
-      { text: precio(m.precioUnitario), alignment: "right" },
+      { text: fechaIso(m.fecha), alignment: "center", ...estilo },
+      { text: m.documento ?? "—", alignment: "center", ...estilo },
+      { text: m.origen, alignment: "center", bold: esReversion, ...estilo },
+      { text: m.detalle, ...estilo },
       {
-        text: m.valorEntrada ? moneda(m.valorEntrada) : "",
+        text: m.entrada ? cantidad(m.entrada) : SIN_VALOR,
         alignment: "right",
+        ...estilo,
       },
-      { text: m.valorSalida ? moneda(m.valorSalida) : "", alignment: "right" },
-      { text: moneda(m.valorSaldo), alignment: "right" },
+      {
+        text: m.salida ? cantidad(m.salida) : SIN_VALOR,
+        alignment: "right",
+        ...estilo,
+      },
+      { text: cantidad(m.saldo), alignment: "right", ...estilo },
+      { text: precio(m.precioUnitario), alignment: "right", ...estilo },
+      {
+        text: m.valorEntrada ? moneda(m.valorEntrada) : SIN_VALOR,
+        alignment: "right",
+        ...estilo,
+      },
+      {
+        text: m.valorSalida ? moneda(m.valorSalida) : SIN_VALOR,
+        alignment: "right",
+        ...estilo,
+      },
+      { text: moneda(m.valorSaldo), alignment: "right", ...estilo },
     ])
   }
 
@@ -164,7 +245,13 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
     { text: cantidad(totales.entradas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
     { text: cantidad(totales.salidas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
     { text: cantidad(totales.saldo), alignment: "right", bold: true, fillColor: "#f4f4f4" },
-    { text: "", fillColor: "#f4f4f4" },
+    // P/U no se totaliza: un promedio de precios no significa nada.
+    {
+      text: SIN_VALOR,
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
     { text: moneda(totales.valorEntradas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
     { text: moneda(totales.valorSalidas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
     { text: moneda(totales.valorSaldo), alignment: "right", bold: true, fillColor: "#f4f4f4" },
@@ -200,7 +287,7 @@ export async function definicionReporteKardex(
 
   reporte.bloques.forEach((bloque, indice) => {
     contenido.push({
-      ...cabeceraBloque(bloque, reporte.almacen.nombre),
+      ...cabeceraBloque(bloque),
       // Cada bloque arranca en hoja nueva menos el primero: así un ítem no
       // queda partido entre dos páginas y el archivo se puede separar por ítem,
       // que es como se guardaba el kardex en papel.
@@ -219,40 +306,36 @@ export async function definicionReporteKardex(
     // Apaisada: doce columnas no entran en una Carta vertical.
     pageSize: "LETTER",
     pageOrientation: "landscape",
-    pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF + 6],
+    // El margen superior le reserva el lugar al membrete, que va como `header`
+    // para repetirse en TODAS las páginas: cada bloque empieza en hoja nueva y
+    // una hoja de kardex sin membrete no se puede identificar.
+    pageMargins: [
+      MARGEN_PDF,
+      MARGEN_PDF + ALTO_MEMBRETE,
+      MARGEN_PDF,
+      MARGEN_PDF + 6,
+    ],
     info: {
       title: `Kardex ${reporte.gestion} — ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
+    header: membreteRepetido("KARDEX DE ALMACÉN", logos, emitidoEn, {
+      leyenda: leyendaMembrete(reporte),
+      ancho: ANCHO_UTIL_APAISADO,
+    }),
     content: [
-      encabezadoReporte(
-        "KARDEX DE ALMACÉN",
-        logos,
-        emitidoEn,
-        `GESTIÓN ${reporte.gestion}`
-      ),
-      {
-        canvas: [
-          {
-            type: "line",
-            x1: 0,
-            y1: 0,
-            x2: ANCHO_UTIL_APAISADO,
-            y2: 0,
-            lineWidth: 1,
-          },
-        ],
-        margin: [0, 4, 0, 0],
-      },
-      reporte.bloques.length === 0
-        ? {
-            text: "Sin movimientos para los filtros elegidos.",
-            italics: true,
-            margin: [0, 8, 0, 0],
-          }
-        : contenido,
+      // Solo si se filtró algo; si no, `null` y se descarta.
+      ...([filtrosAplicados(reporte)].filter(Boolean) as Content[]),
+      ...(reporte.bloques.length === 0
+        ? [
+            {
+              text: "Sin movimientos para los filtros elegidos.",
+              italics: true,
+            } as Content,
+          ]
+        : contenido),
     ],
     footer: pieReporte(usuario, emitidoEn),
   }

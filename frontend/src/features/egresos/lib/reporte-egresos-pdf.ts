@@ -1,10 +1,11 @@
 import { ESTADO_LABEL } from "@/features/egresos/egresos.types"
 import {
+  ALTO_MEMBRETE,
   ANCHO_UTIL_APAISADO,
   datosCabecera,
-  encabezadoReporte,
   esNacional,
   fechaCorta,
+  membreteRepetido,
   moneda,
   pieReporte,
 } from "@/lib/reporte-comun"
@@ -191,21 +192,28 @@ export async function definicionReporteEgresos(
     // Apaisada: nueve columnas no entran en el ancho de una Carta vertical.
     pageSize: "LETTER",
     pageOrientation: "landscape",
-    pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
+    // El margen superior le reserva el lugar al membrete, que va como `header`
+    // para repetirse en todas las páginas.
+    pageMargins: [
+      MARGEN_PDF,
+      MARGEN_PDF + ALTO_MEMBRETE,
+      MARGEN_PDF,
+      MARGEN_PDF,
+    ],
     info: {
       title: `Registro de egresos ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
+    header: membreteRepetido(
+      "REGISTRO DE EGRESOS DE ALMACÉN",
+      logos,
+      emitidoEn,
+      { leyenda: leyendaPeriodo(desde, hasta), ancho: ANCHO_UTIL_APAISADO }
+    ),
     content: [
-      encabezadoReporte(
-        "REGISTRO DE EGRESOS DE ALMACÉN",
-        logos,
-        emitidoEn,
-        leyendaPeriodo(desde, hasta)
-      ),
-      ...datosCabecera(almacen, emitidoEn, ANCHO_UTIL_APAISADO),
+      ...datosCabecera(almacen, emitidoEn),
       filas.length === 0
         ? { text: "Sin egresos para los filtros elegidos.", italics: true }
         : {

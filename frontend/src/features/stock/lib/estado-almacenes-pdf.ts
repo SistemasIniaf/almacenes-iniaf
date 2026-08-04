@@ -1,8 +1,9 @@
 import {
+  ALTO_MEMBRETE,
   cantidad,
   datosCabecera,
-  encabezadoReporte,
   fechaCorta,
+  membreteRepetido,
   moneda,
   pieReporte,
   precio,
@@ -167,15 +168,22 @@ export async function definicionEstadoAlmacenes(
 
   return {
     pageSize: "LETTER",
-    pageMargins: [MARGEN_PDF, MARGEN_PDF, MARGEN_PDF, MARGEN_PDF],
+    // El margen superior le reserva el lugar al membrete, que va como `header`
+    // para repetirse en todas las páginas.
+    pageMargins: [
+      MARGEN_PDF,
+      MARGEN_PDF + ALTO_MEMBRETE,
+      MARGEN_PDF,
+      MARGEN_PDF,
+    ],
     info: {
       title: `Estado de almacenes por ítem ${fechaCorta(emitidoEn)}`,
       creator: "Sistema de almacenes INIAF",
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
+    header: membreteRepetido(TITULO, logos, emitidoEn),
     content: [
-      encabezadoReporte(TITULO, logos, emitidoEn),
       ...datosCabecera(almacen, emitidoEn),
       filas.length === 0
         ? { text: "Sin existencias para los filtros elegidos.", italics: true }
