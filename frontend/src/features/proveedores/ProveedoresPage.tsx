@@ -149,7 +149,7 @@ export function ProveedoresPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>

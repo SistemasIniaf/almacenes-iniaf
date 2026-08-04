@@ -6,9 +6,14 @@ import { cn } from "@/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
+    // `rounded-[inherit]` = toma el radio del div que envuelve a la tabla en
+    // cada listado (`rounded-md border bg-card`). Sin eso, el fondo de la fila
+    // de encabezados pinta hasta el vertice y asoma en escuadra por encima de
+    // las esquinas redondeadas del borde. El recorte ya lo hace el propio
+    // `overflow-x-auto`.
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto rounded-[inherit]"
     >
       <table
         data-slot="table"
@@ -21,9 +26,14 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
+    // Fondo propio en la fila de encabezados: es lo que hace que la tabla se lea
+    // como un bloque. En modo CLARO `--card` y `--background` son los dos blanco
+    // puro, asi que el `bg-card` del contenedor no dibuja ninguna superficie y la
+    // tabla quedaba flotando sobre un borde casi invisible. Queda un escalon por
+    // encima del hover de fila (`bg-muted/50`), que es el orden que corresponde.
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("bg-muted [&_tr]:border-b", className)}
       {...props}
     />
   )

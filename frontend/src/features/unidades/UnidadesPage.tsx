@@ -212,7 +212,7 @@ export function UnidadesPage() {
           <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
             {grupo}
           </h2>
-          <div className="rounded-md border bg-card">
+          <div className="rounded-md border bg-card shadow-sm">
             {raices.map((unidad) => (
               <UnidadNodo
                 key={unidad.id}

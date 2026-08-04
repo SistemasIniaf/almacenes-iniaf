@@ -417,7 +417,7 @@ export function EgresoFormPage() {
               <p className="text-sm">{egreso.justificacion}</p>
             </div>
 
-            <div className="rounded-md border bg-card">
+            <div className="rounded-md border bg-card shadow-sm">
               <Table>
                 <TableHeader>
                   <TableRow>

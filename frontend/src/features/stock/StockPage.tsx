@@ -270,7 +270,7 @@ export function StockPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -420,7 +420,11 @@ export function StockPage() {
                               {item.lotes.length === 1 ? "" : "s"} con saldo
                             </div>
                             <Table>
-                              <TableHeader>
+                              {/* Sin el fondo que `TableHeader` trae por
+                                  defecto: esta sub-tabla ya está dentro de la
+                                  fila expandida, que se pinta con `bg-muted/50`,
+                                  y dos superficies encima se enturbian. */}
+                              <TableHeader className="bg-transparent">
                                 <TableRow className="hover:bg-transparent">
                                   <TableHead className="h-8 text-xs">
                                     Ingreso
