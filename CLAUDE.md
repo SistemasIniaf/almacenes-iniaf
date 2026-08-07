@@ -956,9 +956,17 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   el pie del Total llevan `pr-7` para dejarle lugar (antes el 🗑 vivía dentro de la celda y el Total
   descontaba su ancho con `pr-11`).
 - **El botón «Agregar ítem» va DEBAJO de las líneas, a todo el ancho**, en los dos formularios: es donde
-  el ojo termina de leer la última fila. Punteado con el color primario, para leerse como «acá se agrega
-  otra» sin competir con el submit, que es el único sólido. **Las clases están duplicadas en
-  `EgresoLineas` y `IngresoLineas` y tienen que quedar IGUALES**: si retocás una, retocá la otra.
+  el ojo termina de leer la última fila. Punteado y **sin relleno sólido**, para leerse como «acá se
+  agrega otra» sin competir con el submit, que es el único macizo.
+  **Sus clases viven en `BOTON_AGREGAR_LINEA` de `lib/utils.ts`** (2026-08-07). Antes estaban copiadas
+  en los dos archivos con una nota pidiendo acordarse de tocar los dos; ahora no hay de qué acordarse.
+  **Va en ÁMBAR y no en el primario** (pedido del usuario): en modo oscuro `--primary` (`oklch(0.432)`)
+  es MÁS OSCURO que el panel donde cae el botón (~`0.235`), y como acá el color se usa de **texto y
+  borde** —no de relleno, como en «Guardar»— el botón se perdía. En claro nunca falló, porque ahí el
+  primario sí contrasta contra el blanco: por eso el problema aparecía en una sola mitad del tema.
+  ⚠️ El ámbar ya significa otras dos cosas —«editar» en `TONO_ACCION`, y «esto espera tu atención» en
+  los badges y las tarjetas del inicio—, así que acá está usado como color de MARCA del botón, no como
+  aviso. Si algún día hace falta un amarillo que de verdad alerte, este es el que primero le compite.
 - **`EntregaDialog` se monta solo al abrirse** (`{dialogoEntrega && <EntregaDialog …/>}`) y calcula las
   cantidades propuestas en el `useState`. Sincronizarlas con un efecto sería `setState` dentro de
   `useEffect`, que el lint del repo rechaza.

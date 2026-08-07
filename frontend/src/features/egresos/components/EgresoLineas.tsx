@@ -14,7 +14,11 @@ import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { NumberField } from "@/components/form/NumberField"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import { cn } from "@/lib/utils"
+import {
+  BOTON_AGREGAR_LINEA,
+  BOTON_AGREGAR_LINEA_ERROR,
+  cn,
+} from "@/lib/utils"
 import {
   ITEMS_POR_BUSQUEDA,
   useBuscarLotes,
@@ -345,14 +349,13 @@ export function EgresoLineas({
           type="button"
           variant="outline"
           onClick={() => append({ ...LINEA_VACIA })}
+          // Punteado y sin relleno sólido: el sólido está reservado para
+          // «Guardar». Las clases salen de `lib/utils` y las comparte con
+          // `IngresoLineas`, que es lo que garantiza que los dos formularios de
+          // líneas se vean iguales.
           className={cn(
-            // Punteado PERO con el color de acción: en modo claro, un `outline`
-            // gris sobre fondo blanco no se lee como botón. El fondo tenue y el
-            // texto en primario lo hacen visible sin volverlo sólido — sólido
-            // está reservado para «Guardar», que es el submit del formulario.
-            "h-11 w-full border-dashed border-primary/50 bg-primary/5 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary",
-            mensajeDetalles &&
-              "border-destructive/60 bg-destructive/5 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+            BOTON_AGREGAR_LINEA,
+            mensajeDetalles && BOTON_AGREGAR_LINEA_ERROR
           )}
         >
           <Plus className="size-4" />

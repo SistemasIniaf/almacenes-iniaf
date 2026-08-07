@@ -8,7 +8,11 @@ import { ComboboxField } from "@/components/form/ComboboxField"
 import { ImageField } from "@/components/form/ImageField"
 import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
-import { cn } from "@/lib/utils"
+import {
+  BOTON_AGREGAR_LINEA,
+  BOTON_AGREGAR_LINEA_ERROR,
+  cn,
+} from "@/lib/utils"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import {
   ITEMS_POR_BUSQUEDA,
@@ -396,17 +400,17 @@ export function IngresoLineas({
           punteado lo lee como «acá se agrega otra», no como una acción del
           formulario que compita con el submit.
 
-          Las clases son LAS MISMAS que en `EgresoLineas`: los dos formularios de
-          líneas tienen que verse hermanos, así que si cambia uno, cambian los dos. */}
+          Las clases salen de `lib/utils` y las comparte con `EgresoLineas`: los
+          dos formularios de líneas tienen que verse hermanos, y antes eso
+          dependía de acordarse de tocar los dos archivos. */}
       {!disabled && (
         <Button
           type="button"
           variant="outline"
           onClick={() => append({ ...LINEA_VACIA })}
           className={cn(
-            "h-11 w-full border-dashed border-primary/50 bg-primary/5 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary",
-            mensajeDetalles &&
-              "border-destructive/60 bg-destructive/5 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+            BOTON_AGREGAR_LINEA,
+            mensajeDetalles && BOTON_AGREGAR_LINEA_ERROR
           )}
         >
           <Plus className="size-4" />
