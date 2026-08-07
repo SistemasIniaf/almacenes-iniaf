@@ -262,6 +262,10 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
   de ingreso* se arma con `GET /ingresos/:id` (ya limitado a esos cuatro roles) y la *solicitud de
   materiales* con `egresosImprimir`, que es **más estricto todavía** —`super_admin`, `admin` y
   `responsable_almacen`, sin el observador— porque el documento oficial lo emite el almacén.
+- `components/data/NumeroDocumento.tsx`: el número de un ingreso o egreso en las TABLAS —correlativo
+  en negrita y **la gestión en curso escondida**, porque sería el mismo año en todas las filas. El
+  formato (`003-2026`, con guion) sale de `numeroDocumento()` en `lib/formato.ts`; el detalle y el
+  porqué están en «El número de documento también sale de ahí», más abajo.
 - `components/data/DataPagination.tsx`: pie de paginación de los listados (no usa
   `ui/pagination` de shadcn porque ese renderiza `<a href>` y la página es estado local). Trae
   selector de **filas por página** (10/20/30/50) y **números de página con elipsis** (siempre
@@ -370,7 +374,7 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   detalle de quién lo anuló al pie.
   **Membrete**: INIAF a la izquierda, Ministerio a la derecha y al centro el título, el almacén, el
   número y la **fecha de ingreso**. Esa fecha va pegada al número a propósito: la gestión del número
-  (`001/2026`) sale de ella, así que juntas se explican solas. No es la fecha de remisión, que es del
+  (`001-2026`) sale de ella, así que juntas se explican solas. No es la fecha de remisión, que es del
   documento del proveedor y vive abajo, en el bloque de respaldos. Agregarla no cambia el alto del
   membrete: el bloque central suma ~48 pt y lo que manda es el logo del Ministerio (~59 pt). Los archivos son `public/iniaf/logo-iniaf.png` + `logo-ministerio.png`, versiones reducidas
   con `sharp` de los originales que también están en esa carpeta. El logo del INIAF ya trae el nombre
@@ -500,7 +504,9 @@ negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacene
 → **anular** (`POST /ingresos/:id/anular`, solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
 Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y registrando de nuevo. **No hay endpoint `confirmar` ni `remove`** (eran del borrador; se eliminaron).
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
-El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO se guarda formateado.
+El número se imprime `001-2026` (`padStart(3)` + guion + gestión) — se deriva, NO se guarda
+formateado. El formato lo arma **`numeroDocumento()` de `lib/formato.ts`**, uno solo para ingresos y
+egresos (ver «El número de documento» más abajo).
 
 **Listado de ingresos — buscador, columna Total, filtro de almacén y rango de fechas** (2026-08-03):
 - **El buscador `q` mira `proceso_c31`, `certificacion` y `observacion`** — antes eran nota de
@@ -540,9 +546,12 @@ El número se imprime `001/2026` (`padStart(3)` + `/gestión`) — se deriva, NO
   día anterior para todo lo elegido antes de las 20:00, y un rango del 1 al 31 viajaría como 31/12 al
   30/01. Ese helper vive suelto porque un archivo que exporta un componente no puede exportar además
   funciones sin romper el fast-refresh de Vite.
-- **Reporte «Registro de ingresos»** (`GET /ingresos/reporte` + `lib/reporte-ingresos-pdf.ts`): una
+- **Reporte «Registro de ingresos»** (`GET /ingresos/reporte` + `lib/reporte-ingresos-pdf.ts`, y
+  desde el 2026-08-07 también `reporte-ingresos-excel.ts`): una
   línea por documento con `Nº · Nº ingreso · fecha · [almacén] · observación · total`, sin paginar y
-  en orden **cronológico ascendente** (en el papel se lee como un libro, no como una bandeja). La
+  en orden **cronológico ascendente** (en el papel se lee como un libro, no como una bandeja).
+  **Va APAISADO** desde el 2026-08-07, como los otros cuatro: en vertical la observación —la única
+  columna de largo impredecible— se partía en varios renglones por fila. La
   **columna Almacén solo aparece sin filtrar almacén**: con uno elegido repetiría el mismo nombre en
   cada fila y además ya está en la línea «OFICINA:» de la cabecera — misma regla que en las
   pantallas. Al ocultarla, sus 120 pt se los queda la observación y el `colSpan` del total baja de 5
@@ -585,10 +594,10 @@ olvide en otro.
 de **`GET /stock/reporte`** (sin paginar; un reporte no se pagina y agregar en el servidor evita
 mandar miles de lotes al navegador) y respetan los filtros que estén puestos en pantalla:
 
-| Reporte | Qué es | Archivo |
+| Reporte | Qué es | Archivos |
 |---|---|---|
-| **Estado de almacenes consolidado por ÍTEM** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **partida**, con la **fuente como COLUMNA** de cada renglón y subtotal por partida. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` |
-| **Estado de almacenes consolidado por PARTIDA** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. Sin filtrar almacén agrega **«— NACIONAL»** al título y omite la línea de OFICINA — en el sistema anterior eso era una tercera entrada de menú; acá es el mismo reporte con el filtro vacío. | `estado-consolidado-pdf.ts` |
+| **Estado de almacenes consolidado por ÍTEM** | El DETALLE: cada ítem con cantidad, precio y valor, agrupado por **partida**, con la **fuente como COLUMNA** de cada renglón y subtotal por partida. Cada fila es **ítem + fuente + precio** (el lote, sumando los que comparten los tres: en el papel dos lotes iguales son indistinguibles). | `estado-almacenes-pdf.ts` · `estado-almacenes-excel.ts` |
+| **Estado de almacenes consolidado por PARTIDA** | El RESUMEN contable, sin ítems: cuánta plata hay por **partida** y dentro por **fuente**, con subtotal por partida. Es una reagrupación del mismo dato, así que los dos **siempre cuadran**. Sin filtrar almacén agrega **«— NACIONAL»** al título y omite la línea de OFICINA — en el sistema anterior eso era una tercera entrada de menú; acá es el mismo reporte con el filtro vacío. | `estado-consolidado-pdf.ts` · `estado-consolidado-excel.ts` |
 
 Los **nombres los fijó la institución el 2026-08-03** (antes: «Estado de almacenes» y «Estado
 consolidado de almacenes y suministros»). Nombran el eje por el que agrupa cada uno, que es lo único
@@ -612,12 +621,39 @@ porque todo precio tenga cinco decimales, y `25,00000` era ruido que además des
 `lib/reporte-comun.ts` las **re-exporta** para los PDF: un reporte que redondea distinto de la tabla
 de la que salió es un reporte que no cuadra. Antes cada pantalla y cada PDF tenían su propio helper.
 
+**El número de documento también sale de ahí: `numeroDocumento()`** (2026-08-07). Dos cosas cambiaron
+a la vez y conviene no separarlas:
+
+- **El separador es GUION, no barra: `003-2026`** (pedido de la institución). `003/2026` se leía como
+  una FECHA —marzo de 2026— y en los listados cae al lado de dos columnas que sí son fechas: el ojo
+  agrupa por patrón. La constante es `SEPARADOR_DOCUMENTO`.
+- **Se arma en UN solo lugar.** Al ir a cambiar el separador apareció el problema de fondo: el mismo
+  string se construía a mano en **nueve** —los dos `etiquetaNumero`, tres reportes PDF, el Excel, el
+  selector de lotes, la pantalla de stock y un toast—, así que tocarlo en uno dejaba los otros ocho
+  como estaban. `etiquetaNumero()` de ingresos y de egresos hoy **delegan** en `numeroDocumento()` y
+  se conservan solo porque las usan ~20 lugares; `lib/reporte-comun.ts` la re-exporta para los PDF.
+  Sin número devuelve «—» (un borrador de egreso todavía no lo tiene, se estampa al enviar).
+
+**En las TABLAS lo dibuja `components/data/NumeroDocumento.tsx`**, no el string pelado:
+
+- el correlativo en **negrita**, sin tamaño propio — hereda el de la tabla. Agrandarlo lo sacaba de
+  la línea base y desalineaba la columna: lo que lo destaca es el peso, no el cuerpo;
+- **la gestión EN CURSO no se muestra.** Sería el mismo año repetido en todas las filas, y casi todo
+  lo que se mira es del año corriente. Aparece SOLO en documentos de gestiones anteriores, que es
+  cuando el dato dice algo — y ahí salta a la vista en vez de perderse entre cientos de repeticiones.
+  Se compara **dentro del render**, así una pestaña abierta al cambiar de año no queda mostrando la
+  gestión vieja.
+
+Nada de esto cambia el FORMATO: el número completo va igual en el `title` —se corrió a donde no
+estorba, no se borró— y los documentos impresos siguen diciendo `003-2026` entero.
+
 **La base de los PDF vive en `lib/pdf.ts`** (carga de pdfmake con el interop de CommonJS, fuente
 Helvetica y los logos como data URL); la nota de ingreso y este reporte la comparten y cada uno pone
-solo su maquetado.
+solo su maquetado. **Su hermana para Excel es `lib/excel.ts`** — ver «Los cinco reportes salen
+también en Excel» al final de esta sección.
 
 En el frontend, `StockPage` es una tabla por ítem con **fila desplegable**: al abrir un ítem se
-muestra una sub-tabla con sus lotes (ingreso `001/2026`, fecha, fuente, proveedor, precio unitario,
+muestra una sub-tabla con sus lotes (ingreso `001-2026`, fecha, fuente, proveedor, precio unitario,
 saldo/cantidad y valorizado). La columna Almacén —tanto en el filtro como en los lotes— sigue la
 misma regla que el listado de ingresos: solo para quien ve más de uno.
 
@@ -652,7 +688,8 @@ UTC.
 saldo corriente no significa nada mezclando ítems. El reporte es el que sale de todos — esa es la
 división de trabajo entre los dos, no un olvido.
 
-**Reporte de kardex** (`GET /kardex/reporte` + `lib/reporte-kardex-pdf.ts`, 2026-08-03): calcado del
+**Reporte de kardex** (`GET /kardex/reporte` + `lib/reporte-kardex-pdf.ts` y `-excel.ts`,
+2026-08-03): calcado del
 que emitía el sistema anterior. Dos diferencias con el kardex de PANTALLA, y son el sentido del
 reporte:
 - **Sale de TODOS los ítems del almacén**, no del que esté elegido. El `itemId` del `QueryReporteKardexDto`
@@ -750,6 +787,9 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   (la ajusta el responsable al entregar); un borrador, además, salía con «—» donde va el número. Mueve
   la **pantalla** en vez de filtrar solo el PDF para que los dos sigan diciendo lo mismo —la razón por
   la que `filtros` es un objeto único— y para que se vea por qué el listado cambió.
+  Desde el 2026-08-07 el botón es un desplegable con **PDF y Excel** (`reporte-egresos-pdf.ts` y
+  `-excel.ts`; ver «Los cinco reportes salen también en Excel»): la pestaña la mueve igual, sea cual
+  sea el formato — el filtro es de los DATOS, no de la salida.
 - **El filtro `estado` admite VARIOS valores**, separados por coma (`?estado=ENTREGADO,ANULADO`). El DTO
   lo normaliza con `toStringArray` (`common/dto/transforms.ts`) y valida con `@IsEnum(..., { each: true })`;
   el service usa `estado: { in: [...] }` siempre, porque uno solo es el caso de un elemento — mandarlo
@@ -917,8 +957,78 @@ dentro de un `<iframe>`); **no gustó y se eliminó** — no reponerlo. El patr�
   bloqueó igual, lo descarga — la única salida que queda sin pestaña.
 - Si algo falla, el `catch` hace `ventana?.close()`: si no, queda una pestaña en blanco abierta.
 
-Lo usan los cinco: nota de ingreso, solicitud de egreso, registro de ingresos, registro de egresos y
-los dos estados de almacenes.
+Lo usan **los siete**: los dos documentos (nota de ingreso y solicitud de egreso) y los cinco
+reportes (registro de ingresos, registro de egresos, los dos estados de almacenes y el de kardex).
+
+## Los cinco reportes salen también en EXCEL (2026-08-07)
+
+Alcanza al **registro de ingresos**, al **registro de egresos**, a los **dos estados de almacenes** y
+al **kardex** — o sea a los reportes de listado, NO a los dos documentos (nota de ingreso y solicitud
+de materiales), que son papel oficial y siguen siendo solo PDF.
+
+**Es el MISMO documento del PDF** —logos, título, membrete y tabla—, por pedido de la institución: el
+Excel no es una exportación de datos pelada. Lo que sí agrega, porque era gratis y es la razón por la
+que alguien pide Excel:
+
+- **los importes son NÚMEROS y las fechas son FECHAS.** Un total que no se puede sumar es la foto de
+  un total;
+- **los subtotales y totales son fórmulas `SUM()`**: si alguien corrige una fila, todo lo demás se
+  acomoda. En los estados de almacenes el total suma **las celdas de subtotal** y no el rango entero
+  — sumar el rango contaría dos veces, porque los subtotales están adentro;
+- los dos registros llevan **autofiltro**, y todos menos el kardex la fila de encabezados
+  **congelada**;
+- todo queda listo para **imprimirse parecido al PDF**: apaisado, ajustado al ancho de una página y
+  repitiendo el encabezado en cada hoja (`prepararImpresion`).
+
+**Se eligió ExcelJS y no SheetJS**: la versión community de SheetJS no soporta ni estilos ni
+imágenes, así que los logos eran imposibles.
+
+Decisiones que cuestan descubrir, todas en **`lib/excel.ts`** (la hermana de `lib/pdf.ts`):
+
+- **Se importa por su NOMBRE (`import("exceljs")`), no por la ruta del bundle.** Su `package.json`
+  declara `browser: ./dist/exceljs.min.js`, así que Vite ya sustituye la build de Node —que arrastra
+  `stream` y `fs` y no compila—. Importar la ruta a mano funcionaría igual pero se queda sin tipos.
+  Es **UMD**, así que la instancia puede venir en `.default`: el mismo interop que ya mordió con
+  pdfmake. El `import()` es **dinámico** y queda en su propio chunk (~930 KB): no pesa en el bundle
+  de quien nunca exporta.
+- **El Excel NO abre pestaña, se DESCARGA** (`descargarExcel`, un Blob y un `<a download>`). Es la
+  única excepción al patrón de arriba y no es un olvido: el navegador no renderiza un `.xlsx`, así
+  que abrirle una pestaña lo dejaría mirando una página en blanco. Por eso los hooks hacen
+  `formato === "pdf" ? abrirPestanaPdf() : null`.
+- **Los logos son objetos ANCLADOS, no contenido de celda**: flotan sobre la grilla, así que las
+  filas del membrete llevan alto fijo o el logo taparía las primeras filas de datos. Dónde arranca el
+  de la derecha lo calcula **`anclaDerecha()`**, porque `tl.col` de ExcelJS es un índice de COLUMNA y
+  no una posición: dónde cae depende de los anchos, que cambian de un reporte a otro. Un número fijo
+  dejaba el logo bien en un reporte y en el medio del título en el siguiente.
+- **`crearTabla()`** es lo que evita escribir cinco veces la misma estructura (encabezado, filas,
+  encabezados de grupo, subtotales, total y notas al pie); cada reporte se queda solo con sus
+  columnas y su recorrido. Las filas van **PLANAS**, como en el papel: los grupos abren una fila
+  sombreada y cierran con su subtotal, en vez del agrupador plegable de Excel.
+- **La CANTIDAD elige su formato por celda** (`#,##0` si es entera, `#,##0.##` si no). Excel no sabe
+  expresar «esto es entero»: con un formato fijo un 50 sale como **`50,`** —el separador decimal
+  queda dibujado aunque no haya decimales— y no hay condición de formato que lo distinga. Por eso
+  `FORMATO_CANTIDAD` es una función y no una cadena.
+- **Un valor numérico se escribe como número**, incluida la gestión: como texto, Excel le pone el
+  triangulito verde de «número guardado como texto», que se lee como que el reporte tiene un error.
+
+Tres cosas que **NO son olvidos**:
+
+- los **estados de almacenes no llevan autofiltro**: con filas de grupo y de subtotal intercaladas,
+  filtrar deja subtotales que ya no corresponden a lo que se ve;
+- el **kardex no lleva autofiltro, ni panel congelado, ni fórmulas**: sus totales son un saldo
+  CORRIENTE, no la suma de una columna, y ordenar rompería el arrastre; además, con bloques
+  encadenados no hay una única fila de encabezados que congelar. A cambio lleva **saltos de página
+  manuales** (`rowBreaks`) para que cada bloque arranque en hoja nueva, como el PDF — saltos, no
+  pestañas: un libro con cien pestañas sería peor que uno con cien páginas. (`rowBreaks` no está en
+  los tipos de exceljs pero sí en su implementación, de ahí el cast.)
+- los **anulados se guardan en NEGATIVO** en los dos registros: el formato contable los muestra entre
+  paréntesis y así sumar la columna entera da el total real.
+
+**En la UI el botón «Reporte» es un `DropdownMenu`** con las dos salidas —*PDF: para imprimir y
+archivar* · *Excel: mismo formato, con filtros y totales calculables*—, y el hook recibe un tercer
+parámetro `formato: "pdf" | "excel"` (default `"pdf"`, así ninguna llamada vieja cambió). **`FormatoReporte`
+está declarado en los cuatro hooks de reporte** (`useReporteIngresos`, `useReporteEgresos`,
+`useReporteKardex`, `useStock`) — si crece a algo más que `"pdf" | "excel"`, conviene subirlo a `lib/`.
 
 NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 
