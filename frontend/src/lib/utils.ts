@@ -46,8 +46,14 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * El tono va **una escala por debajo** del primer intento (2026-08-07): en
  * oscuro el texto bajó de `amber-300` a `amber-400`, y en los dos modos el
  * relleno pasó de `/10` a `/5` y el borde perdió 10 puntos de opacidad. Se veía
- * bien pero gritaba para lo que es: la acción más rutinaria del formulario. Al
- * pasar el mouse sí sube, así que el estado interactivo no se perdió.
+ * bien pero gritaba para lo que es: la acción más rutinaria del formulario. El
+ * hover se bajó igual, así que la diferencia la marcan **el borde y el relleno**
+ * (`/50 → /70` y `/5 → /10`) y ya no el color del texto.
+ *
+ * ⚠️ Las clases de `hover:` NO se pueden omitir aunque el texto quede igual que
+ * en reposo: la variante `outline` del botón trae su propio
+ * `hover:bg-muted hover:text-foreground`, así que sin pisarlas el botón salta al
+ * gris del tema al pasar el mouse.
  *
  * ⚠️ El ámbar ya significa otras dos cosas en el sistema —«editar» en
  * `TONO_ACCION` y «esto espera tu atención» en los badges y las tarjetas del
@@ -56,7 +62,7 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * primero le compite.
  */
 export const BOTON_AGREGAR_LINEA =
-  "h-11 w-full border-dashed border-amber-500/50 bg-amber-500/5 font-medium text-amber-700 hover:border-amber-600 hover:bg-amber-500/15 hover:text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-300 dark:hover:bg-amber-400/15 dark:hover:text-amber-300"
+  "h-11 w-full border-dashed border-amber-500/50 bg-amber-500/5 font-medium text-amber-700 hover:border-amber-500/70 hover:bg-amber-500/10 hover:text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-400/60 dark:hover:bg-amber-400/10 dark:hover:text-amber-400"
 
 /**
  * El mismo botón cuando el arreglo de líneas tiene error (ej. «Agregá al menos
