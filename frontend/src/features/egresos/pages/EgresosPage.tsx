@@ -59,6 +59,7 @@ import { IconAction } from "@/components/data/IconAction"
 import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
 import {
   ESTADO_DETALLE,
+  ESTADOS_CON_MOVIMIENTO,
   ESTADO_LABEL,
   ESTADO_PUNTO,
   etiquetaNumero,
@@ -75,9 +76,15 @@ import type {
   EstadoEgreso,
 } from "@/features/egresos/egresos.types"
 
-type FiltroEstado = EstadoEgreso | "todos"
+/**
+ * `MOVIMIENTO` es un valor compuesto del selector: los estados que movieron
+ * stock (entregados y anulados). No es un estado de la BD — se traduce a la
+ * lista `ESTADOS_CON_MOVIMIENTO` al armar los filtros.
+ */
+type FiltroEstado = EstadoEgreso | "todos" | "movimiento"
 
 const TODOS = "todos"
+const MOVIMIENTO = "movimiento"
 
 const ESTADOS: EstadoEgreso[] = [
   "BORRADOR",
@@ -95,6 +102,7 @@ export function EgresosPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const puedeCrear = tienePermiso(user, "egresosCrear")
+  const puedeReportar = tienePermiso(user, "reportes")
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
   // Quien decide algo en el circuito arranca en SU bandeja: lo que espera su
@@ -108,7 +116,7 @@ export function EgresosPage() {
   // cero resultados en cuanto el estado pedido no sea el de la bandeja del rol.
   const estadoUrl = params.get("estado") as EstadoEgreso | null
   const estadoInicial: FiltroEstado =
-    estadoUrl && ESTADOS.includes(estadoUrl) ? estadoUrl : "todos"
+    estadoUrl && ESTADOS.includes(estadoUrl) ? estadoUrl : TODOS
 
   const descartar = useDescartarEgreso()
   // Enviar y descartar piden confirmación: los dos son sin vuelta atrás.
@@ -129,16 +137,13 @@ export function EgresosPage() {
   const [busqueda, setBusqueda] = useState("")
   const [estado, setEstado] = useState<FiltroEstado>(estadoInicial)
   const [soloBandeja, setSoloBandeja] = useState(
-    tieneBandeja && estadoInicial === "todos"
+    tieneBandeja && estadoInicial === TODOS
   )
   const [almacenId, setAlmacenId] = useState<string>(TODOS)
   const [rango, setRango] = useState<DateRange | undefined>()
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const {
-    abrirReporte,
-    generando: generandoReporte,
-  } = useReporteEgresos()
+  const { abrirReporte, generando: generandoReporte } = useReporteEgresos()
 
   // Solo hace falta para el selector, así que se pide únicamente a quien lo ve.
   const { data: almacenes = [] } = useAlmacenesActivos({
@@ -152,7 +157,12 @@ export function EgresosPage() {
    */
   const filtros: FiltrosEgresos = {
     q: busquedaDiferida || undefined,
-    estado: estado === "todos" ? undefined : estado,
+    estado:
+      estado === TODOS
+        ? undefined
+        : estado === MOVIMIENTO
+          ? ESTADOS_CON_MOVIMIENTO
+          : estado,
     pendientesMios: soloBandeja || undefined,
     almacenId: almacenId === TODOS ? undefined : Number(almacenId),
     // En hora local: el rango se eligió en un calendario, y pasarlo por UTC
@@ -210,20 +220,61 @@ export function EgresosPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Fuera del `puedeCrear`: el reporte es lectura, así que lo saca
-              cualquiera que llegue al listado. */}
-          <Button
-            variant="outline"
-            onClick={() => abrirReporte(filtros, almacenReporte)}
-            disabled={generandoReporte}
-          >
-            {generandoReporte ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <FileSpreadsheet className="size-4" />
-            )}
-            Reporte
-          </Button>
+          {/* Aparte del `puedeCrear`: quien crea pedidos (el solicitador) NO es
+              quien emite el registro, y quien lo emite (el observador) no crea
+              nada. El registro es de almacén y administración; el solicitador y
+              el aprobador ven sus pedidos en pantalla, pero emitirlo no es parte
+              de su trabajo. `GET /egresos/reporte` los rechaza igual — esto solo
+              evita ofrecer un botón que va a fallar. */}
+          {puedeReportar && (
+            <Button
+              variant="outline"
+              title="Registro de lo que salió del almacén: entregados y anulados."
+              onClick={() => {
+                // Al apretar Reporte se ajustan DOS filtros, por la misma razón:
+                // ninguno de los dos dice CUÁLES documentos, que es lo único que
+                // define un registro de archivo (2026-08-07).
+                //
+                // - **La bandeja** («de quién es el turno ahora») se apaga siempre.
+                //   Para el aprobador y el responsable la pantalla abre con ella
+                //   puesta, así que el primer clic salía en blanco y no había forma
+                //   de adivinar que el arreglo era apagar un botón que nada
+                //   relacionaba con el papel.
+                // - **El estado** pasa a «entregados y anulados» SOLO si estaba en
+                //   «todos»: son los dos que movieron stock. Sumar un pendiente al
+                //   total es contar material que sigue en la estantería, y encima
+                //   por la cantidad SOLICITADA — la entregada la ajusta el
+                //   responsable recién al entregar. Un borrador, además, ni número
+                //   tiene. Si el usuario eligió un estado a propósito se respeta,
+                //   y el papel sale con lo que ve.
+                //
+                // Se ajusta la PANTALLA en vez de pisar los filtros solo del PDF
+                // para que los dos sigan diciendo lo mismo —la razón por la que
+                // `filtros` es un objeto único— y para que se vea por qué cambió.
+                const paraElPapel: FiltrosEgresos = {
+                  ...filtros,
+                  pendientesMios: undefined,
+                  estado:
+                    estado === TODOS ? ESTADOS_CON_MOVIMIENTO : filtros.estado,
+                }
+                if (soloBandeja || estado === TODOS) {
+                  cambiarFiltro(() => {
+                    setSoloBandeja(false)
+                    if (estado === TODOS) setEstado(MOVIMIENTO)
+                  })
+                }
+                abrirReporte(paraElPapel, almacenReporte)
+              }}
+              disabled={generandoReporte}
+            >
+              {generandoReporte ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="size-4" />
+              )}
+              Reporte
+            </Button>
+          )}
           {puedeCrear && (
             <Button onClick={() => navigate("/egresos/nuevo")}>
               <Plus className="size-4" />
@@ -259,9 +310,7 @@ export function EgresosPage() {
         {veVariosAlmacenes && (
           <Select
             value={almacenId}
-            onValueChange={(valor) =>
-              cambiarFiltro(() => setAlmacenId(valor))
-            }
+            onValueChange={(valor) => cambiarFiltro(() => setAlmacenId(valor))}
           >
             <SelectTrigger className="sm:w-56" aria-label="Filtrar por almacén">
               <SelectValue />
@@ -297,7 +346,10 @@ export function EgresosPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
-            <SelectItem value="todos">Todos los estados</SelectItem>
+            <SelectItem value={TODOS}>Todos los estados</SelectItem>
+            {/* Valor compuesto, no un estado: es lo que de verdad salió del
+                almacén, y de lo que se hace el reporte. */}
+            <SelectItem value={MOVIMIENTO}>Entregados y anulados</SelectItem>
             {/* En el selector va la etiqueta LARGA: hay ancho de sobra y elegir
                 un filtro es justo cuando conviene saber a quién le toca. */}
             {ESTADOS.map((valor) => (
@@ -341,7 +393,10 @@ export function EgresosPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-destructive"
                 >
-                  {getApiErrorMessage(error, "No se pudieron cargar los egresos.")}
+                  {getApiErrorMessage(
+                    error,
+                    "No se pudieron cargar los egresos."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -352,11 +407,29 @@ export function EgresosPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
-                  {soloBandeja
-                    ? "No tenés pedidos esperando tu decisión."
-                    : busquedaDiferida || estado !== "todos"
-                      ? "Ningún pedido coincide con los filtros."
-                      : "Todavía no hay pedidos."}
+                  {soloBandeja ? (
+                    // Bandeja vacía = callejón sin salida: la tabla no dice nada
+                    // y la forma de llenarla es un botón de la barra de arriba
+                    // que nada relaciona con lo que se está mirando. La salida va
+                    // acá, que es donde el ojo se quedó.
+                    <div className="flex flex-col items-center gap-3">
+                      <span>No tenés pedidos esperando tu decisión.</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          cambiarFiltro(() => setSoloBandeja(false))
+                        }
+                      >
+                        <Inbox className="size-4" />
+                        Ver todos los pedidos
+                      </Button>
+                    </div>
+                  ) : busquedaDiferida || estado !== TODOS ? (
+                    "Ningún pedido coincide con los filtros."
+                  ) : (
+                    "Todavía no hay pedidos."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -431,7 +504,9 @@ export function EgresosPage() {
                         // salto. Lo único que se saca es el relleno — un
                         // `Loader2` macizo sería una mancha girando.
                         iconoClassName={
-                          generandoId === egreso.id ? "size-5" : `size-5 ${MACIZO}`
+                          generandoId === egreso.id
+                            ? "size-5"
+                            : `size-5 ${MACIZO}`
                         }
                       />
                     )}
@@ -473,10 +548,7 @@ export function EgresosPage() {
       )}
 
       {aEnviar && (
-        <EnviarDialog
-          egresoId={aEnviar.id}
-          onClose={() => setAEnviar(null)}
-        />
+        <EnviarDialog egresoId={aEnviar.id} onClose={() => setAEnviar(null)} />
       )}
 
       {/* Se monta solo al abrirse: el historial no viaja en el listado y el
@@ -488,11 +560,8 @@ export function EgresosPage() {
         />
       )}
 
-      
-
       {/* Visor propio: nunca están abiertos los dos a la vez, pero cada hook
           maneja su object URL y lo revoca al cerrarse. */}
-      
 
       <AlertDialog
         open={aDescartar !== null}
