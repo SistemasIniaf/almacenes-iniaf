@@ -128,9 +128,9 @@ const FIRMAS_KARDEX = ["Encargado Almacén", "VoBo Jefe Administrativo"]
 
 /**
  * Aire entre la línea de observaciones y los rótulos: el lugar donde se firma a
- * mano. 56 pt ≈ 2 cm, que es lo que ocupa una firma cómoda.
+ * mano. 78 pt ≈ 2,75 cm, para que entren una firma y el sello encima del cargo.
  */
-const ESPACIO_FIRMA = 56
+const ESPACIO_FIRMA = 78
 
 /**
  * Cierre de un bloque: la línea de observaciones, el espacio para firmar a mano
@@ -160,7 +160,7 @@ function cierreBloque(): Content {
       },
       {
         // Centrados en media hoja cada uno. El margen de arriba ES el espacio
-        // para firmar: 56 pt ≈ 2 cm, que es lo que ocupa una firma a mano.
+        // para firmar (ver `ESPACIO_FIRMA`).
         columns: FIRMAS_KARDEX.map((cargo) => ({
           text: cargo,
           alignment: "center" as const,
