@@ -127,6 +127,12 @@ function filtrosAplicados(reporte: ReporteKardex): Content | null {
 const FIRMAS_KARDEX = ["Encargado Almacén", "VoBo Jefe Administrativo"]
 
 /**
+ * Aire entre la línea de observaciones y los rótulos: el lugar donde se firma a
+ * mano. 56 pt ≈ 2 cm, que es lo que ocupa una firma cómoda.
+ */
+const ESPACIO_FIRMA = 56
+
+/**
  * Cierre de un bloque: la línea de observaciones, el espacio para firmar a mano
  * y los dos cargos.
  *
@@ -153,14 +159,14 @@ function cierreBloque(): Content {
         color: "#666666",
       },
       {
-        // Centrados en media hoja cada uno, y el aire de arriba es el espacio
-        // para firmar.
+        // Centrados en media hoja cada uno. El margen de arriba ES el espacio
+        // para firmar: 56 pt ≈ 2 cm, que es lo que ocupa una firma a mano.
         columns: FIRMAS_KARDEX.map((cargo) => ({
           text: cargo,
           alignment: "center" as const,
         })),
         fontSize: 7.5,
-        margin: [0, 34, 0, 0],
+        margin: [0, ESPACIO_FIRMA, 0, 0],
       },
     ],
     margin: [0, 8, 0, 0],
