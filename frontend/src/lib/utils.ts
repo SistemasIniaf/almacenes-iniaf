@@ -43,6 +43,12 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * Sigue **punteado y sin relleno sólido**: el sólido está reservado al submit,
  * que tiene que ser el único botón macizo del formulario.
  *
+ * El tono va **una escala por debajo** del primer intento (2026-08-07): en
+ * oscuro el texto bajó de `amber-300` a `amber-400`, y en los dos modos el
+ * relleno pasó de `/10` a `/5` y el borde perdió 10 puntos de opacidad. Se veía
+ * bien pero gritaba para lo que es: la acción más rutinaria del formulario. Al
+ * pasar el mouse sí sube, así que el estado interactivo no se perdió.
+ *
  * ⚠️ El ámbar ya significa otras dos cosas en el sistema —«editar» en
  * `TONO_ACCION` y «esto espera tu atención» en los badges y las tarjetas del
  * inicio—, así que acá está usado como color de MARCA del botón, no como aviso.
@@ -50,7 +56,7 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * primero le compite.
  */
 export const BOTON_AGREGAR_LINEA =
-  "h-11 w-full border-dashed border-amber-500/60 bg-amber-500/10 font-medium text-amber-700 hover:border-amber-600 hover:bg-amber-500/20 hover:text-amber-800 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-300 dark:hover:border-amber-300 dark:hover:bg-amber-400/20 dark:hover:text-amber-200"
+  "h-11 w-full border-dashed border-amber-500/50 bg-amber-500/5 font-medium text-amber-700 hover:border-amber-600 hover:bg-amber-500/15 hover:text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-300 dark:hover:bg-amber-400/15 dark:hover:text-amber-300"
 
 /**
  * El mismo botón cuando el arreglo de líneas tiene error (ej. «Agregá al menos
