@@ -719,12 +719,26 @@ reporte:
   exige ítem: pide almacén y gestión.
 - **Separa por FUENTE aunque no se filtre.** En pantalla, sin filtro, las fuentes salen juntas —es lo
   cómodo para operar—; en el papel cada financiador rinde su plata por separado, así que **cada
-  ítem+fuente es un BLOQUE** con su cabecera, su saldo de apertura, sus totales y su línea de
-  observaciones para anotar a mano. Cada bloque arranca en hoja nueva: así se puede separar el
-  archivo por ítem, como se guardaba en papel.
+  ítem+fuente es un BLOQUE** con su cabecera, su saldo de apertura y sus totales. Cada bloque arranca
+  en hoja nueva: así se puede separar el archivo por ítem, como se guardaba en papel.
 Doce columnas (cantidad y valor del mismo movimiento, por separado) obligan a hoja **apaisada**. Solo
 salen los bloques con movimientos en la gestión o con saldo que viene de antes: un ítem que nunca tocó
 ese almacén no imprime una hoja en blanco.
+
+**El pie de firmas va en TODAS las hojas** (`pieKardex`, 2026-08-07, pedido de la institución):
+`Observaciones: ______`, aire para escribir, y los rótulos **Encargado Almacén · VoBo Jefe
+Administrativo** — los mismos que la nota de ingreso, y encima de la línea de emisión y «Página N de M»
+que llevan todos los reportes (`pieKardex` **compone sobre `pieReporte()`**, no lo rehace).
+
+Está en el **`footer`** y no en el contenido de cada bloque, que es donde vivía la línea de
+observaciones hasta esa fecha. La diferencia se ve **cuando un ítem no entra en una hoja**: dentro del
+contenido la línea sale UNA vez, al final del bloque, y las hojas del medio quedan sin dónde firmar.
+Es un documento que se archiva firmado **hoja por hoja**, así que lo que manda es la PÁGINA, no el
+bloque. Es la misma razón por la que el membrete va como `header`.
+
+Ojo con **`ALTO_PIE_FIRMAS`**: el `footer` de pdfmake se dibuja DENTRO del margen inferior, así que
+ese número es lo que `pageMargins[3]` le reserva. Quedarse corto no recorta el pie, lo **superpone**
+con la última fila de la tabla — si se agrega algo al pie, hay que subirlo.
 
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
