@@ -17,6 +17,7 @@ import {
   listarEgresos,
   obtenerEgreso,
   rechazarEgreso,
+  resumenEgresos,
 } from "@/features/egresos/egresos.api"
 import { getApiErrorMessage } from "@/lib/api"
 
@@ -31,6 +32,27 @@ export const egresosKeys = {
   all: ["egresos"] as const,
   lista: (query: QueryEgresos) => ["egresos", "lista", query] as const,
   detalle: (id: number) => ["egresos", "detalle", id] as const,
+  resumen: ["egresos", "resumen"] as const,
+}
+
+/**
+ * Cuántos egresos hay en cada etapa. Lo consumen las pestañas del listado y el
+ * badge del menú lateral — que vive en TODAS las pantallas, así que:
+ *
+ * - `enabled` deja de pedirlo a quien no lo va a mostrar (el menú solo lo usa
+ *   para los roles con bandeja propia);
+ * - el `staleTime` evita una consulta por cada navegación entre módulos.
+ *
+ * Cuelga de `egresosKeys.all`, así que toda mutación de egresos ya lo invalida:
+ * aprobar un pedido baja el número del menú sin nada más que hacer.
+ */
+export function useResumenEgresos(opciones?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: egresosKeys.resumen,
+    queryFn: resumenEgresos,
+    enabled: opciones?.enabled ?? true,
+    staleTime: 60_000,
+  })
 }
 
 export function useEgresos(query: QueryEgresos) {

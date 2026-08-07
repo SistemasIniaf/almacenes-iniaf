@@ -18,11 +18,14 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
+import { useResumenEgresos } from "@/features/egresos/hooks/useEgresos"
+import { cn } from "@/lib/utils"
 
 import type { LucideIcon } from "lucide-react"
 import type { Permiso } from "@/features/auth/lib/permisos"
@@ -33,6 +36,11 @@ interface ItemMenu {
   icono: LucideIcon
   /** Sin permiso, el item ni se renderiza. `undefined` = visible para todos. */
   permiso?: Permiso
+  /**
+   * Qué número mostrar al costado. Es una CLAVE y no el número: este arreglo es
+   * una constante de módulo y el valor sale de una consulta.
+   */
+  badge?: "egresosBandeja"
 }
 
 /**
@@ -130,6 +138,7 @@ const GRUPOS: GrupoMenu[] = [
         url: "/egresos",
         icono: ArrowUpFromLine,
         permiso: "egresosLeer",
+        badge: "egresosBandeja",
       },
     ],
   },
@@ -173,6 +182,25 @@ export function NavMain() {
   })).filter((grupo) => grupo.items.length > 0)
 
   /**
+   * El número de la bandeja de egresos. Solo se pide a quien tiene bandeja
+   * propia: para admin, super_admin y observador el backend devuelve `null`
+   * —ven todo, pero nada los espera a ellos— y pedirlo sería una consulta por
+   * navegación para no mostrar nada.
+   *
+   * Vive acá y no en la pantalla de egresos a propósito: la gracia del badge es
+   * enterarte de que tenés trabajo SIN entrar al módulo.
+   */
+  const tieneBandeja =
+    user?.rol === "solicitador" ||
+    user?.rol === "aprobador" ||
+    user?.rol === "responsable_almacen"
+  const { data: resumen } = useResumenEgresos({ enabled: tieneBandeja })
+
+  /** Solo se dibuja con algo pendiente: un «0» permanente es ruido. */
+  const badgeDe = (item: ItemMenu) =>
+    item.badge === "egresosBandeja" && resumen?.bandeja ? resumen.bandeja : null
+
+  /**
    * Inicio ("/") solo está activo en la raíz exacta; el resto también cuando la
    * ruta actual es una subruta suya (ej. /items/algo). El `isActive` se calcula
    * acá y se pasa a `SidebarMenuButton` para que pinte el ítem entero (fondo),
@@ -191,21 +219,51 @@ export function NavMain() {
             <SidebarGroupLabel>{grupo.titulo}</SidebarGroupLabel>
           )}
           <SidebarMenu>
-            {grupo.items.map((item) => (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={estaActivo(item.url)}
-                  tooltip={item.titulo}
-                  className={CLASE_ACTIVO}
-                >
-                  <Link to={item.url}>
-                    <item.icono />
-                    <span>{item.titulo}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {grupo.items.map((item) => {
+              const badge = badgeDe(item)
+              const activo = estaActivo(item.url)
+              return (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={activo}
+                    tooltip={
+                      badge
+                        ? `${item.titulo} — ${badge} esperando tu acción`
+                        : item.titulo
+                    }
+                    className={CLASE_ACTIVO}
+                  >
+                    <Link to={item.url}>
+                      <item.icono />
+                      <span>{item.titulo}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  {badge != null && (
+                    // Fuera del botón: `SidebarMenuBadge` se posiciona sobre el
+                    // ítem y se esconde solo cuando la barra está colapsada (ahí
+                    // no hay ancho, y el dato queda en el tooltip de arriba).
+                    //
+                    // INVIERTE sobre el ítem activo, que ya está pintado de
+                    // `primary`: una pastilla verde sobre fondo verde no se ve.
+                    // El `peer-data-active/menu-button:` explícito hace falta
+                    // porque la clase base del componente fija el color del
+                    // texto con esa misma variante, y una clase sin variante no
+                    // le gana (tailwind-merge las trata por separado).
+                    <SidebarMenuBadge
+                      className={cn(
+                        "rounded-full",
+                        activo
+                          ? "bg-primary-foreground text-primary peer-data-active/menu-button:text-primary"
+                          : "bg-primary text-primary-foreground"
+                      )}
+                    >
+                      {badge}
+                    </SidebarMenuBadge>
+                  )}
+                </SidebarMenuItem>
+              )
+            })}
           </SidebarMenu>
         </SidebarGroup>
       ))}
