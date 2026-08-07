@@ -50,6 +50,14 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * hover se bajó igual, así que la diferencia la marcan **el borde y el relleno**
  * (`/50 → /70` y `/5 → /10`) y ya no el color del texto.
  *
+ * **Los dos modos se afinaron por separado, y no es un descuido**: el MISMO
+ * ámbar se lee mucho más saturado sobre blanco que sobre el panel oscuro. En
+ * claro `amber-500`/`amber-700` son naranjas vivos y el botón terminaba siendo
+ * lo más colorido de una pantalla por lo demás neutra; en oscuro, a baja
+ * opacidad, el tono se apaga solo. Por eso la mitad clara va **más abajo**
+ * (borde `/30`, relleno `0.04`, texto `amber-800` — que es marrón y no naranja)
+ * mientras la oscura se quedó como estaba.
+ *
  * ⚠️ Las clases de `hover:` NO se pueden omitir aunque el texto quede igual que
  * en reposo: la variante `outline` del botón trae su propio
  * `hover:bg-muted hover:text-foreground`, así que sin pisarlas el botón salta al
@@ -62,7 +70,7 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * primero le compite.
  */
 export const BOTON_AGREGAR_LINEA =
-  "h-11 w-full border-dashed border-amber-500/50 bg-amber-500/5 font-medium text-amber-700 hover:border-amber-500/70 hover:bg-amber-500/10 hover:text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-400/60 dark:hover:bg-amber-400/10 dark:hover:text-amber-400"
+  "h-11 w-full border-dashed border-amber-600/30 bg-amber-500/[0.04] font-medium text-amber-800 hover:border-amber-600/45 hover:bg-amber-500/10 hover:text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-400/60 dark:hover:bg-amber-400/10 dark:hover:text-amber-400"
 
 /**
  * El mismo botón cuando el arreglo de líneas tiene error (ej. «Agregá al menos
