@@ -40,7 +40,21 @@ export class StockController {
     return this.stockService.findAll(query, user);
   }
 
-  /** Todas las existencias, sin paginar, para el reporte imprimible. */
+  /**
+   * Todas las existencias, sin paginar, para los reportes imprimibles.
+   *
+   * Roles MAS ACOTADOS que la consulta de stock (2026-08-07): el `solicitador` y
+   * el `aprobador` entran a `GET /stock` porque lo necesitan para armar y firmar
+   * un pedido (ver que hay y con cuanto disponible), pero el «Estado de
+   * almacenes» es un documento de almacen y administracion. Mismo criterio que
+   * ingresos, egresos y kardex.
+   */
+  @Roles(
+    Rol.super_admin,
+    Rol.admin,
+    Rol.responsable_almacen,
+    Rol.observador_almacen,
+  )
   @Get('reporte')
   reporte(
     @Query() query: QueryStockDto,

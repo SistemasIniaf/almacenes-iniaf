@@ -48,12 +48,34 @@ export class EgresosController {
   }
 
   /**
+   * Cuantos egresos hay en cada etapa del ciclo (pestañas + badge del menu).
+   *
+   * VA ANTES de `:id`, igual que `reporte`: Nest resuelve por orden de
+   * declaracion y `/egresos/resumen` entraria por `findOne`.
+   */
+  @Get('resumen')
+  resumen(@CurrentUser() user: AuthenticatedUser) {
+    return this.egresosService.resumen(user);
+  }
+
+  /**
    * Los egresos del rango sin paginar, para el reporte imprimible.
    *
    * VA ANTES de `:id`: Nest resuelve las rutas por orden de declaracion y
    * abajo, `/egresos/reporte` entraria por `findOne` y reventaria el
    * `ParseIntPipe`.
+   *
+   * Roles MAS ACOTADOS que el listado (2026-08-07): el registro es de almacen y
+   * administracion, no del circuito. El `solicitador` y el `aprobador` ven sus
+   * pedidos en pantalla, pero emitir el registro del almacen no es parte de su
+   * trabajo. Mismo criterio que ingresos y kardex, que ya venian asi.
    */
+  @Roles(
+    Rol.super_admin,
+    Rol.admin,
+    Rol.responsable_almacen,
+    Rol.observador_almacen,
+  )
   @Get('reporte')
   reporte(
     @Query() query: QueryEgresosDto,

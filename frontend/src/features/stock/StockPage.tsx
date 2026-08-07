@@ -38,6 +38,7 @@ import { DataPagination } from "@/components/data/DataPagination"
 import { IconAction } from "@/components/data/IconAction"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
 import {
   usePartidasConStock,
@@ -84,6 +85,8 @@ export function StockPage() {
     user?.rol === "super_admin" ||
     user?.rol === "admin" ||
     user?.rol === "observador_almacen"
+  const puedeReportar = tienePermiso(user, "reportes")
+  const puedeVerKardex = tienePermiso(user, "kardexLeer")
 
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
@@ -159,49 +162,57 @@ export function StockPage() {
           </p>
         </div>
         {/* Los dos reportes del sistema anterior. Ambos respetan los filtros
-            que estén puestos en la pantalla. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="shrink-0"
-              disabled={generandoReporte}
-            >
-              {generandoReporte ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Printer className="size-4" />
-              )}
-              Reportes
-              <ChevronDown className="size-4 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-72">
-            {/* Los dos nombres los fijó la institución: dicen por qué eje
+            que estén puestos en la pantalla.
+
+            Se ocultan a quien no los emite: el solicitador y el aprobador ven
+            esta pantalla porque necesitan el stock para armar y firmar un
+            pedido, pero el «Estado de almacenes» es un documento de almacén.
+            `GET /stock/reporte` lo rechaza igual — esto solo evita ofrecer un
+            botón que va a fallar. */}
+        {puedeReportar && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0"
+                disabled={generandoReporte}
+              >
+                {generandoReporte ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Printer className="size-4" />
+                )}
+                Reportes
+                <ChevronDown className="size-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              {/* Los dos nombres los fijó la institución: dicen por qué eje
                 agrupa cada uno, que es lo único que los diferencia. */}
-            <DropdownMenuItem onClick={() => imprimir("detalle")}>
-              <div>
-                <div className="font-medium">
-                  Estado de almacenes consolidado por ítem
+              <DropdownMenuItem onClick={() => imprimir("detalle")}>
+                <div>
+                  <div className="font-medium">
+                    Estado de almacenes consolidado por ítem
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Detalle de cada ítem, con su fuente, agrupado por partida.
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Detalle de cada ítem, con su fuente, agrupado por partida.
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => imprimir("consolidado")}>
+                <div>
+                  <div className="font-medium">
+                    Estado de almacenes consolidado por partida
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Resumen valorizado por partida y fuente, sin ítems.
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => imprimir("consolidado")}>
-              <div>
-                <div className="font-medium">
-                  Estado de almacenes consolidado por partida
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Resumen valorizado por partida y fuente, sin ítems.
-                </div>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -357,9 +368,7 @@ export function StockPage() {
                           variant="ghost"
                           size="icon"
                           className="size-7"
-                          aria-label={
-                            abierto ? "Ocultar lotes" : "Ver lotes"
-                          }
+                          aria-label={abierto ? "Ocultar lotes" : "Ver lotes"}
                           aria-expanded={abierto}
                           onClick={(e) => {
                             e.stopPropagation()
@@ -389,21 +398,31 @@ export function StockPage() {
                       {/* Atajo al kardex del ítem: es la pregunta que sigue
                           naturalmente a "¿cuánto hay?" — "¿y cómo llegó a eso?".
                           Lleva el almacén si hay uno filtrado; si no, el kardex
-                          lo pide (su saldo es por almacén). */}
+                          lo pide (su saldo es por almacén).
+
+                          Solo para quien puede leer el kardex: el solicitador y
+                          el aprobador entran a esta pantalla para armar y firmar
+                          pedidos, pero `GET /kardex` los rechaza. Ofrecerles el
+                          botón era mandarlos a una pantalla que solo devuelve
+                          errores. */}
                       <TableCell
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <IconAction
-                          icono={BookOpen}
-                          etiqueta="Ver kardex"
-                          onClick={() =>
-                            navigate(
-                              `/kardex?item=${item.id}` +
-                                (almacenId === TODOS ? "" : `&almacen=${almacenId}`)
-                            )
-                          }
-                        />
+                        {puedeVerKardex && (
+                          <IconAction
+                            icono={BookOpen}
+                            etiqueta="Ver kardex"
+                            onClick={() =>
+                              navigate(
+                                `/kardex?item=${item.id}` +
+                                  (almacenId === TODOS
+                                    ? ""
+                                    : `&almacen=${almacenId}`)
+                              )
+                            }
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
 
@@ -413,7 +432,10 @@ export function StockPage() {
                             ancho: una sub-tabla dentro de la celda mantiene sus
                             columnas alineadas entre sí sin pelearse con las de
                             la tabla de arriba. */}
-                        <TableCell colSpan={columnas} className="bg-muted/40 p-0">
+                        <TableCell
+                          colSpan={columnas}
+                          className="bg-muted/40 p-0"
+                        >
                           <div className="px-10 py-3">
                             <div className="mb-2 text-xs font-medium">
                               {item.lotes.length} lote

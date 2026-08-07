@@ -17,6 +17,7 @@ import { StockPage } from "@/features/stock/StockPage"
 import { UnidadesPage } from "@/features/unidades/UnidadesPage"
 import { UsuariosPage } from "@/features/usuarios/UsuariosPage"
 import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute"
+import { RutaConPermiso } from "@/routes/RutaConPermiso"
 
 export const router = createBrowserRouter([
   {
@@ -39,65 +40,132 @@ export const router = createBrowserRouter([
             index: true,
             element: <DashboardHomePage />,
           },
+          // Cada ruta lleva el MISMO permiso con el que el menú decide mostrar
+          // su ítem (ver `GRUPOS` en NavMain): si no, una URL escrita a mano o
+          // un favorito viejo abren una pantalla que carga entera y solo
+          // devuelve 403. No es una barrera —esa es el backend— sino no mentirle
+          // al usuario sobre lo que puede abrir.
           {
             path: "unidades",
-            element: <UnidadesPage />,
+            element: (
+              <RutaConPermiso permiso="unidadesLeer">
+                <UnidadesPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "almacenes",
-            element: <AlmacenesPage />,
+            element: (
+              <RutaConPermiso permiso="almacenesLeer">
+                <AlmacenesPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "usuarios",
-            element: <UsuariosPage />,
+            element: (
+              <RutaConPermiso permiso="usuariosLeer">
+                <UsuariosPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "partidas",
-            element: <PartidasPage />,
+            element: (
+              <RutaConPermiso permiso="partidasLeer">
+                <PartidasPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "items",
-            element: <ItemsPage />,
+            element: (
+              <RutaConPermiso permiso="itemsLeer">
+                <ItemsPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "proveedores",
-            element: <ProveedoresPage />,
+            element: (
+              <RutaConPermiso permiso="proveedoresLeer">
+                <ProveedoresPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "fuentes-financiamiento",
-            element: <FuentesFinanciamientoPage />,
+            element: (
+              <RutaConPermiso permiso="fuentesLeer">
+                <FuentesFinanciamientoPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "stock",
-            element: <StockPage />,
+            element: (
+              <RutaConPermiso permiso="stockLeer">
+                <StockPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "kardex",
-            element: <KardexPage />,
+            element: (
+              <RutaConPermiso permiso="kardexLeer">
+                <KardexPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "ingresos",
-            element: <IngresosPage />,
+            element: (
+              <RutaConPermiso permiso="ingresosLeer">
+                <IngresosPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "ingresos/nuevo",
-            element: <IngresoFormPage />,
+            element: (
+              <RutaConPermiso permiso="ingresosEscribir">
+                <IngresoFormPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "ingresos/:id",
-            element: <IngresoFormPage />,
+            element: (
+              <RutaConPermiso permiso="ingresosLeer">
+                <IngresoFormPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "egresos",
-            element: <EgresosPage />,
+            element: (
+              <RutaConPermiso permiso="egresosLeer">
+                <EgresosPage />
+              </RutaConPermiso>
+            ),
           },
           {
+            // Crear un pedido es solo del solicitador; ver uno, de todo el
+            // circuito. Por eso la ruta `nuevo` va con otro permiso que `:id`.
             path: "egresos/nuevo",
-            element: <EgresoFormPage />,
+            element: (
+              <RutaConPermiso permiso="egresosCrear">
+                <EgresoFormPage />
+              </RutaConPermiso>
+            ),
           },
           {
             path: "egresos/:id",
-            element: <EgresoFormPage />,
+            element: (
+              <RutaConPermiso permiso="egresosLeer">
+                <EgresoFormPage />
+              </RutaConPermiso>
+            ),
           },
         ],
       },

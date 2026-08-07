@@ -82,6 +82,26 @@ export const PERMISOS = {
     "observador_almacen",
   ],
 
+  /**
+   * Emitir los REPORTES imprimibles: «Registro de ingresos», «Registro de
+   * egresos», los dos «Estado de almacenes» y el kardex (2026-08-07).
+   *
+   * Es más acotado que ver las pantallas de las que salen: el `solicitador` y el
+   * `aprobador` consultan stock y sus egresos porque lo necesitan para armar y
+   * firmar un pedido, pero emitir el registro del almacén no es parte de su
+   * trabajo. Ingresos y kardex ya venían así por los `@Roles` de su controlador;
+   * egresos y stock necesitaron uno propio en el endpoint `reporte`.
+   *
+   * Acá SÍ hay endpoint que proteger (los `GET .../reporte`), a diferencia de
+   * `egresosImprimir` — así que esto oculta el botón y el backend rechaza.
+   */
+  reportes: [
+    "super_admin",
+    "admin",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
+
   usuariosLeer: ["super_admin", "admin"],
   usuariosEscribir: ["super_admin", "admin"],
 
@@ -111,10 +131,7 @@ export const PERMISOS = {
 
 export type Permiso = keyof typeof PERMISOS
 
-export function tienePermiso(
-  user: AuthUser | null,
-  permiso: Permiso
-): boolean {
+export function tienePermiso(user: AuthUser | null, permiso: Permiso): boolean {
   if (!user) return false
   return (PERMISOS[permiso] as readonly Rol[]).includes(user.rol)
 }
