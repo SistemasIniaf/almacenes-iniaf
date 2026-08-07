@@ -43,25 +43,22 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * Sigue **punteado y sin relleno sólido**: el sólido está reservado al submit,
  * que tiene que ser el único botón macizo del formulario.
  *
- * El tono va **una escala por debajo** del primer intento (2026-08-07): en
- * oscuro el texto bajó de `amber-300` a `amber-400`, y en los dos modos el
- * relleno pasó de `/10` a `/5` y el borde perdió 10 puntos de opacidad. Se veía
- * bien pero gritaba para lo que es: la acción más rutinaria del formulario. El
- * hover se bajó igual, así que la diferencia la marcan **el borde y el relleno**
- * (`/50 → /70` y `/5 → /10`) y ya no el color del texto.
+ * **Los dos modos están afinados por separado, y no es un descuido** — es lo
+ * único importante de acá. El MISMO ámbar se comporta al revés en cada mitad
+ * del tema: sobre blanco es un naranja vivo que se vuelve lo más colorido de una
+ * pantalla por lo demás neutra, y sobre el panel oscuro, a baja opacidad, se
+ * apaga hasta perderse. Igualar los números de los dos lados —que es lo que uno
+ * quiere hacer al verlos distintos— rompe uno para arreglar el otro.
  *
- * **Los dos modos se afinaron por separado, y no es un descuido**: el MISMO
- * ámbar se lee mucho más saturado sobre blanco que sobre el panel oscuro. En
- * claro `amber-500`/`amber-700` son naranjas vivos y el botón terminaba siendo
- * lo más colorido de una pantalla por lo demás neutra; en oscuro, a baja
- * opacidad, el tono se apaga solo. Por eso la mitad clara va **más abajo**
- * (borde `/30`, relleno `0.04`, texto `amber-800` — que es marrón y no naranja)
- * mientras la oscura se quedó como estaba.
+ * De ahí las dos diferencias: en claro el texto va `amber-800`, que es **marrón
+ * y no naranja**, con el borde y el relleno más marcados para que igual se lea;
+ * en oscuro va `amber-400` con el borde y el relleno más tenues. Se ajustó tres
+ * veces mirando las dos capturas, así que si tocás una mitad, mirá la otra.
  *
- * ⚠️ Las clases de `hover:` NO se pueden omitir aunque el texto quede igual que
- * en reposo: la variante `outline` del botón trae su propio
- * `hover:bg-muted hover:text-foreground`, así que sin pisarlas el botón salta al
- * gris del tema al pasar el mouse.
+ * El **hover lo marcan el borde y el relleno, no el texto**, que queda igual que
+ * en reposo. ⚠️ Aun así las clases de `hover:` NO se pueden omitir: la variante
+ * `outline` del botón trae su propio `hover:bg-muted hover:text-foreground`, así
+ * que sin pisarlas el botón salta al gris del tema al pasar el mouse.
  *
  * ⚠️ El ámbar ya significa otras dos cosas en el sistema —«editar» en
  * `TONO_ACCION` y «esto espera tu atención» en los badges y las tarjetas del
@@ -70,7 +67,7 @@ export const SUPERFICIE_CAMPO = "bg-muted/60 dark:bg-input/40"
  * primero le compite.
  */
 export const BOTON_AGREGAR_LINEA =
-  "h-11 w-full border-dashed border-amber-600/30 bg-amber-500/[0.04] font-medium text-amber-800 hover:border-amber-600/45 hover:bg-amber-500/10 hover:text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-400/60 dark:hover:bg-amber-400/10 dark:hover:text-amber-400"
+  "h-11 w-full border-dashed border-amber-600/55 bg-amber-500/[0.09] font-medium text-amber-800 hover:border-amber-600/75 hover:bg-amber-500/15 hover:text-amber-800 dark:border-amber-400/40 dark:bg-amber-400/5 dark:text-amber-400 dark:hover:border-amber-400/60 dark:hover:bg-amber-400/10 dark:hover:text-amber-400"
 
 /**
  * El mismo botón cuando el arreglo de líneas tiene error (ej. «Agregá al menos
