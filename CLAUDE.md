@@ -634,6 +634,15 @@ a la vez y conviene no separarlas:
   se conservan solo porque las usan ~20 lugares; `lib/reporte-comun.ts` la re-exporta para los PDF.
   Sin número devuelve «—» (un borrador de egreso todavía no lo tiene, se estampa al enviar).
 
+**Había un DÉCIMO lugar y está en el BACKEND: `formatearNumero()` de `kardex.service.ts`.** Se
+descubrió al ver que la columna Documento del kardex seguía diciendo `001/2026` con todo lo demás ya
+en guion. Es la excepción a que el número se formatee en el frontend, y no es un descuido: el
+movimiento de kardex puede venir de un ingreso **o** de un egreso, así que esa columna es una
+**referencia cruzada** a otro documento y no el número del propio registro — el service manda
+`documento` ya armado y la pantalla, el PDF y el Excel del kardex lo imprimen tal cual. La
+consecuencia práctica: **un refactor del frontend no lo alcanza**, así que si el formato vuelve a
+cambiar hay DOS lugares a tocar, y están anotados uno en el otro.
+
 **En las TABLAS lo dibuja `components/data/NumeroDocumento.tsx`**, no el string pelado:
 
 - el correlativo en **negrita**, sin tamaño propio — hereda el de la tabla. Agrandarlo lo sacaba de

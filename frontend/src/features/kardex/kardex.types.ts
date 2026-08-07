@@ -15,7 +15,12 @@ export interface MovimientoKardex {
   fecha: string
   tipo: TipoMovimiento
   motivo: string | null
-  /** Nº del documento que lo originó, ya formateado: `001/2026`. */
+  /**
+   * Nº del documento que lo originó (ingreso o egreso), **ya formateado por el
+   * backend**: `001-2026`. Es el único número de documento que NO pasa por
+   * `numeroDocumento()` de `lib/formato.ts` — el service lo arma con el mismo
+   * formato, ver el comentario de `formatearNumero` en `kardex.service.ts`.
+   */
   documento: string | null
   ingresoId: number | null
   fuente: RefNombre | null

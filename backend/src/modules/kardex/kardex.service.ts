@@ -11,13 +11,25 @@ import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { QueryKardexDto } from './dto/query-kardex.dto';
 import { QueryReporteKardexDto } from './dto/query-reporte-kardex.dto';
 
-/** `001/2026`, como se imprime en todos los documentos. */
+/**
+ * `001-2026`, como se imprime en todos los documentos.
+ *
+ * **Tiene que coincidir con `numeroDocumento()` de `lib/formato.ts` del
+ * frontend.** Es el UNICO numero de documento que se formatea del lado del
+ * servidor, y por eso se quedo con la barra cuando el resto paso al guion: el
+ * kardex manda esta columna ya armada, asi que un refactor del frontend no la
+ * alcanza. Si vuelve a cambiar el formato, este es el segundo lugar a tocar.
+ *
+ * Se formatea aca —y no se mandan `numero` y `gestion` sueltos— porque el
+ * movimiento puede venir de un ingreso O de un egreso: la columna es una
+ * referencia cruzada a otro documento, no el numero del propio registro.
+ */
 function formatearNumero(
   numero?: number | null,
   gestion?: number | null,
 ): string | null {
   if (numero == null || gestion == null) return null;
-  return `${String(numero).padStart(3, '0')}/${gestion}`;
+  return `${String(numero).padStart(3, '0')}-${gestion}`;
 }
 
 /**
