@@ -34,7 +34,7 @@ almacenes-institucion/
 - **AlmacenUnidad**: puente Almacén ↔ Unidad. Define qué unidades ofrece el selector de "unidad solicitante" del Ingreso de ese almacén.
 - **FuenteFinanciamiento**: nombre (único), `codigo` (opcional), activo. Recursos Específicos, Banco Mundial, COSUDE, programas TGN… Una sola fuente por Ingreso (va en la cabecera). Baja lógica: queda referenciada por lotes históricos.
 - **Almacen**: nombre, activo. Cada institución tiene 9+.
-- **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir (prop `mayusculas`, transforma el valor real, no con `text-transform` de CSS) y el service lo normaliza igual, porque la API es la fuente de verdad. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
+- **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir —hoy es el comportamiento por defecto de TODO el sistema, ver "Mayúsculas automáticas"— y el service lo normaliza igual, porque **la API es la fuente de verdad** y el front no es una barrera. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
 - **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
   - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total.
   - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que **NO gestiona los tres catálogos estructurales: Unidades, Almacenes ni Partidas** (cambio del 2026-08-03: antes sí gestionaba Almacenes). Los **lee** —los necesita para poblar los selectores al crear usuarios— pero no los crea, edita ni desactiva. La regla vive en los `@Roles` de cada controlador (escritura `super_admin`, lectura `super_admin` + `admin`) y la espeja `PERMISOS` en el frontend.
@@ -50,7 +50,7 @@ almacenes-institucion/
 - **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`CONFIRMADO`/`ANULADO` — **ya NO hay `BORRADOR`**; el encargado lo quitó el 2026-07-27: se crea definitivo en un solo paso, ver migración `20260727120000_ingresos_sin_borrador`), `numero` + `gestion` (nullable en la BD pero el service los estampa SIEMPRE al crear), `almacen_id`, **`fechaIngreso`** (ver abajo), respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). Los respaldos siguen nullable en la BD pero son **obligatorios**: la regla vive en el service (los exige al crear, como el `cargo` del usuario). `@@unique([almacenId, gestion, numero])`. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
   - **Las TRES fechas del ingreso** (no confundirlas — cambio del 2026-07-29, migración `20260729190000_ingreso_fecha_propia`): **`fechaIngreso`** es la de EFECTO CONTABLE: de ella salen la gestión (y con ella el correlativo), la fecha del movimiento de Kardex y el orden en que se consumen los lotes. **La estampa el backend con el momento del registro: nadie la tipea.** · **`fechaRemision`** es la del documento del proveedor: se sigue pidiendo e imprimiendo, pero **ya NO gobierna nada**. Antes definía la gestión, así que un error de tipeo en el año mandaba el ingreso a otra gestión y descolocaba el libro. · **`createdAt`** es auditoría pura y nunca se corrige.
   - **Solo `super_admin` puede corregir `fechaIngreso`** (`ForbiddenException` para el resto; el caso previsto es el cierre de gestión: material que entró el 28/12 y se registró el 2/1). La corrección va en UNA transacción porque arrastra tres cosas: mueve la fecha de los movimientos de Kardex, y **si cae en otra gestión re-estampa el correlativo** (el número se había asignado en la secuencia de la gestión anterior y ahí no vale). No se admite fecha futura.
-- **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
+- **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). También `imagenUrl` (String?, foto de ESTE lote — ver "Foto por lote" más abajo). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
 - **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
 - **EgresoDetalle**: apunta al **LOTE** (`ingreso_detalle_id`, no al ítem), `cantidadSolicitada` y `cantidadEntregada` (null hasta la entrega; la ajusta SOLO el `responsable_almacen`). **NO lleva observación por línea**, a diferencia de `IngresoDetalle`: lo que hay que aclarar de un pedido va en la `justificacion` de la cabecera, que es obligatoria. La columna existió y se quitó el 2026-07-30 (migración `20260730120000_egreso_detalle_sin_observacion`) por decisión del encargado — no volver a agregarla.
@@ -164,7 +164,15 @@ Un Egreso `APROBADO` se puede anular:
 
 **No existe pantalla de registro (`/register`).** Los usuarios se crean exclusivamente desde el módulo `usuarios` (por `super_admin`/`admin`), con username/password asignados ahí. El frontend solo tiene pantalla de **login** — no hay flujo de auto-registro, recuperación de cuenta por "crear cuenta nueva", ni endpoint público de `POST /auth/register`. La creación de usuarios es siempre una acción administrativa autenticada (`POST /usuarios`, protegido por rol), nunca un endpoint público.
 
-## Imágenes de Ítems (subida de archivos)
+## Imágenes (subida de archivos)
+
+Hay **DOS** fotos y responden preguntas distintas — no se pisan por accidente, se
+pisan a propósito (ver "Foto por lote"):
+
+| Foto | Pregunta que responde | Dónde vive |
+|---|---|---|
+| **Ítem** (catálogo) | ¿Qué TIPO de cosa es esto? | `Item.imagenUrl` → `uploads/items/` |
+| **Lote** (stock) | ¿Qué hay exactamente en ESTA compra? | `IngresoDetalle.imagenUrl` → `uploads/lotes/` |
 
 Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decisiones tomadas (confirmadas con el usuario):
 
@@ -173,9 +181,20 @@ Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decision
 - **Procesamiento**: la imagen subida NUNCA toca disco cruda. Se re-procesa con **`sharp`** (redimensiona a máx. `1024px` lado mayor sin ampliar + convierte a **WebP** calidad 80) y recién el resultado se escribe. Límites: máx. 5 MB de entrada, MIME permitidos `image/jpeg|png|webp`.
 - **Servido**: **estáticas públicas** bajo `/uploads` vía `app.useStaticAssets` en `main.ts`. Quedan **FUERA** del prefijo global de la API y del `JwtAuthGuard` global — decisión deliberada para poder usarlas con `<img src>` directo. Trade-off aceptado: son adivinables solo por fuerza bruta (mitigado por el sufijo aleatorio); son fotos referenciales no sensibles.
 - **Endpoints** (solo `super_admin`/`admin`): `POST /items/:id/imagen` (campo multipart `imagen`; reemplaza y borra la anterior del disco) y `DELETE /items/:id/imagen` (limpia archivo + pone `imagenUrl=null`). El CRUD normal (`PATCH`) NO toca la imagen.
-- **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre el service de items y `main.ts`).
-- **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
-- **Pendiente despliegue**: en `docker-compose.prod.yml`, montar `uploads/` como **volumen** para que las imágenes sobrevivan a reconstrucciones del contenedor.
+- **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre los services de items e ingresos y `main.ts`). El **pipeline** (sharp → WebP, escritura y borrado best-effort) vive en `src/common/uploads/imagenes.ts` y lo comparten los dos: si el tamaño o la calidad se tocaran en un solo lado, la foto del ítem y la del lote que la pisa saldrían con distinto peso y nitidez, una al lado de la otra.
+- **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` y en `IngresoLineas` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
+- **Pendiente despliegue**: en `docker-compose.prod.yml`, montar `uploads/` como **volumen** para que las imágenes sobrevivan a reconstrucciones del contenedor. Cubre las dos subcarpetas (`items/` y `lotes/`). Ojo con el tamaño: las de ítem son una por ítem y se sacan una sola vez; las de lote son **una por línea de cada ingreso y no dejan de acumularse** (un lote agotado hace tres gestiones conserva su archivo). Por eso van en subcarpetas separadas: se pueden medir —y algún día limpiar— sin tocar el catálogo.
+
+### Foto por lote (`IngresoDetalle.imagenUrl`) — 2026-08-07
+
+**Opcional, con fallback**: donde se muestra el material vale `lote.imagenUrl ?? item.imagenUrl`. No hay nada que migrar y un lote sin foto propia sigue mostrando la del catálogo — que es lo correcto para la mayoría de los ítems (papel, bolígrafos), donde todos los lotes se ven igual.
+
+**Por qué existe**: el egreso hace la pregunta de STOCK, no la de catálogo. Si el catálogo tiene botas negras y esta compra trajo azules, la foto del ítem **desinforma** — y eso es peor que no tener foto, porque el propósito de la miniatura es justamente no confundir ítems parecidos. Solo hace falta fotografiar cuando la compra se ve distinta de lo que dice el catálogo, que es cuando además se llena la `observacion`.
+
+- **Endpoints** (`super_admin`/`admin`/`responsable_almacen`, y el service acota por almacén): `POST` y `DELETE /ingresos/:id/detalles/:detalleId/imagen`. El service comprueba que el lote **sea de ese ingreso**: sin eso el id del ingreso en la ruta sería decorativo y se podría tocar un lote de otro almacén pasando un `detalleId` ajeno.
+- **Siguen abiertos con el ingreso ya CONFIRMADO**, y es la ÚNICA excepción a que las líneas queden congeladas: la foto no mueve saldo, precio, correlativo ni Kardex, así que no hay nada contable que corregir anulando. Además es lo que el almacén necesita — registra el ingreso cuando llega el material y carga las fotos después. Un ingreso **ANULADO** sí las bloquea.
+- **Al CREAR, la subida es un segundo paso**: las líneas no tienen id hasta después de la transacción del POST, así que el archivo viaja en el campo `archivo` del formulario (dentro del schema, para que `reset()` lo limpie solo) y `subirFotosPendientes()` lo sube después. El emparejamiento es **posicional** y no puede ser otra cosa: funciona porque el backend crea los lotes en el orden de las líneas y `ingresoFullSelect` los devuelve `orderBy: { id: 'asc' }`. Si falla, el ingreso **ya está registrado**: se avisa qué fotos faltaron y se cargan desde la edición.
+- **`useImagenLote` NO invalida el detalle del ingreso**, a propósito: la página lo vuelca en el formulario con `reset()` dentro de un efecto, así que un refetch borraría lo que el usuario esté escribiendo en la cabecera. La foto recién subida se pisa con un `Map` local (`fotosCambiadas`) — el mismo recurso de `ItemFormDialog`, adaptado a que acá hay varias fotos por pantalla. Sí invalida `stock` y `egresos`, que es donde la foto la ve otro.
 
 ## Roadmap de construcción actual
 
@@ -205,7 +224,16 @@ Con el paso 9 termina todo el backend que NO depende de reglas pendientes.
 - `src/features/auth/`: `AuthProvider` (rehidrata la sesión con `GET /auth/me` al montar),
   hook `useAuth`, `useLogin`, tipos espejo del backend (`Rol`, `AuthUser`) y `auth-storage.ts`.
 - `src/routes/ProtectedRoute.tsx`: `ProtectedRoute` (privadas, recuerda el `from`) y
-  `PublicOnlyRoute` (el login no se ve con sesión abierta).
+  `PublicOnlyRoute` (el login no se ve con sesión abierta). Los dos miran solo la SESIÓN.
+- `src/routes/RutaConPermiso.tsx`: acota una ruta a un `Permiso` (2026-08-07). **Cada ruta lleva el
+  mismo permiso con el que `NavMain` decide mostrar su ítem** — si agregás una pantalla, va en los dos
+  lados. Hasta esa fecha las rutas solo pedían sesión, así que tipear `/kardex` o `/usuarios` con
+  cualquier cuenta abría la pantalla entera y todas sus consultas fallaban con 403. **No es una
+  barrera** (esa es el backend): es para que una URL a mano, un favorito viejo o un enlace pegado en un
+  chat no terminen en una pantalla rota. Muestra un aviso en vez de redirigir en silencio — mandar al
+  inicio sin decir nada se lee como que el enlace está roto.
+  Dos rutas usan un permiso **distinto al de su listado**, porque abrirlas es otra acción:
+  `ingresos/nuevo` va con `ingresosEscribir` y `egresos/nuevo` con `egresosCrear`.
 
 **`GET /auth/me` devuelve el PERFIL, no el token** (cambio del 2026-07-30): va a la BD y agrega
 `nombre`, `cargo`, y `unidad`/`almacen` con sus nombres — el token solo lleva ids, y el nombre de
@@ -220,6 +248,20 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
 - `features/auth/lib/permisos.ts`: mapa `PERMISOS` que **espeja los `@Roles(...)` de cada
   controlador** + helper `tienePermiso(user, permiso)`. La UI solo OCULTA; quien autoriza es el
   backend. Si cambia un `@Roles` allá, hay que actualizar este archivo.
+
+  **Los REPORTES son de `super_admin`, `admin`, `responsable_almacen` y `observador_almacen`**
+  (permiso `reportes`, 2026-08-07) — los cuatro «Registro de ingresos», «Registro de egresos», los dos
+  «Estado de almacenes» y el de kardex. Es **más acotado que ver las pantallas de las que salen**: el
+  `solicitador` y el `aprobador` consultan stock y sus egresos porque lo necesitan para armar y firmar
+  un pedido, pero emitir el registro del almacén no es parte de su trabajo. Ingresos y kardex ya venían
+  así por los `@Roles` de su controlador; **egresos y stock necesitaron un `@Roles` propio en el método
+  `reporte`**, porque el de la clase es más ancho. Acá sí hay endpoint que proteger, a diferencia de
+  `egresosImprimir`.
+
+  **No confundir con los PDF de un DOCUMENTO**, que son otra cosa y siguen sus propias reglas: la *nota
+  de ingreso* se arma con `GET /ingresos/:id` (ya limitado a esos cuatro roles) y la *solicitud de
+  materiales* con `egresosImprimir`, que es **más estricto todavía** —`super_admin`, `admin` y
+  `responsable_almacen`, sin el observador— porque el documento oficial lo emite el almacén.
 - `components/data/DataPagination.tsx`: pie de paginación de los listados (no usa
   `ui/pagination` de shadcn porque ese renderiza `<a href>` y la página es estado local). Trae
   selector de **filas por página** (10/20/30/50) y **números de página con elipsis** (siempre
@@ -270,9 +312,12 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
     derecha) y el pulgar tapando al del modo que no rige — o sea que el mismo movimiento descubre
     uno y cubre el otro, sin lógica de mostrar/esconder. Prendido = oscuro = pulgar a la
     **izquierda**: el sentido lo da el ícono que queda a la vista, no de qué lado cae el pulgar.
-  - **El riel va `bg-foreground`**, el inverso de la página (píldora oscura sobre fondo claro y al
-    revés). Pintarlo del color del MODO —negro en oscuro, como en la referencia que se tomó— es lo
-    que hacía que no se notara: se confundía con el fondo de la cabecera.
+  - **El riel va `bg-primary`**, el verde institucional, en los dos modos (2026-08-07). Fue
+    `bg-foreground` —el inverso de la página— hasta esa fecha: resolvía lo mismo (que el switch se
+    note) pero dejaba una píldora negra en modo claro que se leía como algo apagado y ajeno a la
+    paleta. Los íconos van de `primary-foreground`, el par del riel. Lo que NO hay que hacer es
+    pintarlo del color del MODO —negro en oscuro, como la referencia original—: ahí se confunde con
+    el fondo de la cabecera y no se ve, que era el problema del switch más viejo.
 
 **Módulo `unidades` — YA HECHO** (plantilla a copiar para el resto): `unidades.types.ts`,
 `unidades.schema.ts` (zod espejo del DTO), `unidades.api.ts`, `useUnidades.ts` (queries +
@@ -658,24 +703,106 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   BORRADOR **propio**, y ficha de solo lectura con botonera si no. Qué botones aparecen sale del
   **estado + rol** (`puedeAprobar`, `puedeEntregar`, `puedeAnular`), no de un permiso global: el mismo
   usuario ve «Aprobar» en un pedido y nada en otro.
-- **El listado abre en la bandeja** para quien decide algo (`pendientesMios=true`): al aprobador le
-  muestra lo que espera su firma y al responsable lo listo para entregar. Se puede apagar con el botón
-  «Solo mi bandeja».
+- **El listado se organiza en PESTAÑAS por etapa del ciclo** (2026-08-07). Reemplazaron al par «botón
+  Solo mi bandeja + selector de estados»: eran dos controles con formas distintas contestando la misma
+  pregunta —«¿qué quiero ver?»— que además se pisaban, y por eso el botón de Reporte tenía que cambiar
+  los dos por atrás.
+
+  | Pestaña | Estados | Nota |
+  |---|---|---|
+  | **Mi bandeja** | (según rol) | Filtra con `pendientesMios`, no con estados: la regla es del backend (`filtroBandeja`) |
+  | **Sin enviar** | `BORRADOR` | Solo para el `solicitador` |
+  | **En curso** | `PENDIENTE_APROBADOR` + `PENDIENTE_RESPONSABLE_ALMACEN` | Lo que ya circula. **Era lo que no se podía expresar antes** |
+  | **Cerrados** | `ENTREGADO` + `ANULADO` | Los que movieron stock. Es de lo que se hace el reporte |
+  | **Todos** | — | El cajón |
+
+  **«Mi bandeja» NO es un grupo hermano de los otros: es el subconjunto de «En curso» que espera una
+  decisión mía.** Entender eso es lo que ordena todo el diseño — mientras era un botón al lado del
+  selector de estados, no había forma de que la pantalla lo dijera.
+
+  `BORRADOR` queda fuera de «En curso» a propósito: sin enviar no tiene número, no es un documento y
+  solo le importa a su dueño; meterlo ahí le llenaría la vista al almacén de pedidos que quizás nunca
+  se envíen. **Qué pestañas ve cada rol** lo decide `vistasDe()`: el solicitador cambia bandeja por
+  «Sin enviar»; admin, super_admin y observador no llevan ninguna de las dos, porque nada los espera.
+
+  **El selector de estado sigue existiendo pero ACOTADO a la pestaña**: solo ofrece los estados de la
+  etapa que se mira, así no se puede armar una combinación imposible (Cerrados + Pendiente de envío)
+  que devuelva cero filas sin decir por qué. En «Mi bandeja» ni se muestra: esa pestaña ya ES un
+  estado. Cambiar de pestaña **limpia** el estado elegido — los de una etapa no existen en la otra.
+- **Los números de las pestañas salen de `GET /egresos/resumen`**, endpoint propio y no derivado del
+  listado: el listado está paginado y filtrado, así que su `total` responde a lo que se esté mirando,
+  no a cuánto hay en las otras etapas. Devuelve `bandeja` (**`null`** si el rol no tiene — distinto de
+  `0`, que sería «te corresponde y está vacía»), `sinEnviar`, `enCurso` y `cerrados`, todo dentro del
+  alcance del usuario. **Sin los números las pestañas no resuelven el problema que las motivó**: abrir
+  la bandeja vacía y no saber que había trabajo en otra parte.
+- **El mismo resumen alimenta el BADGE del menú lateral** (`NavMain`), con el número de la bandeja al
+  lado de «Egresos». Vive ahí y no en la pantalla a propósito: la gracia es enterarte de que tenés
+  trabajo **sin entrar al módulo**. Solo se pide a los roles con bandeja propia (`enabled`) y solo se
+  dibuja con algo pendiente — un «0» permanente es ruido. Cuelga de `egresosKeys.all`, así que toda
+  mutación de egresos ya lo invalida: aprobar un pedido baja el número solo.
+  **Se descartó ponerle un desplegable al ítem del menú** con las tres vistas: la barra lateral es el
+  mapa de los MÓDULOS, y los filtros van pegados a los datos. Si Egresos tuviera tres puertas, ¿por qué
+  no Ingresos o Stock? El menú dejaría de ser un mapa y sería un árbol; y los contadores obligarían a
+  consultar egresos en todas las pantallas del sistema.
+- **El botón «Reporte» LLEVA a la pestaña «Cerrados»** (2026-08-07). El registro es de lo que salió del
+  almacén: entregados y anulados. **No era cosmético** — el total sumaba pedidos pendientes, material
+  que sigue en la estantería, y encima por la cantidad SOLICITADA, que ni siquiera es la que va a salir
+  (la ajusta el responsable al entregar); un borrador, además, salía con «—» donde va el número. Mueve
+  la **pantalla** en vez de filtrar solo el PDF para que los dos sigan diciendo lo mismo —la razón por
+  la que `filtros` es un objeto único— y para que se vea por qué el listado cambió.
+- **El filtro `estado` admite VARIOS valores**, separados por coma (`?estado=ENTREGADO,ANULADO`). El DTO
+  lo normaliza con `toStringArray` (`common/dto/transforms.ts`) y valida con `@IsEnum(..., { each: true })`;
+  el service usa `estado: { in: [...] }` siempre, porque uno solo es el caso de un elemento — mandarlo
+  suelto sigue funcionando. En el frontend las listas son `ESTADOS_CON_MOVIMIENTO` y `ESTADOS_EN_CURSO`
+  (`egresos.types.ts`), y las aporta la pestaña. `egresos.api.ts` lo serializa con coma en `aParams()`
+  y no deja que lo haga axios (mandaría `estado[]=A&estado[]=B`, que hoy también anda pero depende de
+  cómo esté configurado el parser de query de Express y no se ve en ningún lado).
+- **Las tarjetas del Inicio siguen funcionando igual de finas**: un `?estado=X` abre SU pestaña y queda
+  elegido dentro de ella (`vistaDe()`), así que el enlace no pierde precisión.
+- **La bandeja vacía ofrece la salida donde está el ojo**: el mensaje «No tenés pedidos esperando tu
+  decisión» lleva un botón que nombra lo que hay del otro lado («Ver los 7 pedidos en curso»), y solo
+  aparece si de verdad hay algo. Las pestañas ya muestran el número, pero el que mira una tabla vacía
+  está mirando la tabla, no la barra de arriba.
 - **`useBuscarLotes`** (en `hooks/`) alimenta el selector: pide `GET /stock` de a 30 ítems y aplana a
   lotes, **descartando los de `disponible === 0`**. El sistema anterior ofrecía lotes agotados y de ahí
   salen sus saldos negativos. Como el combo busca contra el servidor, `EgresoLineas` recibe
   `lotesIniciales` (los del propio pedido): sin ellos un lote ya elegido aparecería en blanco — y encima
   puede estar en cero justamente porque **este** pedido lo reservó.
-- **La etiqueta del lote es `descripción — disp. N unidad` + la FUENTE, y nada más** (2026-07-30). Ni la
+- **La etiqueta del lote es `descripción` + la NOTA resaltada + `disp. N unidad · fuente` en gris**
+  (2026-07-30; la nota se sumó el 2026-08-07). Ni la
   fecha ni el número de ingreso: el selector viejo los traía y solo alargaban la línea — para elegir de
   dónde sale el material lo que decide es la fuente, que es de quien hay que rendir la plata. El número
   sigue estando donde importa (el diálogo de la foto y la ficha del pedido). No reponerlos.
-- **El lote muestra la FOTO del ítem**: miniatura en cada opción de la lista desplegada y junto a la
+- **La observación del LOTE es lo único que distingue dos lotes del mismo ítem** (comparten código,
+  descripción y —salvo foto propia— también la imagen), así que se muestra en TODOS lados. Es del
+  **lote**, no de la línea de egreso, que no lleva observación propia a propósito.
+  - En el **selector** va en `ComboboxOption.nota`, que el combo dibuja como **etiqueta con fondo**
+    (`EtiquetaOpcion`), en la lista y también en el botón cerrado. Antes iba entre paréntesis dentro
+    del `label`, en el mismo tono que el resto, y se leía como parte del nombre del ítem — o sea que
+    no cumplía su única función. Si el resaltado fuera solo de la lista desaparecería justo al
+    elegir, que es cuando conviene seguir viendo cuál se eligió.
+    **La etiqueta es NEUTRA (gris), no del color de acción**: la fila resaltada de la lista se pinta
+    con ese mismo color, así que una etiqueta primaria quedaba color sobre color y desaparecía justo
+    en la opción que se está mirando. Sobre la fila resaltada invierte al par `accent`/
+    `accent-foreground`, igual que la descripción.
+  - En **texto** va como `DESCRIPCIÓN (nota)` vía `descripcionConNota()` (`egresos.types.ts`), la
+    misma convención con la que la nota de ingreso imprime la suya. La usan el título del diálogo de
+    la foto, la ficha, `EntregaDialog` y el PDF de la solicitud. Mostrarla en uno solo deja al que
+    ENTREGA sin el dato que tuvo el que pidió.
+  - **Límite conocido**: el buscador del servidor no la mira (`q` va contra código y descripción del
+    ítem); haría falta su propio índice GIN. El filtro local de cmdk sí (está en `textoCmdk`).
+- **El lote muestra su FOTO**: miniatura en cada opción de la lista desplegada y junto a la
   línea elegida, ampliable en un diálogo (`FotoLote` en `EgresoLineas`). Sirve para no confundir ítems
-  de descripción casi igual. La foto viaja como `item.imagenUrl` en `GET /stock` y en `GET /egresos/:id`,
-  y se vuelve URL absoluta con `urlArchivo()` (las estáticas van fuera del prefijo de la API). El soporte
+  de descripción casi igual. Es **`lote.imagenUrl ?? item.imagenUrl`** (ver "Foto por lote" arriba): manda
+  la del lote si le sacaron una al recibirlo, y si no cae en la del catálogo. Las dos viajan en
+  `GET /stock` y en `GET /egresos/:id`,
+  y se vuelven URL absoluta con `urlArchivo()` (las estáticas van fuera del prefijo de la API). El soporte
   es del `ComboboxField` compartido (`ComboboxOption.imagen`): si **alguna** opción trae foto, las que no
   muestran un marco vacío del mismo tamaño para que las filas no queden en zigzag.
+  **La ficha del pedido también la muestra**, como primera columna de la tabla de líneas
+  (`MiniaturaLote` en `EgresoFormPage`, `size-10`, sin rótulo en el encabezado — la miniatura se
+  explica sola). Usa el mismo fallback; sin ninguna foto dibuja un marco vacío del mismo tamaño para
+  que las filas no cambien de alto.
   **El botón cerrado del combo NO lleva miniatura**: lo haría más alto que los campos vecinos y
   desalinearía toda la fila. `FotoLote` va **fuera del grid**, como bloque flex de la tarjeta, y mide
   `size-16` = 64 px: el alto exacto de un campo con su rótulo (20 + 8 + 36), así llena la tarjeta de
@@ -822,6 +949,32 @@ NO construir todavía: `reportes` — falta definir cuáles se necesitan.
   - `ComboboxField` es obligatorio para elegir Ítem (catálogo grande, un `<select>` normal no escala).
   - Las líneas dinámicas (`useFieldArray`) YA están hechas, pero **una por módulo**: `IngresoLineas` y `EgresoLineas`. No se compartieron porque piden cosas distintas — el ingreso elige ÍTEM y captura precio y observación; el egreso elige LOTE, muestra el disponible y la foto, y no lleva observación.
 - Validación con Zod; el schema de cada formulario debe reflejar el DTO/`class-validator` del backend correspondiente, para no duplicar reglas desalineadas entre frontend y backend.
+
+### Mayúsculas automáticas (2026-08-07)
+
+**Todo campo de texto libre del sistema fuerza MAYÚSCULAS mientras se escribe**, para que la carga
+quede uniforme sin depender de quién tipea: así figuran los datos en los documentos de la institución.
+Rige en `InputField` (por defecto solo si `type="text"`) y en `TextareaField` (siempre). Transforma el
+**valor real** del formulario, no con `text-transform` de CSS — eso es maquillaje y enviaría minúsculas
+al backend.
+
+Atarlo al `type` y no a un `?? true` pelado es deliberado: un campo nuevo con `type="password"` o
+`"email"` no puede heredar el comportamiento sin que alguien lo decida.
+
+**Las dos excepciones, y no hay que sacarlas**: el campo *Usuario* del **login** y el de **alta de
+usuarios**, los dos con `mayusculas={false}`. El backend busca la cuenta con `findUnique` sobre ese
+valor exacto (`auth.service`), así que forzarlo dejaría a todos afuera, y crear cuentas en mayúsculas
+las dejaría sin coincidir con las existentes (`pedro.ferrano`). No es un dato de documento: es un
+identificador técnico.
+
+Los **buscadores** de los listados quedan fuera porque no usan `InputField` sino un `Input` suelto con
+su propio estado. Da igual funcionalmente —la búsqueda del backend ignora mayúsculas y acentos
+(`f_unaccent(col) ILIKE`)— y forzarlas ahí solo se vería agresivo.
+
+**Ojo, el front no es una barrera**: el service sigue normalizando `nombre` y `cargo` porque la API es
+la fuente de verdad. Los demás campos hoy dependen solo de la UI — un POST directo a la API puede
+guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una decisión por campo
+(usuario y códigos NO se tocan).
 
 ## Documentos de análisis y decisiones (leer antes de tocar ingresos/egresos/stock)
 
