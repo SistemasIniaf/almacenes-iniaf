@@ -4,9 +4,11 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
+  FileText,
   Loader2,
   Printer,
   Search,
+  Sheet,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +34,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DataPagination } from "@/components/data/DataPagination"
@@ -48,12 +52,30 @@ import {
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { usePagination } from "@/hooks/use-pagination"
 import { getApiErrorMessage } from "@/lib/api"
-import { cantidad, moneda, precio } from "@/lib/formato"
+import { cantidad, moneda, numeroDocumento, precio } from "@/lib/formato"
 
-import type { TipoReporteStock } from "@/features/stock/useStock"
+import type {
+  FormatoReporte,
+  TipoReporteStock,
+} from "@/features/stock/useStock"
 import type { ItemStock, LoteStock } from "@/features/stock/stock.types"
 
 const TODOS = "todos"
+
+/** Los dos reportes del sistema anterior; cada uno sale en PDF y en Excel. */
+const REPORTES: { tipo: TipoReporteStock; titulo: string; detalle: string }[] =
+  [
+    {
+      tipo: "detalle",
+      titulo: "Estado de almacenes consolidado por ítem",
+      detalle: "Detalle de cada ítem, con su fuente, agrupado por partida.",
+    },
+    {
+      tipo: "consolidado",
+      titulo: "Estado de almacenes consolidado por partida",
+      detalle: "Resumen valorizado por partida y fuente, sin ítems.",
+    },
+  ]
 
 const fecha = (iso: string | null) =>
   iso
@@ -64,11 +86,8 @@ const fecha = (iso: string | null) =>
       })
     : "—"
 
-/** `001/2026`, igual que en la nota de ingreso. */
-const etiquetaIngreso = (lote: LoteStock) =>
-  lote.ingreso.numero != null && lote.ingreso.gestion != null
-    ? `${String(lote.ingreso.numero).padStart(3, "0")}/${lote.ingreso.gestion}`
-    : "—"
+/** `001-2026`, igual que en la nota de ingreso. */
+const etiquetaIngreso = (lote: LoteStock) => numeroDocumento(lote.ingreso)
 
 const valorLote = (lote: LoteStock) =>
   Number(lote.saldoCantidad) * Number(lote.precioUnitario)
@@ -117,7 +136,7 @@ export function StockPage() {
   const { abrirReporte, generando: generandoReporte } = useReporteStock()
 
   /** Emite un reporte con los filtros que estén puestos en la pantalla. */
-  function imprimir(tipo: TipoReporteStock) {
+  function imprimir(tipo: TipoReporteStock, formato: FormatoReporte) {
     void abrirReporte(
       tipo,
       {
@@ -128,7 +147,8 @@ export function StockPage() {
       // igual que la entrada aparte que tiene el sistema anterior.
       almacenId === TODOS
         ? null
-        : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? "—")
+        : (almacenes.find((a) => String(a.id) === almacenId)?.nombre ?? "—"),
+      formato
     )
   }
 
@@ -187,29 +207,35 @@ export function StockPage() {
                 <ChevronDown className="size-4 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
+            {/* Dos reportes por dos formatos serían cuatro entradas sueltas y
+                sin jerarquía. Van agrupadas: el rótulo dice QUÉ reporte —los
+                nombres los fijó la institución, y dicen por qué eje agrupa cada
+                uno— y debajo en qué formato sale. */}
             <DropdownMenuContent align="end" className="w-72">
-              {/* Los dos nombres los fijó la institución: dicen por qué eje
-                agrupa cada uno, que es lo único que los diferencia. */}
-              <DropdownMenuItem onClick={() => imprimir("detalle")}>
-                <div>
-                  <div className="font-medium">
-                    Estado de almacenes consolidado por ítem
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Detalle de cada ítem, con su fuente, agrupado por partida.
-                  </div>
+              {REPORTES.map((reporte, indice) => (
+                <div key={reporte.tipo}>
+                  {indice > 0 && <DropdownMenuSeparator />}
+                  <DropdownMenuLabel className="pb-0">
+                    <div className="font-medium">{reporte.titulo}</div>
+                    <div className="text-xs font-normal text-muted-foreground">
+                      {reporte.detalle}
+                    </div>
+                  </DropdownMenuLabel>
+                  {(["pdf", "excel"] as const).map((formato) => (
+                    <DropdownMenuItem
+                      key={formato}
+                      onClick={() => imprimir(reporte.tipo, formato)}
+                    >
+                      {formato === "pdf" ? (
+                        <FileText className="size-4" />
+                      ) : (
+                        <Sheet className="size-4" />
+                      )}
+                      {formato === "pdf" ? "PDF" : "Excel"}
+                    </DropdownMenuItem>
+                  ))}
                 </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => imprimir("consolidado")}>
-                <div>
-                  <div className="font-medium">
-                    Estado de almacenes consolidado por partida
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Resumen valorizado por partida y fuente, sin ítems.
-                  </div>
-                </div>
-              </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         )}

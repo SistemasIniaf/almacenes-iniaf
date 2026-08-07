@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
+  ChevronDown,
   TrendingUp,
   FileSpreadsheet,
   Inbox,
@@ -10,6 +11,7 @@ import {
   FileText,
   Search,
   Send,
+  Sheet,
   Trash2,
 } from "lucide-react"
 
@@ -24,6 +26,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -42,6 +50,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { BadgeEstado } from "@/components/data/BadgeEstado"
+import { NumeroDocumento } from "@/components/data/NumeroDocumento"
 import { DataPagination } from "@/components/data/DataPagination"
 import { DateRangeFilter } from "@/components/data/DateRangeFilter"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
@@ -62,7 +71,6 @@ import {
   ESTADOS_CON_MOVIMIENTO,
   ESTADO_LABEL,
   ESTADO_PUNTO,
-  etiquetaNumero,
 } from "@/features/egresos/egresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
@@ -227,53 +235,83 @@ export function EgresosPage() {
               de su trabajo. `GET /egresos/reporte` los rechaza igual — esto solo
               evita ofrecer un botón que va a fallar. */}
           {puedeReportar && (
-            <Button
-              variant="outline"
-              title="Registro de lo que salió del almacén: entregados y anulados."
-              onClick={() => {
-                // Al apretar Reporte se ajustan DOS filtros, por la misma razón:
-                // ninguno de los dos dice CUÁLES documentos, que es lo único que
-                // define un registro de archivo (2026-08-07).
-                //
-                // - **La bandeja** («de quién es el turno ahora») se apaga siempre.
-                //   Para el aprobador y el responsable la pantalla abre con ella
-                //   puesta, así que el primer clic salía en blanco y no había forma
-                //   de adivinar que el arreglo era apagar un botón que nada
-                //   relacionaba con el papel.
-                // - **El estado** pasa a «entregados y anulados» SOLO si estaba en
-                //   «todos»: son los dos que movieron stock. Sumar un pendiente al
-                //   total es contar material que sigue en la estantería, y encima
-                //   por la cantidad SOLICITADA — la entregada la ajusta el
-                //   responsable recién al entregar. Un borrador, además, ni número
-                //   tiene. Si el usuario eligió un estado a propósito se respeta,
-                //   y el papel sale con lo que ve.
-                //
-                // Se ajusta la PANTALLA en vez de pisar los filtros solo del PDF
-                // para que los dos sigan diciendo lo mismo —la razón por la que
-                // `filtros` es un objeto único— y para que se vea por qué cambió.
-                const paraElPapel: FiltrosEgresos = {
-                  ...filtros,
-                  pendientesMios: undefined,
-                  estado:
-                    estado === TODOS ? ESTADOS_CON_MOVIMIENTO : filtros.estado,
-                }
-                if (soloBandeja || estado === TODOS) {
-                  cambiarFiltro(() => {
-                    setSoloBandeja(false)
-                    if (estado === TODOS) setEstado(MOVIMIENTO)
-                  })
-                }
-                abrirReporte(paraElPapel, almacenReporte)
-              }}
-              disabled={generandoReporte}
-            >
-              {generandoReporte ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <FileSpreadsheet className="size-4" />
-              )}
-              Reporte
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={generandoReporte}
+                  title="Registro de lo que salió del almacén: entregados y anulados."
+                >
+                  {generandoReporte ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="size-4" />
+                  )}
+                  Reporte
+                  <ChevronDown className="size-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {(["pdf", "excel"] as const).map((formato) => (
+                  <DropdownMenuItem
+                    key={formato}
+                    onClick={() => {
+                      // Al apretar Reporte se ajustan DOS filtros, por la misma razón:
+                      // ninguno de los dos dice CUÁLES documentos, que es lo único que
+                      // define un registro de archivo (2026-08-07).
+                      //
+                      // - **La bandeja** («de quién es el turno ahora») se apaga siempre.
+                      //   Para el aprobador y el responsable la pantalla abre con ella
+                      //   puesta, así que el primer clic salía en blanco y no había forma
+                      //   de adivinar que el arreglo era apagar un botón que nada
+                      //   relacionaba con el papel.
+                      // - **El estado** pasa a «entregados y anulados» SOLO si estaba en
+                      //   «todos»: son los dos que movieron stock. Sumar un pendiente al
+                      //   total es contar material que sigue en la estantería, y encima
+                      //   por la cantidad SOLICITADA — la entregada la ajusta el
+                      //   responsable recién al entregar. Un borrador, además, ni número
+                      //   tiene. Si el usuario eligió un estado a propósito se respeta,
+                      //   y el papel sale con lo que ve.
+                      //
+                      // Se ajusta la PANTALLA en vez de pisar los filtros solo del PDF
+                      // para que los dos sigan diciendo lo mismo —la razón por la que
+                      // `filtros` es un objeto único— y para que se vea por qué cambió.
+                      const paraElPapel: FiltrosEgresos = {
+                        ...filtros,
+                        pendientesMios: undefined,
+                        estado:
+                          estado === TODOS
+                            ? ESTADOS_CON_MOVIMIENTO
+                            : filtros.estado,
+                      }
+                      if (soloBandeja || estado === TODOS) {
+                        cambiarFiltro(() => {
+                          setSoloBandeja(false)
+                          if (estado === TODOS) setEstado(MOVIMIENTO)
+                        })
+                      }
+                      abrirReporte(paraElPapel, almacenReporte, formato)
+                    }}
+                  >
+                    {formato === "pdf" ? (
+                      <FileText className="size-4" />
+                    ) : (
+                      <Sheet className="size-4" />
+                    )}
+                    <div>
+                      <div className="font-medium">
+                        {formato === "pdf" ? "PDF" : "Excel"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formato === "pdf"
+                          ? "Para imprimir y archivar."
+                          : "Mismo formato, con filtros y totales calculables."}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           {puedeCrear && (
             <Button onClick={() => navigate("/egresos/nuevo")}>
@@ -441,8 +479,11 @@ export function EgresosPage() {
                   className="cursor-pointer"
                   onClick={() => navigate(`/egresos/${egreso.id}`)}
                 >
-                  <TableCell className="font-medium whitespace-nowrap">
-                    {etiquetaNumero(egreso)}
+                  <TableCell className="whitespace-nowrap">
+                    <NumeroDocumento
+                      numero={egreso.numero}
+                      gestion={egreso.gestion}
+                    />
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">
                     {fecha(egreso.fechaEnvio ?? egreso.createdAt)}

@@ -43,6 +43,9 @@ export function usePartidasConStock(query: QueryStock) {
  */
 export type TipoReporteStock = "detalle" | "consolidado"
 
+/** En qué formato se emite. El contenido es el mismo en los dos. */
+export type FormatoReporte = "pdf" | "excel"
+
 export function useReporteStock() {
   const [generando, setGenerando] = useState(false)
   const { user } = useAuth()
@@ -50,11 +53,13 @@ export function useReporteStock() {
   async function abrirReporte(
     tipo: TipoReporteStock,
     query: QueryStock,
-    almacen: string | null
+    almacen: string | null,
+    formato: FormatoReporte = "pdf"
   ) {
     // La pestaña se abre AHORA, dentro del gesto del clic: después de generar,
-    // el navegador la bloquearía como emergente.
-    const ventana = window.open("", "_blank")
+    // el navegador la bloquearía como emergente. El Excel NO abre pestaña: el
+    // navegador no lo renderiza, así que se descarga.
+    const ventana = formato === "pdf" ? window.open("", "_blank") : null
     setGenerando(true)
     try {
       // Los dos reportes salen del MISMO dato: el consolidado es una
@@ -65,6 +70,19 @@ export function useReporteStock() {
         almacen,
         emitidoEn: new Date(),
         usuario: user?.nombre ?? "—",
+      }
+
+      if (formato === "excel") {
+        const descargar =
+          tipo === "consolidado"
+            ? await import("@/features/stock/lib/estado-consolidado-excel").then(
+                (m) => m.descargarEstadoConsolidadoExcel
+              )
+            : await import("@/features/stock/lib/estado-almacenes-excel").then(
+                (m) => m.descargarEstadoAlmacenesExcel
+              )
+        await descargar(datos)
+        return
       }
 
       const { crear, nombre } =

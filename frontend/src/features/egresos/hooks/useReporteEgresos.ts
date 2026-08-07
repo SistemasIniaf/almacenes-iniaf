@@ -15,6 +15,9 @@ import type { QueryEgresos } from "@/features/egresos/egresos.types"
  */
 export type FiltrosEgresos = Omit<QueryEgresos, "page" | "pageSize">
 
+/** En qué formato se emite. El contenido es el mismo en los dos. */
+export type FormatoReporte = "pdf" | "excel"
+
 /**
  * Genera el reporte «Registro de egresos» y lo abre en una PESTAÑA nueva, con
  * el visor del navegador. Hermano de `useReporteIngresos`.
@@ -23,10 +26,15 @@ export function useReporteEgresos() {
   const [generando, setGenerando] = useState(false)
   const { user } = useAuth()
 
-  async function abrirReporte(filtros: FiltrosEgresos, almacen: string | null) {
+  async function abrirReporte(
+    filtros: FiltrosEgresos,
+    almacen: string | null,
+    formato: FormatoReporte = "pdf"
+  ) {
     // La pestaña se abre AHORA, dentro del gesto del clic: si se abriera
-    // después de generar, el navegador la bloquearía como emergente.
-    const ventana = abrirPestanaPdf()
+    // después de generar, el navegador la bloquearía como emergente. El Excel
+    // NO abre pestaña: el navegador no lo renderiza, así que se descarga.
+    const ventana = formato === "pdf" ? abrirPestanaPdf() : null
     setGenerando(true)
     try {
       const filas = await reporteEgresos(filtros)
@@ -40,6 +48,13 @@ export function useReporteEgresos() {
       }
 
       // pdfmake se carga sólo acá: no pesa en el bundle de quien no imprime.
+      if (formato === "excel") {
+        const { descargarReporteEgresosExcel } =
+          await import("@/features/egresos/lib/reporte-egresos-excel")
+        await descargarReporteEgresosExcel(datos)
+        return
+      }
+
       const { crearReporteEgresosPdf, nombreArchivoReporteEgresos } =
         await import("@/features/egresos/lib/reporte-egresos-pdf")
 

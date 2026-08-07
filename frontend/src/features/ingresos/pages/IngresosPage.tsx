@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
+  ChevronDown,
   Eye,
   FileSpreadsheet,
   FileText,
@@ -8,10 +9,18 @@ import {
   Pencil,
   Plus,
   Search,
+  Sheet,
 } from "lucide-react"
 
 import { BadgeEstado } from "@/components/data/BadgeEstado"
+import { NumeroDocumento } from "@/components/data/NumeroDocumento"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -39,11 +48,7 @@ import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useIngresos } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
 import { useReporteIngresos } from "@/features/ingresos/hooks/useReporteIngresos"
-import {
-  ESTADO_LABEL,
-  ESTADO_PUNTO,
-  etiquetaNumero,
-} from "@/features/ingresos/ingresos.types"
+import { ESTADO_LABEL, ESTADO_PUNTO } from "@/features/ingresos/ingresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
 import { aIsoLocal } from "@/lib/fechas"
@@ -102,10 +107,7 @@ export function IngresosPage() {
   const busquedaDiferida = useDebouncedValue(busqueda)
 
   const { abrirNota, generandoId } = useNotaIngreso()
-  const {
-    abrirReporte,
-    generando: generandoReporte,
-  } = useReporteIngresos()
+  const { abrirReporte, generando: generandoReporte } = useReporteIngresos()
 
   // Solo hace falta para el selector, así que se pide únicamente a quien lo ve.
   const { data: almacenes = [] } = useAlmacenesActivos({
@@ -161,19 +163,46 @@ export function IngresosPage() {
         </div>
         <div className="flex items-center gap-2">
           {/* Fuera del `puedeEscribir`: el reporte es lectura, así que también
-              lo saca el observador de almacén. */}
-          <Button
-            variant="outline"
-            onClick={() => abrirReporte(filtros, almacenReporte)}
-            disabled={generandoReporte}
-          >
-            {generandoReporte ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <FileSpreadsheet className="size-4" />
-            )}
-            Reporte
-          </Button>
+              lo saca el observador de almacén. Los dos formatos llevan el mismo
+              contenido —membrete, título y tabla—; el Excel además viene con
+              autofiltro y los importes como números. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={generandoReporte}>
+                {generandoReporte ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="size-4" />
+                )}
+                Reporte
+                <ChevronDown className="size-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                onClick={() => abrirReporte(filtros, almacenReporte, "pdf")}
+              >
+                <FileText className="size-4" />
+                <div>
+                  <div className="font-medium">PDF</div>
+                  <div className="text-xs text-muted-foreground">
+                    Para imprimir y archivar.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => abrirReporte(filtros, almacenReporte, "excel")}
+              >
+                <Sheet className="size-4" />
+                <div>
+                  <div className="font-medium">Excel</div>
+                  <div className="text-xs text-muted-foreground">
+                    Mismo formato, con filtros y totales calculables.
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {puedeEscribir && (
             <Button onClick={() => navigate("/ingresos/nuevo")}>
               <Plus className="size-4" />
@@ -188,9 +217,7 @@ export function IngresosPage() {
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={busqueda}
-            onChange={(e) =>
-              cambiarFiltro(() => setBusqueda(e.target.value))
-            }
+            onChange={(e) => cambiarFiltro(() => setBusqueda(e.target.value))}
             placeholder="Buscar por C31 / certificación / observación..."
             className="pl-9"
             aria-label="Buscar ingresos"
@@ -295,7 +322,10 @@ export function IngresosPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-destructive"
                 >
-                  {getApiErrorMessage(error, "No se pudieron cargar los ingresos.")}
+                  {getApiErrorMessage(
+                    error,
+                    "No se pudieron cargar los ingresos."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -306,9 +336,7 @@ export function IngresosPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
-                  {estado !== "todos" ||
-                  almacenId !== TODOS ||
-                  busquedaDiferida
+                  {estado !== "todos" || almacenId !== TODOS || busquedaDiferida
                     ? "Ningún ingreso con esos filtros."
                     : "Todavía no hay ingresos registrados."}
                 </TableCell>
@@ -322,8 +350,11 @@ export function IngresosPage() {
                   className="cursor-pointer"
                   onClick={() => navigate(`/ingresos/${ingreso.id}`)}
                 >
-                  <TableCell className="font-medium whitespace-nowrap">
-                    {etiquetaNumero(ingreso)}
+                  <TableCell className="whitespace-nowrap">
+                    <NumeroDocumento
+                      numero={ingreso.numero}
+                      gestion={ingreso.gestion}
+                    />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {fecha(ingreso.fechaIngreso)}
@@ -351,7 +382,7 @@ export function IngresosPage() {
                   <TableCell className="w-full max-w-0 text-xs leading-snug whitespace-normal text-muted-foreground">
                     {ingreso.observacion || "—"}
                   </TableCell>
-                  <TableCell className="text-right font-medium tabular-nums whitespace-nowrap">
+                  <TableCell className="text-right font-medium whitespace-nowrap tabular-nums">
                     {importe(ingreso.total)}
                   </TableCell>
                   <TableCell>
@@ -422,11 +453,8 @@ export function IngresosPage() {
         />
       )}
 
-      
-
       {/* Visor propio: nunca están abiertos los dos a la vez, pero cada hook
           maneja su object URL y lo revoca al cerrarse. */}
-      
     </div>
   )
 }

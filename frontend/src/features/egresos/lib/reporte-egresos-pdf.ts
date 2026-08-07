@@ -7,6 +7,7 @@ import {
   fechaCorta,
   membreteRepetido,
   moneda,
+  numeroDocumento,
   pieReporte,
 } from "@/lib/reporte-comun"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
@@ -35,11 +36,12 @@ export interface DatosReporteEgresos extends DatosReporte {
   hasta?: string
 }
 
-/** Etiqueta impresa del número: 001/2026. Un borrador todavía no tiene. */
-const numeroDocumento = (fila: FilaReporteEgreso) =>
-  fila.numero != null && fila.gestion != null
-    ? `${String(fila.numero).padStart(3, "0")}/${fila.gestion}`
-    : "s/n"
+/**
+ * Un borrador todavía no tiene número, y en el papel «s/n» se lee mejor que el
+ * «—» que devuelve el helper compartido.
+ */
+const numeroImpreso = (fila: FilaReporteEgreso) =>
+  fila.numero != null ? numeroDocumento(fila) : "s/n"
 
 /** `YYYY-MM-DD` → 01/01/2026, sin que la zona horaria corra el día. */
 const fechaIso = (iso: string) => {
@@ -125,7 +127,7 @@ export async function definicionReporteEgresos(
 
     cuerpo.push([
       { text: String(indice + 1), alignment: "center", color },
-      { text: numeroDocumento(fila), alignment: "center", color },
+      { text: numeroImpreso(fila), alignment: "center", color },
       {
         // La misma fecha que muestra el listado: la de envío y, mientras es
         // borrador, la de creación.

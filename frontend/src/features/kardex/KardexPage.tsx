@@ -1,10 +1,16 @@
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
-import { Loader2, Printer } from "lucide-react"
+import { ChevronDown, FileText, Loader2, Printer, Sheet } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -194,20 +200,48 @@ export function KardexPage() {
         {/* No exige ítem elegido —sin él sale el almacén entero— pero sí lo
             respeta cuando lo hay. El almacén es lo único obligatorio, y el
             responsable ya lo tiene resuelto. */}
-        <Button
-          type="button"
-          variant="outline"
-          className="shrink-0"
-          disabled={generandoReporte || (!esResponsable && !almacenId)}
-          onClick={() => void abrirReporte(filtros)}
-        >
-          {generandoReporte ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Printer className="size-4" />
-          )}
-          Reporte
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              disabled={generandoReporte || (!esResponsable && !almacenId)}
+            >
+              {generandoReporte ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Printer className="size-4" />
+              )}
+              Reporte
+              <ChevronDown className="size-4 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {(["pdf", "excel"] as const).map((formato) => (
+              <DropdownMenuItem
+                key={formato}
+                onClick={() => void abrirReporte(filtros, formato)}
+              >
+                {formato === "pdf" ? (
+                  <FileText className="size-4" />
+                ) : (
+                  <Sheet className="size-4" />
+                )}
+                <div>
+                  <div className="font-medium">
+                    {formato === "pdf" ? "PDF" : "Excel"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {formato === "pdf"
+                      ? "Una hoja por ítem, para archivar."
+                      : "Mismo formato, con los saldos calculables."}
+                  </div>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/*

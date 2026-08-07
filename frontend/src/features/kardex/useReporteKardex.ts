@@ -14,14 +14,21 @@ import type { QueryReporteKardex } from "@/features/kardex/kardex.types"
  * A diferencia de la pantalla, el reporte NO exige un ítem: sale de todos los
  * del almacén, un bloque por ítem y fuente.
  */
+/** En qué formato se emite. El contenido es el mismo en los dos. */
+export type FormatoReporte = "pdf" | "excel"
+
 export function useReporteKardex() {
   const [generando, setGenerando] = useState(false)
   const { user } = useAuth()
 
-  async function abrirReporte(query: QueryReporteKardex) {
+  async function abrirReporte(
+    query: QueryReporteKardex,
+    formato: FormatoReporte = "pdf"
+  ) {
     // La pestaña se abre AHORA, dentro del gesto del clic: si se abriera
     // después de generar, el navegador la bloquearía como emergente.
-    const ventana = abrirPestanaPdf()
+    // El Excel NO abre pestaña: el navegador no lo renderiza, así que se descarga.
+    const ventana = formato === "pdf" ? abrirPestanaPdf() : null
     setGenerando(true)
     try {
       const reporte = await obtenerReporteKardex(query)
@@ -41,6 +48,13 @@ export function useReporteKardex() {
       }
 
       // pdfmake se carga sólo acá: no pesa en el bundle de quien no imprime.
+      if (formato === "excel") {
+        const { descargarReporteKardexExcel } =
+          await import("@/features/kardex/lib/reporte-kardex-excel")
+        await descargarReporteKardexExcel(datos)
+        return
+      }
+
       const { crearReporteKardexPdf, nombreArchivoReporteKardex } =
         await import("@/features/kardex/lib/reporte-kardex-pdf")
 

@@ -23,14 +23,23 @@ export type FiltrosIngresos = Omit<QueryIngresos, "page" | "pageSize">
  * los MISMOS filtros que la pantalla: el papel tiene que coincidir con lo que
  * se está viendo.
  */
+/** En qué formato se emite. El contenido es el mismo en los dos. */
+export type FormatoReporte = "pdf" | "excel"
+
 export function useReporteIngresos() {
   const [generando, setGenerando] = useState(false)
   const { user } = useAuth()
 
-  async function abrirReporte(filtros: FiltrosIngresos, almacen: string | null) {
+  async function abrirReporte(
+    filtros: FiltrosIngresos,
+    almacen: string | null,
+    formato: FormatoReporte = "pdf"
+  ) {
     // La pestaña se abre AHORA, dentro del gesto del clic: si se abriera
-    // después de generar, el navegador la bloquearía como emergente.
-    const ventana = abrirPestanaPdf()
+    // después de generar, el navegador la bloquearía como emergente. El Excel
+    // NO abre pestaña: el navegador no lo renderiza, así que se descarga —
+    // abrirle una lo dejaría mirando una página en blanco.
+    const ventana = formato === "pdf" ? abrirPestanaPdf() : null
     setGenerando(true)
     try {
       const filas = await reporteIngresos(filtros)
@@ -43,7 +52,15 @@ export function useReporteIngresos() {
         hasta: filtros.hasta,
       }
 
-      // pdfmake se carga sólo acá: no pesa en el bundle de quien no imprime.
+      // Cada librería se carga sólo si se la usa: ni pdfmake ni exceljs pesan
+      // en el bundle de quien nunca emite un reporte.
+      if (formato === "excel") {
+        const { descargarReporteIngresosExcel } =
+          await import("@/features/ingresos/lib/reporte-ingresos-excel")
+        await descargarReporteIngresosExcel(datos)
+        return
+      }
+
       const { crearReporteIngresosPdf, nombreArchivoReporteIngresos } =
         await import("@/features/ingresos/lib/reporte-ingresos-pdf")
 

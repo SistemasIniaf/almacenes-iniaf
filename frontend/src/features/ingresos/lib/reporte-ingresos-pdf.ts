@@ -1,10 +1,12 @@
 import {
   ALTO_MEMBRETE,
+  ANCHO_UTIL_APAISADO,
   datosCabecera,
   membreteRepetido,
   esNacional,
   fechaCorta,
   moneda,
+  numeroDocumento,
   pieReporte,
 } from "@/lib/reporte-comun"
 import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
@@ -34,12 +36,6 @@ export interface DatosReporteIngresos extends DatosReporte {
   desde?: string
   hasta?: string
 }
-
-/** Etiqueta impresa del número: 001/2026. Sin número no debería llegar acá. */
-const numeroDocumento = (fila: FilaReporteIngreso) =>
-  fila.numero != null && fila.gestion != null
-    ? `${String(fila.numero).padStart(3, "0")}/${fila.gestion}`
-    : "—"
 
 /** `YYYY-MM-DD` → 01/01/2026, sin que la zona horaria corra el día. */
 const fechaIso = (iso: string) => {
@@ -125,7 +121,9 @@ export async function definicionReporteIngresos(
         color,
       },
       { text: fechaIso(fila.fechaIngreso), alignment: "center", color },
-      ...(conAlmacen ? [{ text: fila.almacen.nombre, color } as TableCell] : []),
+      ...(conAlmacen
+        ? [{ text: fila.almacen.nombre, color } as TableCell]
+        : []),
       { text: fila.observacion ?? "", color },
       {
         // Entre paréntesis, como se anota en contabilidad lo que no suma.
@@ -175,6 +173,11 @@ export async function definicionReporteIngresos(
 
   return {
     pageSize: "LETTER",
+    // APAISADA (2026-08-07), como el registro de egresos y los de stock. La
+    // observación es la única columna de largo impredecible y en vertical se
+    // partía en varios renglones por fila; los 180 pt extra del apaisado se los
+    // lleva entera, porque es la que absorbe el `*`.
+    pageOrientation: "landscape",
     // El margen superior le reserva el lugar al membrete, que va como `header`
     // para repetirse en todas las páginas.
     pageMargins: [
@@ -189,9 +192,17 @@ export async function definicionReporteIngresos(
     },
     defaultStyle: { font: "Helvetica", fontSize: 7, lineHeight: 1.05 },
     styles: { th: { bold: true, fontSize: 7 } },
-    header: membreteRepetido("REGISTRO DE INGRESOS A ALMACÉN", logos, emitidoEn, {
-      leyenda: leyendaPeriodo(desde, hasta),
-    }),
+    header: membreteRepetido(
+      "REGISTRO DE INGRESOS A ALMACÉN",
+      logos,
+      emitidoEn,
+      {
+        leyenda: leyendaPeriodo(desde, hasta),
+        // Sin esto el membrete se dibuja al ancho de la hoja VERTICAL y queda
+        // corrido a la izquierda, con el logo del Ministerio a media página.
+        ancho: ANCHO_UTIL_APAISADO,
+      }
+    ),
     content: [
       ...datosCabecera(almacen, emitidoEn),
       filas.length === 0
@@ -199,9 +210,9 @@ export async function definicionReporteIngresos(
         : {
             table: {
               headerRows: 1,
-              // Suman el ancho útil (544 pt): la observación se queda con lo
-              // que sobra, que es la única columna de largo impredecible. Sin
-              // la de almacén, esos 120 pt se los lleva ella.
+              // Los fijos no cambian con el apaisado: lo que crece es la
+              // observación, que es la que toma el `*`. Sin la columna de
+              // almacén, esos 120 pt también se los lleva ella.
               widths: conAlmacen
                 ? [22, 56, 52, 120, "*", 62]
                 : [22, 56, 52, "*", 62],

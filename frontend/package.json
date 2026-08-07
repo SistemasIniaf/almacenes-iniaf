@@ -21,6 +21,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
+    "exceljs": "^4.4.0",
     "lucide-react": "^1.24.0",
     "pdfmake": "^0.3.11",
     "radix-ui": "^1.6.2",
