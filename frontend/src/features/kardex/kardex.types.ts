@@ -16,12 +16,16 @@ export interface MovimientoKardex {
   tipo: TipoMovimiento
   motivo: string | null
   /**
-   * Nº del documento que lo originó (ingreso o egreso), **ya formateado por el
-   * backend**: `001-2026`. Es el único número de documento que NO pasa por
-   * `numeroDocumento()` de `lib/formato.ts` — el service lo arma con el mismo
-   * formato, ver el comentario de `formatearNumero` en `kardex.service.ts`.
+   * El documento que originó el movimiento (un ingreso **o** un egreso), con
+   * `numero` y `gestion` sueltos: la columna se dibuja con `NumeroDocumento`,
+   * igual que en los listados de ingresos y egresos, y ese componente necesita
+   * los dos campos para poder esconder la gestión en curso.
+   *
+   * El REPORTE del kardex recibe lo mismo pero ya formateado (`documento:
+   * string`), porque en el papel el número va entero — ver `formatearNumero` en
+   * `kardex.service.ts`.
    */
-  documento: string | null
+  documento: { numero: number; gestion: number } | null
   ingresoId: number | null
   fuente: RefNombre | null
   precioUnitario: string

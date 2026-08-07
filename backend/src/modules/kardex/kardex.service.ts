@@ -12,17 +12,30 @@ import { QueryKardexDto } from './dto/query-kardex.dto';
 import { QueryReporteKardexDto } from './dto/query-reporte-kardex.dto';
 
 /**
- * `001-2026`, como se imprime en todos los documentos.
+ * El documento que origino un movimiento, para la PANTALLA: los dos campos
+ * sueltos, sin formatear.
+ *
+ * Asi lo necesita `NumeroDocumento` del frontend, que dibuja el correlativo en
+ * negrita y **esconde la gestion en curso** — con el string ya armado no podria.
+ */
+function refDocumento(
+  numero?: number | null,
+  gestion?: number | null,
+): { numero: number; gestion: number } | null {
+  if (numero == null || gestion == null) return null;
+  return { numero, gestion };
+}
+
+/**
+ * `001-2026`, como se imprime en todos los documentos. Solo para el REPORTE:
+ * en el papel el numero va entero, no hay estilos que aplicar y la fila es una
+ * celda de texto.
  *
  * **Tiene que coincidir con `numeroDocumento()` de `lib/formato.ts` del
  * frontend.** Es el UNICO numero de documento que se formatea del lado del
- * servidor, y por eso se quedo con la barra cuando el resto paso al guion: el
- * kardex manda esta columna ya armada, asi que un refactor del frontend no la
- * alcanza. Si vuelve a cambiar el formato, este es el segundo lugar a tocar.
- *
- * Se formatea aca —y no se mandan `numero` y `gestion` sueltos— porque el
- * movimiento puede venir de un ingreso O de un egreso: la columna es una
- * referencia cruzada a otro documento, no el numero del propio registro.
+ * servidor, y por eso se quedo con la barra cuando el resto paso al guion: un
+ * refactor del frontend no alcanza un string que llega armado desde acá. Si
+ * vuelve a cambiar el formato, este es el segundo lugar a tocar.
  */
 function formatearNumero(
   numero?: number | null,
@@ -186,11 +199,16 @@ export class KardexService {
         fecha: m.fecha,
         tipo: m.tipo,
         motivo: m.motivo,
-        // El documento que lo origino, ya formateado como se imprime. Puede ser
-        // un ingreso o un egreso: un movimiento viene de UNO de los dos.
+        // El documento que lo origino. Puede ser un ingreso o un egreso: un
+        // movimiento viene de UNO de los dos.
+        //
+        // Van `numero` y `gestion` SUELTOS y no el string armado, al reves que
+        // en el reporte: la pantalla lo dibuja con `NumeroDocumento`, que
+        // esconde la gestion en curso, y eso necesita los dos campos. El
+        // reporte si recibe el string, porque en el papel el numero va entero.
         documento:
-          formatearNumero(m.ingreso?.numero, m.ingreso?.gestion) ??
-          formatearNumero(m.egreso?.numero, m.egreso?.gestion),
+          refDocumento(m.ingreso?.numero, m.ingreso?.gestion) ??
+          refDocumento(m.egreso?.numero, m.egreso?.gestion),
         ingresoId: m.ingresoId,
         fuente: m.ingresoDetalle?.ingreso.fuenteFinanciamiento ?? null,
         precioUnitario: m.precioUnitario,

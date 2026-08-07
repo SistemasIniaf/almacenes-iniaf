@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { ChevronDown, FileText, Loader2, Printer, Sheet } from "lucide-react"
 
+import { NumeroDocumento } from "@/components/data/NumeroDocumento"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -462,8 +463,17 @@ export function KardexPage() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                          {m.documento ?? "—"}
+                        {/* Igual que en los listados de ingresos y egresos: el
+                            correlativo en negrita y la gestión en curso
+                            escondida. Sin `text-muted-foreground` en la celda
+                            —lo tenía por ser una referencia cruzada— o el
+                            número saldría más apagado que en las otras
+                            pantallas, que es justo lo que no queremos. */}
+                        <TableCell className="whitespace-nowrap">
+                          <NumeroDocumento
+                            numero={m.documento?.numero ?? null}
+                            gestion={m.documento?.gestion ?? null}
+                          />
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {m.fuente?.nombre ?? "—"}

@@ -634,14 +634,27 @@ a la vez y conviene no separarlas:
   se conservan solo porque las usan ~20 lugares; `lib/reporte-comun.ts` la re-exporta para los PDF.
   Sin número devuelve «—» (un borrador de egreso todavía no lo tiene, se estampa al enviar).
 
-**Había un DÉCIMO lugar y está en el BACKEND: `formatearNumero()` de `kardex.service.ts`.** Se
-descubrió al ver que la columna Documento del kardex seguía diciendo `001/2026` con todo lo demás ya
-en guion. Es la excepción a que el número se formatee en el frontend, y no es un descuido: el
-movimiento de kardex puede venir de un ingreso **o** de un egreso, así que esa columna es una
-**referencia cruzada** a otro documento y no el número del propio registro — el service manda
-`documento` ya armado y la pantalla, el PDF y el Excel del kardex lo imprimen tal cual. La
-consecuencia práctica: **un refactor del frontend no lo alcanza**, así que si el formato vuelve a
-cambiar hay DOS lugares a tocar, y están anotados uno en el otro.
+**Había un DÉCIMO lugar y estaba en el BACKEND**: se descubrió al ver que la columna Documento del
+kardex seguía diciendo `001/2026` con todo lo demás ya en guion. Ese número no lo arma el frontend —
+llega hecho desde `kardex.service.ts`—, así que juntar el formato en `numeroDocumento()` no podía
+alcanzarlo. Cómo quedó, y por qué el kardex tiene DOS formas del mismo dato:
+
+- **La PANTALLA recibe `documento: { numero, gestion }`**, los dos campos sueltos (`refDocumento()`),
+  y dibuja la columna con `NumeroDocumento` igual que los listados de ingresos y egresos. Con el
+  string ya armado no podría: esconder la gestión en curso necesita los campos separados. La celda
+  además dejó de ir en `text-muted-foreground` —lo tenía por ser una referencia cruzada—, o el número
+  saldría más apagado que en las otras pantallas.
+- **El REPORTE (PDF y Excel) recibe `documento: string`** ya formateado (`formatearNumero()`): en el
+  papel el número va entero, no hay estilos que aplicar y la fila es una celda de texto.
+
+Acá la columna **no es el número del propio registro sino una referencia cruzada**: el movimiento
+puede venir de un ingreso **o** de un egreso. Un efecto lateral bueno de esconder la gestión en curso:
+un egreso numerado en 2025 y entregado en enero de 2026 aparece en el kardex de 2026 **con su año a la
+vista**, que es exactamente cuando el dato importa.
+
+Consecuencia práctica: `formatearNumero()` es el único formateo de número de documento fuera del
+navegador, así que **si el formato vuelve a cambiar hay DOS lugares a tocar**. Están anotados uno en
+el otro (el service y `kardex.types.ts`).
 
 **En las TABLAS lo dibuja `components/data/NumeroDocumento.tsx`**, no el string pelado:
 
