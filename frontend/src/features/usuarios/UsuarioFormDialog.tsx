@@ -229,6 +229,10 @@ export function UsuarioFormDialog({
               mayusculas
             />
 
+            {/* SIN mayúsculas automáticas: es un identificador técnico, no un
+                dato de documento. El login lo compara exacto, así que crearlo en
+                mayúsculas dejaría cuentas que no coinciden con las existentes
+                (`pedro.ferrano`) y con lo que la gente tipea al entrar. */}
             <InputField
               name="usuario"
               label="Usuario"
@@ -236,6 +240,7 @@ export function UsuarioFormDialog({
               placeholder="jperez"
               autoComplete="off"
               disabled={guardando}
+              mayusculas={false}
             />
 
             <InputPasswordField

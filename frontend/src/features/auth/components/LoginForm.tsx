@@ -67,12 +67,16 @@ export function LoginForm({
                 </div>
               )}
 
+              {/* SIN mayúsculas automáticas, a diferencia del resto del sistema:
+                  el backend busca la cuenta con `findUnique` sobre este valor
+                  exacto, así que forzarlo dejaría a todos afuera. */}
               <InputField
                 name="usuario"
                 label="Usuario"
                 control={control}
                 autoComplete="username"
                 disabled={isPending}
+                mayusculas={false}
               />
 
               <InputPasswordField

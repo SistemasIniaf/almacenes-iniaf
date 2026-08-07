@@ -19,10 +19,18 @@ interface InputFieldProps<T extends FieldValues> {
   description?: string
   required?: boolean
   /**
-   * Fuerza el valor a MAYUSCULAS mientras se escribe (ej. nombre y cargo de un
-   * usuario, que asi figuran en los documentos oficiales). Convierte el valor
-   * real del formulario, no solo lo que se ve: el `text-transform` de CSS es
-   * puro maquillaje y enviaria minusculas al backend.
+   * Fuerza el valor a MAYÚSCULAS mientras se escribe. Convierte el valor REAL
+   * del formulario, no solo lo que se ve: el `text-transform` de CSS es puro
+   * maquillaje y enviaría minúsculas al backend.
+   *
+   * **Viene encendido** para `type="text"` (2026-08-07, pedido del usuario): así
+   * figuran los datos en los documentos oficiales de la institución y la carga
+   * queda uniforme sin depender de quién tipea. Se apaga sola en cualquier otro
+   * `type` (password, email, tel…), donde cambiar el valor sería un error.
+   *
+   * Pasala en `false` cuando el valor NO es un dato de documento sino un
+   * identificador técnico. Hoy el único caso es el **nombre de usuario**, que el
+   * backend compara exacto (`findUnique`): forzarlo rompería todos los accesos.
    */
   mayusculas?: boolean
   /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
@@ -41,10 +49,13 @@ export function InputField<T extends FieldValues>({
   readOnly = false,
   description,
   required = true,
-  mayusculas = false,
+  mayusculas,
   className,
 }: InputFieldProps<T>) {
   const fieldId = id || `field-${name}`
+  // Solo el texto libre. Atarlo al `type` y no a un simple `?? true` evita que
+  // un campo nuevo con otro tipo lo herede sin que nadie lo haya decidido.
+  const enMayusculas = mayusculas ?? type === "text"
 
   return (
     <Controller
@@ -70,7 +81,7 @@ export function InputField<T extends FieldValues>({
             readOnly={readOnly}
             value={field.value ?? ""}
             onChange={
-              mayusculas
+              enMayusculas
                 ? (evento) =>
                     field.onChange(evento.target.value.toLocaleUpperCase())
                 : field.onChange

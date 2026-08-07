@@ -22,11 +22,13 @@ import {
  * mostrarlos y esconderlos: es el mismo movimiento del pulgar el que descubre
  * uno y cubre el otro.
  *
- * **El riel va del color del texto** (`bg-foreground`), o sea el inverso de la
- * página: píldora oscura sobre fondo claro y clara sobre fondo oscuro. La
- * referencia que se tomó pintaba el riel del color del MODO —negro en oscuro—,
- * que en pantalla se confunde con el fondo de la cabecera: ese era justamente el
- * problema del switch anterior, que no se notaba.
+ * **El riel va del color del tema** (`bg-primary`), en los dos modos (2026-08-07,
+ * pedido del usuario). Antes iba `bg-foreground`, el inverso de la página, que
+ * resolvía lo mismo —que el switch se note— pero dejaba una píldora negra en modo
+ * claro que se leía como un elemento apagado y ajeno a la paleta. El verde
+ * institucional se despega igual del fondo de la cabecera y además pertenece.
+ * Lo que NO hay que hacer es pintarlo del color del MODO (negro en oscuro, como
+ * la referencia original): ahí se confunde con la cabecera y no se ve.
  *
  * El estado sale de `resolvedTheme`, no de `theme`: este último puede valer
  * "system", que no es ni prendido ni apagado.
@@ -42,10 +44,13 @@ export function ThemeToggle() {
           checked={esOscuro}
           onCheckedChange={toggleTheme}
           aria-label="Modo oscuro"
-          className="relative flex h-7 w-13 shrink-0 cursor-pointer items-center rounded-full bg-foreground/90 transition-colors outline-none hover:bg-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="relative flex h-7 w-13 shrink-0 cursor-pointer items-center rounded-full bg-primary/90 transition-colors outline-none hover:bg-primary focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <Sun className="pointer-events-none absolute top-1/2 left-1.5 size-4 -translate-y-1/2 text-background" />
-          <Moon className="pointer-events-none absolute top-1/2 right-1.5 size-4 -translate-y-1/2 text-background" />
+          {/* Los íconos van del par del riel (`primary-foreground`), no de
+              `background`: si no, en modo oscuro quedarían de un tono cercano al
+              del riel. */}
+          <Sun className="pointer-events-none absolute top-1/2 left-1.5 size-4 -translate-y-1/2 text-primary-foreground" />
+          <Moon className="pointer-events-none absolute top-1/2 right-1.5 size-4 -translate-y-1/2 text-primary-foreground" />
 
           {/* Prendido = oscuro = pulgar a la IZQUIERDA, destapando la luna, como
               en la referencia. El sentido lo da el ícono que queda a la vista,

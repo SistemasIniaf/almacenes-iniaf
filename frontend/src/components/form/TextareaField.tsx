@@ -18,6 +18,13 @@ interface TextareaFieldProps<T extends FieldValues> {
   disabled?: boolean
   description?: string
   required?: boolean
+  /**
+   * Fuerza el valor a MAYÚSCULAS mientras se escribe, igual que `InputField`
+   * (y por lo mismo: así figuran los datos en los documentos de la institución).
+   * **Viene encendido.** Convierte el valor real del formulario, no solo lo que
+   * se ve — un `text-transform` de CSS enviaría minúsculas al backend.
+   */
+  mayusculas?: boolean
 }
 
 export function TextareaField<T extends FieldValues>({
@@ -32,6 +39,7 @@ export function TextareaField<T extends FieldValues>({
   disabled = false,
   description,
   required = true,
+  mayusculas = true,
 }: TextareaFieldProps<T>) {
   const fieldId = id || `field-${name}`
 
@@ -55,6 +63,12 @@ export function TextareaField<T extends FieldValues>({
               className={cn(className)}
               disabled={disabled}
               maxLength={maxLength}
+              onChange={
+                mayusculas
+                  ? (evento) =>
+                      field.onChange(evento.target.value.toLocaleUpperCase())
+                  : field.onChange
+              }
             />
             {description && (
               <p className="text-sm text-muted-foreground">{description}</p>
