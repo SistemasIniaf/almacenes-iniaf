@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Controller } from "react-hook-form"
 import { ChevronDownIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn, SUPERFICIE_CAMPO } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
@@ -61,7 +61,10 @@ export function DatePickerField<T extends FieldValues>({
               <Button
                 type="button"
                 variant="outline"
+                // `SUPERFICIE_CAMPO`: es un campo, no una acción — tiene que
+                // verse igual que el input de al lado (ver `lib/utils`).
                 className={cn(
+                  SUPERFICIE_CAMPO,
                   "w-full justify-between font-normal",
                   !field.value && "text-muted-foreground",
                   buttonClassName

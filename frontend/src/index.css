@@ -49,8 +49,15 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
+    /* NO es blanco puro, a propósito (2026-08-07). Mientras `--background` y
+       `--card` fueron los dos `oklch(1 0 0)`, una tarjeta no dibujaba ninguna
+       superficie: quedaba apoyada solo en un borde de 0.925 y los formularios y
+       listados se perdían contra la página. Se tapaba a mano caso por caso (ver
+       la nota de los listados en CLAUDE.md); esto lo arregla de raíz para toda
+       la app. En oscuro nunca pasó, porque ahí los dos tokens ya diferían. */
+    --background: oklch(0.98 0.003 197.1);
     --foreground: oklch(0.148 0.004 228.8);
+    /* El blanco puro se lo queda la TARJETA, que es lo que tiene que flotar. */
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.148 0.004 228.8);
     --popover: oklch(1 0 0);

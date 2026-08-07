@@ -275,11 +275,9 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
   tamaño inicial es **`PAGE_SIZE` de `lib/types.ts` (10)**. El backend sigue con `pageSize=20`
   por defecto para quien consuma la API directo; el frontend siempre lo manda explícito.
 - **Los listados se envuelven SIEMPRE en `rounded-md border bg-card shadow-sm`** y la fila de
-  encabezados lleva `bg-muted`, que ya viene puesto en `ui/table.tsx` (2026-08-03). No es
-  decoración: en modo **claro** `--card` y `--background` son los dos blanco puro, así que el
-  `bg-card` no dibuja ninguna superficie y la tabla quedaba apoyada solo en un borde `0.925`
-  —se perdía contra la página—. En oscuro no pasaba porque ahí los dos tokens sí difieren. Dos
-  cosas que se olvidan al copiar el patrón: el contenedor de `Table` lleva `rounded-[inherit]`
+  encabezados lleva `bg-muted`, que ya viene puesto en `ui/table.tsx` (2026-08-03). Vale para
+  cualquier superficie de contenido, no solo las tablas: el formulario de ingreso usa el mismo
+  envoltorio. Dos cosas que se olvidan al copiar el patrón: el contenedor de `Table` lleva `rounded-[inherit]`
   para que el fondo del encabezado no asome en escuadra por encima de las esquinas redondeadas,
   y una tabla **anidada** (la de lotes en `StockPage`, dentro de una fila ya tintada) pisa el
   fondo con `bg-transparent` — dos superficies encima se enturbian.
@@ -1095,6 +1093,38 @@ NO construir todavía: `reportes` — falta definir cuáles se necesitan.
   - `ComboboxField` es obligatorio para elegir Ítem (catálogo grande, un `<select>` normal no escala).
   - Las líneas dinámicas (`useFieldArray`) YA están hechas, pero **una por módulo**: `IngresoLineas` y `EgresoLineas`. No se compartieron porque piden cosas distintas — el ingreso elige ÍTEM y captura precio y observación; el egreso elige LOTE, muestra el disponible y la foto, y no lleva observación.
 - Validación con Zod; el schema de cada formulario debe reflejar el DTO/`class-validator` del backend correspondiente, para no duplicar reglas desalineadas entre frontend y backend.
+
+### Superficies: por qué en modo claro nada era blanco puro (2026-08-07)
+
+El formulario de ingreso «se perdía» en la pantalla, y en modo oscuro también se veía apagado. La
+causa era de tokens, no de ese formulario: **`--background` y `--card` eran los dos `oklch(1 0 0)`**,
+y los campos iban `bg-transparent`. O sea **tres capas del mismo blanco**, con un borde de `0.925`
+como única cosa dibujada. Se arregló en tres niveles, y conviene entenderlos juntos:
+
+| Nivel | Antes | Ahora |
+|---|---|---|
+| Página (`--background`, claro) | `oklch(1 0 0)` | `oklch(0.98 0.003 197.1)` — apenas teñido |
+| Tarjeta (`--card`) | `oklch(1 0 0)` | igual: **el blanco puro se lo queda la tarjeta**, que es lo que flota |
+| Campo | `bg-transparent` | `SUPERFICIE_CAMPO` |
+
+**Teñir la página es el arreglo de raíz**: un token, y todas las tarjetas, listados y diálogos de la
+app ganan relieve solos. Antes se tapaba caso por caso. En oscuro nunca hizo falta, porque ahí
+`--background` (`0.148`) y `--card` (`0.218`) ya diferían.
+
+**`SUPERFICIE_CAMPO` vive en `lib/utils.ts`** (`bg-muted/60 dark:bg-input/40`) y no en cada
+componente **porque son CINCO los que tienen que coincidir**: `ui/input`, `ui/textarea`, el trigger de
+`ui/select` y los dos campos cuyo disparador es un `Button` (`ComboboxField`, `DatePickerField`). Si
+uno queda con otro tono, una fila de formulario muestra dos superficies distintas una al lado de otra.
+
+**NO se tocó la variante `outline` del botón** para conseguirlo, aunque los dos triggers la usen: ese
+botón también es una ACCIÓN («Reporte», «Cancelar»), y un botón que se ve como un campo vacío es peor
+que uno sin relleno. Por eso los dos `*Field` piden la superficie explícitamente: ahí el `outline` es
+un campo disfrazado de botón, no un botón.
+
+**La sección de ítems del ingreso va en un panel `bg-muted/30`** con las líneas en `bg-card`: los
+ítems SON el ingreso —la cabecera es el papeleo que lo respalda— y antes eran un rótulo chico bajo una
+raya, o sea lo más débil de la pantalla. **`EgresoLineas` NO tiene ese panel**: acá los dos formularios
+de líneas dejan de ser gemelos. La regla de gemelos que sigue en pie es la del botón «Agregar ítem».
 
 ### Mayúsculas automáticas (2026-08-07)
 

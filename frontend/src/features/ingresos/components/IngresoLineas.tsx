@@ -214,7 +214,17 @@ export function IngresoLineas({
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium">Ítems del ingreso</span>
+      {/* Encabezado con peso propio: esto no es un campo más de la cabecera, es
+          el contenido del ingreso. El contador va al lado porque es el dato que
+          se chequea de un vistazo antes de registrar. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-base font-semibold">Ítems del ingreso</span>
+        {fields.length > 0 && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums">
+            {fields.length} {fields.length === 1 ? "ítem" : "ítems"}
+          </span>
+        )}
+      </div>
 
       {mensajeDetalles && (
         <p className="text-sm text-destructive">{mensajeDetalles}</p>
@@ -248,7 +258,9 @@ export function IngresoLineas({
         return (
           <div
             key={campo.id}
-            className="relative flex flex-col gap-2 rounded-md border p-3"
+            // `bg-card`: la sección entera va sobre un panel tintado, así que
+            // cada línea necesita superficie propia para leerse como una ficha.
+            className="relative flex flex-col gap-2 rounded-md border bg-card p-3"
           >
             {/* Quitar la línea: «X» en la esquina de la tarjeta, igual que en
                 egresos. Antes era un 🗑 dentro de la celda del Subtotal, lo que
@@ -406,8 +418,8 @@ export function IngresoLineas({
           columna Subtotal. El `pr-7` es el mismo que usa esa columna, para
           dejarle lugar a la «X» de la esquina y quedar bajo el monto de arriba. */}
       {fields.length > 0 && (
-        <div className="flex items-center justify-between gap-2 text-sm lg:grid lg:grid-cols-12 lg:items-center lg:gap-2">
-          <span className="text-muted-foreground lg:col-span-9 lg:text-right">
+        <div className="flex items-center justify-between gap-2 border-t pt-3 text-sm lg:grid lg:grid-cols-12 lg:items-center lg:gap-2">
+          <span className="font-medium lg:col-span-9 lg:text-right">
             Total del ingreso:
           </span>
           <span className="text-base font-semibold tabular-nums lg:col-span-3 lg:pr-7 lg:text-right">

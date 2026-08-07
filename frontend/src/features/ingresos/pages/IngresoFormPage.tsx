@@ -360,7 +360,11 @@ export function IngresoFormPage() {
       )}
 
       <form id="ingreso-form" onSubmit={handleSubmit(guardar)}>
-        <div className="rounded-md border p-4">
+        {/* `bg-card shadow-sm`, el mismo envoltorio que los listados: sin fondo
+            propio la tarjeta era solo un borde y el formulario se perdía contra
+            la página. Ahora `--background` está apenas teñido, así que el blanco
+            de la tarjeta la despega sola. */}
+        <div className="rounded-md border bg-card p-4 shadow-sm">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12">
             {/*
               1. Almacén — SOLO cuando un admin crea el ingreso y tiene que
@@ -591,7 +595,11 @@ export function IngresoFormPage() {
             </div>
           </div>
 
-          <div className="mt-6 border-t pt-4">
+          {/* Los ítems SON el ingreso: la cabecera es el papeleo que lo respalda,
+              pero lo que entra al almacén es esto. Va en un panel con superficie
+              propia para que pese lo que pesa — antes era un rótulo chico bajo
+              una raya y quedaba como un apéndice del formulario. */}
+          <div className="mt-6 rounded-md border bg-muted/30 p-4">
             <IngresoLineas
               control={control}
               disabled={bloqueoStock}

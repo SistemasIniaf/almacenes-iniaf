@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, SUPERFICIE_CAMPO } from "@/lib/utils"
 
 import type { ReactNode } from "react"
 import type { Control, FieldValues, Path } from "react-hook-form"
@@ -271,7 +271,13 @@ export function ComboboxField<T extends FieldValues>({
                   aria-expanded={abierto}
                   aria-invalid={fieldState.invalid}
                   disabled={disabled}
-                  className="w-full justify-between font-normal"
+                  // `SUPERFICIE_CAMPO` porque esto ES un campo, aunque por
+                  // dentro sea un botón: tiene que verse igual que el input de
+                  // al lado, no como la variante `outline` de una acción.
+                  className={cn(
+                    SUPERFICIE_CAMPO,
+                    "w-full justify-between font-normal"
+                  )}
                 >
                   {/* El botón cerrado NO lleva miniatura, a propósito: la haría
                       más alta que los campos de al lado y la fila quedaría
