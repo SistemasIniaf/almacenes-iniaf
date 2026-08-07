@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { BadgeEstado } from "@/components/data/BadgeEstado"
+import { NumeroDocumento } from "@/components/data/NumeroDocumento"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -527,8 +528,11 @@ export function EgresoFormPage() {
                         {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
                           ?.nombre ?? "—"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {etiquetaNumero(detalle.ingresoDetalle.ingreso)}
+                      <TableCell>
+                        <NumeroDocumento
+                          numero={detalle.ingresoDetalle.ingreso.numero}
+                          gestion={detalle.ingresoDetalle.ingreso.gestion}
+                        />
                       </TableCell>
                       <TableCell className="text-center whitespace-nowrap text-muted-foreground">
                         {detalle.ingresoDetalle.item.unidadMedida}

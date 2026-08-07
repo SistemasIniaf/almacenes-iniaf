@@ -20,7 +20,10 @@ export const ANCHO_UTIL = 612 - MARGEN_PDF * 2
 // Los formatos numéricos son los MISMOS que en pantalla (`lib/formato.ts`): un
 // reporte que redondea distinto de la tabla de la que salió es un reporte que
 // no cuadra. Se re-exportan para que cada PDF importe de un solo lugar.
-export { cantidad, moneda, precio } from "@/lib/formato"
+//
+// `numeroDocumento` entró en la lista el 2026-08-07: cada reporte se lo armaba
+// a mano, así que cambiarle el separador obligaba a encontrarlos uno por uno.
+export { cantidad, moneda, numeroDocumento, precio } from "@/lib/formato"
 
 export const fechaCorta = (fecha: Date) =>
   fecha.toLocaleDateString("es-BO", {
@@ -112,7 +115,9 @@ export function membreteRepetido(
     stack: [
       encabezadoReporte(titulo, logos, emitidoEn, leyenda),
       {
-        canvas: [{ type: "line", x1: 0, y1: 0, x2: ancho, y2: 0, lineWidth: 1 }],
+        canvas: [
+          { type: "line", x1: 0, y1: 0, x2: ancho, y2: 0, lineWidth: 1 },
+        ],
         margin: [0, 4, 0, 0],
       },
     ],
@@ -159,10 +164,7 @@ export function datosCabecera(
   ]
 }
 
-export function pieReporte(
-  usuario: string,
-  emitidoEn: Date
-): DynamicContent {
+export function pieReporte(usuario: string, emitidoEn: Date): DynamicContent {
   return (paginaActual, totalPaginas) => ({
     columns: [
       {

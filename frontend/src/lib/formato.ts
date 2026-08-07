@@ -42,3 +42,32 @@ export const precio = (valor: string | number): string =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 5,
   })
+
+/**
+ * Separador entre el correlativo y la gestión: **guion**, no barra
+ * (2026-08-07, pedido de la institución).
+ *
+ * La barra hacía que `003/2026` se leyera como una fecha —marzo de 2026— sobre
+ * todo en los reportes, donde el número cae al lado de la fecha del documento.
+ * El guion rompe esa lectura de entrada.
+ */
+export const SEPARADOR_DOCUMENTO = "-"
+
+/**
+ * Número impreso de un documento (ingreso o egreso): `003-2026`.
+ *
+ * Vive acá y no en cada módulo porque el formato se armaba **a mano en nueve
+ * lugares** —pantallas, toasts, los cuatro PDF y el Excel—, así que cambiar el
+ * separador significaba encontrarlos todos. `etiquetaNumero()` de ingresos y de
+ * egresos ahora delegan en esto.
+ *
+ * Sin número devuelve «—»: un borrador de egreso todavía no lo tiene, se estampa
+ * al enviar.
+ */
+export const numeroDocumento = (documento: {
+  numero: number | null
+  gestion: number | null
+}): string =>
+  documento.numero == null || documento.gestion == null
+    ? "—"
+    : `${String(documento.numero).padStart(3, "0")}${SEPARADOR_DOCUMENTO}${documento.gestion}`

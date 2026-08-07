@@ -1,3 +1,5 @@
+import { numeroDocumento } from "@/lib/formato"
+
 import type { TonoPunto } from "@/components/data/tonos-estado"
 import type { PaginationQuery } from "@/lib/types"
 
@@ -361,13 +363,9 @@ export interface EntregaPayload {
 }
 
 /**
- * Etiqueta impresa del número: `001/2026`. Un borrador todavía no tiene número
- * — se estampa al enviar, para que uno descartado no deje un hueco en la serie.
+ * Etiqueta impresa del número: `001-2026`. Un borrador todavía no tiene número
+ * —se estampa al enviar, para que uno descartado no deje un hueco en la serie—
+ * y por eso devuelve «—». El formato vive en `lib/formato.ts`, con el de
+ * ingresos: era el mismo string armado a mano en nueve lugares.
  */
-export function etiquetaNumero(egreso: {
-  numero: number | null
-  gestion: number | null
-}): string {
-  if (egreso.numero == null || egreso.gestion == null) return "—"
-  return `${String(egreso.numero).padStart(3, "0")}/${egreso.gestion}`
-}
+export const etiquetaNumero = numeroDocumento

@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 
 import { BadgeEstado } from "@/components/data/BadgeEstado"
+import { NumeroDocumento } from "@/components/data/NumeroDocumento"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,11 +34,7 @@ import {
   useConteoEgresos,
   useConteoIngresos,
 } from "@/features/dashboard/hooks/useResumen"
-import {
-  ESTADO_LABEL,
-  ESTADO_PUNTO,
-  etiquetaNumero,
-} from "@/features/egresos/egresos.types"
+import { ESTADO_LABEL, ESTADO_PUNTO } from "@/features/egresos/egresos.types"
 import { useEgresos } from "@/features/egresos/hooks/useEgresos"
 import { getApiErrorMessage } from "@/lib/api"
 
@@ -86,8 +83,18 @@ const ACCESOS: AccesoRapido[] = [
   },
   { titulo: "Stock", a: "/stock", icono: Boxes, permiso: "stockLeer" },
   { titulo: "Kardex", a: "/kardex", icono: BookOpen, permiso: "kardexLeer" },
-  { titulo: "Ítems", a: "/items", icono: PackageCheck, permiso: "itemsEscribir" },
-  { titulo: "Usuarios", a: "/usuarios", icono: Users, permiso: "usuariosEscribir" },
+  {
+    titulo: "Ítems",
+    a: "/items",
+    icono: PackageCheck,
+    permiso: "itemsEscribir",
+  },
+  {
+    titulo: "Usuarios",
+    a: "/usuarios",
+    icono: Users,
+    permiso: "usuariosEscribir",
+  },
 ]
 
 const fecha = (iso: string | null) =>
@@ -114,7 +121,10 @@ export function DashboardHomePage() {
     estado: "PENDIENTE_RESPONSABLE_ALMACEN",
   })
   const entregados = useConteoEgresos({ estado: "ENTREGADO", gestion })
-  const ingresos = useConteoIngresos({ estado: "CONFIRMADO", gestion }, veIngresos)
+  const ingresos = useConteoIngresos(
+    { estado: "CONFIRMADO", gestion },
+    veIngresos
+  )
 
   const {
     data: bandeja,
@@ -282,7 +292,10 @@ export function DashboardHomePage() {
                     colSpan={esSolicitador ? 5 : 6}
                     className="py-8 text-center text-sm text-destructive"
                   >
-                    {getApiErrorMessage(error, "No se pudieron cargar los pedidos.")}
+                    {getApiErrorMessage(
+                      error,
+                      "No se pudieron cargar los pedidos."
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -305,8 +318,11 @@ export function DashboardHomePage() {
                     className="cursor-pointer"
                     onClick={() => navigate(`/egresos/${pedido.id}`)}
                   >
-                    <TableCell className="pl-6 font-medium whitespace-nowrap">
-                      {etiquetaNumero(pedido)}
+                    <TableCell className="pl-6 whitespace-nowrap">
+                      <NumeroDocumento
+                        numero={pedido.numero}
+                        gestion={pedido.gestion}
+                      />
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       {fecha(pedido.fechaEnvio ?? pedido.createdAt)}

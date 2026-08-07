@@ -19,6 +19,7 @@ import {
   rechazarEgreso,
   resumenEgresos,
 } from "@/features/egresos/egresos.api"
+import { etiquetaNumero } from "@/features/egresos/egresos.types"
 import { getApiErrorMessage } from "@/lib/api"
 
 import type {
@@ -132,7 +133,7 @@ export function useEnviarEgreso() {
     onSuccess: (egreso) => {
       invalidar()
       toast.success(
-        `Pedido ${String(egreso.numero).padStart(3, "0")}/${egreso.gestion} enviado al aprobador de unidad`
+        `Pedido ${etiquetaNumero(egreso)} enviado al aprobador de unidad`
       )
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),

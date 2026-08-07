@@ -2,6 +2,7 @@ import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 
 import { listarStock } from "@/features/stock/stock.api"
 import { urlArchivo } from "@/lib/files"
+import { numeroDocumento } from "@/lib/formato"
 
 /** Cuántos ÍTEMS trae cada tanda (cada uno puede aportar varios lotes). */
 export const ITEMS_POR_BUSQUEDA = 30
@@ -81,10 +82,7 @@ export function useBuscarLotes(termino: string) {
               unidadMedida: item.unidadMedida,
               imagen: urlArchivo(lote.imagenUrl ?? item.imagenUrl),
               fuente: lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
-              numeroIngreso:
-                lote.ingreso.numero != null && lote.ingreso.gestion != null
-                  ? `${String(lote.ingreso.numero).padStart(3, "0")}/${lote.ingreso.gestion}`
-                  : "—",
+              numeroIngreso: numeroDocumento(lote.ingreso),
               disponible: lote.disponible,
             }))
         )

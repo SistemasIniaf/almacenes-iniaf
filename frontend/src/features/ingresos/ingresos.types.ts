@@ -1,3 +1,5 @@
+import { numeroDocumento } from "@/lib/formato"
+
 import type { TonoPunto } from "@/components/data/tonos-estado"
 import type { PaginationQuery } from "@/lib/types"
 
@@ -208,14 +210,11 @@ export interface UpdateIngresoPayload {
   unidadSolicitanteId?: number | null
 }
 
-/** Etiqueta impresa del número: 001/2026. */
-export function etiquetaNumero(ingreso: {
-  numero: number | null
-  gestion: number | null
-}): string {
-  if (ingreso.numero == null || ingreso.gestion == null) return "—"
-  return `${String(ingreso.numero).padStart(3, "0")}/${ingreso.gestion}`
-}
+/**
+ * Etiqueta impresa del número: `001-2026`. Se mantiene el nombre porque la usan
+ * ~20 lugares; el formato vive en `lib/formato.ts`, con el de egresos.
+ */
+export const etiquetaNumero = numeroDocumento
 
 export const ESTADO_LABEL: Record<EstadoIngreso, string> = {
   CONFIRMADO: "Confirmado",
