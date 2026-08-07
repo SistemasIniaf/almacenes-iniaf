@@ -197,9 +197,19 @@ export function EgresoLineas({
 
   return (
     <div className="flex flex-col gap-3">
-      <FieldLabel>
-        Ítems del pedido<span className="text-red-500">*</span>
-      </FieldLabel>
+      {/* Encabezado con peso propio + contador, igual que `IngresoLineas`: esto
+          no es un campo más, es el contenido del pedido. El asterisco se queda
+          porque acá los ítems son obligatorios de verdad. */}
+      <div className="flex items-center justify-between gap-2">
+        <FieldLabel className="text-base font-semibold">
+          Ítems del pedido<span className="text-red-500">*</span>
+        </FieldLabel>
+        {fields.length > 0 && (
+          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums">
+            {fields.length} {fields.length === 1 ? "ítem" : "ítems"}
+          </span>
+        )}
+      </div>
 
       {/* Error del ARREGLO (ej. «Agregá al menos un ítem»): no lo pinta ningún
           campo, así que sin esto el formulario se negaba a enviarse sin decir
@@ -227,7 +237,10 @@ export function EgresoLineas({
         const excedido = lote != null && pedido > lote.disponible
 
         return (
-          <div key={field.id} className="relative rounded-md border p-3">
+          // `bg-card`: la sección va sobre un panel tintado, así que cada línea
+          // necesita superficie propia para leerse como una ficha. Igual que en
+          // `IngresoLineas`.
+          <div key={field.id} className="relative rounded-md border bg-card p-3">
             {/* Quitar la línea va en la esquina de la tarjeta, no en la fila de
                 campos: así no gasta una columna del grid —se la queda el selector
                 de lote, que es el que más texto necesita— ni participa de la

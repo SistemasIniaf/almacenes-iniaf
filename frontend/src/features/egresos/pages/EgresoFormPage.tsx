@@ -452,7 +452,10 @@ export function EgresoFormPage() {
         <form
           id="egreso-form"
           onSubmit={handleSubmit(guardar, avisarInvalido)}
-          className="flex flex-col gap-4 rounded-md border p-4"
+          // `bg-card shadow-sm`, el mismo envoltorio que los listados: sin fondo
+          // propio la tarjeta era solo un borde y el formulario se perdía contra
+          // la página.
+          className="flex flex-col gap-4 rounded-md border bg-card p-4 shadow-sm"
         >
           <TextareaField
             name="justificacion"
@@ -463,11 +466,16 @@ export function EgresoFormPage() {
             description="Máximo 300 caracteres."
             disabled={ocupado}
           />
-          <EgresoLineas
-            control={control}
-            disabled={ocupado}
-            lotesIniciales={lotesIniciales}
-          />
+          {/* Los ítems SON el pedido: la justificación es lo que lo explica,
+              pero lo que sale del almacén es esto. Panel con superficie propia,
+              igual que en el formulario de ingreso. */}
+          <div className="rounded-md border bg-muted/30 p-4">
+            <EgresoLineas
+              control={control}
+              disabled={ocupado}
+              lotesIniciales={lotesIniciales}
+            />
+          </div>
 
           {/* Acción principal al pie del formulario, dentro del card — igual que
               el de ingresos. Queda al final de lo que hay que completar, no en
@@ -486,7 +494,10 @@ export function EgresoFormPage() {
       ) : (
         egreso && (
           <div className="flex flex-col gap-4">
-            <div className="rounded-md border p-4">
+            {/* Mismo envoltorio que la tabla de abajo y que el formulario: la
+                ficha de lectura no tiene por qué verse más plana que el modo
+                edición del mismo pedido. */}
+            <div className="rounded-md border bg-card p-4 shadow-sm">
               <p className="text-xs text-muted-foreground">Justificación</p>
               <p className="text-sm">{egreso.justificacion}</p>
             </div>

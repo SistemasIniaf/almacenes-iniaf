@@ -1121,10 +1121,12 @@ botón también es una ACCIÓN («Reporte», «Cancelar»), y un botón que se v
 que uno sin relleno. Por eso los dos `*Field` piden la superficie explícitamente: ahí el `outline` es
 un campo disfrazado de botón, no un botón.
 
-**La sección de ítems del ingreso va en un panel `bg-muted/30`** con las líneas en `bg-card`: los
-ítems SON el ingreso —la cabecera es el papeleo que lo respalda— y antes eran un rótulo chico bajo una
-raya, o sea lo más débil de la pantalla. **`EgresoLineas` NO tiene ese panel**: acá los dos formularios
-de líneas dejan de ser gemelos. La regla de gemelos que sigue en pie es la del botón «Agregar ítem».
+**La sección de ítems va en un panel `bg-muted/30`** con las líneas en `bg-card`, y el encabezado
+lleva peso propio más un contador. Los ítems SON el documento —la cabecera del ingreso es el papeleo
+que lo respalda, y la justificación del egreso es lo que lo explica—, y antes eran un rótulo chico
+bajo una raya: lo más débil de la pantalla. **Rige en los DOS formularios de líneas**, que siguen
+siendo gemelos; el panel lo pone la página (`IngresoFormPage` / `EgresoFormPage`), no el componente
+de líneas.
 
 ### Mayúsculas automáticas (2026-08-07)
 
