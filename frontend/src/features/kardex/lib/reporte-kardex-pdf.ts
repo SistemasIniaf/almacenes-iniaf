@@ -14,12 +14,7 @@ import type {
   BloqueReporteKardex,
   ReporteKardex,
 } from "@/features/kardex/kardex.types"
-import type {
-  Content,
-  DynamicContent,
-  TableCell,
-  TDocumentDefinitions,
-} from "pdfmake/interfaces"
+import type { Content, TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
 
 /**
  * Reporte «KARDEX», calcado del que emitía el sistema anterior.
@@ -132,54 +127,45 @@ function filtrosAplicados(reporte: ReporteKardex): Content | null {
 const FIRMAS_KARDEX = ["Encargado Almacén", "VoBo Jefe Administrativo"]
 
 /**
- * Alto que hay que reservarle al pie en el margen inferior.
+ * Cierre de un bloque: la línea de observaciones, el espacio para firmar a mano
+ * y los dos cargos.
  *
- * Sale de sumar lo que apila: la línea de observaciones (~8), el aire para
- * escribir a mano sobre las firmas (20), los rótulos (~8) y la línea de
- * «Emitido por / Página N de M» (~12), más un respiro abajo. Si se agrega algo
- * al pie hay que subir este número: quedarse corto no recorta el pie, lo
- * **superpone** con la última fila de la tabla.
+ * **Va pegado a la tabla del bloque, en el CONTENIDO, y no en el `footer`.** Se
+ * probó al pie de la página (que es lo que repite pdfmake en cada hoja) y quedó
+ * mal: en un bloque corto —lo normal, un ítem con pocos movimientos— el pie caía
+ * al fondo de la hoja, a media página de la tabla, y se leía como suelto. Como
+ * cada bloque arranca en hoja nueva, ponerlo detrás de la tabla igual da uno por
+ * hoja en el caso normal, y encima donde termina de leerse.
+ *
+ * **Va `unbreakable`**: la línea de observaciones en una hoja y las firmas en la
+ * siguiente no sirven para firmar nada.
+ *
+ * Límite conocido: si los movimientos de UN ítem no entran en una hoja, el
+ * cierre sale solo al final del bloque, así que las hojas del medio quedan sin
+ * firmas. Es como salía el reporte del sistema anterior.
  */
-const ALTO_PIE_FIRMAS = 68
-
-/**
- * Pie del kardex, en TODAS las páginas: observaciones para anotar a mano y las
- * dos firmas, como el reporte del sistema anterior.
- *
- * **Va en el `footer` y no en el contenido de cada bloque**, que es donde estaba
- * la línea de observaciones hasta el 2026-08-07. La diferencia se ve cuando un
- * ítem no entra en una hoja: dentro del contenido, la línea sale UNA vez —al
- * final del bloque— y las hojas del medio quedan sin dónde firmar. Es un
- * documento que se archiva firmado hoja por hoja, así que lo que manda es la
- * PÁGINA, no el bloque.
- *
- * Compone sobre `pieReporte()` en vez de rehacerlo: la línea de emisión y el
- * «Página N de M» tienen que seguir siendo los mismos que en los otros reportes.
- */
-function pieKardex(usuario: string, emitidoEn: Date): DynamicContent {
-  const pieComun = pieReporte(usuario, emitidoEn)
-
-  return (paginaActual, totalPaginas, tamanoPagina) => ({
+function cierreBloque(): Content {
+  return {
     stack: [
       {
         text: `Observaciones: ${"_".repeat(110)}`,
         fontSize: 7,
         color: "#666666",
-        margin: [MARGEN_PDF, 0, MARGEN_PDF, 0],
       },
       {
-        // Centrados en media hoja cada uno: quedan repartidos como en el
-        // original, y el aire de arriba es el espacio para firmar.
+        // Centrados en media hoja cada uno, y el aire de arriba es el espacio
+        // para firmar.
         columns: FIRMAS_KARDEX.map((cargo) => ({
           text: cargo,
           alignment: "center" as const,
         })),
         fontSize: 7.5,
-        margin: [MARGEN_PDF, 20, MARGEN_PDF, 0],
+        margin: [0, 34, 0, 0],
       },
-      pieComun(paginaActual, totalPaginas, tamanoPagina) as Content,
     ],
-  })
+    margin: [0, 8, 0, 0],
+    unbreakable: true,
+  }
 }
 
 /**
@@ -359,9 +345,8 @@ export async function definicionReporteKardex(
       // que es como se guardaba el kardex en papel.
       ...(indice > 0 ? { pageBreak: "before" as const } : {}),
     })
-    // La línea de observaciones ya NO va acá: subió al `footer` para salir en
-    // todas las hojas, no solo en la última de cada bloque (ver `pieKardex`).
     contenido.push(tablaBloque(bloque, reporte.gestion))
+    contenido.push(cierreBloque())
   })
 
   return {
@@ -371,13 +356,11 @@ export async function definicionReporteKardex(
     // El margen superior le reserva el lugar al membrete, que va como `header`
     // para repetirse en TODAS las páginas: cada bloque empieza en hoja nueva y
     // una hoja de kardex sin membrete no se puede identificar.
-    // El margen inferior le reserva el lugar al pie de firmas, que también se
-    // repite en todas las páginas.
     pageMargins: [
       MARGEN_PDF,
       MARGEN_PDF + ALTO_MEMBRETE,
       MARGEN_PDF,
-      ALTO_PIE_FIRMAS,
+      MARGEN_PDF + 6,
     ],
     info: {
       title: `Kardex ${reporte.gestion} — ${fechaCorta(emitidoEn)}`,
@@ -401,6 +384,6 @@ export async function definicionReporteKardex(
           ]
         : contenido),
     ],
-    footer: pieKardex(usuario, emitidoEn),
+    footer: pieReporte(usuario, emitidoEn),
   }
 }

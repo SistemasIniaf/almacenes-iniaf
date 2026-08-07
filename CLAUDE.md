@@ -725,20 +725,20 @@ Doce columnas (cantidad y valor del mismo movimiento, por separado) obligan a ho
 salen los bloques con movimientos en la gestión o con saldo que viene de antes: un ítem que nunca tocó
 ese almacén no imprime una hoja en blanco.
 
-**El pie de firmas va en TODAS las hojas** (`pieKardex`, 2026-08-07, pedido de la institución):
-`Observaciones: ______`, aire para escribir, y los rótulos **Encargado Almacén · VoBo Jefe
-Administrativo** — los mismos que la nota de ingreso, y encima de la línea de emisión y «Página N de M»
-que llevan todos los reportes (`pieKardex` **compone sobre `pieReporte()`**, no lo rehace).
+**Cada bloque cierra con observaciones y firmas** (`cierreBloque()`, 2026-08-07, pedido de la
+institución): `Observaciones: ______`, el aire para firmar a mano y los rótulos **Encargado Almacén ·
+VoBo Jefe Administrativo** — los mismos que la nota de ingreso, no el «V°B°» del sistema viejo: es el
+mismo cargo de la misma persona.
 
-Está en el **`footer`** y no en el contenido de cada bloque, que es donde vivía la línea de
-observaciones hasta esa fecha. La diferencia se ve **cuando un ítem no entra en una hoja**: dentro del
-contenido la línea sale UNA vez, al final del bloque, y las hojas del medio quedan sin dónde firmar.
-Es un documento que se archiva firmado **hoja por hoja**, así que lo que manda es la PÁGINA, no el
-bloque. Es la misma razón por la que el membrete va como `header`.
+**Va pegado a la tabla, en el CONTENIDO, y NO en el `footer`.** Se probó al pie de la página —que es lo
+que pdfmake repite en cada hoja— y quedó mal: en un bloque corto, que es lo normal, el pie caía al
+fondo de la hoja a media página de la tabla y se leía como suelto. Como **cada bloque arranca en hoja
+nueva**, ponerlo detrás de la tabla igual da uno por hoja en el caso normal, y encima donde el ojo
+termina de leer. Lo que sí necesita es **`unbreakable: true`**: la línea de observaciones en una hoja y
+las firmas en la siguiente no sirven para firmar nada.
 
-Ojo con **`ALTO_PIE_FIRMAS`**: el `footer` de pdfmake se dibuja DENTRO del margen inferior, así que
-ese número es lo que `pageMargins[3]` le reserva. Quedarse corto no recorta el pie, lo **superpone**
-con la última fila de la tabla — si se agrega algo al pie, hay que subirlo.
+Límite conocido y aceptado: si los movimientos de UN ítem no entran en una hoja, el cierre sale solo al
+final del bloque y las hojas del medio quedan sin firmas. Es como salía el reporte anterior.
 
 El selector de ítems (búsqueda contra el servidor, tandas de 50) vive en `features/items/useBuscarItems.ts`
 porque lo comparten el formulario de ingreso y el kardex.
