@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
-import { toBoolean } from '../../../common/dto/transforms';
+import { toBoolean, toStringArray } from '../../../common/dto/transforms';
 import { EstadoEgreso } from '../../../generated/prisma/enums';
 
 /** Filtros y buscador del listado de egresos. */
@@ -19,9 +19,16 @@ export class QueryEgresosDto extends PaginationQueryDto {
   @IsString()
   q?: string;
 
+  /**
+   * Uno o VARIOS estados, separados por coma (`?estado=ENTREGADO,ANULADO`).
+   *
+   * Admite varios porque el reporte necesita justo un par: los estados que
+   * MOVIERON stock. Mandar uno solo sigue funcionando igual que antes.
+   */
   @IsOptional()
-  @IsEnum(EstadoEgreso, { message: 'El estado no es valido' })
-  estado?: EstadoEgreso;
+  @Transform(toStringArray)
+  @IsEnum(EstadoEgreso, { each: true, message: 'El estado no es valido' })
+  estado?: EstadoEgreso[];
 
   @IsOptional()
   @Type(() => Number)

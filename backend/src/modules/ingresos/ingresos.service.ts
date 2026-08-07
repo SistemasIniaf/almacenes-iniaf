@@ -12,6 +12,11 @@ import {
   filtroAlmacen,
 } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
+import { borrarImagen, guardarImagen } from '../../common/uploads/imagenes';
+import {
+  LOTES_IMAGE_DIR,
+  LOTES_IMAGE_SUBDIR,
+} from '../../common/uploads/uploads.config';
 import {
   EstadoIngreso,
   Rol,
@@ -164,6 +169,9 @@ const ingresoFullSelect = {
       precioUnitario: true,
       saldoCantidad: true,
       observacion: true,
+      // Foto de ESTE lote. El formulario la muestra por linea y, donde se elige
+      // material (el selector del egreso), pisa a la del catalogo del item.
+      imagenUrl: true,
       item: {
         select: {
           id: true,
@@ -548,6 +556,97 @@ export class IngresosService {
     });
 
     return this.findOne(id, user);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Foto del lote
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Sube/reemplaza la foto de UN lote (linea del ingreso).
+   *
+   * Es la UNICA excepcion a que las lineas de un ingreso confirmado esten
+   * congeladas, y a proposito: la foto no toca el saldo, ni el precio, ni el
+   * correlativo, ni el Kardex — no hay nada contable que corregir anulando. Por
+   * eso el endpoint sigue abierto despues de confirmar, que ademas es lo que el
+   * almacen necesita: al recibir el material se registra el ingreso, y la foto
+   * se saca y se carga despues, sin bloquear el registro.
+   */
+  async setImagenLote(
+    ingresoId: number,
+    detalleId: number,
+    file: Express.Multer.File,
+    user: AuthenticatedUser,
+  ) {
+    const lote = await this.cargarLoteParaImagen(ingresoId, detalleId, user);
+
+    const imagenUrl = await guardarImagen(file, {
+      dir: LOTES_IMAGE_DIR,
+      subdir: LOTES_IMAGE_SUBDIR,
+      nombreBase: detalleId,
+    });
+    await this.prisma.ingresoDetalle.update({
+      where: { id: detalleId },
+      data: { imagenUrl },
+    });
+
+    // La anterior se borra recien despues de commitear la nueva (best-effort):
+    // si el borrado falla queda un archivo huerfano, que es preferible a que
+    // falle la subida y el lote quede apuntando a un archivo que ya no existe.
+    await borrarImagen(LOTES_IMAGE_DIR, lote.imagenUrl);
+
+    return this.findOne(ingresoId, user);
+  }
+
+  /** Quita la foto del lote (borra el archivo y limpia la ruta en la DB). */
+  async removeImagenLote(
+    ingresoId: number,
+    detalleId: number,
+    user: AuthenticatedUser,
+  ) {
+    const lote = await this.cargarLoteParaImagen(ingresoId, detalleId, user);
+
+    if (lote.imagenUrl) {
+      await this.prisma.ingresoDetalle.update({
+        where: { id: detalleId },
+        data: { imagenUrl: null },
+      });
+      await borrarImagen(LOTES_IMAGE_DIR, lote.imagenUrl);
+    }
+
+    return this.findOne(ingresoId, user);
+  }
+
+  /**
+   * El lote existe, es de ESE ingreso, el ingreso esta dentro del scope de quien
+   * pide y no esta anulado.
+   *
+   * Lo de "es de ese ingreso" no es ceremonia: sin esa comprobacion, el id del
+   * ingreso en la ruta seria decorativo y se podria tocar la foto de un lote de
+   * otro almacen pasando un detalleId ajeno con un ingresoId propio.
+   */
+  private async cargarLoteParaImagen(
+    ingresoId: number,
+    detalleId: number,
+    user: AuthenticatedUser,
+  ) {
+    const ingreso = await this.cargarParaEscritura(ingresoId, user);
+    if (ingreso.estado === EstadoIngreso.ANULADO) {
+      throw new BadRequestException(
+        'El ingreso está anulado: no se puede cambiar la foto de sus lotes',
+      );
+    }
+
+    const lote = await this.prisma.ingresoDetalle.findFirst({
+      where: { id: detalleId, ingresoId },
+      select: { id: true, imagenUrl: true },
+    });
+    if (!lote) {
+      throw new NotFoundException(
+        `El ingreso ${ingresoId} no tiene una línea con id ${detalleId}`,
+      );
+    }
+    return lote;
   }
 
   // ---------------------------------------------------------------------------

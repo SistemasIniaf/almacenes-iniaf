@@ -27,6 +27,13 @@ export interface ComboboxOption {
   label: string
   /** Texto adicional que se muestra en gris debajo (ej. la denominación). */
   descripcion?: string
+  /**
+   * Dato que DISTINGUE a esta opción de otras casi idénticas (ej. la nota del
+   * lote: «COLOR AZUL»). Se dibuja como una etiqueta resaltada, no como parte
+   * de la línea: en texto corrido se leía como parte del nombre del ítem y
+   * pasaba desapercibido — que es justo lo contrario de para qué está.
+   */
+  nota?: string
   /** Texto extra por el que también se puede buscar (ej. el código). */
   busqueda?: string
   /**
@@ -104,6 +111,40 @@ function Miniatura({ url, alt }: { url?: string | null; alt: string }) {
 }
 
 /**
+ * Etiqueta de una opción: el `label`, la `nota` RESALTADA y la `descripcion` en
+ * gris. Se usa igual en la lista y en el botón cerrado — si el resaltado fuera
+ * solo de la lista, desaparecería justo cuando la opción quedó elegida, que es
+ * cuando conviene seguir viendo cuál se eligió.
+ *
+ * La nota va en una etiqueta con fondo y no en el mismo tono del resto porque es
+ * lo único que separa dos opciones por lo demás idénticas (dos lotes del mismo
+ * ítem comparten descripción y foto): en una línea corrida se leía como parte
+ * del nombre y pasaba desapercibida.
+ */
+function EtiquetaOpcion({ opcion }: { opcion: ComboboxOption }) {
+  return (
+    <>
+      {opcion.label}
+      {opcion.nota && (
+        // Etiqueta NEUTRA (gris), no del color de acción: la fila resaltada de la
+        // lista se pinta con ese mismo color, así que una etiqueta primaria
+        // quedaba color sobre color y desaparecía justo en la opción que el
+        // usuario está mirando. Sobre la fila resaltada invierte al par
+        // accent/accent-foreground, igual que hace la descripción.
+        <span className="mx-1.5 rounded bg-foreground/10 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-foreground group-data-[selected=true]/opcion:bg-accent-foreground/20 group-data-[selected=true]/opcion:text-accent-foreground">
+          {opcion.nota}
+        </span>
+      )}
+      {opcion.descripcion && (
+        <span className="text-muted-foreground group-data-[selected=true]/opcion:text-accent-foreground">
+          {opcion.nota ? "" : " "}— {opcion.descripcion}
+        </span>
+      )}
+    </>
+  )
+}
+
+/**
  * Selector con buscador para listas largas donde un `<select>` no escala
  * (partidas del clasificador, catalogo de items — ver CLAUDE.md).
  *
@@ -162,8 +203,10 @@ export function ComboboxField<T extends FieldValues>({
   }, [search, primeraOpcion, nodoLista])
 
   // Texto interno (cmdk) de cada opción, el mismo que se usa como `value` del item.
+  // Incluye la nota: es parte de lo que se ve, así que tiene que ser parte de lo
+  // que el filtro local encuentra.
   const textoCmdk = (o: ComboboxOption) =>
-    `${o.busqueda ?? ""} ${o.label} ${o.descripcion ?? ""}`
+    `${o.busqueda ?? ""} ${o.label} ${o.nota ?? ""} ${o.descripcion ?? ""}`
 
   // Dentro de un Dialog, el popover se portaliza a `body`, fuera del bloqueo de
   // scroll (`react-remove-scroll`) del diálogo: la barra funciona pero la rueda
@@ -241,11 +284,11 @@ export function ComboboxField<T extends FieldValues>({
                       !seleccionada && "text-muted-foreground"
                     )}
                   >
-                    {seleccionada
-                      ? seleccionada.descripcion
-                        ? `${seleccionada.label} — ${seleccionada.descripcion}`
-                        : seleccionada.label
-                      : placeholder}
+                    {seleccionada ? (
+                      <EtiquetaOpcion opcion={seleccionada} />
+                    ) : (
+                      placeholder
+                    )}
                   </span>
                   <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
                 </Button>
@@ -328,13 +371,7 @@ export function ComboboxField<T extends FieldValues>({
                             <Miniatura url={opcion.imagen} alt={opcion.label} />
                           )}
                           <span className="min-w-0 truncate">
-                            {opcion.label}
-                            {opcion.descripcion && (
-                              <span className="text-muted-foreground group-data-[selected=true]/opcion:text-accent-foreground">
-                                {" "}
-                                — {opcion.descripcion}
-                              </span>
-                            )}
+                            <EtiquetaOpcion opcion={opcion} />
                           </span>
                         </CommandItem>
                       ))}

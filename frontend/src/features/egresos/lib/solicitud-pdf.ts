@@ -1,4 +1,5 @@
 import {
+  descripcionConNota,
   etiquetaNumero,
   ESTADO_DETALLE,
 } from "@/features/egresos/egresos.types"
@@ -90,7 +91,10 @@ function firmas(egreso: Egreso): Content {
       width: ANCHO_UTIL / casillas.length,
       stack: [
         // El espacio en blanco es para la firma manuscrita.
-        { text: " ", margin: [0, 18, 0, 0] as [number, number, number, number] },
+        {
+          text: " ",
+          margin: [0, 18, 0, 0] as [number, number, number, number],
+        },
         {
           canvas: [
             {
@@ -125,8 +129,7 @@ function firmas(egreso: Egreso): Content {
 export async function definicionSolicitud(
   egreso: Egreso
 ): Promise<TDocumentDefinitions> {
-  const { iniaf: logoIniaf, ministerio: logoMinisterio } =
-    await logosMembrete()
+  const { iniaf: logoIniaf, ministerio: logoMinisterio } = await logosMembrete()
 
   const etiqueta = etiquetaNumero(egreso)
   const anulado = egreso.estado === "ANULADO"
@@ -220,9 +223,14 @@ export async function definicionSolicitud(
     return [
       { text: String(indice + 1), alignment: "center", fontSize: 7.5 },
       { text: lote.item.codigo, fontSize: 7.5 },
-      // Sin nota entre paréntesis, a diferencia de la nota de ingreso: la línea
-      // de egreso no lleva observación propia.
-      { text: lote.item.descripcion, fontSize: 7.5 },
+      // «DESCRIPCIÓN (nota)», igual que la nota de ingreso — pero la nota es la
+      // del LOTE, no de la línea: el egreso no lleva observación propia. Es lo
+      // que distingue dos lotes del mismo ítem, y este papel es el que usa el
+      // almacén para entregar.
+      {
+        text: descripcionConNota(lote.item.descripcion, lote.observacion),
+        fontSize: 7.5,
+      },
       {
         text: lote.ingreso.fuenteFinanciamiento?.nombre ?? "—",
         fontSize: 7.5,

@@ -11,8 +11,21 @@ export interface LoteElegible {
   id: number
   itemCodigo: string
   itemDescripcion: string
+  /**
+   * Nota del lote (marca, color…). Distingue dos lotes del mismo ítem, que
+   * comparten descripción y foto de catálogo.
+   */
+  observacion: string | null
   unidadMedida: string
-  /** URL absoluta de la foto del ítem, ya lista para un `<img>`. Null si no tiene. */
+  /**
+   * URL absoluta de la foto, lista para un `<img>`. Null si no hay ninguna.
+   *
+   * Es la del LOTE si le sacaron una al recibirlo y, si no, la del catálogo del
+   * ítem. Las dos responden preguntas distintas: la del catálogo dice qué TIPO
+   * de cosa es, la del lote dice qué hay exactamente en esta compra. Acá se
+   * elige material, así que manda la segunda — si el catálogo tiene botas negras
+   * y esta compra trajo azules, la del ítem desinforma.
+   */
   imagen: string | null
   fuente: string
   numeroIngreso: string
@@ -60,21 +73,20 @@ export function useBuscarLotes(termino: string) {
         pagina.data.flatMap((item) =>
           item.lotes
             .filter((lote) => lote.disponible > 0)
-            .map(
-              (lote): LoteElegible => ({
-                id: lote.id,
-                itemCodigo: item.codigo,
-                itemDescripcion: item.descripcion,
-                unidadMedida: item.unidadMedida,
-                imagen: urlArchivo(item.imagenUrl),
-                fuente: lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
-                numeroIngreso:
-                  lote.ingreso.numero != null && lote.ingreso.gestion != null
-                    ? `${String(lote.ingreso.numero).padStart(3, "0")}/${lote.ingreso.gestion}`
-                    : "—",
-                disponible: lote.disponible,
-              })
-            )
+            .map((lote): LoteElegible => ({
+              id: lote.id,
+              itemCodigo: item.codigo,
+              itemDescripcion: item.descripcion,
+              observacion: lote.observacion,
+              unidadMedida: item.unidadMedida,
+              imagen: urlArchivo(lote.imagenUrl ?? item.imagenUrl),
+              fuente: lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
+              numeroIngreso:
+                lote.ingreso.numero != null && lote.ingreso.gestion != null
+                  ? `${String(lote.ingreso.numero).padStart(3, "0")}/${lote.ingreso.gestion}`
+                  : "—",
+              disponible: lote.disponible,
+            }))
         )
       ),
     }),

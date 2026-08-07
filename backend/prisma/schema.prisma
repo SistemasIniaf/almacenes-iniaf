@@ -380,6 +380,18 @@ model IngresoDetalle {
   /// la descripcion del item entre parentesis: "BOTAS DE AGUA (COLOR NEGRO)".
   observacion String?
 
+  /// Foto de ESTE lote (ruta publica relativa, ej. "/uploads/lotes/7-ab12cd34.webp").
+  ///
+  /// OPCIONAL y con FALLBACK: donde se muestra el material vale
+  /// `lote.imagenUrl ?? item.imagenUrl`. Las dos fotos responden preguntas
+  /// distintas — la del Item es de CATALOGO ("que tipo de cosa es") y la del lote
+  /// es de STOCK ("que hay exactamente en esta compra"). El egreso hace la
+  /// segunda: si el catalogo tiene botas negras y esta compra trajo azules, la
+  /// foto del item desinforma. Por eso se puede pisar por lote, sin obligar:
+  /// para la mayoria de los items (papel, boligrafos) todos los lotes se ven
+  /// igual y la del catalogo alcanza.
+  imagenUrl String? @map("imagen_url")
+
   movimientos MovimientoKardex[]
 
   /// Pedidos que salen de ESTE lote. De aca sale el stock RESERVADO: la suma de

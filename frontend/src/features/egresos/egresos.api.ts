@@ -8,14 +8,29 @@ import type {
   EntregaPayload,
   FilaReporteEgreso,
   QueryEgresos,
+  ResumenEgresos,
   UpdateEgresoPayload,
 } from "@/features/egresos/egresos.types"
+
+/**
+ * El `estado` admite varios valores y viaja **separado por coma**, que es lo que
+ * el backend parsea (`toStringArray`). Se arma acá y no se deja al serializador
+ * de axios, que mandaría `estado[]=A&estado[]=B`: eso también funcionaría hoy,
+ * pero depende de cómo esté configurado el parser de query de Express y no se
+ * ve en ningún lado. Así el formato de la URL está escrito en un solo lugar.
+ */
+function aParams(query: QueryEgresos) {
+  return {
+    ...query,
+    estado: Array.isArray(query.estado) ? query.estado.join(",") : query.estado,
+  }
+}
 
 export async function listarEgresos(
   query: QueryEgresos
 ): Promise<PaginatedResult<EgresoListItem>> {
   const { data } = await api.get<PaginatedResult<EgresoListItem>>("/egresos", {
-    params: query,
+    params: aParams(query),
   })
   return data
 }
@@ -28,8 +43,14 @@ export async function reporteEgresos(
   query: QueryEgresos
 ): Promise<FilaReporteEgreso[]> {
   const { data } = await api.get<FilaReporteEgreso[]>("/egresos/reporte", {
-    params: query,
+    params: aParams(query),
   })
+  return data
+}
+
+/** Cuántos egresos hay en cada etapa: alimenta las pestañas y el badge del menú. */
+export async function resumenEgresos(): Promise<ResumenEgresos> {
+  const { data } = await api.get<ResumenEgresos>("/egresos/resumen")
   return data
 }
 

@@ -31,7 +31,32 @@ const lineaSchema = z.object({
     ),
   // Nota libre opcional (ej. "COLOR NEGRO"); en el reporte va junto al ítem.
   observacion: z.string().trim().max(200, "Máximo 200 caracteres"),
+  /**
+   * Id de la línea ya registrada ("" mientras es nueva). Lo necesita la foto:
+   * al editar, el lote existe y la subida va directo contra
+   * `/ingresos/:id/detalles/:detalleId/imagen`.
+   */
+  detalleId: z.string(),
+  /**
+   * Foto del lote elegida que TODAVÍA no se subió. Al crear, las líneas no
+   * tienen id hasta después del POST, así que el archivo viaja acá y se sube en
+   * un segundo paso. Vive dentro del formulario a propósito: así `reset()` lo
+   * limpia junto con el resto y no hace falta estado aparte.
+   *
+   * Nunca viaja en el payload JSON — `aPayload` mapea campo por campo.
+   */
+  archivo: z.union([z.instanceof(File), z.null()]),
 })
+
+/** Línea vacía al agregar un ítem. Un solo lugar: la usan el form y el botón. */
+export const LINEA_VACIA: z.infer<typeof lineaSchema> = {
+  itemId: "",
+  cantidad: "",
+  precioUnitario: "",
+  observacion: "",
+  detalleId: "",
+  archivo: null,
+}
 
 export const ingresoSchema = z
   .object({
@@ -203,6 +228,10 @@ export function desdeIngreso(ing: Ingreso): IngresoFormValues {
       cantidad: d.cantidad,
       precioUnitario: d.precioUnitario,
       observacion: d.observacion ?? "",
+      // El id del lote habilita la subida inmediata de su foto al editar.
+      detalleId: String(d.id),
+      // La foto ya subida no es un archivo pendiente: se muestra por su URL.
+      archivo: null,
     })),
   }
 }

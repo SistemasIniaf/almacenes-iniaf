@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Ban, FileText, Loader2, Save } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   AlertDialog,
@@ -33,11 +34,13 @@ import {
   useActualizarIngreso,
   useAnularIngreso,
   useCrearIngreso,
+  useImagenLote,
   useIngreso,
   useSolicitadores,
   useUnidadesDeAlmacen,
 } from "@/features/ingresos/hooks/useIngresos"
 import { useNotaIngreso } from "@/features/ingresos/hooks/useNotaIngreso"
+import { subirImagenLote } from "@/features/ingresos/ingresos.api"
 import {
   aPayload,
   aPayloadEdicion,
@@ -52,7 +55,9 @@ import {
 } from "@/features/ingresos/ingresos.types"
 
 import type { ComboboxOption } from "@/components/form/ComboboxField"
+import type { FotoDeLote } from "@/features/ingresos/components/IngresoLineas"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
+import type { Ingreso } from "@/features/ingresos/ingresos.types"
 
 /**
  * Agrega al selector lo que el ingreso YA referencia, si el catálogo activo no
@@ -92,10 +97,24 @@ export function IngresoFormPage() {
   const crear = useCrearIngreso()
   const actualizar = useActualizarIngreso()
   const anular = useAnularIngreso()
+  const imagenLote = useImagenLote()
 
   const [dialogoAnular, setDialogoAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
   const { abrirNota, generandoId } = useNotaIngreso()
+
+  /**
+   * Fotos de lote cambiadas en ESTA sesión, por id de línea.
+   *
+   * Existe porque la mutación no invalida el detalle del ingreso: si lo hiciera,
+   * el refetch dispararía el `reset()` de abajo y se perdería lo que el usuario
+   * estuviera escribiendo en la cabecera. Así que la foto recién subida se pisa
+   * acá y el resto del formulario no se entera. Es el mismo recurso que usa
+   * `ItemFormDialog`, adaptado a que acá hay varias fotos por pantalla.
+   */
+  const [fotosCambiadas, setFotosCambiadas] = useState<Map<number, string | null>>(
+    () => new Map()
+  )
 
   const { control, handleSubmit, reset, watch } = useForm<IngresoFormValues>({
     resolver: zodResolver(ingresoSchema),
@@ -145,6 +164,79 @@ export function IngresoFormPage() {
     almacenes.find((a) => String(a.id) === almacenIdSel)?.nombre ??
     ""
 
+  /** Sube o quita la foto de un lote ya registrado y la refleja al instante. */
+  function aplicarFoto(detalleId: number, archivo: File | null) {
+    imagenLote.mutate(
+      { ingresoId: id as number, detalleId, archivo },
+      {
+        onSuccess: (actualizado) => {
+          const lote = actualizado.detalles.find((d) => d.id === detalleId)
+          setFotosCambiadas((previas) =>
+            new Map(previas).set(detalleId, lote?.imagenUrl ?? null)
+          )
+        },
+      }
+    )
+  }
+
+  /**
+   * Handlers de la foto por línea. Solo al EDITAR: ahí el lote ya tiene id y la
+   * subida es inmediata. Al crear se deja en `undefined` y el `ImageField` pasa
+   * a guardar el archivo en el formulario (ver `FotoDeLinea`).
+   */
+  const fotoDeLote: FotoDeLote | undefined = esNuevo
+    ? undefined
+    : {
+        urlDe: (detalleId) =>
+          fotosCambiadas.has(detalleId)
+            ? (fotosCambiadas.get(detalleId) ?? null)
+            : (ingreso?.detalles.find((d) => d.id === detalleId)?.imagenUrl ??
+              null),
+        onSubir: (detalleId, archivo) => aplicarFoto(detalleId, archivo),
+        onQuitar: (detalleId) => aplicarFoto(detalleId, null),
+        enCurso: imagenLote.isPending
+          ? (imagenLote.variables?.detalleId ?? null)
+          : null,
+        bloqueada: anulado,
+      }
+
+  /**
+   * Sube las fotos que se eligieron antes de que las líneas existieran.
+   *
+   * El emparejamiento es POSICIONAL y no puede ser otra cosa: el id del lote
+   * nace dentro de la transacción del POST, así que no hay nada con qué
+   * relacionarlos de antemano. Funciona porque el backend crea los lotes en el
+   * orden en que vienen las líneas y `ingresoFullSelect` los devuelve
+   * `orderBy: { id: 'asc' }` — la i-ésima línea del formulario es el i-ésimo
+   * detalle del ingreso creado.
+   *
+   * Un fallo acá NO pierde el ingreso, que ya quedó registrado con su número y
+   * su Kardex: se avisa qué fotos faltaron y se cargan desde la edición, donde
+   * reintentarlo es un clic. Por eso tampoco se corta en el primer error.
+   */
+  async function subirFotosPendientes(creado: Ingreso, v: IngresoFormValues) {
+    const pendientes = v.detalles.flatMap((linea, i) => {
+      const detalle = creado.detalles[i]
+      return linea.archivo && detalle ? [{ archivo: linea.archivo, detalle }] : []
+    })
+    if (pendientes.length === 0) return
+
+    const fallidas: string[] = []
+    for (const { archivo, detalle } of pendientes) {
+      try {
+        await subirImagenLote(creado.id, detalle.id, archivo)
+      } catch {
+        fallidas.push(detalle.item.descripcion)
+      }
+    }
+
+    if (fallidas.length > 0) {
+      toast.warning(
+        `El ingreso se registró, pero no se pudo subir la foto de ${fallidas.join(", ")}. Cargala desde el ingreso.`
+      )
+    }
+  }
+
   async function guardar(v: IngresoFormValues) {
     try {
       if (esNuevo) {
@@ -152,6 +244,8 @@ export function IngresoFormPage() {
         const creado = await crear.mutateAsync(
           aPayload(v, { incluirAlmacen: !esResponsable })
         )
+        // Recién ahora las líneas tienen id: las fotos van en un segundo paso.
+        await subirFotosPendientes(creado, v)
         navigate(`/ingresos/${creado.id}`)
       } else {
         // Edición: solo la cabecera documental (no toca líneas ni stock).
@@ -504,6 +598,9 @@ export function IngresoFormPage() {
               // El selector de ítems busca contra el servidor: los ítems que ya
               // tiene el ingreso viajan aparte para que se vean sin buscarlos.
               itemsIniciales={ingreso?.detalles.map((d) => d.item) ?? []}
+              // La foto es la ÚNICA parte de la línea que sigue editable con el
+              // ingreso registrado: no mueve saldo ni correlativo.
+              foto={fotoDeLote}
             />
           </div>
 

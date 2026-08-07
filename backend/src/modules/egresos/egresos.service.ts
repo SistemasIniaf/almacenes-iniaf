@@ -75,6 +75,14 @@ const loteSelect = {
   id: true,
   precioUnitario: true,
   saldoCantidad: true,
+  // La nota que el almacen escribio al RECIBIR el material (marca, color). Es lo
+  // unico que distingue dos lotes del mismo item, que en el catalogo comparten
+  // descripcion y foto — asi que viaja hasta el pedido y se imprime con la
+  // descripcion, igual que en la nota de ingreso.
+  observacion: true,
+  // Foto de ESTE lote, si el almacen le saco una al recibirlo. Tiene prioridad
+  // sobre la del catalogo del item: `lote.imagenUrl ?? item.imagenUrl`.
+  imagenUrl: true,
   item: {
     select: {
       id: true,
@@ -133,6 +141,30 @@ const egresoFullSelect = {
   },
 } as const;
 
+/**
+ * Las ETAPAS del ciclo, agrupando los estados que se miran juntos.
+ *
+ * `BORRADOR` queda afuera de las dos: todavia no es un documento (no tiene
+ * numero) y solo le importa a su dueño, asi que tiene su propia etapa.
+ */
+const ESTADOS_EN_CURSO = [
+  EstadoEgreso.PENDIENTE_APROBADOR,
+  EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN,
+];
+/** Los que MOVIERON stock: uno genero la SALIDA del Kardex, el otro su reversion. */
+const ESTADOS_CERRADOS = [EstadoEgreso.ENTREGADO, EstadoEgreso.ANULADO];
+
+/**
+ * Roles con bandeja propia: los que tienen algo esperando una accion SUYA.
+ * `admin`, `super_admin` y `observador_almacen` no la tienen — ven todo, pero
+ * nada les espera a ellos.
+ */
+const ROLES_CON_BANDEJA: Rol[] = [
+  Rol.solicitador,
+  Rol.aprobador,
+  Rol.responsable_almacen,
+];
+
 @Injectable()
 export class EgresosService {
   constructor(private readonly prisma: PrismaService) {}
@@ -166,7 +198,9 @@ export class EgresosService {
       AND: [
         await this.alcance(user),
         {
-          ...(query.estado ? { estado: query.estado } : {}),
+          // `in` siempre: el filtro admite varios estados (el reporte pide los
+          // dos que movieron stock) y uno solo es el caso de un elemento.
+          ...(query.estado?.length ? { estado: { in: query.estado } } : {}),
           ...(query.gestion ? { gestion: query.gestion } : {}),
           ...(query.unidadId ? { unidadId: query.unidadId } : {}),
           ...(query.almacenId ? { almacenId: query.almacenId } : {}),
@@ -196,6 +230,39 @@ export class EgresosService {
     ]);
 
     return paginated(data, total, page, pageSize);
+  }
+
+  /**
+   * Cuantos egresos hay en cada ETAPA del ciclo, dentro del alcance del usuario.
+   *
+   * Alimenta las pestañas del listado y el numerito del menu lateral. Existe
+   * como endpoint propio y no se deriva del listado porque el listado esta
+   * paginado y filtrado: su `total` responde a lo que se este mirando, no a
+   * cuanto hay en las otras etapas.
+   *
+   * Sin estos numeros las pestañas no resuelven el problema que las motivo —
+   * abrir la bandeja y encontrarla vacia sin saber que habia trabajo en otra
+   * parte. Con ellos, eso se ve ANTES de hacer clic.
+   */
+  async resumen(user: AuthenticatedUser) {
+    const alcance = await this.alcance(user);
+    const contar = (extra: object) =>
+      this.prisma.egreso.count({ where: { AND: [alcance, extra] } });
+
+    const [bandeja, sinEnviar, enCurso, cerrados] = await Promise.all([
+      // `null` (y no 0) cuando el rol no tiene bandeja: son cosas distintas
+      // —«no te corresponde» vs. «te corresponde y esta vacia»— y la pantalla
+      // dibuja o no la pestaña segun eso. Para admin/observador `filtroBandeja`
+      // devuelve `{}`, que contaria TODOS los egresos: de ahi el corte.
+      ROLES_CON_BANDEJA.includes(user.rol)
+        ? contar(this.filtroBandeja(user))
+        : Promise.resolve(null),
+      contar({ estado: EstadoEgreso.BORRADOR }),
+      contar({ estado: { in: ESTADOS_EN_CURSO } }),
+      contar({ estado: { in: ESTADOS_CERRADOS } }),
+    ]);
+
+    return { bandeja, sinEnviar, enCurso, cerrados };
   }
 
   /**

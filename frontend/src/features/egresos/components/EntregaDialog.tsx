@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useEntregarEgreso } from "@/features/egresos/hooks/useEgresos"
+import { descripcionConNota } from "@/features/egresos/egresos.types"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
 
@@ -89,6 +90,11 @@ export function EntregaDialog({ onClose, egreso }: EntregaDialogProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Ítem</TableHead>
+              {/* La unidad va en columna propia, no pegada a cada número: así no
+                  hay que pluralizarla («4 PIEZA») ni inventar reglas para las
+                  abreviaturas, que son invariables (KG, LT, M2). Es la misma
+                  disposición que la ficha del pedido y que el PDF. */}
+              <TableHead className="text-center">Unidad</TableHead>
               <TableHead className="text-right">Pedido</TableHead>
               <TableHead className="w-32 text-right">Entrega</TableHead>
             </TableRow>
@@ -102,7 +108,17 @@ export function EntregaDialog({ onClose, egreso }: EntregaDialogProps) {
                 <TableRow key={detalle.id}>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span>{item.descripcion}</span>
+                      {/* Con la nota del lote: este es el momento en que alguien
+                          va a la estantería a buscar el material, así que es
+                          donde más se necesita saber si son las negras o las
+                          azules. La foto del ítem es la de catálogo y no lo
+                          distingue. */}
+                      <span>
+                        {descripcionConNota(
+                          item.descripcion,
+                          detalle.ingresoDetalle.observacion
+                        )}
+                      </span>
                       <span className="text-xs text-muted-foreground">
                         {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
                           ?.nombre ?? "Sin fuente"}
@@ -111,8 +127,11 @@ export function EntregaDialog({ onClose, egreso }: EntregaDialogProps) {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    {pedido} {item.unidadMedida}
+                  <TableCell className="text-center whitespace-nowrap text-muted-foreground">
+                    {item.unidadMedida}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {pedido}
                   </TableCell>
                   <TableCell>
                     <Input

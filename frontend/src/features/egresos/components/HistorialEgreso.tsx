@@ -109,7 +109,9 @@ export function HistorialEgreso({ historial }: HistorialEgresoProps) {
               <div
                 className={cn(
                   "pl-10 sm:pl-0",
-                  aLaDerecha ? "sm:col-start-2 sm:pl-6" : "sm:col-start-1 sm:pr-6"
+                  aLaDerecha
+                    ? "sm:col-start-2 sm:pl-6"
+                    : "sm:col-start-1 sm:pr-6"
                 )}
               >
                 <div className="rounded-lg border bg-card p-3 shadow-sm">

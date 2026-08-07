@@ -158,6 +158,10 @@ export interface LoteDeLinea {
   id: number
   precioUnitario: string
   saldoCantidad: string
+  /** Nota que el almacén escribió al recibir el material (ej. «COLOR NEGRO»). */
+  observacion: string | null
+  /** Foto de ESTE lote, si le sacaron una. Manda sobre la del catálogo. */
+  imagenUrl: string | null
   item: {
     id: number
     codigo: string
@@ -174,6 +178,29 @@ export interface LoteDeLinea {
     fechaIngreso: string
     fuenteFinanciamiento: RefNombre | null
   }
+}
+
+/**
+ * «DESCRIPCIÓN (nota del lote)» — la misma convención con que la nota de ingreso
+ * imprime la observación de su línea.
+ *
+ * La nota es del LOTE, no de la línea de egreso: el egreso no lleva observación
+ * propia, a propósito (lo que hay que aclarar de un pedido va en la
+ * justificación). Ahí es donde el almacén anotó la marca o el color al recibir
+ * el material, así que es lo único que distingue dos lotes del mismo ítem, que
+ * en el catálogo comparten descripción **y foto**. Sin esto, un pedido se arma,
+ * se aprueba y se entrega nombrando solo «BOTAS DE AGUA» cuando en la estantería
+ * hay negras y azules.
+ *
+ * Va en los cinco lugares donde se nombra el material (selector de lotes,
+ * diálogo de la foto, ficha, diálogo de entrega y PDF): mostrarla en uno solo
+ * deja al que entrega sin el dato que tuvo el que pidió.
+ */
+export function descripcionConNota(
+  descripcion: string,
+  observacion: string | null
+) {
+  return observacion ? `${descripcion} (${observacion})` : descripcion
 }
 
 export interface EgresoDetalle {
@@ -240,8 +267,41 @@ export interface EgresoListItem {
   _count: { detalles: number }
 }
 
+/**
+ * Los estados que MOVIERON stock: uno generó la SALIDA en el Kardex y el otro su
+ * REVERSIÓN. Es de lo que se hace el «Registro de egresos» — los demás son
+ * papeleo en curso, y una reserva no es un movimiento.
+ *
+ * Sin este recorte el reporte sumaba en su total pedidos que todavía estaban en
+ * la estantería, y encima por la cantidad SOLICITADA: la entregada la ajusta el
+ * responsable recién al entregar.
+ */
+export const ESTADOS_CON_MOVIMIENTO: EstadoEgreso[] = ["ENTREGADO", "ANULADO"]
+
+/**
+ * Cuántos egresos hay en cada etapa, dentro del alcance del usuario
+ * (`GET /egresos/resumen`).
+ *
+ * Hoy lo consume solo el **badge del menú lateral**, que usa `bandeja`. El resto
+ * de los conteos viaja igual porque son una sola consulta y sirven para el
+ * próximo que los necesite — el listado NO los usa: se filtra con sus controles
+ * de siempre (botón de bandeja + selector de estado).
+ */
+export interface ResumenEgresos {
+  /**
+   * Los que esperan una acción MÍA. `null` cuando el rol no tiene bandeja
+   * (admin, super_admin, observador): ven todo, pero nada los espera a ellos.
+   * No es lo mismo que `0`, que sería «te corresponde y está vacía».
+   */
+  bandeja: number | null
+  sinEnviar: number
+  enCurso: number
+  cerrados: number
+}
+
 export interface QueryEgresos extends PaginationQuery {
-  estado?: EstadoEgreso
+  /** Uno o varios estados. Viajan separados por coma (`ENTREGADO,ANULADO`). */
+  estado?: EstadoEgreso | EstadoEgreso[]
   gestion?: number
   almacenId?: number
   unidadId?: number

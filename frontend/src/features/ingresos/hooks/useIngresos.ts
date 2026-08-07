@@ -12,6 +12,8 @@ import {
   crearIngreso,
   listarIngresos,
   obtenerIngreso,
+  quitarImagenLote,
+  subirImagenLote,
 } from "@/features/ingresos/ingresos.api"
 import { obtenerAlmacen } from "@/features/almacenes/almacenes.api"
 import { listarSolicitadores } from "@/features/usuarios/usuarios.api"
@@ -84,6 +86,44 @@ export function useAnularIngreso() {
     onSuccess: () => {
       invalidar()
       toast.success("Ingreso anulado")
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+}
+
+/**
+ * Sube o quita la foto de UN lote. `archivo: null` la borra.
+ *
+ * NO invalida el detalle del ingreso, a propósito: la página lo vuelca en el
+ * formulario con `reset()` en un efecto, así que un refetch acá borraría lo que
+ * el usuario esté escribiendo en la cabecera. La foto nueva se muestra con lo
+ * que devuelve esta mutación — el mismo recurso que usa `ItemFormDialog`.
+ *
+ * Sí invalida stock y egresos: la foto del lote es la que se ve al ELEGIR
+ * material, así que un pedido abierto en otra pestaña tiene que enterarse.
+ */
+export function useImagenLote() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      ingresoId,
+      detalleId,
+      archivo,
+    }: {
+      ingresoId: number
+      detalleId: number
+      archivo: File | null
+    }) =>
+      archivo
+        ? subirImagenLote(ingresoId, detalleId, archivo)
+        : quitarImagenLote(ingresoId, detalleId),
+    onSuccess: (_ingreso, variables) => {
+      void queryClient.invalidateQueries({ queryKey: ["stock"] })
+      void queryClient.invalidateQueries({ queryKey: ["egresos"] })
+      toast.success(
+        variables.archivo ? "Foto del lote actualizada" : "Foto del lote quitada"
+      )
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })

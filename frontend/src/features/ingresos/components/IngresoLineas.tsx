@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { useFieldArray, useFormState, useWatch } from "react-hook-form"
+import { Controller, useFieldArray, useFormState, useWatch } from "react-hook-form"
 import { Plus, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
+import { ImageField } from "@/components/form/ImageField"
 import { InputField } from "@/components/form/InputField"
 import { NumberField } from "@/components/form/NumberField"
 import { cn } from "@/lib/utils"
@@ -13,6 +14,7 @@ import {
   ITEMS_POR_BUSQUEDA,
   useBuscarItems,
 } from "@/features/items/useBuscarItems"
+import { LINEA_VACIA } from "@/features/ingresos/ingresos.schema"
 
 import type { Control, Path } from "react-hook-form"
 import type { IngresoFormValues } from "@/features/ingresos/ingresos.schema"
@@ -25,6 +27,24 @@ export interface ItemDeLinea {
   unidadMedida: string
 }
 
+/**
+ * Manejo de la foto cuando el lote YA existe (ingreso registrado): la subida es
+ * inmediata contra su endpoint, sin esperar a ningún submit.
+ *
+ * Al crear no se pasa: ahí las líneas todavía no tienen id, así que el archivo
+ * se guarda en el campo `archivo` del formulario y se sube después del POST.
+ */
+export interface FotoDeLote {
+  /** URL vigente del lote, ya con lo subido en esta sesión. */
+  urlDe: (detalleId: number) => string | null
+  onSubir: (detalleId: number, archivo: File) => void
+  onQuitar: (detalleId: number) => void
+  /** Lote cuya foto se está subiendo/borrando ahora mismo, si hay alguno. */
+  enCurso: number | null
+  /** La foto tampoco se puede tocar (ingreso anulado). */
+  bloqueada: boolean
+}
+
 interface IngresoLineasProps {
   control: Control<IngresoFormValues>
   disabled?: boolean
@@ -34,6 +54,11 @@ interface IngresoLineasProps {
    * ya elegido que no esté en los resultados actuales se mostraría en blanco.
    */
   itemsIniciales?: ItemDeLinea[]
+  /**
+   * Presente solo al EDITAR. Su ausencia es lo que pone la foto en modo
+   * "archivo pendiente" (creación).
+   */
+  foto?: FotoDeLote
 }
 
 const moneda = (n: number) =>
@@ -48,10 +73,73 @@ const aOpcion = (i: ItemDeLinea) => ({
   busqueda: i.codigo,
 })
 
+/**
+ * La foto del lote, en sus dos modos.
+ *
+ * Al **editar** el lote ya tiene id, así que la subida va directo a su endpoint
+ * y se aplica al instante — igual que la foto de un ítem. Al **crear** todavía
+ * no hay id (las líneas nacen dentro de la transacción del POST), así que el
+ * archivo se guarda en el formulario y `IngresoFormPage` lo sube después.
+ *
+ * Es opcional a propósito: donde se muestra el material vale
+ * `lote.imagenUrl ?? item.imagenUrl`, así que un lote sin foto propia sigue
+ * mostrando la del catálogo. Solo hace falta fotografiar cuando ESTA compra se
+ * ve distinta de lo que dice el catálogo (otra marca, otro color) — que es
+ * cuando además se llena la observación.
+ */
+function FotoDeLinea({
+  control,
+  index,
+  detalleId,
+  disabled,
+  foto,
+}: {
+  control: Control<IngresoFormValues>
+  index: number
+  detalleId: string
+  disabled?: boolean
+  foto?: FotoDeLote
+}) {
+  if (foto && detalleId) {
+    const id = Number(detalleId)
+    return (
+      <ImageField
+        label="Foto del lote (opcional)"
+        imagenUrl={foto.urlDe(id)}
+        procesando={foto.enCurso === id}
+        // NO usa `disabled` de la línea: con el ingreso ya registrado el resto
+        // queda congelado, pero la foto se puede cargar o cambiar igual — no
+        // mueve saldo ni correlativo. Solo la frena un ingreso anulado.
+        disabled={foto.bloqueada}
+        onSeleccionar={(archivo) => foto.onSubir(id, archivo)}
+        onQuitar={() => foto.onQuitar(id)}
+      />
+    )
+  }
+
+  return (
+    <Controller
+      control={control}
+      name={`detalles.${index}.archivo` as Path<IngresoFormValues>}
+      render={({ field }) => (
+        <ImageField
+          label="Foto del lote (opcional)"
+          imagenUrl={null}
+          archivoPendiente={field.value as File | null}
+          disabled={disabled}
+          onSeleccionar={(archivo) => field.onChange(archivo)}
+          onQuitar={() => field.onChange(null)}
+        />
+      )}
+    />
+  )
+}
+
 export function IngresoLineas({
   control,
   disabled,
   itemsIniciales = [],
+  foto,
 }: IngresoLineasProps) {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -251,13 +339,41 @@ export function IngresoLineas({
                 </div>
               </div>
             </div>
-            <InputField
-              name={`detalles.${index}.observacion` as Path<IngresoFormValues>}
-              label="Observación"
-              control={control}
-              required={false}
-              disabled={disabled}
-            />
+            {/* Foto y Observación van en la MISMA fila porque dicen lo mismo:
+                qué es exactamente ESTE lote (la marca, el color). Son lo único
+                que distingue dos lotes del mismo ítem, que en el catálogo
+                comparten descripción y foto. Arriba queda lo contable —ítem,
+                cantidad, precio—, que es de otra naturaleza. */}
+            <div className="flex flex-col items-start gap-3 sm:flex-row">
+              {/* Ancho FIJO. `Field` de shadcn trae `w-full`, así que sin acotarlo
+                  el bloque de la foto se lleva casi toda la fila y la Observación
+                  queda en una columna de ~100 px donde no entra ni «COLOR AZUL».
+                  Los 320 px son lo que miden la miniatura (96) + los botones + el
+                  texto de formatos, que es lo más ancho que hay adentro. */}
+              <div className="w-full sm:w-80 sm:shrink-0">
+                <FotoDeLinea
+                  control={control}
+                  index={index}
+                  detalleId={linea?.detalleId ?? ""}
+                  disabled={disabled}
+                  foto={foto}
+                />
+              </div>
+              {/* `min-w-0` para que el input pueda encogerse dentro del flex en
+                  vez de desbordar la tarjeta. */}
+              <div className="w-full min-w-0 flex-1">
+                <InputField
+                  name={
+                    `detalles.${index}.observacion` as Path<IngresoFormValues>
+                  }
+                  label="Observación"
+                  control={control}
+                  required={false}
+                  disabled={disabled}
+                  placeholder="Marca, color… lo que distinga a este lote"
+                />
+              </div>
+            </div>
           </div>
         )
       })}
@@ -274,14 +390,7 @@ export function IngresoLineas({
         <Button
           type="button"
           variant="outline"
-          onClick={() =>
-            append({
-              itemId: "",
-              cantidad: "",
-              precioUnitario: "",
-              observacion: "",
-            })
-          }
+          onClick={() => append({ ...LINEA_VACIA })}
           className={cn(
             "h-11 w-full border-dashed border-primary/50 bg-primary/5 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary",
             mensajeDetalles &&

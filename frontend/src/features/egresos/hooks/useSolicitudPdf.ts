@@ -39,9 +39,8 @@ export function useSolicitudPdf() {
       const completo =
         typeof egreso === "number" ? await obtenerEgreso(egreso) : egreso
       // pdfmake se carga sólo acá: no pesa en el bundle de quien no imprime.
-      const { crearSolicitudPdf, nombreArchivo } = await import(
-        "@/features/egresos/lib/solicitud-pdf"
-      )
+      const { crearSolicitudPdf, nombreArchivo } =
+        await import("@/features/egresos/lib/solicitud-pdf")
       const documento = await crearSolicitudPdf(completo)
       await mostrarPdf(ventana, documento, nombreArchivo(completo))
     } catch (error) {

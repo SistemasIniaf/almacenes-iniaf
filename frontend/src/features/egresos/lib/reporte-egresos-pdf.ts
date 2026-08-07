@@ -133,7 +133,9 @@ export async function definicionReporteEgresos(
         alignment: "center",
         color,
       },
-      ...(conAlmacen ? [{ text: fila.almacen.nombre, color } as TableCell] : []),
+      ...(conAlmacen
+        ? [{ text: fila.almacen.nombre, color } as TableCell]
+        : []),
       { text: fila.unidad.sigla, alignment: "center", color },
       { text: fila.solicitante.nombre, color },
       { text: fila.justificacion, color },

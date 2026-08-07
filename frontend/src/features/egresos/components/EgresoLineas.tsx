@@ -20,6 +20,7 @@ import {
   useBuscarLotes,
 } from "@/features/egresos/hooks/useBuscarLotes"
 import { LINEA_VACIA } from "@/features/egresos/egresos.schema"
+import { descripcionConNota } from "@/features/egresos/egresos.types"
 
 import type { Control } from "react-hook-form"
 import type { ComboboxOption } from "@/components/form/ComboboxField"
@@ -40,18 +41,30 @@ interface EgresoLineasProps {
 }
 
 /**
- * Etiqueta del lote: descripción, disponible y fuente. Ni la FECHA ni el NÚMERO
- * de ingreso van acá (2026-07-30): el selector viejo los traía y solo alargaban
- * la línea — para elegir de dónde sale el material lo que decide es la fuente,
- * que es de quien hay que rendir la plata. El número sigue estando donde importa:
- * en el diálogo de la foto y en la ficha del pedido.
+ * Etiqueta del lote: descripción, la **nota del lote resaltada**, disponible y
+ * fuente. Ni la FECHA ni el NÚMERO de ingreso van acá (2026-07-30): el selector
+ * viejo los traía y solo alargaban la línea — para elegir de dónde sale el
+ * material lo que decide es la fuente, que es de quien hay que rendir la plata.
+ * El número sigue estando donde importa: en el diálogo de la foto y en la ficha.
+ *
+ * La nota va en el campo `nota` del combo, que la dibuja como etiqueta con fondo
+ * (2026-08-07). Antes iba entre paréntesis dentro del `label`, en el mismo tono
+ * que el resto, y se leía como parte del nombre del ítem — o sea que no cumplía
+ * su única función, que es avisar que ESTE lote no es el otro. Es lo único que
+ * los distingue: comparten código, descripción y, salvo que les hayan sacado
+ * foto propia, también la imagen.
+ *
+ * El disponible se corre a `descripcion` (gris) para dejarle el tono fuerte a lo
+ * que identifica al lote. No se pierde nada: el dato contra el que se escribe la
+ * cantidad es el de abajo del campo, no éste.
  *
  * Muestra el DISPONIBLE, no el saldo, y los agotados directamente no se ofrecen.
  */
 const aOpcion = (l: LoteElegible): ComboboxOption => ({
   value: String(l.id),
-  label: `${l.itemDescripcion} — disp. ${l.disponible} ${l.unidadMedida}`,
-  descripcion: l.fuente,
+  label: l.itemDescripcion,
+  nota: l.observacion ?? undefined,
+  descripcion: `disp. ${l.disponible} ${l.unidadMedida} · ${l.fuente}`,
   busqueda: l.itemCodigo,
   imagen: l.imagen,
 })
@@ -87,7 +100,7 @@ function FotoLote({ lote }: { lote?: LoteElegible }) {
         type="button"
         onClick={() => setAmpliada(true)}
         className="size-16 shrink-0 overflow-hidden rounded border transition-opacity hover:opacity-80"
-        aria-label={`Ver foto de ${lote.itemDescripcion}`}
+        aria-label={`Ver foto de ${descripcionConNota(lote.itemDescripcion, lote.observacion)}`}
       >
         <img
           src={lote.imagen}
@@ -99,7 +112,12 @@ function FotoLote({ lote }: { lote?: LoteElegible }) {
       <Dialog open={ampliada} onOpenChange={setAmpliada}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{lote.itemDescripcion}</DialogTitle>
+            {/* La nota va en el TÍTULO: la foto es la de catálogo y puede no
+                mostrar la marca o el color de este lote, así que acá es donde
+                más hace falta leerla. */}
+            <DialogTitle>
+              {descripcionConNota(lote.itemDescripcion, lote.observacion)}
+            </DialogTitle>
             <DialogDescription>
               {lote.itemCodigo} · ingreso {lote.numeroIngreso} · {lote.fuente}
             </DialogDescription>
@@ -235,7 +253,11 @@ export function EgresoLineas({
               <FotoLote lote={lote} />
 
               <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-12">
-                <div className="sm:col-span-9">
+                {/* 10 de 12 para el lote y 2 para la cantidad: es un número de
+                    pocos dígitos y no necesita más, mientras que la etiqueta del
+                    lote —descripción + nota + disponible + fuente— es lo que se
+                    corta. Antes iban 9/3 y sobraba campo para escribir «2». */}
+                <div className="sm:col-span-10">
                   <ComboboxField
                     name={`detalles.${indice}.ingresoDetalleId`}
                     label="Lote"
@@ -269,7 +291,7 @@ export function EgresoLineas({
                     se escribe el número, que es cuando el dato sirve. Se pone en
                     rojo apenas lo pedido lo supera — el backend igual lo rechaza
                     al guardar, pero avisar acá evita llegar hasta ahí. */}
-                <div className="sm:col-span-3">
+                <div className="sm:col-span-2">
                   <NumberField
                     name={`detalles.${indice}.cantidadSolicitada`}
                     label="Cantidad"

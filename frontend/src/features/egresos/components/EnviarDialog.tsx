@@ -68,9 +68,10 @@ export function EnviarDialog({
                 </p>
               )}
               <p>
-                Una vez enviada, no podrás editarla ni cancelarla. Si es necesario
-                realizar alguna corrección, el aprobador deberá rechazar la
-                solicitud para que puedas modificarla y volver a enviarla.
+                Una vez enviada, no podrás editarla ni cancelarla. Si es
+                necesario realizar alguna corrección, el aprobador deberá
+                rechazar la solicitud para que puedas modificarla y volver a
+                enviarla.
               </p>
             </div>
           </AlertDialogDescription>

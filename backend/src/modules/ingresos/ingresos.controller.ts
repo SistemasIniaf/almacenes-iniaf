@@ -1,17 +1,22 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
+import { imageUploadMulterOptions } from '../../common/uploads/uploads.config';
 import { Rol } from '../../generated/prisma/enums';
 import { AnularIngresoDto } from './dto/anular-ingreso.dto';
 import { CreateIngresoDto } from './dto/create-ingreso.dto';
@@ -95,5 +100,36 @@ export class IngresosController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.ingresosService.anular(id, dto, user);
+  }
+
+  /**
+   * Sube/reemplaza la foto de UN lote (campo multipart `imagen`).
+   *
+   * Sigue disponible con el ingreso ya confirmado, a diferencia de todo lo demas
+   * de una linea: la foto no mueve saldo ni correlativo. Asi el almacen puede
+   * registrar el ingreso apenas llega el material y cargar las fotos despues.
+   * El scope por almacen lo aplica el service (el responsable, solo el suyo).
+   */
+  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
+  @Post(':id/detalles/:detalleId/imagen')
+  @UseInterceptors(FileInterceptor('imagen', imageUploadMulterOptions))
+  uploadImagenLote(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('detalleId', ParseIntPipe) detalleId: number,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ingresosService.setImagenLote(id, detalleId, file, user);
+  }
+
+  /** Quita la foto del lote: vuelve a regir la del catalogo del item. */
+  @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
+  @Delete(':id/detalles/:detalleId/imagen')
+  removeImagenLote(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('detalleId', ParseIntPipe) detalleId: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ingresosService.removeImagenLote(id, detalleId, user);
   }
 }

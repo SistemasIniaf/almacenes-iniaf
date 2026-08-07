@@ -121,6 +121,11 @@ export class StockService {
         precioUnitario: true,
         saldoCantidad: true,
         observacion: true,
+        // Foto de ESTE lote. Donde se elige material pisa a la del catalogo del
+        // item: la del catalogo dice que TIPO de cosa es, esta dice que hay
+        // exactamente en esta compra. Nula en la mayoria de los lotes, que se
+        // quedan con la del item.
+        imagenUrl: true,
         ingreso: {
           select: {
             id: true,

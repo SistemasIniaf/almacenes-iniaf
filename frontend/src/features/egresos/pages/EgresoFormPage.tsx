@@ -8,6 +8,7 @@ import {
   Ban,
   Check,
   TrendingUp,
+  ImageOff,
   Loader2,
   FileText,
   Save,
@@ -27,6 +28,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { BadgeEstado } from "@/components/data/BadgeEstado"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -62,6 +70,7 @@ import {
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
 import {
+  descripcionConNota,
   ESTADO_LABEL,
   ESTADO_PUNTO,
   etiquetaNumero,
@@ -69,7 +78,70 @@ import {
 
 import type { FieldErrors } from "react-hook-form"
 import type { EgresoFormValues } from "@/features/egresos/egresos.schema"
+import type { LoteDeLinea } from "@/features/egresos/egresos.types"
 import type { LoteElegible } from "@/features/egresos/hooks/useBuscarLotes"
+
+/**
+ * Miniatura del material de una línea, **ampliable al hacer clic**, con el MISMO
+ * fallback que el selector: la foto del lote si le sacaron una al recibirlo y,
+ * si no, la del catálogo del ítem. Si no hay ninguna muestra un marco vacío del
+ * mismo tamaño, para que las filas de la tabla no cambien de alto entre una y
+ * otra.
+ *
+ * Se amplía porque 40 px alcanzan para reconocer, no para revisar: quien está a
+ * punto de entregar necesita mirar de cerca que sea ese material y no otro.
+ * Hermana de `FotoLote` en `EgresoLineas` (que hace lo mismo al pedir), pero no
+ * se comparten: una trabaja sobre `LoteElegible` —lo que devuelve el buscador de
+ * stock— y ésta sobre la línea ya guardada, que traen datos distintos.
+ */
+function MiniaturaLote({ lote }: { lote: LoteDeLinea }) {
+  const [ampliada, setAmpliada] = useState(false)
+  const src = urlArchivo(lote.imagenUrl ?? lote.item.imagenUrl)
+  const etiqueta = descripcionConNota(lote.item.descripcion, lote.observacion)
+
+  if (!src) {
+    return (
+      <span className="flex size-10 items-center justify-center rounded border border-dashed bg-muted/40">
+        <ImageOff className="size-4 text-muted-foreground/60" />
+      </span>
+    )
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAmpliada(true)}
+        className="size-10 overflow-hidden rounded border transition-opacity hover:opacity-80"
+        aria-label={`Ver foto de ${etiqueta}`}
+      >
+        <img
+          src={src}
+          alt={etiqueta}
+          className="size-full object-cover"
+          loading="lazy"
+        />
+      </button>
+
+      <Dialog open={ampliada} onOpenChange={setAmpliada}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{etiqueta}</DialogTitle>
+            <DialogDescription>
+              {lote.item.codigo} · ingreso {etiquetaNumero(lote.ingreso)} ·{" "}
+              {lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente"}
+            </DialogDescription>
+          </DialogHeader>
+          <img
+            src={src}
+            alt={etiqueta}
+            className="max-h-[60vh] w-full rounded object-contain"
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
 export function EgresoFormPage() {
   const { id: idParam } = useParams()
@@ -146,8 +218,12 @@ export function EgresoFormPage() {
     id: d.ingresoDetalle.id,
     itemCodigo: d.ingresoDetalle.item.codigo,
     itemDescripcion: d.ingresoDetalle.item.descripcion,
+    observacion: d.ingresoDetalle.observacion,
     unidadMedida: d.ingresoDetalle.item.unidadMedida,
-    imagen: urlArchivo(d.ingresoDetalle.item.imagenUrl),
+    // La del lote si la tiene; si no, la del catálogo del ítem.
+    imagen: urlArchivo(
+      d.ingresoDetalle.imagenUrl ?? d.ingresoDetalle.item.imagenUrl
+    ),
     fuente:
       d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
     numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),
@@ -253,10 +329,7 @@ export function EgresoFormPage() {
               Descartar tampoco está acá: es una acción de limpieza, no un paso
               del circuito. Vive en el listado, como acción de fila. */}
           {!esNuevo && (
-            <Button
-              variant="outline"
-              onClick={() => setHistorialAbierto(true)}
-            >
+            <Button variant="outline" onClick={() => setHistorialAbierto(true)}>
               <TrendingUp className="size-4" />
               Historial
             </Button>
@@ -421,6 +494,11 @@ export function EgresoFormPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {/* Columna de la foto, sin rótulo visible: la miniatura se
+                        explica sola y un encabezado gastaría alto para nada. */}
+                    <TableHead className="w-14">
+                      <span className="sr-only">Foto</span>
+                    </TableHead>
                     <TableHead>Ítem</TableHead>
                     <TableHead>Fuente</TableHead>
                     <TableHead>Ingreso</TableHead>
@@ -437,7 +515,13 @@ export function EgresoFormPage() {
                   {egreso.detalles.map((detalle) => (
                     <TableRow key={detalle.id}>
                       <TableCell>
-                        {detalle.ingresoDetalle.item.descripcion}
+                        <MiniaturaLote lote={detalle.ingresoDetalle} />
+                      </TableCell>
+                      <TableCell>
+                        {descripcionConNota(
+                          detalle.ingresoDetalle.item.descripcion,
+                          detalle.ingresoDetalle.observacion
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
@@ -475,8 +559,6 @@ export function EgresoFormPage() {
           onClose={() => setHistorialAbierto(false)}
         />
       )}
-
-      
 
       {/* Se monta solo al abrirse: así consulta el aprobador recién cuando hace
           falta. */}

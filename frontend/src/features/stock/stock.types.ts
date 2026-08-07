@@ -24,6 +24,11 @@ export interface LoteStock {
   /** `saldoCantidad − reservado`. Es lo que un egreso puede pedir de este lote. */
   disponible: number
   observacion: string | null
+  /**
+   * Foto de ESTE lote, o null si no le sacaron una. Donde se elige material
+   * manda sobre la del catálogo: `lote.imagenUrl ?? item.imagenUrl`.
+   */
+  imagenUrl: string | null
   ingreso: {
     id: number
     numero: number | null
