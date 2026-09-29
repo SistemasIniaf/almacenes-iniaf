@@ -14,7 +14,11 @@ import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
 
 import type { DatosReporte } from "@/lib/reporte-comun"
 import type { FilaReporteEgreso } from "@/features/egresos/egresos.types"
-import type { TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
+import type {
+  Content,
+  TableCell,
+  TDocumentDefinitions,
+} from "pdfmake/interfaces"
 
 /**
  * Reporte «Registro de egresos»: qué salió del almacén en un período, una línea
@@ -174,7 +178,10 @@ export async function definicionReporteEgresos(
     ])
   }
 
-  const notas: TableCell[] = []
+  // Van directo en `content:` (no en una fila de tabla): son `Content`, no
+  // `TableCell` — mandarlos como TableCell colaba `{}` (celda vacía valida)
+  // en la union y rompia el tipado de `content`.
+  const notas: Content[] = []
   if (anulados > 0) {
     notas.push({
       text: `No se suman ${anulados} pedido${anulados === 1 ? "" : "s"} anulado${anulados === 1 ? "" : "s"} por Bs ${moneda(montoAnulado)}.`,

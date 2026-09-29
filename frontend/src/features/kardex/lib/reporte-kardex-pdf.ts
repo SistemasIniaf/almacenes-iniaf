@@ -14,7 +14,12 @@ import type {
   BloqueReporteKardex,
   ReporteKardex,
 } from "@/features/kardex/kardex.types"
-import type { Content, TableCell, TDocumentDefinitions } from "pdfmake/interfaces"
+import type {
+  Content,
+  ContentColumns,
+  TableCell,
+  TDocumentDefinitions,
+} from "pdfmake/interfaces"
 
 /**
  * Reporte «KARDEX», calcado del que emitía el sistema anterior.
@@ -106,10 +111,7 @@ function filtrosAplicados(reporte: ReporteKardex): Content | null {
   if (fuente) partes.push(`FUENTE: ${fuente.nombre}`)
 
   return {
-    text: [
-      { text: "Filtrado por — ", bold: true },
-      partes.join("   ·   "),
-    ],
+    text: [{ text: "Filtrado por — ", bold: true }, partes.join("   ·   ")],
     fontSize: 7.5,
     color: "#444444",
     margin: [0, 6, 0, 0],
@@ -181,7 +183,10 @@ function cierreBloque(): Content {
  * membrete, que además se repite en cada página. Repetirlo por bloque era lo que
  * hacía ver la primera hoja como datos duplicados.
  */
-function cabeceraBloque(bloque: BloqueReporteKardex): Content {
+// Tipado explícito a `ContentColumns` (no al `Content` genérico): `content.push({
+// ...cabeceraBloque(bloque), ...})` necesita saber que esto es un objeto — `Content`
+// es una unión que también admite `string`/`number`, y spreadear eso no tipa.
+function cabeceraBloque(bloque: BloqueReporteKardex): ContentColumns {
   const dato = (etiqueta: string, valor: string) => ({
     text: [{ text: `${etiqueta}: `, bold: true }, valor],
     fontSize: 7,
@@ -253,9 +258,7 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
     // de documento. Sin la marca, un renglón «E» con la cantidad en ENTRADA se
     // lee como un error del reporte.
     const esReversion = m.origen === "R"
-    const estilo = esReversion
-      ? { italics: true, color: "#8a4b00" }
-      : undefined
+    const estilo = esReversion ? { italics: true, color: "#8a4b00" } : undefined
 
     cuerpo.push([
       { text: fechaIso(m.fecha), alignment: "center", ...estilo },
@@ -300,9 +303,24 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
     {},
     {},
     {},
-    { text: cantidad(totales.entradas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
-    { text: cantidad(totales.salidas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
-    { text: cantidad(totales.saldo), alignment: "right", bold: true, fillColor: "#f4f4f4" },
+    {
+      text: cantidad(totales.entradas),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
+    {
+      text: cantidad(totales.salidas),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
+    {
+      text: cantidad(totales.saldo),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
     // P/U no se totaliza: un promedio de precios no significa nada.
     {
       text: SIN_VALOR,
@@ -310,9 +328,24 @@ function tablaBloque(bloque: BloqueReporteKardex, gestion: number): Content {
       bold: true,
       fillColor: "#f4f4f4",
     },
-    { text: moneda(totales.valorEntradas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
-    { text: moneda(totales.valorSalidas), alignment: "right", bold: true, fillColor: "#f4f4f4" },
-    { text: moneda(totales.valorSaldo), alignment: "right", bold: true, fillColor: "#f4f4f4" },
+    {
+      text: moneda(totales.valorEntradas),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
+    {
+      text: moneda(totales.valorSalidas),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
+    {
+      text: moneda(totales.valorSaldo),
+      alignment: "right",
+      bold: true,
+      fillColor: "#f4f4f4",
+    },
   ])
 
   return {
