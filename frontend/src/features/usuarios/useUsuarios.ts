@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner"
 
 import {
+  activarUsuario,
   actualizarUsuario,
   crearUsuario,
   desactivarUsuario,
@@ -89,6 +90,19 @@ export function useDesactivarUsuario() {
     onSuccess: (usuario) => {
       invalidar()
       toast.success(`Usuario "${usuario.usuario}" desactivado`)
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+}
+
+export function useActivarUsuario() {
+  const invalidar = useInvalidarUsuarios()
+
+  return useMutation({
+    mutationFn: (id: number) => activarUsuario(id),
+    onSuccess: (usuario) => {
+      invalidar()
+      toast.success(`Usuario "${usuario.usuario}" reactivado`)
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })

@@ -19,11 +19,13 @@ import { InputField } from "@/components/form/InputField"
 import { InputPasswordField } from "@/components/form/InputPasswordField"
 import { SelectField } from "@/components/form/SelectField"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 import { ROLES, ROL_LABEL } from "@/features/auth/lib/auth.types"
 import { useUnidadesActivas } from "@/features/unidades/useUnidades"
 import { usuarioSchema } from "@/features/usuarios/usuarios.schema"
 import {
   permiteObservados,
+  puedeGestionarRol,
   requiereAlmacen,
   requiereCargo,
   requiereUnidad,
@@ -59,11 +61,6 @@ const VALORES_INICIALES: UsuarioFormValues = {
   almacenesObservados: [],
 }
 
-const OPCIONES_ROL = ROLES.map((rol) => ({
-  value: rol,
-  label: ROL_LABEL[rol],
-}))
-
 /** Ayuda del campo Almacén según el rol (solo se muestra para los que lo llevan). */
 const DESC_ALMACEN: Partial<Record<Rol, string>> = {
   solicitador: "Es el almacén destino fijo de sus egresos.",
@@ -81,8 +78,22 @@ export function UsuarioFormDialog({
   const actualizar = useActualizarUsuario()
   const guardando = crear.isPending || actualizar.isPending
 
+  const { user: actor } = useAuth()
   const { data: unidades = [] } = useUnidadesActivas()
   const { data: almacenes = [] } = useAlmacenesActivos()
+
+  // El admin crea usuarios operativos pero no cuentas admin/super_admin: el
+  // selector directamente no le ofrece esos roles (el backend rechaza igual
+  // si se lo fuerza por API). Editar es exclusivo del super_admin, así que
+  // este diálogo solo se abre en modo edición para ese rol — sin excepciones
+  // de rol que resolver acá.
+  const opcionesRol = ROLES.filter(
+    (rol) => !actor || puedeGestionarRol(actor.rol, rol)
+  ).map((rol) => ({ value: rol, label: ROL_LABEL[rol] }))
+
+  // Nadie puede desactivarse a si mismo: usado para bloquear el checkbox
+  // Activo cuando el super_admin edita su propia cuenta.
+  const editandoPropiaCuenta = usuario !== null && usuario.id === actor?.id
 
   const { control, handleSubmit, reset } = useForm<UsuarioFormValues>({
     resolver: zodResolver(usuarioSchema(esEdicion)),
@@ -165,6 +176,15 @@ export function UsuarioFormDialog({
           {/* Dos columnas en pantallas medianas; los bloques anchos (lista de
               observados, activo y footer) ocupan el ancho completo. */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <SelectField
+              name="rol"
+              label="Rol"
+              control={control}
+              options={opcionesRol}
+              placeholder="Seleccioná un rol"
+              disabled={guardando}
+            />
+
             {requiereAlmacen(rol) && (
               <ComboboxField
                 name="almacenId"
@@ -173,7 +193,6 @@ export function UsuarioFormDialog({
                 placeholder="Seleccioná un almacén"
                 vacio="No se encontró ningún almacén."
                 disabled={guardando}
-
                 options={almacenes.map((almacen) => ({
                   value: String(almacen.id),
                   label: almacen.nombre,
@@ -181,15 +200,6 @@ export function UsuarioFormDialog({
                 description={DESC_ALMACEN[rol]}
               />
             )}
-
-            <SelectField
-              name="rol"
-              label="Rol"
-              control={control}
-              options={OPCIONES_ROL}
-              placeholder="Seleccioná un rol"
-              disabled={guardando}
-            />
 
             {requiereUnidad(rol) && (
               <ComboboxField
@@ -313,8 +323,14 @@ export function UsuarioFormDialog({
               label="Activo"
               control={control}
               required={false}
-              disabled={guardando}
-              description="Un usuario inactivo no puede iniciar sesión y libera su cupo de rol único."
+              // Nadie puede desactivarse a si mismo: el backend lo rechaza
+              // igual, esto solo evita ofrecer un campo que va a fallar.
+              disabled={guardando || editandoPropiaCuenta}
+              description={
+                editandoPropiaCuenta
+                  ? "No podés desactivar tu propia cuenta."
+                  : "Un usuario inactivo no puede iniciar sesión y libera su cupo de rol único."
+              }
               className="sm:col-span-2"
             />
 

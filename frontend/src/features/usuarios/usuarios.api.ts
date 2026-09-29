@@ -67,3 +67,9 @@ export async function desactivarUsuario(id: number): Promise<Usuario> {
   const { data } = await api.delete<Usuario>(`/usuarios/${id}`)
   return data
 }
+
+/** Reactiva (inverso de la baja logica). */
+export async function activarUsuario(id: number): Promise<Usuario> {
+  const { data } = await api.post<Usuario>(`/usuarios/${id}/activar`)
+  return data
+}

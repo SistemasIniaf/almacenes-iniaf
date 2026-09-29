@@ -32,12 +32,13 @@ almacenes-institucion/
 
 - **Unidad**: nombre, sigla, activo, `grupo`, jerárquica (`padre_id`). Área administrativa. Es un **CATÁLOGO COMPARTIDO**: NO pertenece a un almacén. Cada Almacén **selecciona** qué unidades muestra vía la tabla puente **`AlmacenUnidad`** (muchos-a-muchos) — así los rubros departamentales se crean una sola vez y se reusan. El **`grupo`** (MOF, OTROS…, en MAYÚSCULAS) lo elige la unidad RAÍZ y **los hijos lo heredan** (todo el subárbol comparte grupo); sirve para mostrar el catálogo en tablas por grupo y para agrupar el selector del almacén. El organigrama real del INIAF (54 unidades, grupo MOF) se siembra desde `prisma/data/unidades-iniaf.ts` (idempotente por sigla).
 - **AlmacenUnidad**: puente Almacén ↔ Unidad. Define qué unidades ofrece el selector de "unidad solicitante" del Ingreso de ese almacén.
-- **FuenteFinanciamiento**: nombre (único), `codigo` (opcional), activo. Recursos Específicos, Banco Mundial, COSUDE, programas TGN… Una sola fuente por Ingreso (va en la cabecera). Baja lógica: queda referenciada por lotes históricos.
+- **FuenteFinanciamiento**: nombre (único), `codigo` (opcional), activo. Recursos Específicos, Banco Mundial, COSUDE, programas TGN… Una sola fuente por Ingreso (va en la cabecera). Baja lógica: queda referenciada por lotes históricos. Escritura para `super_admin` (2026-09-29: cuarto catálogo estructural, ver la entidad `Usuario`/rol `admin` más arriba); lectura además para `admin` y `responsable_almacen` (necesita el selector de fuente al registrar un Ingreso).
 - **Almacen**: nombre, activo. Cada institución tiene 9+.
 - **Usuario**: username (no email), password (hash bcrypt), nombre, `cargo`, activo, `unidad_id`, `almacen_id`, `rol`. `almacen_id` es INDEPENDIENTE de `unidad_id` (no están ligados). **`nombre` y `cargo` se guardan SIEMPRE en MAYÚSCULAS** (así figuran en los documentos oficiales de la institución): el `InputField` lo fuerza al escribir —hoy es el comportamiento por defecto de TODO el sistema, ver "Mayúsculas automáticas"— y el service lo normaliza igual, porque **la API es la fuente de verdad** y el front no es una barrera. `cargo` es **obligatorio salvo para `super_admin`/`admin`** (los dos roles que no ocupan un puesto en el organigrama); por eso la columna sigue nullable en la BD y la regla vive en el service (`ROLES_SIN_CARGO`).
 - **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
-  - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total.
-  - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que **NO gestiona los tres catálogos estructurales: Unidades, Almacenes ni Partidas** (cambio del 2026-08-03: antes sí gestionaba Almacenes). Los **lee** —los necesita para poblar los selectores al crear usuarios— pero no los crea, edita ni desactiva. La regla vive en los `@Roles` de cada controlador (escritura `super_admin`, lectura `super_admin` + `admin`) y la espeja `PERMISOS` en el frontend.
+  - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total. **Único en todo el sistema** (2026-09-29): no se puede crear un segundo, ni siquiera si el existente está inactivo — mismo criterio que ya usaba el bootstrap del seed (`prisma/seed.ts`, busca cualquier super_admin sin filtrar por `activo`). Se valida en `UsuariosService.validarSuperAdminUnico`. Es lo que hace inofensivo que **nadie pueda desactivar su propia cuenta** (regla general, ver abajo): si se permitiera un segundo super_admin, uno inactivo podría dejar al otro sin forma de reactivarlo salvo acceso directo a la base.
+  - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que **NO gestiona los cuatro catálogos estructurales: Unidades, Almacenes, Partidas ni Fuentes de financiamiento** (cambio del 2026-08-03 para Unidades/Almacenes/Partidas —antes admin sí gestionaba Almacenes—, y del 2026-09-29 para Fuentes —antes admin también las escribía—). Los **lee** —los necesita para poblar los selectores al crear usuarios o registrar un ingreso— pero no los crea, edita ni desactiva. La regla vive en los `@Roles` de cada controlador (escritura `super_admin`, lectura `super_admin` + `admin` + el rol operativo que corresponda) y la espeja `PERMISOS` en el frontend.
+    Sobre USUARIOS en particular, el rol admin quedó bien acotado (2026-09-29): **crea** (`POST /usuarios`) y **da de baja** (`DELETE /usuarios/:id`), pero **NO edita a nadie** — ni siquiera su propia cuenta. Editar (`PATCH /usuarios/:id`) es exclusivo del `super_admin`, forzado con `@Roles(Rol.super_admin)` propio en ese método (más estricto que el `@Roles` de la clase) y espejado en el frontend por el permiso `usuariosEditar` (`permisos.ts`), que oculta el ícono «Editar» de la tabla. Además, ni creando ni dando de baja el admin toca cuentas `admin`/`super_admin`: no puede crear una (el service lo rechaza en `create`), y no puede dar de baja una ajena (rechazado en `remove`) — las dos validaciones viven en `UsuariosService` vía el helper `esRolAdminOSuperAdmin()`, espejado en el frontend por `puedeGestionarRol()` de `usuarios.types.ts`.
   - `solicitador`: unidad y almacén requeridos (fijo, destino de sus egresos). Varios por unidad.
   - `aprobador`: unidad Y almacén requeridos (igual que `solicitador`). Único ACTIVO por unidad; el almacén NO es único (varios aprobadores pueden compartir almacén).
   - `responsable_almacen`: unidad Y almacén requeridos (la unidad se agregó el 2026-07-21; antes no la llevaba). Único ACTIVO por almacén.
@@ -321,6 +322,25 @@ rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
     pintarlo del color del MODO —negro en oscuro, como la referencia original—: ahí se confunde con
     el fondo de la cabecera y no se ve, que era el problema del switch más viejo.
 
+**Sidebar: sombras de scroll** (`components/ui/sidebar.tsx`, `SidebarContent`, 2026-09-29). En
+pantallas chicas el menú (`AppSidebar` → `NavMain`) no entra entero y hay que scrollearlo, pero la
+barra de scroll nativa no siempre se ve —en mobile aparece solo mientras se toca, y en Mac con
+"mostrar barras: al hacer scroll" pasa lo mismo en desktop— así que el menú cortado a la mitad se
+leía como que ahí terminaba, no como que había más abajo. Se agregaron dos sombras (gradiente
+`from-sidebar to-transparent`, 16px, `pointer-events-none`) pegadas arriba y abajo del contenedor
+scrolleable, que se muestran u ocultan según si de verdad queda algo para scrollear de ese lado
+(`sombra.arriba` / `sombra.abajo`, derivados de `scrollTop`/`scrollHeight`/`clientHeight`). La
+clase `no-scrollbar` que traía el componente de shadcn **se sacó**: no tenía ningún plugin de
+Tailwind que la definiera, así que no hacía nada —ocultar la sombra hubiera sido peor, porque es
+justo el indicio que faltaba.
+
+La medición inicial va en un **callback ref**, no en un `useEffect`: el lint del repo rechaza
+`setState` ahí (ver la nota del switch más arriba). El callback ref también engancha el
+`resize` de la ventana (con su limpieza al desmontar, soportado desde React 19) para el caso de
+rotar el celular, y el scroll normal se seguía con el `onScroll` de React. Verificado en
+Chromium headless (Playwright) a 375×667: las dos sombras alternan opacidad 0/1 correctamente en
+los extremos del scroll y el degradé es real (confirmado píxel a píxel, no solo por CSS de papel).
+
 **Módulo `unidades` — YA HECHO** (plantilla a copiar para el resto): `unidades.types.ts`,
 `unidades.schema.ts` (zod espejo del DTO), `unidades.api.ts`, `useUnidades.ts` (queries +
 mutations con toast e invalidación), `UnidadFormDialog.tsx` (crear/editar en un solo diálogo),
@@ -431,7 +451,33 @@ plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*F
   backend responde 400 si llega una unidad para un rol que no la lleva).
 - La UI NO valida unicidad de roles (un aprobador activo por unidad, etc.): eso lo resuelve el
   backend con mensajes claros que se muestran como toast.
-- No se puede desactivar la propia cuenta (el botón queda deshabilitado).
+- **No se puede desactivar la propia cuenta**, sea cual sea el rol (el botón de la tabla queda
+  deshabilitado y el checkbox *Activo* del formulario de edición también, con el mensaje puesto).
+  Desde el 2026-09-29 es una regla del **backend** (`UsuariosService.update`/`remove`, `ForbiddenException`
+  si `id === actingUser.id` y el resultado dejaría la cuenta inactiva) y no solo de la UI: antes el
+  botón de la tabla lo evitaba pero el checkbox *Activo* del diálogo de edición no tenía guarda, así
+  que un PATCH directo (o abrir "Editar" sobre la fila propia) podía desactivar la cuenta en uso.
+- **Editar (`PATCH`) es exclusivo del `super_admin`** (2026-09-29): el `admin` crea usuarios y los da
+  de baja, pero no edita a NADIE, ni siquiera su propia cuenta. `@Roles(Rol.super_admin)` en el método
+  `update` del controlador (más estricto que el de la clase) es la barrera real; en el frontend el
+  permiso `usuariosEditar` (`permisos.ts`) oculta el ícono *Editar* de la tabla (`puedeEditar` en
+  `UsuariosPage`) para quien no sea super_admin. `UsuarioFormDialog` ya no necesita casos especiales
+  para un admin editándose a sí mismo — ese camino no existe más.
+- **El `admin` tampoco crea ni da de baja/reactiva cuentas `admin`/`super_admin` ajenas** (2026-09-29,
+  ver la entidad `Usuario` más arriba): el selector de Rol del formulario no le ofrece esos dos roles
+  al crear (`opcionesRol` en `UsuarioFormDialog`, filtrado con `puedeGestionarRol()` de
+  `usuarios.types.ts`) y la tabla le oculta *Desactivar*/*Activar* en esas filas (`puedeCambiarEstado`
+  en `UsuariosPage`) — el backend responde 403 igual si se lo fuerza por API
+  (`esRolAdminOSuperAdmin()` en `UsuariosService`).
+- **El ícono de estado es un TOGGLE** (2026-09-29, mismo patrón que `UnidadNodo`): activo muestra
+  `PowerOff`/*Desactivar* (con el diálogo de confirmación de siempre); inactivo muestra
+  `Power`/*Activar*, sin confirmación — reactivar no tiene la gravedad de dar de baja, es la misma
+  regla que ya seguía `unidades`. Es un endpoint propio, `POST /usuarios/:id/activar`
+  (`UsuariosService.activar`), NO el `PATCH` de edición: mismo alcance que `remove` (el admin puede
+  usarlo, salvo en cuentas admin/super_admin ajenas) en vez de quedar reservado al super_admin como el
+  resto de la edición. Antes de reactivar revalida la unicidad de rol (`validarUnicidadRol`): el cupo
+  de aprobador de la unidad o responsable del almacén pudo haberse ocupado mientras la cuenta estaba
+  inactiva.
 - `useUnidadesActivas()` / `useAlmacenesActivos()` (en los features respectivos) alimentan los
   selectores del formulario.
 

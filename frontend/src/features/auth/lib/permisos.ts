@@ -27,10 +27,12 @@ export const PERMISOS = {
   proveedoresLeer: ["super_admin", "admin", "responsable_almacen"],
   proveedoresEscribir: ["super_admin", "admin"],
 
-  /** Fuentes de financiamiento: escritura super_admin/admin; el
-   * responsable_almacen solo lee (elige la fuente en la cabecera del ingreso). */
+  /** Fuentes de financiamiento: cuarto catálogo estructural (2026-09-29,
+   * junto a unidades/almacenes/partidas) — escritura solo super_admin. El
+   * admin y el responsable_almacen solo leen (eligen la fuente en la
+   * cabecera del ingreso). */
   fuentesLeer: ["super_admin", "admin", "responsable_almacen"],
-  fuentesEscribir: ["super_admin", "admin"],
+  fuentesEscribir: ["super_admin"],
 
   /** Ingresos: escritura super_admin/admin/responsable_almacen; lectura además
    * observador_almacen (auditoría). El scope por almacén lo aplica el backend. */
@@ -103,7 +105,10 @@ export const PERMISOS = {
   ],
 
   usuariosLeer: ["super_admin", "admin"],
+  /** Crear y dar de baja: super_admin y admin (con las salvedades de admin/super_admin ajenas, ver CLAUDE.md). */
   usuariosEscribir: ["super_admin", "admin"],
+  /** Editar (PATCH) es exclusivo del super_admin desde el 2026-09-29: el admin crea y da de baja, pero no edita. */
+  usuariosEditar: ["super_admin"],
 
   /** `GET /usuarios/mi-aprobador`: quién aprueba MIS pedidos. El solicitador
    * entra aunque no lea el padrón — es de su propia unidad y devuelve una sola

@@ -29,8 +29,11 @@ export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Post()
-  create(@Body() dto: CreateUsuarioDto) {
-    return this.usuariosService.create(dto);
+  create(
+    @Body() dto: CreateUsuarioDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.create(dto, user);
   }
 
   @Get()
@@ -66,14 +69,32 @@ export class UsuariosController {
     return this.usuariosService.findOne(id);
   }
 
+  /** Editar es exclusivo del super_admin (2026-09-29): el admin crea y da de baja, pero no edita. */
+  @Roles(Rol.super_admin)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUsuarioDto) {
-    return this.usuariosService.update(id, dto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUsuarioDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.update(id, dto, user);
   }
 
   /** Baja logica (desactiva). */
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usuariosService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.remove(id, user);
+  }
+
+  /** Reactiva (inverso de la baja logica). Mismo alcance que `remove`. */
+  @Post(':id/activar')
+  activar(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.activar(id, user);
   }
 }

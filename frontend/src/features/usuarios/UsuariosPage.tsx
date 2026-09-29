@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Pencil, Plus, PowerOff, Search, Warehouse } from "lucide-react"
+import { Pencil, Plus, Power, PowerOff, Search, Warehouse } from "lucide-react"
 
 import {
   AlertDialog,
@@ -41,7 +41,9 @@ import {
 } from "@/features/auth/lib/auth.types"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { UsuarioFormDialog } from "@/features/usuarios/UsuarioFormDialog"
+import { puedeGestionarRol } from "@/features/usuarios/usuarios.types"
 import {
+  useActivarUsuario,
   useDesactivarUsuario,
   useUsuarios,
 } from "@/features/usuarios/useUsuarios"
@@ -75,6 +77,7 @@ function describirAlmacen(usuario: Usuario): string | null {
 export function UsuariosPage() {
   const { user } = useAuth()
   const puedeEscribir = tienePermiso(user, "usuariosEscribir")
+  const puedeEditar = tienePermiso(user, "usuariosEditar")
 
   const { page, pageSize, setPage, setPageSize, resetPage } = usePagination()
   const [busqueda, setBusqueda] = useState("")
@@ -89,6 +92,7 @@ export function UsuariosPage() {
   )
 
   const desactivar = useDesactivarUsuario()
+  const activar = useActivarUsuario()
 
   const { data, isPending, isError, error } = useUsuarios({
     page,
@@ -121,6 +125,14 @@ export function UsuariosPage() {
       // El toast de error lo emite la mutacion.
     } finally {
       setUsuarioADesactivar(null)
+    }
+  }
+
+  async function handleActivar(usuario: Usuario) {
+    try {
+      await activar.mutateAsync(usuario.id)
+    } catch {
+      // El toast de error lo emite la mutacion.
     }
   }
 
@@ -248,62 +260,83 @@ export function UsuariosPage() {
             )}
 
             {!isError &&
-              usuarios.map((usuario) => (
-                <TableRow key={usuario.id}>
-                  <TableCell className="font-medium">
-                    {usuario.usuario}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{usuario.nombre}</span>
-                      {usuario.cargo && (
-                        <span className="text-xs text-muted-foreground">
-                          {usuario.cargo}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col items-start gap-1">
-                      <Badge
-                        variant="outline"
-                        className={ROL_BADGE_CLASS[usuario.rol]}
-                      >
-                        {ROL_LABEL[usuario.rol]}
-                      </Badge>
-                      {describirAlmacen(usuario) && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Warehouse className="size-3 shrink-0" />
-                          {describirAlmacen(usuario)}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <BadgeEstado tono={usuario.activo ? "ok" : "neutro"}>
-                      {usuario.activo ? "Activo" : "Inactivo"}
-                    </BadgeEstado>
-                  </TableCell>
-                  {puedeEscribir && (
-                    <TableCell className="text-right">
-                      <IconAction
-                        icono={Pencil}
-                        etiqueta="Editar"
-                        onClick={() => abrirEdicion(usuario)}
-                      />
-                      <IconAction
-                        icono={PowerOff}
-                        etiqueta="Desactivar"
-                        onClick={() => setUsuarioADesactivar(usuario)}
-                        // Nadie puede desactivarse a si mismo: se quedaria sin
-                        // sesion en el proximo refresh y sin poder revertirlo.
-                        disabled={!usuario.activo || usuario.id === user?.id}
-                        destructiva
-                      />
+              usuarios.map((usuario) => {
+                // El admin no da de baja NI reactiva cuentas admin/super_admin
+                // AJENAS: el backend lo rechaza igual, esto solo evita ofrecer
+                // un botón que va a fallar. La desactivación de la fila propia
+                // ya queda cubierta por el `disabled` del botón de más abajo.
+                const esPropia = usuario.id === user?.id
+                const puedeCambiarEstado =
+                  esPropia || !user || puedeGestionarRol(user.rol, usuario.rol)
+                return (
+                  <TableRow key={usuario.id}>
+                    <TableCell className="font-medium">
+                      {usuario.usuario}
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{usuario.nombre}</span>
+                        {usuario.cargo && (
+                          <span className="text-xs text-muted-foreground">
+                            {usuario.cargo}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col items-start gap-1">
+                        <Badge
+                          variant="outline"
+                          className={ROL_BADGE_CLASS[usuario.rol]}
+                        >
+                          {ROL_LABEL[usuario.rol]}
+                        </Badge>
+                        {describirAlmacen(usuario) && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Warehouse className="size-3 shrink-0" />
+                            {describirAlmacen(usuario)}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <BadgeEstado tono={usuario.activo ? "ok" : "neutro"}>
+                        {usuario.activo ? "Activo" : "Inactivo"}
+                      </BadgeEstado>
+                    </TableCell>
+                    {puedeEscribir && (
+                      <TableCell className="text-right">
+                        {puedeEditar && (
+                          <IconAction
+                            icono={Pencil}
+                            etiqueta="Editar"
+                            onClick={() => abrirEdicion(usuario)}
+                          />
+                        )}
+                        {puedeCambiarEstado &&
+                          (usuario.activo ? (
+                            <IconAction
+                              icono={PowerOff}
+                              etiqueta="Desactivar"
+                              onClick={() => setUsuarioADesactivar(usuario)}
+                              // Nadie puede desactivarse a si mismo: se
+                              // quedaria sin sesion en el proximo refresh y
+                              // sin poder revertirlo.
+                              disabled={esPropia}
+                              destructiva
+                            />
+                          ) : (
+                            <IconAction
+                              icono={Power}
+                              etiqueta="Activar"
+                              onClick={() => handleActivar(usuario)}
+                            />
+                          ))}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
           </TableBody>
         </Table>
       </div>

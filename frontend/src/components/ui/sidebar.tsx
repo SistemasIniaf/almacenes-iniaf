@@ -362,17 +362,72 @@ function SidebarSeparator({
   )
 }
 
-function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
+function SidebarContent({
+  className,
+  onScroll,
+  ...props
+}: React.ComponentProps<"div">) {
+  // Sombras que avisan que hay más menú para scrollear. En pantallas chicas
+  // (y en mac, con "mostrar barras: al hacer scroll") la barra nativa no se
+  // ve, así que un menú cortado a la mitad se lee como que ahí termina —no
+  // como que hay más abajo. `arriba`/`abajo` reflejan si de verdad queda algo
+  // para scrollear de ese lado; sin eso una sombra fija se vería aun con todo
+  // el menú a la vista.
+  const [sombra, setSombra] = React.useState({ arriba: false, abajo: false })
+
+  const medir = React.useCallback((el: HTMLDivElement) => {
+    setSombra({
+      arriba: el.scrollTop > 1,
+      abajo: el.scrollTop < el.scrollHeight - el.clientHeight - 1,
+    })
+  }, [])
+
+  // Mide apenas el nodo existe (no en un useEffect: el lint del repo rechaza
+  // `setState` ahí) y de nuevo si el viewport cambia de alto —rotar el
+  // celular, por ejemplo— porque el contenido es el mismo pero lo que entra
+  // sin scrollear no.
+  const refContent = React.useCallback(
+    (el: HTMLDivElement | null) => {
+      if (!el) return
+      medir(el)
+      const alRedimensionar = () => medir(el)
+      window.addEventListener("resize", alRedimensionar)
+      return () => window.removeEventListener("resize", alRedimensionar)
+    },
+    [medir]
+  )
+
   return (
-    <div
-      data-slot="sidebar-content"
-      data-sidebar="content"
-      className={cn(
-        "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        className
-      )}
-      {...props}
-    />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 z-10 h-4 bg-gradient-to-b from-sidebar to-transparent transition-opacity duration-150",
+          sombra.arriba ? "opacity-100" : "opacity-0"
+        )}
+      />
+      <div
+        data-slot="sidebar-content"
+        data-sidebar="content"
+        ref={refContent}
+        onScroll={(evento) => {
+          medir(evento.currentTarget)
+          onScroll?.(evento)
+        }}
+        className={cn(
+          "flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+          className
+        )}
+        {...props}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 z-10 h-4 bg-gradient-to-t from-sidebar to-transparent transition-opacity duration-150",
+          sombra.abajo ? "opacity-100" : "opacity-0"
+        )}
+      />
+    </div>
   )
 }
 

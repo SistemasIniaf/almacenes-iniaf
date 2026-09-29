@@ -85,3 +85,18 @@ export function permiteObservados(rol: Rol): boolean {
 export function esRolUnico(rol: Rol): boolean {
   return rol === "aprobador" || rol === "responsable_almacen"
 }
+
+/**
+ * Roles que solo el super_admin puede crear o tocar — espejo de las guardas
+ * de `usuarios.service.ts` (backend) en `create`/`update`/`remove`. El admin
+ * gestiona usuarios operativos pero no cuentas admin/super_admin AJENAS: ni
+ * las crea, ni las asciende, ni les toca un campo (incluida la baja). Su
+ * PROPIA cuenta es la excepción — puede seguir editándola — y esa parte no
+ * se expresa acá: la resuelve `UsuarioFormDialog` con `editandoPropiaCuenta`.
+ */
+export const ROLES_SOLO_SUPER_ADMIN: Rol[] = ["admin", "super_admin"]
+
+/** true si `actorRol` puede crear o modificar una cuenta AJENA con rol `rol`. */
+export function puedeGestionarRol(actorRol: Rol, rol: Rol): boolean {
+  return !(actorRol === "admin" && ROLES_SOLO_SUPER_ADMIN.includes(rol))
+}

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { paginated } from '../../common/dto/paginated-result';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import { Rol } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { QueryUsuariosDto } from './dto/query-usuarios.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -73,8 +75,14 @@ interface CamposRol {
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateUsuarioDto) {
+  async create(dto: CreateUsuarioDto, actingUser: AuthenticatedUser) {
+    if (actingUser.rol === Rol.admin && this.esRolAdminOSuperAdmin(dto.rol)) {
+      throw new ForbiddenException(
+        'El rol admin no puede crear cuentas admin o super_admin.',
+      );
+    }
     await this.validarUsernameLibre(dto.usuario);
+    await this.validarSuperAdminUnico(dto.rol);
 
     const activo = dto.activo ?? true;
     const campos = this.resolverCamposPorRol(dto.rol, dto, null);
@@ -188,7 +196,11 @@ export class UsuariosService {
     });
   }
 
-  async update(id: number, dto: UpdateUsuarioDto) {
+  async update(
+    id: number,
+    dto: UpdateUsuarioDto,
+    actingUser: AuthenticatedUser,
+  ) {
     const existente = await this.prisma.usuario.findUnique({
       where: { id },
       include: { almacenesObservados: { select: { almacenId: true } } },
@@ -197,12 +209,23 @@ export class UsuariosService {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
     }
 
+    const rolFinal = dto.rol ?? existente.rol;
+    const activoFinal = dto.activo ?? existente.activo;
+    const esPropiaCuenta = id === actingUser.id;
+
+    // Editar es exclusivo del super_admin (el controlador ya lo garantiza con
+    // @Roles); acá solo queda la unica restriccion que rige incluso para el
+    // super_admin: nadie se desactiva a si mismo.
+    if (esPropiaCuenta && !activoFinal) {
+      throw new ForbiddenException('No podés desactivar tu propia cuenta.');
+    }
+
     if (dto.usuario && dto.usuario !== existente.usuario) {
       await this.validarUsernameLibre(dto.usuario);
     }
 
-    const rolFinal = dto.rol ?? existente.rol;
-    const activoFinal = dto.activo ?? existente.activo;
+    await this.validarSuperAdminUnico(rolFinal, id);
+
     const campos = this.resolverCamposPorRol(rolFinal, dto, {
       unidadId: existente.unidadId,
       almacenId: existente.almacenId,
@@ -251,13 +274,25 @@ export class UsuariosService {
   }
 
   /** Baja logica: desactiva al usuario (libera su cupo de rol unico). Nunca se borra. */
-  async remove(id: number) {
+  async remove(id: number, actingUser: AuthenticatedUser) {
+    if (id === actingUser.id) {
+      throw new ForbiddenException('No podés desactivar tu propia cuenta.');
+    }
+
     const existente = await this.prisma.usuario.findUnique({
       where: { id },
-      select: { id: true, activo: true },
+      select: { id: true, activo: true, rol: true },
     });
     if (!existente) {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
+    }
+    if (
+      actingUser.rol === Rol.admin &&
+      this.esRolAdminOSuperAdmin(existente.rol)
+    ) {
+      throw new ForbiddenException(
+        'El rol admin no puede dar de baja cuentas admin o super_admin.',
+      );
     }
     if (existente.activo) {
       await this.prisma.usuario.update({
@@ -268,9 +303,85 @@ export class UsuariosService {
     return this.findOne(id);
   }
 
+  /**
+   * Reactiva (inverso de la baja logica). Mismo alcance que `remove`: el
+   * admin puede reactivar usuarios operativos pero no cuentas admin/super_admin
+   * ajenas. A diferencia de `remove`, no hace falta bloquear la propia cuenta
+   * (reactivarse a uno mismo no tiene el riesgo de quedarse afuera).
+   */
+  async activar(id: number, actingUser: AuthenticatedUser) {
+    const existente = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        activo: true,
+        rol: true,
+        unidadId: true,
+        almacenId: true,
+      },
+    });
+    if (!existente) {
+      throw new NotFoundException(`No existe el usuario con id ${id}`);
+    }
+    if (
+      actingUser.rol === Rol.admin &&
+      this.esRolAdminOSuperAdmin(existente.rol)
+    ) {
+      throw new ForbiddenException(
+        'El rol admin no puede reactivar cuentas admin o super_admin.',
+      );
+    }
+    if (!existente.activo) {
+      // El cupo de rol unico (aprobador por unidad, responsable por almacen)
+      // pudo haberse ocupado mientras esta cuenta estaba inactiva.
+      await this.validarUnicidadRol(
+        existente.rol,
+        {
+          unidadId: existente.unidadId,
+          almacenId: existente.almacenId,
+          observados: [],
+        },
+        true,
+        id,
+      );
+      await this.prisma.usuario.update({
+        where: { id },
+        data: { activo: true },
+      });
+    }
+    return this.findOne(id);
+  }
+
   // ---------------------------------------------------------------------------
   // Validaciones
   // ---------------------------------------------------------------------------
+
+  private esRolAdminOSuperAdmin(rol: Rol): boolean {
+    return rol === Rol.admin || rol === Rol.super_admin;
+  }
+
+  /**
+   * Solo puede existir un super_admin en todo el sistema (mismo criterio que
+   * el bootstrap del seed: busca CUALQUIER super_admin, activo o no). Es lo
+   * que hace inofensivo que nadie mas pueda gestionar esa cuenta: si se
+   * permitiera un segundo, un super_admin inactivo dejaria al otro sin forma
+   * de reactivarlo salvo por acceso directo a la base.
+   */
+  private async validarSuperAdminUnico(rol: Rol, excluirId?: number) {
+    if (rol !== Rol.super_admin) return;
+    const existe = await this.prisma.usuario.findFirst({
+      where: {
+        rol: Rol.super_admin,
+        ...(excluirId ? { id: { not: excluirId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (existe) {
+      throw new ConflictException(
+        'Ya existe un super_admin en el sistema; no se puede crear otro.',
+      );
+    }
+  }
 
   private async validarUsernameLibre(usuario: string) {
     const existe = await this.prisma.usuario.findUnique({

@@ -18,16 +18,18 @@ import { UpdateFuenteFinanciamientoDto } from './dto/update-fuente-financiamient
 import { FuentesFinanciamientoService } from './fuentes-financiamiento.service';
 
 /**
- * Catalogo de fuentes de financiamiento. Escritura para super_admin y admin.
- * Lectura tambien para responsable_almacen: necesita el selector de fuente en
- * la cabecera al registrar un Ingreso (una sola fuente por ingreso).
+ * Catalogo de fuentes de financiamiento. Escritura solo super_admin
+ * (2026-09-29: paso a ser el cuarto catalogo estructural junto a unidades,
+ * almacenes y partidas — antes el admin tambien escribia). Lectura tambien
+ * para admin y responsable_almacen: necesitan el selector de fuente en la
+ * cabecera al registrar un Ingreso (una sola fuente por ingreso).
  */
 @Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
 @Controller('fuentes-financiamiento')
 export class FuentesFinanciamientoController {
   constructor(private readonly fuentesService: FuentesFinanciamientoService) {}
 
-  @Roles(Rol.super_admin, Rol.admin)
+  @Roles(Rol.super_admin)
   @Post()
   create(@Body() dto: CreateFuenteFinanciamientoDto) {
     return this.fuentesService.create(dto);
@@ -43,7 +45,7 @@ export class FuentesFinanciamientoController {
     return this.fuentesService.findOne(id);
   }
 
-  @Roles(Rol.super_admin, Rol.admin)
+  @Roles(Rol.super_admin)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -53,7 +55,7 @@ export class FuentesFinanciamientoController {
   }
 
   /** Baja logica (desactiva). */
-  @Roles(Rol.super_admin, Rol.admin)
+  @Roles(Rol.super_admin)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.fuentesService.remove(id);
