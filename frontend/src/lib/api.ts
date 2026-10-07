@@ -18,6 +18,17 @@ interface ConfigConReintento extends InternalAxiosRequestConfig {
 }
 
 /**
+ * Base de la API. En dev viene de `VITE_API_URL` (absoluta, puerto distinto
+ * al del frontend). En el build de PRODUCCION esa variable a propósito NO se
+ * define: nginx sirve el frontend y hace de proxy de la API bajo el MISMO
+ * origen (`/api/v1`), así el build no queda atado a una IP/dominio — si la
+ * IP pública cambia no hay que recompilar ni redeployar nada.
+ */
+export function urlBaseApi(): string {
+  return import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`
+}
+
+/**
  * OJO: a proposito NO se fija un `Content-Type` por defecto. Axios lo infiere
  * del cuerpo: `application/json` para objetos y `multipart/form-data` con su
  * boundary para FormData (subida de imagenes). Si se dejara el default JSON,
@@ -25,7 +36,7 @@ interface ConfigConReintento extends InternalAxiosRequestConfig {
  * romperia en silencio.
  */
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: urlBaseApi(),
 })
 
 /**
@@ -64,7 +75,7 @@ async function refrescarTokens(): Promise<string> {
   const { data } = await axios.post<{
     accessToken: string
     refreshToken: string
-  }>(`${import.meta.env.VITE_API_URL}/auth/refresh`, { refreshToken })
+  }>(`${urlBaseApi()}/auth/refresh`, { refreshToken })
 
   setTokens(data)
   return data.accessToken

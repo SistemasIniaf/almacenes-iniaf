@@ -1,9 +1,14 @@
+import { urlBaseApi } from "@/lib/api"
+
 /**
  * Las imagenes subidas se sirven como estaticas publicas bajo `/uploads`, FUERA
  * del prefijo de la API (`/api/v1`) y del guard de JWT — por eso hay que armar
- * la URL contra el ORIGEN del backend, no contra `VITE_API_URL` completo.
+ * la URL contra el ORIGEN del backend, no contra la base de la API completa.
+ * `urlBaseApi()` resuelve a `VITE_API_URL` en dev o a `window.location.origin`
+ * en el build de producción (ver su comentario en `lib/api.ts`); en los dos
+ * casos es una URL ABSOLUTA, que es lo que `new URL(...)` necesita.
  */
-const ORIGEN_BACKEND = new URL(import.meta.env.VITE_API_URL).origin
+const ORIGEN_BACKEND = new URL(urlBaseApi()).origin
 
 /** Convierte la ruta relativa que guarda la DB en una URL absoluta usable en <img>. */
 export function urlArchivo(ruta: string | null | undefined): string | null {

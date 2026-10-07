@@ -14,8 +14,63 @@ Referencia de negocio: se analizó el sistema open-source NSIAF (ADSIB/AGETIC, B
 - **UI**: shadcn/ui + react-hook-form + Zod (ver sección "Stack de UI del frontend" más abajo para convenciones de componentes)
 - **Data fetching frontend**: TanStack Query (React Query)
 - **Auth**: JWT (access + refresh token), bcrypt para passwords
-- **Contenedores**: Docker solo para Postgres en desarrollo (`docker-compose.yml`). Backend y frontend corren nativos en desarrollo (hot-reload). Dockerizar todo recién para despliegue (`docker-compose.prod.yml`).
-- **Despliegue**: on-premise, servidor propio de la institución.
+- **Contenedores**: Docker solo para Postgres en desarrollo (`docker-compose.yml`). Backend y frontend corren nativos en desarrollo (hot-reload). Para despliegue, `docker-compose.prod.yml` (raíz) — **ya implementado** (2026-10-07, ver "Despliegue" más abajo).
+- **Despliegue**: on-premise, servidor propio de la institución. Primera versión real en una VM Ubuntu (Proxmox) para que el encargado de almacenes revise una demo — mismos archivos que se van a reusar en el servidor definitivo (ver `docs/despliegue-demo.md`).
+
+### Despliegue: `docker-compose.prod.yml` (2026-10-07)
+
+Tres servicios — `postgres` (volumen nombrado, healthcheck con `pg_isready`),
+`backend` (`backend/Dockerfile`) y `frontend` (`frontend/Dockerfile`, build
+de Vite servido por nginx). **Único puerto publicado al exterior: 80** (el
+frontend); el backend NO se expone al host, solo nginx le habla por la red
+interna de Compose. Variables sensibles en un `.env` en la raíz (copiado de
+`.env.prod.example`, NO versionado — cae bajo la regla `.env` que el
+`.gitignore` raíz ya tenía, sin agregar una regla nueva).
+
+- **Un solo origen, con nginx de proxy** (`frontend/nginx.conf`): sirve el
+  build estático y hace de proxy de `/api/v1/` y `/uploads/` hacia el
+  backend. Por eso el frontend queda **agnóstico de IP/dominio**: el build de
+  producción no necesita saber de antemano cuál va a ser la IP pública, y si
+  cambia el día de mañana no hay que recompilar nada.
+- **`VITE_API_URL` pasa a ser OPCIONAL** (`frontend/src/lib/api.ts`,
+  `urlBaseApi()`): en dev sigue viniendo del `.env` (URL absoluta, puerto
+  distinto al del frontend, sin cambios). En el build de producción a
+  propósito NO se define, y el fallback arma la base de la API contra
+  `window.location.origin` **en el navegador**, no en el build — de ahí sale
+  lo de agnóstico de IP. `lib/files.ts` (que arma la URL de las imágenes)
+  pasó a usar esta misma función en vez de leer `VITE_API_URL` directo, por
+  la misma razón.
+- **El Dockerfile del backend es de UNA SOLA ETAPA** (no multi-stage, a
+  propósito): `prisma/seed.ts` importa el cliente generado por su ruta
+  TypeScript (`../src/generated/prisma/client`, no la compilada), así que el
+  contenedor necesita `src/`, `prisma/` Y el `node_modules` completo (con
+  `ts-node` y el CLI de Prisma) para que además de `node dist/main` también
+  funcionen `pnpm prisma migrate deploy` y `pnpm seed` vía
+  `docker compose exec`. Separar build/runtime acá obligaría a copiar
+  selectivamente media docena de rutas — para una demo, simple y robusto
+  gana por sobre achicar la imagen. Base `node:24-bookworm-slim` (Debian, no
+  Alpine): `bcrypt` y `sharp` son nativos y andan sin sorpresas sobre glibc.
+  Prisma acá usa el **driver adapter** (`@prisma/adapter-pg`), así que no hay
+  binario de motor de consultas del que preocuparse — más simple que un
+  Dockerfile de Prisma típico.
+- **Bug de armado encontrado y corregido al verificar esto**:
+  `backend/tsconfig.build.json` no tenía `include`, así que `nest build`
+  también compilaba `prisma.config.ts` y `prisma/*.ts` (viven junto a `src/`,
+  no estaban excluidos) y el `rootDir` inferido subía a la raíz del backend —
+  el build salía en `dist/src/main.js`, no `dist/main.js` como espera
+  `start:prod` (`node dist/main`). Ese script **nunca había funcionado**,
+  Docker o no — se descubrió recién acá porque es la primera vez que alguien
+  corre el build de producción de punta a punta. Arreglado agregando
+  `"include": ["src/**/*"]`.
+- **Uploads**: el volumen nombrado `uploads_data:/app/uploads` cubre las dos
+  subcarpetas (`items/` y `lotes/`) con un solo volumen en la raíz —
+  cerraba el pendiente que `uploads.config.ts` ya tenía anotado.
+- **Sin pgAdmin** en producción (a diferencia del `docker-compose.yml` de
+  dev): menos superficie expuesta; para mirar la base,
+  `docker compose exec postgres psql -U ... -d ...` alcanza.
+- **Sin HTTPS todavía**: la VM de la demo no tiene dominio, solo IP. Queda
+  pendiente para cuando la institución confirme IP pública + dominio
+  (Let's Encrypt vía Certbot o Caddy, agregado al `frontend/nginx.conf`).
 
 ## Estructura del repo (monorepo simple, sin Nx/Turborepo)
 
@@ -184,7 +239,7 @@ Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decision
 - **Endpoints** (solo `super_admin`/`admin`): `POST /items/:id/imagen` (campo multipart `imagen`; reemplaza y borra la anterior del disco) y `DELETE /items/:id/imagen` (limpia archivo + pone `imagenUrl=null`). El CRUD normal (`PATCH`) NO toca la imagen.
 - **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre los services de items e ingresos y `main.ts`). El **pipeline** (sharp → WebP, escritura y borrado best-effort) vive en `src/common/uploads/imagenes.ts` y lo comparten los dos: si el tamaño o la calidad se tocaran en un solo lado, la foto del ítem y la del lote que la pisa saldrían con distinto peso y nitidez, una al lado de la otra.
 - **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` y en `IngresoLineas` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
-- **Pendiente despliegue**: en `docker-compose.prod.yml`, montar `uploads/` como **volumen** para que las imágenes sobrevivan a reconstrucciones del contenedor. Cubre las dos subcarpetas (`items/` y `lotes/`). Ojo con el tamaño: las de ítem son una por ítem y se sacan una sola vez; las de lote son **una por línea de cada ingreso y no dejan de acumularse** (un lote agotado hace tres gestiones conserva su archivo). Por eso van en subcarpetas separadas: se pueden medir —y algún día limpiar— sin tocar el catálogo.
+- **Despliegue — resuelto (2026-10-07)**: `docker-compose.prod.yml` monta `uploads/` como **volumen** nombrado (`uploads_data:/app/uploads`) para que las imágenes sobrevivan a reconstrucciones del contenedor. Cubre las dos subcarpetas (`items/` y `lotes/`) con un solo volumen en la raíz. Ojo con el tamaño: las de ítem son una por ítem y se sacan una sola vez; las de lote son **una por línea de cada ingreso y no dejan de acumularse** (un lote agotado hace tres gestiones conserva su archivo). Por eso van en subcarpetas separadas: se pueden medir —y algún día limpiar— sin tocar el catálogo.
 
 ### Foto por lote (`IngresoDetalle.imagenUrl`) — 2026-08-07
 

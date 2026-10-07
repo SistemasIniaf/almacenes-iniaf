@@ -1,0 +1,56 @@
+# Despliegue de produccion/demo. Variables sensibles en `.env` (raiz, NO
+# versionado — copiar de `.env.prod.example`); docker compose lo carga solo.
+#
+# Unico puerto publicado al exterior: 80 (frontend). El backend NO se expone
+# al host, solo nginx le habla por la red interna de Compose (ver
+# `frontend/nginx.conf`). Ver `docs/despliegue-demo.md` para el paso a paso.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_PREFIX: api/v1
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: 7d
+      SEED_ADMIN_USER: ${SEED_ADMIN_USER}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_ADMIN_NOMBRE: ${SEED_ADMIN_NOMBRE}
+    volumes:
+      # Las dos subcarpetas (items/ y lotes/) quedan cubiertas con un solo
+      # volumen en la raiz de uploads (ver `uploads.config.ts`).
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data_prod:
+  uploads_data:
