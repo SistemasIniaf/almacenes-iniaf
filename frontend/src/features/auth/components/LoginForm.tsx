@@ -58,7 +58,7 @@ export function LoginForm({
                 quien prefiere claro no le queda forma de cambiarlo antes de
                 loguearse. Va pegado al formulario (no a la pantalla entera)
                 para que quede del lado del login y no del banner. */}
-            <div className="absolute top-4 left-4 md:top-6 md:left-6">
+            <div className="absolute top-4 right-4 md:top-6 md:right-6">
               <ThemeToggle />
             </div>
 
