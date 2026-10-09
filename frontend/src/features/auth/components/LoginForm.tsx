@@ -5,6 +5,7 @@ import { loginSchema } from "../lib/login.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field"
@@ -49,7 +50,18 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="relative p-6 md:p-8"
+          >
+            {/* Arranca en oscuro por defecto (ver `main.tsx`): sin esto, a
+                quien prefiere claro no le queda forma de cambiarlo antes de
+                loguearse. Va pegado al formulario (no a la pantalla entera)
+                para que quede del lado del login y no del banner. */}
+            <div className="absolute top-4 left-4 md:top-6 md:left-6">
+              <ThemeToggle />
+            </div>
+
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-extrabold">INIAF - ALMACENES</h1>
