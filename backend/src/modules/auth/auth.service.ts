@@ -54,10 +54,20 @@ export class AuthService {
       'Usuario o contrasena incorrectos',
     );
 
-    if (!usuario || !usuario.activo) throw credencialesInvalidas;
+    if (!usuario) throw credencialesInvalidas;
 
     const passwordOk = await bcrypt.compare(dto.password, usuario.password);
     if (!passwordOk) throw credencialesInvalidas;
+
+    // Recien ACA se distingue la baja (con un mensaje que SI dice algo del
+    // usuario): la contrasena ya se valido, asi que a esta altura quien
+    // pregunta ya la conoce -- no es un intento de adivinar si la cuenta
+    // existe, es probablemente el dueno de la cuenta.
+    if (!usuario.activo) {
+      throw new UnauthorizedException(
+        'Esta cuenta esta dada de baja. Consulta con un administrador.',
+      );
+    }
 
     const tokens = await this.generarTokens({
       id: usuario.id,
