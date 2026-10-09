@@ -300,7 +300,7 @@ export function UsuariosPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <BadgeEstado tono={usuario.activo ? "ok" : "neutro"}>
+                      <BadgeEstado tono={usuario.activo ? "ok" : "alto"}>
                         {usuario.activo ? "Activo" : "Inactivo"}
                       </BadgeEstado>
                     </TableCell>

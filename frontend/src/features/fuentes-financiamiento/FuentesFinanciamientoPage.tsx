@@ -60,8 +60,9 @@ export function FuentesFinanciamientoPage() {
 
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [enEdicion, setEnEdicion] = useState<FuenteFinanciamiento | null>(null)
-  const [aDesactivar, setADesactivar] =
-    useState<FuenteFinanciamiento | null>(null)
+  const [aDesactivar, setADesactivar] = useState<FuenteFinanciamiento | null>(
+    null
+  )
 
   const desactivar = useDesactivarFuente()
 
@@ -213,7 +214,7 @@ export function FuentesFinanciamientoPage() {
                     {fuente.codigo ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <BadgeEstado tono={fuente.activo ? "ok" : "neutro"}>
+                    <BadgeEstado tono={fuente.activo ? "ok" : "alto"}>
                       {fuente.activo ? "Activa" : "Inactiva"}
                     </BadgeEstado>
                   </TableCell>

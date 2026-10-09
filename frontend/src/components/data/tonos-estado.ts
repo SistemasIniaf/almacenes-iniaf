@@ -14,9 +14,9 @@ export const PUNTO = {
   espera: "bg-amber-500",
   /** En curso, ya avanzó un paso. */
   proceso: "bg-sky-500",
-  /** Anulado, rechazado. */
+  /** Anulado, rechazado, o dado de baja (inactivo) en los catálogos. */
   alto: "bg-red-500",
-  /** Todavía no arrancó, o dado de baja: sin urgencia ni problema. */
+  /** Todavía no arrancó: sin urgencia ni problema. */
   neutro: "bg-muted-foreground/50",
 } as const
 

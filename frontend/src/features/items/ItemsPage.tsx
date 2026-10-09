@@ -177,7 +177,10 @@ export function ItemsPage() {
                   colSpan={columnas}
                   className="py-8 text-center text-sm text-destructive"
                 >
-                  {getApiErrorMessage(error, "No se pudieron cargar los ítems.")}
+                  {getApiErrorMessage(
+                    error,
+                    "No se pudieron cargar los ítems."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -227,7 +230,7 @@ export function ItemsPage() {
                       {item.unidadMedida}
                     </TableCell>
                     <TableCell>
-                      <BadgeEstado tono={item.activo ? "ok" : "neutro"}>
+                      <BadgeEstado tono={item.activo ? "ok" : "alto"}>
                         {item.activo ? "Activo" : "Inactivo"}
                       </BadgeEstado>
                     </TableCell>
@@ -283,8 +286,8 @@ export function ItemsPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               «{itemADesactivar?.descripcion}» dejará de estar disponible para
-              nuevos movimientos. El ítem no se elimina y su stock e historial se
-              conservan. Podés volver a activarlo editándolo.
+              nuevos movimientos. El ítem no se elimina y su stock e historial
+              se conservan. Podés volver a activarlo editándolo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

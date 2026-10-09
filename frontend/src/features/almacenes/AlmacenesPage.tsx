@@ -212,7 +212,7 @@ export function AlmacenesPage() {
                     {almacen.unidades.length}
                   </TableCell>
                   <TableCell>
-                    <BadgeEstado tono={almacen.activo ? "ok" : "neutro"}>
+                    <BadgeEstado tono={almacen.activo ? "ok" : "alto"}>
                       {almacen.activo ? "Activo" : "Inactivo"}
                     </BadgeEstado>
                   </TableCell>

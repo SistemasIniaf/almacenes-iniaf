@@ -219,7 +219,7 @@ export function ProveedoresPage() {
                     {proveedor.telefono ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <BadgeEstado tono={proveedor.activo ? "ok" : "neutro"}>
+                    <BadgeEstado tono={proveedor.activo ? "ok" : "alto"}>
                       {proveedor.activo ? "Activo" : "Inactivo"}
                     </BadgeEstado>
                   </TableCell>
@@ -270,8 +270,8 @@ export function ProveedoresPage() {
               ¿Desactivar a «{aDesactivar?.nombre}»?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Dejará de aparecer al registrar nuevos ingresos. El proveedor no se
-              elimina nunca: los ingresos que ya lo referencian conservan su
+              Dejará de aparecer al registrar nuevos ingresos. El proveedor no
+              se elimina nunca: los ingresos que ya lo referencian conservan su
               historial en el Kardex. Podés volver a activarlo editándolo.
             </AlertDialogDescription>
           </AlertDialogHeader>
