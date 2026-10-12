@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -200,6 +201,10 @@ export function EgresoFormPage() {
     (user?.rol === "responsable_almacen" ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
+  // Separa las acciones de INFORMACIÓN (Historial, Enviar, Ver PDF) de las de
+  // DECISIÓN sobre el pedido — para que aprobar/rechazar no se pierdan entre
+  // botones secundarios en la misma fila.
+  const hayAccionDecision = puedeRechazar || puedeAnular
 
   const ocupado =
     crear.isPending ||
@@ -366,6 +371,13 @@ export function EgresoFormPage() {
             </Button>
           )}
 
+          {/* De acá para abajo, acciones de DECISIÓN sobre el pedido: separadas
+              de Historial/Enviar/Ver PDF (información), que ya no compiten por
+              la atención con aprobar o rechazar. */}
+          {hayAccionDecision && (
+            <Separator orientation="vertical" className="h-6" />
+          )}
+
           {puedeAprobar && (
             <Button
               disabled={ocupado}
@@ -383,7 +395,7 @@ export function EgresoFormPage() {
           )}
           {puedeRechazar && (
             <Button
-              variant="outline"
+              variant="destructive"
               disabled={ocupado}
               onClick={() => setAccionConMotivo("rechazar")}
             >
@@ -417,7 +429,7 @@ export function EgresoFormPage() {
           figuran, desde que se quitó la línea repetida bajo el título. Al crear
           salen del perfil (el registro todavía no existe); después, del propio
           egreso, que es la fuente de verdad. */}
-      <div className="grid grid-cols-1 gap-4 rounded-md border bg-muted/40 p-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 rounded-md border bg-card p-3 shadow-sm sm:grid-cols-3">
         <div>
           <p className="text-xs text-muted-foreground">Solicitante</p>
           <p className="text-sm font-medium">
