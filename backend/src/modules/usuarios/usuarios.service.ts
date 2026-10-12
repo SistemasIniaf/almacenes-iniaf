@@ -82,9 +82,10 @@ export class UsuariosService {
       );
     }
     await this.validarUsernameLibre(dto.usuario);
-    await this.validarSuperAdminUnico(dto.rol);
-
     const activo = dto.activo ?? true;
+    await this.validarSuperAdminUnico(dto.rol);
+    await this.validarAdminUnico(dto.rol, activo);
+
     const campos = this.resolverCamposPorRol(dto.rol, dto, null);
     const cargo = this.resolverCargo(dto.rol, dto.cargo, null);
 
@@ -225,6 +226,7 @@ export class UsuariosService {
     }
 
     await this.validarSuperAdminUnico(rolFinal, id);
+    await this.validarAdminUnico(rolFinal, activoFinal, id);
 
     const campos = this.resolverCamposPorRol(rolFinal, dto, {
       unidadId: existente.unidadId,
@@ -348,6 +350,7 @@ export class UsuariosService {
       // unico camino posible, porque nadie puede desactivarse a si mismo),
       // reactivar esta cuenta dejaria dos activos a la vez.
       await this.validarSuperAdminUnico(existente.rol, id);
+      await this.validarAdminUnico(existente.rol, true, id);
       await this.prisma.usuario.update({
         where: { id },
         data: { activo: true },
@@ -383,6 +386,37 @@ export class UsuariosService {
     if (existe) {
       throw new ConflictException(
         'Ya existe un super_admin en el sistema; no se puede crear otro.',
+      );
+    }
+  }
+
+  /**
+   * Solo puede haber un `admin` ACTIVO a la vez (2026-10-12, pedido del
+   * usuario) — a diferencia de `validarSuperAdminUnico`, acá alcanza con
+   * mirar los activos: un admin siempre puede ser reactivado o reemplazado
+   * por el super_admin (nunca hay riesgo de quedar sin nadie que lo pueda
+   * tocar, como sí pasaba con el super_admin), así que no hace falta la
+   * regla más estricta de "ningún otro registro, esté activo o no". Por eso
+   * sigue el mismo patrón que `ROLES_UNICOS_POR_UNIDAD`/`_POR_ALMACEN`: solo
+   * corre cuando el resultado de la operación deja la cuenta activa.
+   */
+  private async validarAdminUnico(
+    rol: Rol,
+    activo: boolean,
+    excluirId?: number,
+  ) {
+    if (rol !== Rol.admin || !activo) return;
+    const existe = await this.prisma.usuario.findFirst({
+      where: {
+        rol: Rol.admin,
+        activo: true,
+        ...(excluirId ? { id: { not: excluirId } } : {}),
+      },
+      select: { id: true, usuario: true },
+    });
+    if (existe) {
+      throw new ConflictException(
+        `Ya hay un admin activo (usuario "${existe.usuario}"); da de baja esa cuenta antes de activar o crear otra.`,
       );
     }
   }
