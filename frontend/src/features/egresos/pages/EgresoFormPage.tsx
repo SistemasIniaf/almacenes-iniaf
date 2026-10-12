@@ -422,160 +422,169 @@ export function EgresoFormPage() {
         </div>
       )}
 
-      {/* De quién es el pedido. No se elige: el almacén y la unidad los hereda
-          del solicitante (ver "Regla de negocio crítica" en CLAUDE.md), así que
-          se muestran como dato, no como campo. Va FUERA del formulario para que
-          también se vea en la ficha de solo lectura — es el único lugar donde
-          figuran, desde que se quitó la línea repetida bajo el título. Al crear
-          salen del perfil (el registro todavía no existe); después, del propio
-          egreso, que es la fuente de verdad. */}
-      <div className="grid grid-cols-1 gap-4 rounded-md border bg-card p-3 shadow-sm sm:grid-cols-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Solicitante</p>
-          <p className="text-sm font-medium">
-            {egreso?.solicitante.nombre ?? user?.nombre ?? "—"}
-          </p>
-          {(egreso?.solicitante.cargo ?? user?.cargo) && (
-            <p className="text-xs text-muted-foreground">
-              {egreso?.solicitante.cargo ?? user?.cargo}
+      {/* TODO el pedido en UNA sola tarjeta — información, justificación e
+          ítems son secciones de un mismo documento, no piezas sueltas (pedido
+          del usuario, 2026-10-12). Separadas con `Separator`, no con tarjetas
+          independientes apiladas. */}
+      <div className="rounded-md border bg-card shadow-sm">
+        {/* De quién es el pedido. No se elige: el almacén y la unidad los
+            hereda del solicitante (ver "Regla de negocio crítica" en
+            CLAUDE.md), así que se muestran como dato, no como campo. Se ve
+            igual en edición y en lectura — es el único lugar donde figuran,
+            desde que se quitó la línea repetida bajo el título. Al crear
+            salen del perfil (el registro todavía no existe); después, del
+            propio egreso, que es la fuente de verdad. */}
+        <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Solicitante</p>
+            <p className="text-sm font-medium">
+              {egreso?.solicitante.nombre ?? user?.nombre ?? "—"}
             </p>
-          )}
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Unidad solicitante</p>
-          <p className="text-sm font-medium">
-            {egreso?.unidad.nombre ?? user?.unidad?.nombre ?? "—"}
-          </p>
-          {(egreso?.unidad.sigla ?? user?.unidad?.sigla) && (
-            <p className="text-xs text-muted-foreground">
-              {egreso?.unidad.sigla ?? user?.unidad?.sigla}
+            {(egreso?.solicitante.cargo ?? user?.cargo) && (
+              <p className="text-xs text-muted-foreground">
+                {egreso?.solicitante.cargo ?? user?.cargo}
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Unidad solicitante</p>
+            <p className="text-sm font-medium">
+              {egreso?.unidad.nombre ?? user?.unidad?.nombre ?? "—"}
             </p>
-          )}
+            {(egreso?.unidad.sigla ?? user?.unidad?.sigla) && (
+              <p className="text-xs text-muted-foreground">
+                {egreso?.unidad.sigla ?? user?.unidad?.sigla}
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Almacén</p>
+            <p className="text-sm font-medium">
+              {egreso?.almacen.nombre ?? user?.almacen?.nombre ?? "—"}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Almacén</p>
-          <p className="text-sm font-medium">
-            {egreso?.almacen.nombre ?? user?.almacen?.nombre ?? "—"}
-          </p>
-        </div>
-      </div>
 
-      {editable ? (
-        <form
-          id="egreso-form"
-          onSubmit={handleSubmit(guardar, avisarInvalido)}
-          // `bg-card shadow-sm`, el mismo envoltorio que los listados: sin fondo
-          // propio la tarjeta era solo un borde y el formulario se perdía contra
-          // la página.
-          className="flex flex-col gap-4 rounded-md border bg-card p-4 shadow-sm"
-        >
-          <TextareaField
-            name="justificacion"
-            label="Justificación"
-            control={control}
-            rows={2}
-            placeholder="Para qué se pide el material"
-            description="Máximo 300 caracteres."
-            disabled={ocupado}
-          />
-          {/* Los ítems SON el pedido: la justificación es lo que lo explica,
-              pero lo que sale del almacén es esto. Panel con superficie propia,
-              igual que en el formulario de ingreso. */}
-          <div className="rounded-md border bg-muted/30 p-4">
-            <EgresoLineas
+        <Separator />
+
+        {editable ? (
+          <form
+            id="egreso-form"
+            onSubmit={handleSubmit(guardar, avisarInvalido)}
+            className="flex flex-col gap-4 p-4"
+          >
+            <TextareaField
+              name="justificacion"
+              label="Justificación"
               control={control}
+              rows={2}
+              placeholder="Para qué se pide el material"
+              description="Máximo 300 caracteres."
               disabled={ocupado}
-              lotesIniciales={lotesIniciales}
             />
-          </div>
-
-          {/* Acción principal al pie del formulario, dentro del card — igual que
-              el de ingresos. Queda al final de lo que hay que completar, no en
-              la barra de arriba junto a las acciones del documento. */}
-          <div className="mt-2 flex justify-end">
-            <Button type="submit" disabled={ocupado}>
-              {ocupado ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Save className="size-4" />
-              )}
-              Guardar
-            </Button>
-          </div>
-        </form>
-      ) : (
-        egreso && (
-          <div className="flex flex-col gap-4">
-            {/* Mismo envoltorio que la tabla de abajo y que el formulario: la
-                ficha de lectura no tiene por qué verse más plana que el modo
-                edición del mismo pedido. */}
-            <div className="rounded-md border bg-card p-4 shadow-sm">
-              <p className="text-xs text-muted-foreground">Justificación</p>
-              <p className="text-sm">{egreso.justificacion}</p>
+            {/* Los ítems SON el pedido: la justificación es lo que lo explica,
+                pero lo que sale del almacén es esto. Panel con superficie
+                propia, igual que en el formulario de ingreso. */}
+            <div className="rounded-md border bg-muted/30 p-4">
+              <EgresoLineas
+                control={control}
+                disabled={ocupado}
+                lotesIniciales={lotesIniciales}
+              />
             </div>
 
-            <div className="rounded-md border bg-card shadow-sm">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {/* Columna de la foto, sin rótulo visible: la miniatura se
+            {/* Acción principal al pie del formulario — igual que el de
+                ingresos. Queda al final de lo que hay que completar, no en la
+                barra de arriba junto a las acciones del documento. */}
+            <div className="mt-2 flex justify-end">
+              <Button type="submit" disabled={ocupado}>
+                {ocupado ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+                Guardar
+              </Button>
+            </div>
+          </form>
+        ) : (
+          egreso && (
+            <>
+              <div className="p-4">
+                <p className="text-xs text-muted-foreground">Justificación</p>
+                <p className="text-sm">{egreso.justificacion}</p>
+              </div>
+
+              <Separator />
+
+              {/* Redondea solo las esquinas de ABAJO: la tabla no es la
+                  primera sección de la tarjeta, así que sus esquinas de
+                  arriba van rectas — `rounded-[inherit]` (lo que usa `Table`
+                  por default) tomaría las cuatro del borde exterior y dejaba
+                  un par de puntas redondeadas sueltas a mitad de tarjeta. */}
+              <div className="overflow-hidden rounded-b-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {/* Columna de la foto, sin rótulo visible: la miniatura se
                         explica sola y un encabezado gastaría alto para nada. */}
-                    <TableHead className="w-14">
-                      <span className="sr-only">Foto</span>
-                    </TableHead>
-                    <TableHead>Ítem</TableHead>
-                    <TableHead>Fuente</TableHead>
-                    <TableHead>Ingreso</TableHead>
-                    {/* La unidad va en columna propia, no pegada a cada número:
+                      <TableHead className="w-14">
+                        <span className="sr-only">Foto</span>
+                      </TableHead>
+                      <TableHead>Ítem</TableHead>
+                      <TableHead>Fuente</TableHead>
+                      <TableHead>Ingreso</TableHead>
+                      {/* La unidad va en columna propia, no pegada a cada número:
                         así no hay que pluralizarla («4 PIEZA») ni inventar reglas
                         para las abreviaturas, que son invariables (KG, LT, M2).
                         Es la misma disposición que el PDF de la solicitud. */}
-                    <TableHead className="text-center">Unidad</TableHead>
-                    <TableHead className="text-right">Pedido</TableHead>
-                    <TableHead className="text-right">Entregado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {egreso.detalles.map((detalle) => (
-                    <TableRow key={detalle.id}>
-                      <TableCell>
-                        <MiniaturaLote lote={detalle.ingresoDetalle} />
-                      </TableCell>
-                      <TableCell>
-                        {descripcionConNota(
-                          detalle.ingresoDetalle.item.descripcion,
-                          detalle.ingresoDetalle.observacion
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
-                          ?.nombre ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <NumeroDocumento
-                          numero={detalle.ingresoDetalle.ingreso.numero}
-                          gestion={detalle.ingresoDetalle.ingreso.gestion}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center whitespace-nowrap text-muted-foreground">
-                        {detalle.ingresoDetalle.item.unidadMedida}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {Number(detalle.cantidadSolicitada)}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {detalle.cantidadEntregada == null
-                          ? "—"
-                          : Number(detalle.cantidadEntregada)}
-                      </TableCell>
+                      <TableHead className="text-center">Unidad</TableHead>
+                      <TableHead className="text-right">Pedido</TableHead>
+                      <TableHead className="text-right">Entregado</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )
-      )}
+                  </TableHeader>
+                  <TableBody>
+                    {egreso.detalles.map((detalle) => (
+                      <TableRow key={detalle.id}>
+                        <TableCell>
+                          <MiniaturaLote lote={detalle.ingresoDetalle} />
+                        </TableCell>
+                        <TableCell>
+                          {descripcionConNota(
+                            detalle.ingresoDetalle.item.descripcion,
+                            detalle.ingresoDetalle.observacion
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
+                            ?.nombre ?? "—"}
+                        </TableCell>
+                        <TableCell>
+                          <NumeroDocumento
+                            numero={detalle.ingresoDetalle.ingreso.numero}
+                            gestion={detalle.ingresoDetalle.ingreso.gestion}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center whitespace-nowrap text-muted-foreground">
+                          {detalle.ingresoDetalle.item.unidadMedida}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {Number(detalle.cantidadSolicitada)}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {detalle.cantidadEntregada == null
+                            ? "—"
+                            : Number(detalle.cantidadEntregada)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )
+        )}
+      </div>
 
       {/* El historial NO se muestra acá: se abre a pedido, con el botón
           «Historial» de la barra de arriba, igual que desde el listado. La ficha
