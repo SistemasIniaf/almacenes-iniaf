@@ -344,6 +344,10 @@ export class UsuariosService {
         true,
         id,
       );
+      // Mismo motivo: si mientras tanto se creo un super_admin nuevo (el
+      // unico camino posible, porque nadie puede desactivarse a si mismo),
+      // reactivar esta cuenta dejaria dos activos a la vez.
+      await this.validarSuperAdminUnico(existente.rol, id);
       await this.prisma.usuario.update({
         where: { id },
         data: { activo: true },
