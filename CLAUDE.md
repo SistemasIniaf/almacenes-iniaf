@@ -969,8 +969,8 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
     `accent-foreground`, igual que la descripción.
   - En **texto** va como `DESCRIPCIÓN (nota)` vía `descripcionConNota()` (`egresos.types.ts`), la
     misma convención con la que la nota de ingreso imprime la suya. La usan el título del diálogo de
-    la foto, la ficha, `EntregaDialog` y el PDF de la solicitud. Mostrarla en uno solo deja al que
-    ENTREGA sin el dato que tuvo el que pidió.
+    la foto, la ficha, el modo entrega (ver más abajo) y el PDF de la solicitud. Mostrarla en uno solo
+    deja al que ENTREGA sin el dato que tuvo el que pidió.
   - **Límite conocido**: el buscador del servidor no la mira (`q` va contra código y descripción del
     ítem); haría falta su propio índice GIN. El filtro local de cmdk sí (está en `textoCmdk`).
 - **El lote muestra su FOTO**: miniatura en cada opción de la lista desplegada y junto a la
@@ -1075,9 +1075,23 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   ⚠️ El ámbar ya significa otras dos cosas —«editar» en `TONO_ACCION`, y «esto espera tu atención» en
   los badges y las tarjetas del inicio—, así que acá está usado como color de MARCA del botón, no como
   aviso. Si algún día hace falta un amarillo que de verdad alerte, este es el que primero le compite.
-- **`EntregaDialog` se monta solo al abrirse** (`{dialogoEntrega && <EntregaDialog …/>}`) y calcula las
-  cantidades propuestas en el `useState`. Sincronizarlas con un efecto sería `setState` dentro de
-  `useEffect`, que el lint del repo rechaza.
+- **Entregar es edición INLINE en la misma tabla de la ficha** (2026-10-13, pedido del usuario — antes
+  era un modal aparte, `EntregaDialog`, eliminado). Al tocar «Entregar» la página entra en modo
+  entrega (`entregando`, un booleano de `EgresoFormPage`): la columna «Entregado» pasa de texto a
+  `Input`, aparece el saldo del lote bajo cada ítem, y los botones del encabezado cambian —
+  Aprobar/Rechazar/Anular/Ver PDF/Enviar se ocultan y los reemplazan «Cancelar» / «Confirmar
+  entrega» — igual que antes se ocultaban detrás del modal, pero ahora porque directamente no se
+  renderizan. Se descartó el modal porque duplicaba Ítem/Unidad/Pedido, que ya se ven en la tabla de
+  atrás.
+  - Las cantidades propuestas se calculan al hacer clic en «Entregar» (`iniciarEntrega`), no en un
+    `useState` de montaje condicional como hacía el modal: acá la tabla ya está montada siempre, así
+    que no hay un punto de montaje que aproveche para inicializar sin pasar por un efecto.
+  - El aviso de validación («No se puede entregar más de lo pedido…») **reemplaza** el texto
+    explicativo genérico en vez de agregarse como una sección aparte debajo de la tabla: así la
+    tabla sigue siendo la última sección de la tarjeta (ver `rounded-b-md` más abajo) sin importar si
+    hay error o no.
+  - Cancelar no pide confirmación: descarta `cantidadesEntrega` y no tocó nada todavía (recién
+    `confirmarEntrega` llama a la mutación).
 - **Toda mutación invalida `stock` y `kardex`** además de `egresos` (`useInvalidarEgresos`): crear,
   editar, enviar, rechazar y descartar mueven la RESERVA, y entregar/anular mueven el saldo. Sin eso el
   disponible que ve el solicitante queda viejo.

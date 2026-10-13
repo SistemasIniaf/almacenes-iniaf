@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
@@ -50,7 +51,6 @@ import {
 import { TextareaField } from "@/components/form/TextareaField"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
-import { EntregaDialog } from "@/features/egresos/components/EntregaDialog"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
 import {
@@ -59,6 +59,7 @@ import {
   useAprobarEgreso,
   useCrearEgreso,
   useEgreso,
+  useEntregarEgreso,
   useEnviarEgreso,
   useRechazarEgreso,
 } from "@/features/egresos/hooks/useEgresos"
@@ -159,9 +160,16 @@ export function EgresoFormPage() {
   const aprobar = useAprobarEgreso()
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
+  const entregar = useEntregarEgreso()
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
-  const [dialogoEntrega, setDialogoEntrega] = useState(false)
+  // Entregar edita EN LA MISMA tabla de abajo (pedido del usuario, 2026-10-13):
+  // antes era un modal aparte que repetía Ítem/Unidad/Pedido. `entregando`
+  // decide si la columna «Entregado» se ve como texto o como input.
+  const [entregando, setEntregando] = useState(false)
+  const [cantidadesEntrega, setCantidadesEntrega] = useState<
+    Record<number, string>
+  >({})
   const [dialogoEnviar, setDialogoEnviar] = useState(false)
   const [historialAbierto, setHistorialAbierto] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
@@ -212,7 +220,15 @@ export function EgresoFormPage() {
     enviar.isPending ||
     aprobar.isPending ||
     rechazar.isPending ||
-    anular.isPending
+    anular.isPending ||
+    entregar.isPending
+
+  // Mientras se entrega, no se puede confirmar más de lo pedido — misma
+  // regla que exigía el modal que reemplazó esto.
+  const excedidasEntrega = (egreso?.detalles ?? []).filter((d) => {
+    const valor = Number(cantidadesEntrega[d.id] ?? 0)
+    return Number.isNaN(valor) || valor > Number(d.cantidadSolicitada)
+  })
 
   /**
    * Lotes que el pedido ya referencia. Van al selector porque su lista es una
@@ -273,6 +289,40 @@ export function EgresoFormPage() {
       }
     } catch {
       // El toast lo emite la mutación (sin disponible, lote de otro almacén…).
+    }
+  }
+
+  // Arranca proponiendo lo pedido, que es el caso normal: bajar una cantidad
+  // cubre el faltante físico. Se inicializa acá (al hacer clic), no en un
+  // efecto — es lo mismo que evitaba el modal con su montaje condicional.
+  function iniciarEntrega() {
+    if (!egreso) return
+    setCantidadesEntrega(
+      Object.fromEntries(
+        egreso.detalles.map((d) => [d.id, String(Number(d.cantidadSolicitada))])
+      )
+    )
+    setEntregando(true)
+  }
+
+  function cancelarEntrega() {
+    setEntregando(false)
+  }
+
+  async function confirmarEntrega() {
+    if (!egreso) return
+    try {
+      await entregar.mutateAsync({
+        id: egreso.id,
+        lineas: egreso.detalles.map((d) => ({
+          detalleId: d.id,
+          cantidadEntregada: Number(cantidadesEntrega[d.id] ?? 0),
+        })),
+      })
+      setEntregando(false)
+    } catch {
+      // El toast lo emite la mutación (ej. el lote se quedó sin saldo); se
+      // queda en modo entrega para bajar la cantidad.
     }
   }
 
@@ -341,7 +391,7 @@ export function EgresoFormPage() {
             </Button>
           )}
 
-          {!esNuevo && editable && (
+          {!entregando && !esNuevo && editable && (
             <Button
               variant="secondary"
               disabled={ocupado}
@@ -357,7 +407,8 @@ export function EgresoFormPage() {
               mientras está pendiente de aprobación o de entrega no hay nada
               que imprimir todavía, solo lo hay una vez que el material
               efectivamente salió del almacén. */}
-          {egreso &&
+          {!entregando &&
+            egreso &&
             (estado === "ENTREGADO" || estado === "ANULADO") &&
             puedeImprimir && (
               <Button
@@ -378,12 +429,14 @@ export function EgresoFormPage() {
 
           {/* De acá para abajo, acciones de DECISIÓN sobre el pedido: separadas
               de Historial/Enviar/Ver PDF (información), que ya no compiten por
-              la atención con aprobar o rechazar. */}
-          {hayAccionDecision && (
+              la atención con aprobar o rechazar. Entregando cuenta como
+              decisión en curso, aunque Aprobar/Rechazar/Anular estén ocultos
+              mientras tanto. */}
+          {(entregando || hayAccionDecision) && (
             <Separator orientation="vertical" className="h-6" />
           )}
 
-          {puedeAprobar && (
+          {!entregando && puedeAprobar && (
             <Button
               disabled={ocupado}
               onClick={() => void aprobar.mutateAsync(id as number)}
@@ -392,13 +445,41 @@ export function EgresoFormPage() {
               Aprobar
             </Button>
           )}
-          {puedeEntregar && (
-            <Button disabled={ocupado} onClick={() => setDialogoEntrega(true)}>
+          {!entregando && puedeEntregar && (
+            <Button disabled={ocupado} onClick={iniciarEntrega}>
               <Check className="size-4" />
               Entregar
             </Button>
           )}
-          {puedeRechazar && (
+
+          {/* Modo entrega: reemplaza Aprobar/Entregar/Rechazar/Anular por
+              estos dos — la columna «Entregado» de la tabla de abajo pasa a
+              ser editable mientras tanto (pedido del usuario, 2026-10-13:
+              antes esto era un modal aparte). */}
+          {entregando && (
+            <>
+              <Button
+                variant="outline"
+                disabled={entregar.isPending}
+                onClick={cancelarEntrega}
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={entregar.isPending || excedidasEntrega.length > 0}
+                onClick={() => void confirmarEntrega()}
+              >
+                {entregar.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Check className="size-4" />
+                )}
+                Confirmar entrega
+              </Button>
+            </>
+          )}
+
+          {!entregando && puedeRechazar && (
             <Button
               variant="destructive"
               disabled={ocupado}
@@ -408,7 +489,7 @@ export function EgresoFormPage() {
               Rechazar
             </Button>
           )}
-          {puedeAnular && (
+          {!entregando && puedeAnular && (
             <Button
               variant="destructive"
               disabled={ocupado}
@@ -522,6 +603,28 @@ export function EgresoFormPage() {
 
               <Separator />
 
+              {/* Nota de modo entrega: reemplaza el texto genérico por el
+                  aviso de validación si algo excede lo pedido, en vez de
+                  agregar una sección aparte DESPUÉS de la tabla — así la
+                  tabla sigue siendo la última sección (ver nota de
+                  `rounded-b-md` más abajo). */}
+              {entregando && (
+                <>
+                  <div
+                    className={
+                      excedidasEntrega.length > 0
+                        ? "bg-destructive/5 p-4 text-sm text-destructive"
+                        : "bg-muted/30 p-4 text-sm text-muted-foreground"
+                    }
+                  >
+                    {excedidasEntrega.length > 0
+                      ? "No se puede entregar más de lo pedido. Revisá las cantidades marcadas."
+                      : "Al confirmar se descuenta el stock de cada lote y queda la salida en el Kardex. Si de algo hay menos de lo que dice el sistema, bajá la cantidad."}
+                  </div>
+                  <Separator />
+                </>
+              )}
+
               {/* Redondea solo las esquinas de ABAJO: la tabla no es la
                   primera sección de la tarjeta, así que sus esquinas de
                   arriba van rectas — `rounded-[inherit]` (lo que usa `Table`
@@ -555,10 +658,23 @@ export function EgresoFormPage() {
                           <MiniaturaLote lote={detalle.ingresoDetalle} />
                         </TableCell>
                         <TableCell>
-                          {descripcionConNota(
-                            detalle.ingresoDetalle.item.descripcion,
-                            detalle.ingresoDetalle.observacion
-                          )}
+                          <div className="flex flex-col">
+                            <span>
+                              {descripcionConNota(
+                                detalle.ingresoDetalle.item.descripcion,
+                                detalle.ingresoDetalle.observacion
+                              )}
+                            </span>
+                            {/* Solo mientras se entrega: es el dato que hace
+                                falta para decidir la cantidad, no algo que
+                                importe mirar en el resto de los estados. */}
+                            {entregando && (
+                              <span className="text-xs text-muted-foreground">
+                                Saldo del lote:{" "}
+                                {Number(detalle.ingresoDetalle.saldoCantidad)}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {detalle.ingresoDetalle.ingreso.fuenteFinanciamiento
@@ -576,10 +692,43 @@ export function EgresoFormPage() {
                         <TableCell className="text-right tabular-nums">
                           {Number(detalle.cantidadSolicitada)}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {detalle.cantidadEntregada == null
-                            ? "—"
-                            : Number(detalle.cantidadEntregada)}
+                        <TableCell className="text-right">
+                          {entregando ? (
+                            <Input
+                              type="number"
+                              // `any` y no "0.01": con un paso decimal las
+                              // flechas mueven de a un centésimo, que no es
+                              // como se entrega material. Así se mueven de a 1
+                              // y los decimales se siguen pudiendo escribir
+                              // (hay ítems en kilos y litros).
+                              step="any"
+                              min={0}
+                              max={Number(detalle.cantidadSolicitada)}
+                              value={cantidadesEntrega[detalle.id] ?? ""}
+                              onChange={(event) =>
+                                setCantidadesEntrega((previas) => ({
+                                  ...previas,
+                                  [detalle.id]: event.target.value,
+                                }))
+                              }
+                              aria-invalid={
+                                Number(cantidadesEntrega[detalle.id] ?? 0) >
+                                Number(detalle.cantidadSolicitada)
+                              }
+                              className="ml-auto w-24 text-right"
+                              aria-label={`Cantidad a entregar de ${detalle.ingresoDetalle.item.descripcion}`}
+                              // Misma guarda que `NumberField`: sin esto,
+                              // scrollear la página con el puntero sobre el
+                              // campo le cambia el valor.
+                              onWheel={(event) => event.currentTarget.blur()}
+                            />
+                          ) : (
+                            <span className="tabular-nums">
+                              {detalle.cantidadEntregada == null
+                                ? "—"
+                                : Number(detalle.cantidadEntregada)}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -605,15 +754,6 @@ export function EgresoFormPage() {
           falta. */}
       {dialogoEnviar && id != null && (
         <EnviarDialog egresoId={id} onClose={() => setDialogoEnviar(false)} />
-      )}
-
-      {/* Se monta solo al abrirlo: así las cantidades propuestas se calculan en
-          el montaje y no hace falta sincronizarlas con un efecto. */}
-      {egreso && dialogoEntrega && (
-        <EntregaDialog
-          onClose={() => setDialogoEntrega(false)}
-          egreso={egreso}
-        />
       )}
 
       <AlertDialog
