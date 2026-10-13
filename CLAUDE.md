@@ -1086,10 +1086,12 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   - Las cantidades propuestas se calculan al hacer clic en «Entregar» (`iniciarEntrega`), no en un
     `useState` de montaje condicional como hacía el modal: acá la tabla ya está montada siempre, así
     que no hay un punto de montaje que aproveche para inicializar sin pasar por un efecto.
-  - El aviso de validación («No se puede entregar más de lo pedido…») **reemplaza** el texto
-    explicativo genérico en vez de agregarse como una sección aparte debajo de la tabla: así la
-    tabla sigue siendo la última sección de la tarjeta (ver `rounded-b-md` más abajo) sin importar si
-    hay error o no.
+  - **El aviso de validación va PEGADO a la fila que falla** («No puede superar lo pedido (N)», en
+    rojo bajo el input), no como cartel genérico arriba de toda la tabla (2026-10-13, pedido del
+    usuario — probado primero como cartel arriba y se descartó: con varias líneas no decía CUÁL
+    estaba mal). El texto explicativo de arriba («al confirmar se descuenta…») queda siempre fijo,
+    sin swap. La tabla sigue siendo la última sección de la tarjeta (ver `rounded-b-md` más abajo)
+    porque este aviso vive DENTRO de cada celda, no agrega una sección nueva después.
   - Cancelar no pide confirmación: descarta `cantidadesEntrega` y no tocó nada todavía (recién
     `confirmarEntrega` llama a la mutación).
 - **Toda mutación invalida `stock` y `kardex`** además de `egresos` (`useInvalidarEgresos`): crear,

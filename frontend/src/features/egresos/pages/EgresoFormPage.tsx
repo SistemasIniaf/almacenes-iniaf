@@ -603,23 +603,16 @@ export function EgresoFormPage() {
 
               <Separator />
 
-              {/* Nota de modo entrega: reemplaza el texto genérico por el
-                  aviso de validación si algo excede lo pedido, en vez de
-                  agregar una sección aparte DESPUÉS de la tabla — así la
-                  tabla sigue siendo la última sección (ver nota de
-                  `rounded-b-md` más abajo). */}
+              {/* Nota de modo entrega: solo el texto explicativo general. El
+                  error de "excede lo pedido" NO va acá (quedaba lejos de la
+                  fila que realmente falla, pedido del usuario 2026-10-13) —
+                  va pegado a cada input inválido, más abajo. */}
               {entregando && (
                 <>
-                  <div
-                    className={
-                      excedidasEntrega.length > 0
-                        ? "bg-destructive/5 p-4 text-sm text-destructive"
-                        : "bg-muted/30 p-4 text-sm text-muted-foreground"
-                    }
-                  >
-                    {excedidasEntrega.length > 0
-                      ? "No se puede entregar más de lo pedido. Revisá las cantidades marcadas."
-                      : "Al confirmar se descuenta el stock de cada lote y queda la salida en el Kardex. Si de algo hay menos de lo que dice el sistema, bajá la cantidad."}
+                  <div className="bg-muted/30 p-4 text-sm text-muted-foreground">
+                    Al confirmar se descuenta el stock de cada lote y queda la
+                    salida en el Kardex. Si de algo hay menos de lo que dice el
+                    sistema, bajá la cantidad.
                   </div>
                   <Separator />
                 </>
@@ -694,34 +687,56 @@ export function EgresoFormPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           {entregando ? (
-                            <Input
-                              type="number"
-                              // `any` y no "0.01": con un paso decimal las
-                              // flechas mueven de a un centésimo, que no es
-                              // como se entrega material. Así se mueven de a 1
-                              // y los decimales se siguen pudiendo escribir
-                              // (hay ítems en kilos y litros).
-                              step="any"
-                              min={0}
-                              max={Number(detalle.cantidadSolicitada)}
-                              value={cantidadesEntrega[detalle.id] ?? ""}
-                              onChange={(event) =>
-                                setCantidadesEntrega((previas) => ({
-                                  ...previas,
-                                  [detalle.id]: event.target.value,
-                                }))
-                              }
-                              aria-invalid={
-                                Number(cantidadesEntrega[detalle.id] ?? 0) >
-                                Number(detalle.cantidadSolicitada)
-                              }
-                              className="ml-auto w-24 text-right"
-                              aria-label={`Cantidad a entregar de ${detalle.ingresoDetalle.item.descripcion}`}
-                              // Misma guarda que `NumberField`: sin esto,
-                              // scrollear la página con el puntero sobre el
-                              // campo le cambia el valor.
-                              onWheel={(event) => event.currentTarget.blur()}
-                            />
+                            (() => {
+                              const pedido = Number(detalle.cantidadSolicitada)
+                              const valor = Number(
+                                cantidadesEntrega[detalle.id] ?? 0
+                              )
+                              const excedida = valor > pedido
+                              return (
+                                <div className="flex flex-col items-end gap-1">
+                                  <Input
+                                    type="number"
+                                    // `any` y no "0.01": con un paso decimal
+                                    // las flechas mueven de a un centésimo,
+                                    // que no es como se entrega material. Así
+                                    // se mueven de a 1 y los decimales se
+                                    // siguen pudiendo escribir (hay ítems en
+                                    // kilos y litros).
+                                    step="any"
+                                    min={0}
+                                    max={pedido}
+                                    value={cantidadesEntrega[detalle.id] ?? ""}
+                                    onChange={(event) =>
+                                      setCantidadesEntrega((previas) => ({
+                                        ...previas,
+                                        [detalle.id]: event.target.value,
+                                      }))
+                                    }
+                                    aria-invalid={excedida}
+                                    className="w-24 text-right"
+                                    aria-label={`Cantidad a entregar de ${detalle.ingresoDetalle.item.descripcion}`}
+                                    // Misma guarda que `NumberField`: sin
+                                    // esto, scrollear la página con el
+                                    // puntero sobre el campo le cambia el
+                                    // valor.
+                                    onWheel={(event) =>
+                                      event.currentTarget.blur()
+                                    }
+                                  />
+                                  {/* Pegado a la fila que falla, no en un
+                                      cartel arriba de toda la tabla (pedido
+                                      del usuario, 2026-10-13): con varias
+                                      líneas, un aviso genérico arriba no dice
+                                      CUÁL está mal. */}
+                                  {excedida && (
+                                    <span className="text-xs text-destructive">
+                                      No puede superar lo pedido ({pedido})
+                                    </span>
+                                  )}
+                                </div>
+                              )
+                            })()
                           ) : (
                             <span className="tabular-nums">
                               {detalle.cantidadEntregada == null
