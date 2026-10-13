@@ -1092,8 +1092,13 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   solicitante ni el aprobador de unidad: el documento oficial lo emite el almacén. Ojo: eso **oculta el
   botón, no es una barrera** — el PDF se arma en el navegador con datos que `GET /egresos/:id` ya
   devuelve, así que no hay endpoint que proteger.
-  Se abre en una **PESTAÑA nueva**, como todos los PDF del sistema (ver abajo). Un BORRADOR no se
-  imprime: todavía no tiene número.
+  Se abre en una **PESTAÑA nueva**, como todos los PDF del sistema (ver abajo).
+  **Solo se ofrece en `ENTREGADO` o `ANULADO`** (2026-10-13, pedido del usuario — antes se podía
+  desde que el pedido tenía número, pensado como lista de picking previa a la entrega). El usuario
+  prefirió que sea el comprobante de lo que YA salió del almacén, no una lista de qué ir a buscar.
+  `ANULADO` sigue ofreciéndolo porque siempre viene después de `ENTREGADO` (la máquina de estados no
+  permite anular antes) y conserva la marca de agua ya descrita arriba. Mismo chequeo de estado en
+  dos lugares — la ficha del pedido y el listado, que tienen el mismo botón cada uno por su lado.
 
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
