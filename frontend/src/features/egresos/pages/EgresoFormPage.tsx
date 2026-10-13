@@ -352,24 +352,29 @@ export function EgresoFormPage() {
             </Button>
           )}
 
-          {/* Un borrador todavía no tiene número, así que no hay documento que
-              imprimir; recién enviado se vuelve uno. */}
-          {egreso && estado !== "BORRADOR" && puedeImprimir && (
-            <Button
-              variant="outline"
-              disabled={generandoId === egreso.id}
-              onClick={() => void abrirSolicitud(egreso)}
-            >
-              {/* Mismo icono que en el listado. Acá NO va en rojo: dentro de un
+          {/* Solo ENTREGADO (o ANULADO, que siempre viene despues de entregado
+              — ver la maquina de estados) — pedido del usuario, 2026-10-13:
+              mientras está pendiente de aprobación o de entrega no hay nada
+              que imprimir todavía, solo lo hay una vez que el material
+              efectivamente salió del almacén. */}
+          {egreso &&
+            (estado === "ENTREGADO" || estado === "ANULADO") &&
+            puedeImprimir && (
+              <Button
+                variant="outline"
+                disabled={generandoId === egreso.id}
+                onClick={() => void abrirSolicitud(egreso)}
+              >
+                {/* Mismo icono que en el listado. Acá NO va en rojo: dentro de un
                   botón con texto, el rojo se lee como acción peligrosa. */}
-              {generandoId === egreso.id ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <FileText className="size-4" />
-              )}
-              Ver PDF
-            </Button>
-          )}
+                {generandoId === egreso.id ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileText className="size-4" />
+                )}
+                Ver PDF
+              </Button>
+            )}
 
           {/* De acá para abajo, acciones de DECISIÓN sobre el pedido: separadas
               de Historial/Enviar/Ver PDF (información), que ya no compiten por

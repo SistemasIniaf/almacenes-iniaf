@@ -529,28 +529,30 @@ export function EgresosPage() {
                         />
                       </>
                     )}
-                    {puedeImprimir && egreso.estado !== "BORRADOR" && (
-                      <IconAction
-                        icono={generandoId === egreso.id ? Loader2 : FileText}
-                        etiqueta="Ver la solicitud en PDF"
-                        onClick={() => void abrirSolicitud(egreso.id)}
-                        disabled={generandoId === egreso.id}
-                        className={TONO_ACCION.pdf}
-                        // Macizo (relleno del color del texto, trazo del color
-                        // del fondo) y un punto más grande que el resto: es la
-                        // acción que más se busca en la fila.
-                        //
-                        // El `size-5` va SIEMPRE, también con el spinner: si el
-                        // tamaño cambiara al empezar a generar, la fila daría un
-                        // salto. Lo único que se saca es el relleno — un
-                        // `Loader2` macizo sería una mancha girando.
-                        iconoClassName={
-                          generandoId === egreso.id
-                            ? "size-5"
-                            : `size-5 ${MACIZO}`
-                        }
-                      />
-                    )}
+                    {puedeImprimir &&
+                      (egreso.estado === "ENTREGADO" ||
+                        egreso.estado === "ANULADO") && (
+                        <IconAction
+                          icono={generandoId === egreso.id ? Loader2 : FileText}
+                          etiqueta="Ver la solicitud en PDF"
+                          onClick={() => void abrirSolicitud(egreso.id)}
+                          disabled={generandoId === egreso.id}
+                          className={TONO_ACCION.pdf}
+                          // Macizo (relleno del color del texto, trazo del color
+                          // del fondo) y un punto más grande que el resto: es la
+                          // acción que más se busca en la fila.
+                          //
+                          // El `size-5` va SIEMPRE, también con el spinner: si el
+                          // tamaño cambiara al empezar a generar, la fila daría un
+                          // salto. Lo único que se saca es el relleno — un
+                          // `Loader2` macizo sería una mancha girando.
+                          iconoClassName={
+                            generandoId === egreso.id
+                              ? "size-5"
+                              : `size-5 ${MACIZO}`
+                          }
+                        />
+                      )}
                     {/* Disponible para todos: ver quién movió el pedido y cuándo
                         es lo que más se consulta, y hasta ahora costaba entrar a
                         la ficha. */}
