@@ -121,7 +121,7 @@ export async function definicionNotaIngreso(
   const encabezado: Content = {
     columns: [
       // Alto pedido en mm, convertido a pt y de ahí al ancho que conserva la
-      // proporción de cada archivo (iniaf 900x387, ministerio 850x700).
+      // proporción de cada archivo (iniaf 900x387, ministerio 330x259).
       { image: logoIniaf, width: 99, alignment: "left" },
       {
         width: "*",

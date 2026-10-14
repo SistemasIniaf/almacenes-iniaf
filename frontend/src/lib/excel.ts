@@ -102,7 +102,10 @@ export async function membreteExcel(
 ): Promise<number> {
   const logos = await logosMembrete()
   const ANCHO_INIAF = 150
-  const ANCHO_MINISTERIO = 130
+  // Conserva la proporción del archivo (330x259): con un ancho fijo y el mismo
+  // alto que el del INIAF el escudo salía estirado a lo ancho.
+  const ALTO_MINISTERIO = 64
+  const ANCHO_MINISTERIO = Math.round(ALTO_MINISTERIO * (330 / 259))
 
   const idIniaf = workbook.addImage({
     base64: soloBase64(logos.iniaf),
@@ -122,7 +125,7 @@ export async function membreteExcel(
   })
   hoja.addImage(idMinisterio, {
     tl: { col: anclaDerecha(anchos, ANCHO_MINISTERIO), row: 0.2 },
-    ext: { width: ANCHO_MINISTERIO, height: 55 },
+    ext: { width: ANCHO_MINISTERIO, height: ALTO_MINISTERIO },
   })
 
   /**
