@@ -65,7 +65,7 @@ import {
 import { useReporteEgresos } from "@/features/egresos/hooks/useReporteEgresos"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { IconAction } from "@/components/data/IconAction"
-import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
+import { TONO_ACCION } from "@/components/data/tonos-accion"
 import {
   ESTADO_DETALLE,
   ESTADOS_CON_MOVIMIENTO,
@@ -538,19 +538,6 @@ export function EgresosPage() {
                           onClick={() => void abrirSolicitud(egreso.id)}
                           disabled={generandoId === egreso.id}
                           className={TONO_ACCION.pdf}
-                          // Macizo (relleno del color del texto, trazo del color
-                          // del fondo) y un punto más grande que el resto: es la
-                          // acción que más se busca en la fila.
-                          //
-                          // El `size-5` va SIEMPRE, también con el spinner: si el
-                          // tamaño cambiara al empezar a generar, la fila daría un
-                          // salto. Lo único que se saca es el relleno — un
-                          // `Loader2` macizo sería una mancha girando.
-                          iconoClassName={
-                            generandoId === egreso.id
-                              ? "size-5"
-                              : `size-5 ${MACIZO}`
-                          }
                         />
                       )}
                     {/* Disponible para todos: ver quién movió el pedido y cuándo

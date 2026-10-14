@@ -41,7 +41,7 @@ import {
 import { DataPagination } from "@/components/data/DataPagination"
 import { DateRangeFilter } from "@/components/data/DateRangeFilter"
 import { IconAction } from "@/components/data/IconAction"
-import { MACIZO, TONO_ACCION } from "@/components/data/tonos-accion"
+import { TONO_ACCION } from "@/components/data/tonos-accion"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
@@ -423,19 +423,6 @@ export function IngresosPage() {
                       onClick={() => abrirNota(ingreso.id)}
                       disabled={generandoId != null}
                       className={TONO_ACCION.pdf}
-                      // Macizo (relleno del color del texto, trazo del color del
-                      // fondo) y un punto más grande que el resto: es la acción
-                      // que más se busca en la fila.
-                      //
-                      // El `size-5` va SIEMPRE, también con el spinner: si el
-                      // tamaño cambiara al empezar a generar, la fila daría un
-                      // salto. Lo único que se saca es el relleno — un `Loader2`
-                      // macizo sería una mancha girando.
-                      iconoClassName={
-                        generandoId === ingreso.id
-                          ? "size-5"
-                          : `size-5 ${MACIZO}`
-                      }
                     />
                   </TableCell>
                 </TableRow>
