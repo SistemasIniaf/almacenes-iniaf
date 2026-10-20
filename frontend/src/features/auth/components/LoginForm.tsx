@@ -63,12 +63,23 @@ export function LoginForm({
             </div>
 
             <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-extrabold">INIAF - ALMACENES</h1>
-                <p className="text-balance text-muted-foreground">
-                  Inicia sesión con tu cuenta.
-                </p>
+              {/* Logo del INIAF en DOS archivos, uno por tema (mismo criterio
+                  que `AppSidebar`): el texto es oscuro y no se puede invertir
+                  con CSS sin arruinar los colores de la llama. */}
+              <div className="flex justify-center">
+                <img
+                  src="/iniaf/logo-iniaf.png"
+                  alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                  className="h-16 w-auto md:h-20 dark:hidden"
+                />
+                <img
+                  src="/iniaf/dark.png"
+                  alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                  className="hidden h-16 w-auto md:h-20 dark:block"
+                />
               </div>
+
+              <h1 className="text-center text-2xl font-extrabold">ALMACENES</h1>
 
               {mensajeError && (
                 <div
