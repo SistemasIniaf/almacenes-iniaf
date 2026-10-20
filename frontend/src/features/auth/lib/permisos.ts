@@ -132,6 +132,11 @@ export const PERMISOS = {
   /** Partidas: lectura super_admin/admin; solo super_admin activa/desactiva. */
   partidasLeer: ["super_admin", "admin"],
   partidasEscribir: ["super_admin"],
+
+  // Logos institucionales: solo el super_admin, igual que los catálogos
+  // estructurales (salen impresos en todos los documentos). Leerlos no necesita
+  // permiso: `GET /logos` es público porque los dibuja el login.
+  logosEscribir: ["super_admin"],
 } satisfies Record<string, readonly Rol[]>
 
 export type Permiso = keyof typeof PERMISOS

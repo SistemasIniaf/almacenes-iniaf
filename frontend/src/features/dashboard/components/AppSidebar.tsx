@@ -9,8 +9,11 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useLogos } from "@/lib/logos"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const logos = useLogos()
+
   return (
     <Sidebar variant="floating" {...props}>
       <SidebarHeader>
@@ -26,17 +29,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   para fondo oscuro (texto en blanco, llama igual), y se alterna
                   con `dark:` — la oculta queda en `display:none`, así que los
                   lectores de pantalla no leen el nombre dos veces.
-                  `logo-iniaf.png` es el mismo archivo que va en los PDF. */}
-              <img
-                src="/iniaf/logo-iniaf.png"
-                alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
-                className="w-full max-w-40 dark:hidden"
-              />
-              <img
-                src="/iniaf/dark.png"
-                alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
-                className="hidden w-full max-w-40 dark:block"
-              />
+                  El claro es el mismo que va en los PDF. Los dos son los
+                  VIGENTES, que se cambian en «Logos». */}
+              {logos.listo && (
+                <>
+                  <img
+                    src={logos.url("INIAF")}
+                    alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                    className="max-h-20 w-full max-w-40 object-contain dark:hidden"
+                  />
+                  <img
+                    src={logos.url("INIAF_OSCURO")}
+                    alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                    className="hidden max-h-20 w-full max-w-40 object-contain dark:block"
+                  />
+                </>
+              )}
               {/* Lo único que el logo NO dice: de qué sistema del INIAF se
                   trata. */}
               <span className="text-xs font-semibold tracking-widest text-sidebar-foreground/70">

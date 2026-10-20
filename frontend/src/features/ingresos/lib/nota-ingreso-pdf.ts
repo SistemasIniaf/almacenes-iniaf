@@ -1,7 +1,12 @@
 import { etiquetaNumero } from "@/features/ingresos/ingresos.types"
 import { cantidad, moneda, precio } from "@/lib/formato"
 import { montoALiteral } from "@/lib/numero-literal"
-import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
+import {
+  cargarPdfMake,
+  columnaLogo,
+  logosMembrete,
+  MARGEN_PDF,
+} from "@/lib/pdf"
 
 import type { Ingreso } from "@/features/ingresos/ingresos.types"
 import type {
@@ -105,8 +110,7 @@ export function nombreArchivo(ingreso: Ingreso): string {
 export async function definicionNotaIngreso(
   ingreso: Ingreso
 ): Promise<TDocumentDefinitions> {
-  const { iniaf: logoIniaf, ministerio: logoMinisterio } =
-    await logosMembrete()
+  const { iniaf: logoIniaf, ministerio: logoMinisterio } = await logosMembrete()
 
   const numero = etiquetaNumero(ingreso)
   const anulado = ingreso.estado === "ANULADO"
@@ -120,9 +124,9 @@ export async function definicionNotaIngreso(
 
   const encabezado: Content = {
     columns: [
-      // Alto pedido en mm, convertido a pt y de ahí al ancho que conserva la
-      // proporción de cada archivo (iniaf 900x387, ministerio 330x259).
-      { image: logoIniaf, width: 99, alignment: "left" },
+      // Cajas en pt: las que ocupaban los logos originales. Un logo
+      // reemplazado se encaja adentro sin mover el resto del membrete.
+      columnaLogo(logoIniaf, [99, 43], "left"),
       {
         width: "*",
         stack: [
@@ -161,7 +165,7 @@ export async function definicionNotaIngreso(
         ],
         alignment: "center",
       },
-      { image: logoMinisterio, width: 72, alignment: "right" },
+      columnaLogo(logoMinisterio, [72, 57], "right"),
     ],
     columnGap: 8,
   }
@@ -193,8 +197,16 @@ export async function definicionNotaIngreso(
         ],
         [
           fila([
-            [3, "Fecha del informe/acta", fecha(ingreso.fechaInformeConformidad)],
-            [3, "Informe/acta de conformidad", ingreso.informeConformidad ?? ""],
+            [
+              3,
+              "Fecha del informe/acta",
+              fecha(ingreso.fechaInformeConformidad),
+            ],
+            [
+              3,
+              "Informe/acta de conformidad",
+              ingreso.informeConformidad ?? "",
+            ],
             [
               6,
               "Responsable / Comisión de recepción",
@@ -394,7 +406,13 @@ export async function definicionNotaIngreso(
       creator: "Sistema de almacenes INIAF",
     },
     watermark: anulado
-      ? { text: "ANULADO", color: "#999999", opacity: 0.25, bold: true, angle: -30 }
+      ? {
+          text: "ANULADO",
+          color: "#999999",
+          opacity: 0.25,
+          bold: true,
+          angle: -30,
+        }
       : undefined,
     defaultStyle: { font: "Helvetica", fontSize: 8, lineHeight: 1.1 },
     styles: {

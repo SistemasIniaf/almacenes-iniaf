@@ -16,6 +16,20 @@ datasource db {
 // Enums
 // ---------------------------------------------------------------------------
 
+/// Los logos que el sistema muestra (login, menu lateral) e imprime (membrete
+/// de todos los PDF y Excel). Es un juego FIJO de casilleros, no un catalogo:
+/// cada uno tiene un lugar concreto donde se dibuja.
+enum LogoClave {
+  /// Logo del INIAF sobre fondo claro: login y menu en modo claro, y TODOS los
+  /// documentos (el papel es blanco).
+  INIAF
+  /// Version para fondo oscuro: login y menu en modo oscuro. No va a los
+  /// documentos.
+  INIAF_OSCURO
+  /// Logo del Ministerio: solo en el membrete de los documentos.
+  MINISTERIO
+}
+
 enum Rol {
   super_admin
   admin
@@ -166,6 +180,9 @@ model Usuario {
   egresosEntregados  Egreso[]          @relation("EgresoEntregadoPor")
   egresosAnulados    Egreso[]          @relation("EgresoAnuladoPor")
   decisionesEgreso   EgresoHistorial[] @relation("EgresoHistorialUsuario")
+
+  logosActualizados LogoInstitucional[] @relation("LogoActualizadoPor")
+  logosSubidos      LogoVersion[]       @relation("LogoSubidoPor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -570,4 +587,48 @@ model EgresoHistorial {
 
   @@index([egresoId])
   @@map("egreso_historial")
+}
+
+/// Que logo RIGE en cada casillero. Que un casillero no tenga fila significa
+/// «el original»: el frontend cae en el que viene con la app (`public/iniaf/`).
+/// Por eso restaurar es borrar la fila — y NO toca el historial.
+model LogoInstitucional {
+  clave LogoClave @id
+
+  /// La version vigente. Siempre de la MISMA clave (lo controla el service: la
+  /// BD no puede expresar esa restriccion entre dos columnas de tablas
+  /// distintas).
+  versionId Int         @unique @map("version_id")
+  version   LogoVersion @relation(fields: [versionId], references: [id])
+
+  /// Quien la puso vigente: la subio, o la volvio a elegir del historial.
+  actualizadoPorId Int?     @map("actualizado_por_id")
+  actualizadoPor   Usuario? @relation("LogoActualizadoPor", fields: [actualizadoPorId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("logos_institucionales")
+}
+
+/// Historial: cada logo SUBIDO, vigente o no. Reemplazar ya no borra el
+/// archivo anterior; solo se borra eliminando la version a mano (y nunca la
+/// vigente).
+model LogoVersion {
+  id    Int       @id @default(autoincrement())
+  clave LogoClave
+
+  /// Ruta publica relativa (`/uploads/logos/INIAF-ab12cd34.png`). Siempre PNG:
+  /// pdfmake y ExcelJS no leen WebP.
+  url String
+
+  subidoPorId Int?     @map("subido_por_id")
+  subidoPor   Usuario? @relation("LogoSubidoPor", fields: [subidoPorId], references: [id])
+
+  vigenteEn LogoInstitucional?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([clave])
+  @@map("logo_versiones")
 }

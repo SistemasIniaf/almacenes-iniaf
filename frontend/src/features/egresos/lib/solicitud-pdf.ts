@@ -4,7 +4,12 @@ import {
   ESTADO_DETALLE,
 } from "@/features/egresos/egresos.types"
 import { cantidad } from "@/lib/formato"
-import { cargarPdfMake, logosMembrete, MARGEN_PDF } from "@/lib/pdf"
+import {
+  cargarPdfMake,
+  columnaLogo,
+  logosMembrete,
+  MARGEN_PDF,
+} from "@/lib/pdf"
 
 import type { Egreso } from "@/features/egresos/egresos.types"
 import type {
@@ -136,7 +141,7 @@ export async function definicionSolicitud(
 
   const encabezado: Content = {
     columns: [
-      { image: logoIniaf, width: 99, alignment: "left" },
+      columnaLogo(logoIniaf, [99, 43], "left"),
       {
         width: "*",
         stack: [
@@ -169,7 +174,7 @@ export async function definicionSolicitud(
         ],
         alignment: "center",
       },
-      { image: logoMinisterio, width: 72, alignment: "right" },
+      columnaLogo(logoMinisterio, [72, 57], "right"),
     ],
     columnGap: 8,
   }

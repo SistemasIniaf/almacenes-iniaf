@@ -148,3 +148,17 @@ export type EgresoDetalle = Prisma.EgresoDetalleModel
  * anterior se pierde.
  */
 export type EgresoHistorial = Prisma.EgresoHistorialModel
+/**
+ * Model LogoInstitucional
+ * Que logo RIGE en cada casillero. Que un casillero no tenga fila significa
+ * «el original»: el frontend cae en el que viene con la app (`public/iniaf/`).
+ * Por eso restaurar es borrar la fila — y NO toca el historial.
+ */
+export type LogoInstitucional = Prisma.LogoInstitucionalModel
+/**
+ * Model LogoVersion
+ * Historial: cada logo SUBIDO, vigente o no. Reemplazar ya no borra el
+ * archivo anterior; solo se borra eliminando la version a mano (y nunca la
+ * vigente).
+ */
+export type LogoVersion = Prisma.LogoVersionModel

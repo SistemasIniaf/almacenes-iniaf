@@ -1,4 +1,4 @@
-import { MARGEN_PDF } from "@/lib/pdf"
+import { columnaLogo, MARGEN_PDF } from "@/lib/pdf"
 
 import type { Content, DynamicContent } from "pdfmake/interfaces"
 
@@ -56,7 +56,7 @@ export function encabezadoReporte(
 ): Content {
   return {
     columns: [
-      { image: logos.iniaf, width: 90, alignment: "left" },
+      columnaLogo(logos.iniaf, [90, 39], "left"),
       {
         width: "*",
         stack: [
@@ -75,7 +75,7 @@ export function encabezadoReporte(
         ],
         alignment: "center",
       },
-      { image: logos.ministerio, width: 62, alignment: "right" },
+      columnaLogo(logos.ministerio, [62, 49], "right"),
     ],
     columnGap: 8,
   }

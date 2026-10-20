@@ -398,7 +398,9 @@ export const ModelName = {
   MovimientoKardex: 'MovimientoKardex',
   Egreso: 'Egreso',
   EgresoDetalle: 'EgresoDetalle',
-  EgresoHistorial: 'EgresoHistorial'
+  EgresoHistorial: 'EgresoHistorial',
+  LogoInstitucional: 'LogoInstitucional',
+  LogoVersion: 'LogoVersion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1528,6 +1530,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LogoInstitucional: {
+      payload: Prisma.$LogoInstitucionalPayload<ExtArgs>
+      fields: Prisma.LogoInstitucionalFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LogoInstitucionalFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LogoInstitucionalFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        findFirst: {
+          args: Prisma.LogoInstitucionalFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LogoInstitucionalFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        findMany: {
+          args: Prisma.LogoInstitucionalFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>[]
+        }
+        create: {
+          args: Prisma.LogoInstitucionalCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        createMany: {
+          args: Prisma.LogoInstitucionalCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LogoInstitucionalCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>[]
+        }
+        delete: {
+          args: Prisma.LogoInstitucionalDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        update: {
+          args: Prisma.LogoInstitucionalUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        deleteMany: {
+          args: Prisma.LogoInstitucionalDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LogoInstitucionalUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LogoInstitucionalUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>[]
+        }
+        upsert: {
+          args: Prisma.LogoInstitucionalUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoInstitucionalPayload>
+        }
+        aggregate: {
+          args: Prisma.LogoInstitucionalAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLogoInstitucional>
+        }
+        groupBy: {
+          args: Prisma.LogoInstitucionalGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LogoInstitucionalGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LogoInstitucionalCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LogoInstitucionalCountAggregateOutputType> | number
+        }
+      }
+    }
+    LogoVersion: {
+      payload: Prisma.$LogoVersionPayload<ExtArgs>
+      fields: Prisma.LogoVersionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LogoVersionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LogoVersionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        findFirst: {
+          args: Prisma.LogoVersionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LogoVersionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        findMany: {
+          args: Prisma.LogoVersionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>[]
+        }
+        create: {
+          args: Prisma.LogoVersionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        createMany: {
+          args: Prisma.LogoVersionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LogoVersionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>[]
+        }
+        delete: {
+          args: Prisma.LogoVersionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        update: {
+          args: Prisma.LogoVersionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        deleteMany: {
+          args: Prisma.LogoVersionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LogoVersionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LogoVersionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>[]
+        }
+        upsert: {
+          args: Prisma.LogoVersionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LogoVersionPayload>
+        }
+        aggregate: {
+          args: Prisma.LogoVersionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLogoVersion>
+        }
+        groupBy: {
+          args: Prisma.LogoVersionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LogoVersionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LogoVersionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LogoVersionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1798,6 +1948,28 @@ export const EgresoHistorialScalarFieldEnum = {
 export type EgresoHistorialScalarFieldEnum = (typeof EgresoHistorialScalarFieldEnum)[keyof typeof EgresoHistorialScalarFieldEnum]
 
 
+export const LogoInstitucionalScalarFieldEnum = {
+  clave: 'clave',
+  versionId: 'versionId',
+  actualizadoPorId: 'actualizadoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LogoInstitucionalScalarFieldEnum = (typeof LogoInstitucionalScalarFieldEnum)[keyof typeof LogoInstitucionalScalarFieldEnum]
+
+
+export const LogoVersionScalarFieldEnum = {
+  id: 'id',
+  clave: 'clave',
+  url: 'url',
+  subidoPorId: 'subidoPorId',
+  createdAt: 'createdAt'
+} as const
+
+export type LogoVersionScalarFieldEnum = (typeof LogoVersionScalarFieldEnum)[keyof typeof LogoVersionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1948,6 +2120,20 @@ export type ListEnumEstadoEgresoFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
+ * Reference to a field of type 'LogoClave'
+ */
+export type EnumLogoClaveFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogoClave'>
+    
+
+
+/**
+ * Reference to a field of type 'LogoClave[]'
+ */
+export type ListEnumLogoClaveFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogoClave[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2085,6 +2271,8 @@ export type GlobalOmitConfig = {
   egreso?: Prisma.EgresoOmit
   egresoDetalle?: Prisma.EgresoDetalleOmit
   egresoHistorial?: Prisma.EgresoHistorialOmit
+  logoInstitucional?: Prisma.LogoInstitucionalOmit
+  logoVersion?: Prisma.LogoVersionOmit
 }
 
 /* Types for Logging */

@@ -95,17 +95,25 @@ interface OpcionesMembrete {
  * flotan sobre la grilla. Por eso las filas del bloque llevan alto fijo — si se
  * dejara el automático, el logo taparía las primeras filas de datos.
  */
+/** El tamaño más grande que entra en la caja sin deformar la imagen. */
+function encajar(proporcion: number, ancho: number, alto: number) {
+  return proporcion >= ancho / alto
+    ? { width: ancho, height: Math.round(ancho / proporcion) }
+    : { width: Math.round(alto * proporcion), height: alto }
+}
+
 export async function membreteExcel(
   workbook: Workbook,
   hoja: Worksheet,
   { titulo, leyenda, anchos }: OpcionesMembrete
 ): Promise<number> {
   const logos = await logosMembrete()
-  const ANCHO_INIAF = 150
-  // Conserva la proporción del archivo (330x259): con un ancho fijo y el mismo
-  // alto que el del INIAF el escudo salía estirado a lo ancho.
-  const ALTO_MINISTERIO = 64
-  const ANCHO_MINISTERIO = Math.round(ALTO_MINISTERIO * (330 / 259))
+  // Cada logo se encaja en una CAJA (px) respetando la proporción del archivo:
+  // ExcelJS estira la imagen a lo que diga `ext`, y como los logos se pueden
+  // reemplazar desde el sistema, un tamaño fijo deformaría cualquier archivo
+  // con otra proporción (pasaba ya con el escudo, antes de calcularlo).
+  const iniaf = encajar(logos.proporciones.iniaf, 150, 64)
+  const ministerio = encajar(logos.proporciones.ministerio, 82, 64)
 
   const idIniaf = workbook.addImage({
     base64: soloBase64(logos.iniaf),
@@ -121,11 +129,11 @@ export async function membreteExcel(
 
   hoja.addImage(idIniaf, {
     tl: { col: 0.2, row: 0.2 },
-    ext: { width: ANCHO_INIAF, height: 55 },
+    ext: iniaf,
   })
   hoja.addImage(idMinisterio, {
-    tl: { col: anclaDerecha(anchos, ANCHO_MINISTERIO), row: 0.2 },
-    ext: { width: ANCHO_MINISTERIO, height: ALTO_MINISTERIO },
+    tl: { col: anclaDerecha(anchos, ministerio.width), row: 0.2 },
+    ext: ministerio,
   })
 
   /**

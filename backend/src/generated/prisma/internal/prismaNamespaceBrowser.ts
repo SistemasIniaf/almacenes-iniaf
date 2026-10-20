@@ -65,7 +65,9 @@ export const ModelName = {
   MovimientoKardex: 'MovimientoKardex',
   Egreso: 'Egreso',
   EgresoDetalle: 'EgresoDetalle',
-  EgresoHistorial: 'EgresoHistorial'
+  EgresoHistorial: 'EgresoHistorial',
+  LogoInstitucional: 'LogoInstitucional',
+  LogoVersion: 'LogoVersion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -313,6 +315,28 @@ export const EgresoHistorialScalarFieldEnum = {
 } as const
 
 export type EgresoHistorialScalarFieldEnum = (typeof EgresoHistorialScalarFieldEnum)[keyof typeof EgresoHistorialScalarFieldEnum]
+
+
+export const LogoInstitucionalScalarFieldEnum = {
+  clave: 'clave',
+  versionId: 'versionId',
+  actualizadoPorId: 'actualizadoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LogoInstitucionalScalarFieldEnum = (typeof LogoInstitucionalScalarFieldEnum)[keyof typeof LogoInstitucionalScalarFieldEnum]
+
+
+export const LogoVersionScalarFieldEnum = {
+  id: 'id',
+  clave: 'clave',
+  url: 'url',
+  subidoPorId: 'subidoPorId',
+  createdAt: 'createdAt'
+} as const
+
+export type LogoVersionScalarFieldEnum = (typeof LogoVersionScalarFieldEnum)[keyof typeof LogoVersionScalarFieldEnum]
 
 
 export const SortOrder = {

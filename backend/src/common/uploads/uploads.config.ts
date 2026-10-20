@@ -34,6 +34,20 @@ export const ITEMS_IMAGE_DIR = join(UPLOAD_ROOT, ITEMS_IMAGE_SUBDIR);
 export const LOTES_IMAGE_SUBDIR = 'lotes';
 export const LOTES_IMAGE_DIR = join(UPLOAD_ROOT, LOTES_IMAGE_SUBDIR);
 
+/**
+ * Subcarpeta de los logos institucionales: <UPLOAD_ROOT>/logos. Cae dentro del
+ * mismo volumen de produccion que las otras dos (se monta la raiz).
+ */
+export const LOGOS_IMAGE_SUBDIR = 'logos';
+export const LOGOS_IMAGE_DIR = join(UPLOAD_ROOT, LOGOS_IMAGE_SUBDIR);
+
+/**
+ * Lado maximo (px) de un logo. Alcanza con holgura para el uso mas exigente
+ * —el membrete del PDF, ~100 pt de ancho a 300 dpi son ~420 px— y no infla
+ * cada PDF y Excel, que embeben el logo entero.
+ */
+export const LOGO_MAX_SIDE = 800;
+
 /** Tamano maximo del archivo subido (antes de procesar). */
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 

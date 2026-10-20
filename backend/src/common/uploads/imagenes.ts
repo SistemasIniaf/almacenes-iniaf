@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import {
   IMAGE_MAX_SIDE,
   IMAGE_WEBP_QUALITY,
+  LOGO_MAX_SIDE,
   UPLOAD_PUBLIC_PREFIX,
 } from './uploads.config';
 
@@ -56,6 +57,44 @@ export async function guardarImagen(
 
   await mkdir(destino.dir, { recursive: true });
   const filename = `${destino.nombreBase}-${randomUUID().slice(0, 8)}.webp`;
+  await writeFile(join(destino.dir, filename), procesada);
+
+  return `${UPLOAD_PUBLIC_PREFIX}/${destino.subdir}/${filename}`;
+}
+
+/**
+ * Variante para los LOGOS institucionales. Difiere de `guardarImagen` en el
+ * formato de salida, y no es un detalle: va a **PNG**, no a WebP, porque el
+ * logo termina embebido en los PDF (pdfmake) y en los Excel (ExcelJS), y
+ * ninguno de los dos lee WebP. PNG ademas conserva la transparencia, que en un
+ * logo es lo normal (va sobre el fondo del papel o del tema oscuro).
+ */
+export async function guardarLogo(
+  file: Express.Multer.File,
+  destino: { dir: string; subdir: string; nombreBase: string },
+): Promise<string> {
+  if (!file?.buffer?.length) {
+    throw new BadRequestException('No se recibio ninguna imagen');
+  }
+
+  let procesada: Buffer;
+  try {
+    procesada = await sharp(file.buffer)
+      .rotate()
+      .resize(LOGO_MAX_SIDE, LOGO_MAX_SIDE, {
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toBuffer();
+  } catch {
+    throw new BadRequestException(
+      'El archivo no es una imagen valida o esta corrupto',
+    );
+  }
+
+  await mkdir(destino.dir, { recursive: true });
+  const filename = `${destino.nombreBase}-${randomUUID().slice(0, 8)}.png`;
   await writeFile(join(destino.dir, filename), procesada);
 
   return `${UPLOAD_PUBLIC_PREFIX}/${destino.subdir}/${filename}`;

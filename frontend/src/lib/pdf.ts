@@ -6,42 +6,104 @@
  * documento va en su propio archivo.
  */
 
+import { LOGOS_ORIGINALES, logosQueryOptions, urlLogo } from "@/lib/logos"
+import { queryClient } from "@/lib/query-client"
+
+import type { LogoClave, LogosVigentes } from "@/lib/logos"
+import type { Column } from "pdfmake/interfaces"
+
 /** Márgenes de hoja en PUNTOS (1 pulgada = 72 pt). 34 pt ≈ 12 mm. */
 export const MARGEN_PDF = 34
 
-const LOGOS = {
-  iniaf: "/iniaf/logo-iniaf.png",
-  ministerio: "/iniaf/logo-ministerio.png",
-} as const
+interface LogoEmbebido {
+  dataUrl: string
+  /** Ancho / alto del archivo. El Excel la necesita para no deformarlo. */
+  proporcion: number
+}
 
-/** pdfmake necesita las imágenes embebidas; se leen una vez y quedan cacheadas. */
-const cacheLogos = new Map<string, string>()
+/**
+ * pdfmake necesita las imágenes embebidas; se leen una vez y quedan cacheadas.
+ * La clave es la URL, y cada logo subido tiene nombre propio: al reemplazarlo
+ * cambia la URL y el viejo deja de pedirse solo.
+ */
+const cacheLogos = new Map<string, LogoEmbebido>()
 
-async function comoDataUrl(ruta: string): Promise<string> {
+async function embeber(ruta: string): Promise<LogoEmbebido> {
   const cacheado = cacheLogos.get(ruta)
   if (cacheado) return cacheado
 
   const respuesta = await fetch(ruta)
   if (!respuesta.ok) throw new Error(`No se pudo leer el logo ${ruta}`)
   const blob = await respuesta.blob()
-  const dataUrl = await new Promise<string>((resolver, rechazar) => {
-    const lector = new FileReader()
-    lector.onload = () => resolver(lector.result as string)
-    lector.onerror = () => rechazar(lector.error)
-    lector.readAsDataURL(blob)
-  })
+  const [dataUrl, bitmap] = await Promise.all([
+    new Promise<string>((resolver, rechazar) => {
+      const lector = new FileReader()
+      lector.onload = () => resolver(lector.result as string)
+      lector.onerror = () => rechazar(lector.error)
+      lector.readAsDataURL(blob)
+    }),
+    createImageBitmap(blob),
+  ])
+  const logo = { dataUrl, proporcion: bitmap.width / bitmap.height }
+  bitmap.close()
 
-  cacheLogos.set(ruta, dataUrl)
-  return dataUrl
+  cacheLogos.set(ruta, logo)
+  return logo
 }
 
-/** Los dos logos del membrete, listos para `image:` de pdfmake. */
+/**
+ * El logo vigente de un casillero; si el subido no se puede leer, el original.
+ * Un documento oficial sin logo es peor que uno con el logo de antes.
+ */
+async function logoVigente(
+  logos: LogosVigentes | undefined,
+  clave: LogoClave
+): Promise<LogoEmbebido> {
+  try {
+    return await embeber(urlLogo(logos, clave))
+  } catch {
+    return embeber(LOGOS_ORIGINALES[clave])
+  }
+}
+
+/**
+ * Los dos logos del membrete —los VIGENTES, que se cambian desde la pantalla
+ * «Logos»—, listos para `image:` de pdfmake. Lo usan también los Excel.
+ */
 export async function logosMembrete() {
+  const logos = await queryClient
+    .fetchQuery(logosQueryOptions)
+    .catch(() => undefined)
   const [iniaf, ministerio] = await Promise.all([
-    comoDataUrl(LOGOS.iniaf),
-    comoDataUrl(LOGOS.ministerio),
+    logoVigente(logos, "INIAF"),
+    logoVigente(logos, "MINISTERIO"),
   ])
-  return { iniaf, ministerio }
+  return {
+    iniaf: iniaf.dataUrl,
+    ministerio: ministerio.dataUrl,
+    proporciones: {
+      iniaf: iniaf.proporcion,
+      ministerio: ministerio.proporcion,
+    },
+  }
+}
+
+/**
+ * Columna de logo del membrete con una CAJA fija (en pt). El logo se encaja
+ * adentro sin deformarse (`fit`) y la columna conserva su ancho aunque el logo
+ * sea más angosto: como los logos se pueden reemplazar, sin esto un archivo
+ * con otra proporción correría el título o haría crecer el membrete encima de
+ * la tabla.
+ */
+export function columnaLogo(
+  imagen: string,
+  [ancho, alto]: [number, number],
+  alineacion: "left" | "right"
+): Column {
+  return {
+    width: ancho,
+    stack: [{ image: imagen, fit: [ancho, alto], alignment: alineacion }],
+  }
 }
 
 /**

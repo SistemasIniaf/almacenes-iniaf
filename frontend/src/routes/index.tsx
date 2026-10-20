@@ -11,6 +11,7 @@ import { IngresoFormPage } from "@/features/ingresos/pages/IngresoFormPage"
 import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
 import { KardexPage } from "@/features/kardex/KardexPage"
+import { LogosPage } from "@/features/logos/LogosPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
 import { StockPage } from "@/features/stock/StockPage"
@@ -98,6 +99,14 @@ export const router = createBrowserRouter([
             element: (
               <RutaConPermiso permiso="fuentesLeer">
                 <FuentesFinanciamientoPage />
+              </RutaConPermiso>
+            ),
+          },
+          {
+            path: "logos",
+            element: (
+              <RutaConPermiso permiso="logosEscribir">
+                <LogosPage />
               </RutaConPermiso>
             ),
           },

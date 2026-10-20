@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const LogoClave = {
+  INIAF: 'INIAF',
+  INIAF_OSCURO: 'INIAF_OSCURO',
+  MINISTERIO: 'MINISTERIO'
+} as const
+
+export type LogoClave = (typeof LogoClave)[keyof typeof LogoClave]
+
+
 export const Rol = {
   super_admin: 'super_admin',
   admin: 'admin',

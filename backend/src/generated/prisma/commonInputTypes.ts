@@ -341,6 +341,23 @@ export type EnumEstadoEgresoNullableWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumEstadoEgresoNullableFilter<$PrismaModel>
 }
 
+export type EnumLogoClaveFilter<$PrismaModel = never> = {
+  equals?: $Enums.LogoClave | Prisma.EnumLogoClaveFieldRefInput<$PrismaModel>
+  in?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel> | $Enums.LogoClave
+}
+
+export type EnumLogoClaveWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LogoClave | Prisma.EnumLogoClaveFieldRefInput<$PrismaModel>
+  in?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLogoClaveWithAggregatesFilter<$PrismaModel> | $Enums.LogoClave
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel>
+}
+
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -679,6 +696,23 @@ export type NestedEnumEstadoEgresoNullableWithAggregatesFilter<$PrismaModel = ne
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumEstadoEgresoNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumEstadoEgresoNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumLogoClaveFilter<$PrismaModel = never> = {
+  equals?: $Enums.LogoClave | Prisma.EnumLogoClaveFieldRefInput<$PrismaModel>
+  in?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel> | $Enums.LogoClave
+}
+
+export type NestedEnumLogoClaveWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LogoClave | Prisma.EnumLogoClaveFieldRefInput<$PrismaModel>
+  in?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LogoClave[] | Prisma.ListEnumLogoClaveFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLogoClaveWithAggregatesFilter<$PrismaModel> | $Enums.LogoClave
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLogoClaveFilter<$PrismaModel>
 }
 
 

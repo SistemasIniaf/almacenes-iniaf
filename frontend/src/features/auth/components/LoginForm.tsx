@@ -13,6 +13,7 @@ import { Field, FieldDescription, FieldGroup } from "@/components/ui/field"
 import { InputField } from "@/components/form/InputField"
 import { InputPasswordField } from "@/components/form/InputPasswordField"
 import { useLogin } from "../hooks/useLogin"
+import { useLogos } from "@/lib/logos"
 import type { LoginFormOutput } from "../lib/login.schema"
 
 interface LocationState {
@@ -26,6 +27,7 @@ export function LoginForm({
   const navigate = useNavigate()
   const location = useLocation()
   const { mutateAsync, isPending, mensajeError } = useLogin()
+  const logos = useLogos()
 
   const { control, handleSubmit } = useForm<LoginFormOutput>({
     resolver: zodResolver(loginSchema),
@@ -65,18 +67,25 @@ export function LoginForm({
             <FieldGroup>
               {/* Logo del INIAF en DOS archivos, uno por tema (mismo criterio
                   que `AppSidebar`): el texto es oscuro y no se puede invertir
-                  con CSS sin arruinar los colores de la llama. */}
-              <div className="flex justify-center">
-                <img
-                  src="/iniaf/logo-iniaf.png"
-                  alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
-                  className="h-16 w-auto md:h-20 dark:hidden"
-                />
-                <img
-                  src="/iniaf/dark.png"
-                  alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
-                  className="hidden h-16 w-auto md:h-20 dark:block"
-                />
+                  con CSS sin arruinar los colores de la llama. Son los
+                  VIGENTES (se cambian en «Logos»): hasta saber cuáles son, la
+                  caja reserva el alto vacía en vez de mostrar el original y
+                  saltar al reemplazado. */}
+              <div className="flex h-16 justify-center md:h-20">
+                {logos.listo && (
+                  <>
+                    <img
+                      src={logos.url("INIAF")}
+                      alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                      className="h-full w-auto max-w-full object-contain dark:hidden"
+                    />
+                    <img
+                      src={logos.url("INIAF_OSCURO")}
+                      alt="INIAF — Instituto Nacional de Innovación Agropecuaria y Forestal"
+                      className="hidden h-full w-auto max-w-full object-contain dark:block"
+                    />
+                  </>
+                )}
               </div>
 
               <h1 className="text-center text-2xl font-extrabold">ALMACENES</h1>

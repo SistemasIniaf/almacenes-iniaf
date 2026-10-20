@@ -259,6 +259,45 @@ Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decision
 - **Al CREAR, la subida es un segundo paso**: las líneas no tienen id hasta después de la transacción del POST, así que el archivo viaja en el campo `archivo` del formulario (dentro del schema, para que `reset()` lo limpie solo) y `subirFotosPendientes()` lo sube después. El emparejamiento es **posicional** y no puede ser otra cosa: funciona porque el backend crea los lotes en el orden de las líneas y `ingresoFullSelect` los devuelve `orderBy: { id: 'asc' }`. Si falla, el ingreso **ya está registrado**: se avisa qué fotos faltaron y se cargan desde la edición.
 - **`useImagenLote` NO invalida el detalle del ingreso**, a propósito: la página lo vuelca en el formulario con `reset()` dentro de un efecto, así que un refetch borraría lo que el usuario esté escribiendo en la cabecera. La foto recién subida se pisa con un `Map` local (`fotosCambiadas`) — el mismo recurso de `ItemFormDialog`, adaptado a que acá hay varias fotos por pantalla. Sí invalida `stock` y `egresos`, que es donde la foto la ve otro.
 
+### Logos institucionales (`/logos`) — 2026-10-20
+
+Pantalla de Administración para **reemplazar los logos sin tocar código**: el cambio rige en el login,
+el menú lateral y el membrete de los 7 PDF y los 5 Excel. Solo `super_admin` (permiso `logosEscribir`,
+mismo criterio que los catálogos estructurales: sale impreso en todos los documentos).
+
+- **Tres casilleros fijos** (enum `LogoClave`): `INIAF` (fondo claro: UI en modo claro y TODOS los
+  documentos, porque el papel es blanco), `INIAF_OSCURO` (UI en modo oscuro) y `MINISTERIO` (solo
+  documentos).
+- **Con HISTORIAL** (pedido del usuario el mismo día): cada logo subido es una fila de
+  **`logo_versiones`** (con quién y cuándo lo subió), y **`logos_institucionales`** solo dice qué
+  versión RIGE en cada casillero (`version_id`, más quién la puso vigente). Reemplazar **no borra**
+  el anterior: queda en el historial y se puede volver a usar (`POST /logos/versiones/:id/usar`).
+  Lo único que borra un archivo del disco es eliminar una versión a mano
+  (`DELETE /logos/versiones/:id`), y **nunca la vigente** (409) — dejaría el casillero apuntando a
+  nada. Que la versión vigente sea de la misma clave lo controla el service: la BD no puede expresar
+  esa restricción entre tablas.
+- **Sin fila vigente = el ORIGINAL** de `public/iniaf/` (`LOGOS_ORIGINALES` en `lib/logos.ts`). Por
+  eso «Restaurar original» es borrar la fila de `logos_institucionales` (**el historial queda
+  entero**), y si la API no responde todo sigue mostrando los logos de siempre. Un PDF cuyo logo
+  subido no se pueda leer cae también en el original: un documento oficial sin logo es peor que con
+  el anterior.
+- La migración del historial (`20261020200000_logos_historial`) es **a mano**: pasa los logos que ya
+  estaban reemplazados a su primera versión antes de volver obligatoria `version_id`.
+- **Se guardan en PNG, no en WebP** como las fotos (`guardarLogo` en `common/uploads/imagenes.ts`,
+  máx. 800 px, en `uploads/logos/`): pdfmake y ExcelJS no leen WebP, y PNG conserva la transparencia.
+- **`GET /logos` es PÚBLICO**: el login dibuja el logo antes de que haya sesión. `GET /logos/historial`
+  no: solo `super_admin`.
+- **`lib/logos.ts` y no el feature** concentra la consulta (`logosQueryOptions`) porque la consumen
+  el login, el menú y `lib/pdf.ts` (este fuera de React, vía `queryClient.fetchQuery`): comparten la
+  misma caché y la mutación escribe la respuesta directo en ella. A los demás usuarios el logo nuevo
+  les llega solo en ≤5 min (`staleTime`). El login y el menú esperan a `listo` para no mostrar el
+  original un instante y saltar al reemplazado.
+- **En los documentos cada logo va en una CAJA fija** — `columnaLogo()` en `lib/pdf.ts` (`fit` de
+  pdfmake con ancho de columna fijo) y `encajar()` en `lib/excel.ts` (ExcelJS estira la imagen a lo
+  que diga `ext`, así que la proporción se mide del archivo). Las cajas son las que ocupaban los
+  logos originales: un reemplazo con otra proporción se encaja adentro sin correr el título ni hacer
+  crecer el membrete encima de la tabla (`ALTO_MEMBRETE` sigue valiendo).
+
 ## Roadmap de construcción actual
 
 Fase en curso: construir todo lo que NO depende de las reglas de Ingreso/Egreso aún pendientes de validar con el encargado de almacenes (ver sección de pendientes más abajo). Orden sugerido:
