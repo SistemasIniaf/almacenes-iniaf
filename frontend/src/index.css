@@ -135,3 +135,34 @@
     @apply font-sans;
     }
 }
+/*
+ * Barra de scroll delgada (6 px, sin flechas) para paneles angostos como el
+ * menú lateral, donde la nativa de Windows (~17 px) se come el ancho.
+ * Chrome/Edge usan los pseudo-elementos `::-webkit-scrollbar`; ojo que si
+ * además se declara `scrollbar-width` los IGNORAN (desde Chrome 121), por eso
+ * el estándar va solo para quien no los soporta (Firefox).
+ */
+@utility scrollbar-fino {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: color-mix(in oklch, var(--sidebar-foreground) 25%, transparent);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--sidebar-foreground) 45%, transparent);
+  }
+  &::-webkit-scrollbar-button {
+    display: none;
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--sidebar-foreground) 25%, transparent)
+      transparent;
+  }
+}
