@@ -80,9 +80,6 @@ const loteSelect = {
   // descripcion y foto — asi que viaja hasta el pedido y se imprime con la
   // descripcion, igual que en la nota de ingreso.
   observacion: true,
-  // Foto de ESTE lote, si el almacen le saco una al recibirlo. Tiene prioridad
-  // sobre la del catalogo del item: `lote.imagenUrl ?? item.imagenUrl`.
-  imagenUrl: true,
   item: {
     select: {
       id: true,

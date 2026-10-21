@@ -32,19 +32,13 @@ export interface IngresoDetalle {
   precioUnitario: string
   saldoCantidad: string
   observacion: string | null
-  /**
-   * Foto de ESTE lote (ruta relativa) o null. Opcional y con fallback: donde se
-   * muestra el material vale `lote.imagenUrl ?? item.imagenUrl`. La del ítem es
-   * de catálogo («qué tipo de cosa es»); ésta es de stock («qué hay en esta
-   * compra»), y es la que sirve cuando la marca o el color cambian de compra en
-   * compra.
-   */
-  imagenUrl: string | null
   item: {
     id: number
     codigo: string
     descripcion: string
     unidadMedida: string
+    /** Foto de catálogo (ruta relativa) o null: referencia visual en la línea. */
+    imagenUrl: string | null
     /** Va como columna propia en la nota impresa. */
     partida: { id: number; codigo: string }
   }

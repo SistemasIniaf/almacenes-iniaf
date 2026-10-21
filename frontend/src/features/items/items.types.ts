@@ -18,6 +18,12 @@ export interface Item {
   activo: boolean
   partidaId: number
   partida: ItemPartida
+  /**
+   * Ya figura en algún ingreso. Mientras no, se le puede corregir la partida
+   * (con código nuevo) y la unidad de medida; después quedan fijas, porque
+   * cambiarlas alteraría lo ya registrado (kardex, reportes).
+   */
+  tieneMovimientos: boolean
   createdAt: string
   updatedAt: string
 }
@@ -36,8 +42,12 @@ export interface CreateItemPayload {
   activo?: boolean
 }
 
-/** El update NO admite `codigo` ni `partidaId` (el código deriva de la partida). */
+/**
+ * `partidaId` y `unidadMedida` solo los acepta mientras el ítem no tenga
+ * movimientos (409 si no). Cambiar la partida le da un código nuevo.
+ */
 export interface UpdateItemPayload {
+  partidaId?: number
   descripcion?: string
   unidadMedida?: string
   activo?: boolean

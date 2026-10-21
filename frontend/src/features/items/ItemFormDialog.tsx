@@ -62,8 +62,30 @@ export function ItemFormDialog({
   const actualizar = useActualizarItem()
   const imagen = useImagenItem()
   const guardando = crear.isPending || actualizar.isPending || imagen.isPending
+  // Con movimientos, partida y unidad quedan fijas (el backend responde 409).
+  const fijo = esEdicion && item.tieneMovimientos
 
   const { data: partidas = [] } = usePartidasSeleccionables()
+
+  const opcionesPartida = partidas.map((partida) => ({
+    value: String(partida.id),
+    label: partida.codigo,
+    descripcion: partida.denominacion,
+    busqueda: partida.codigo,
+  }))
+  // Al editar, la partida actual va siempre en la lista aunque ya no sea
+  // asignable (se desactivó después): si no, el campo se vería vacío.
+  if (
+    esEdicion &&
+    !opcionesPartida.some((o) => o.value === String(item.partidaId))
+  ) {
+    opcionesPartida.unshift({
+      value: String(item.partida.id),
+      label: item.partida.codigo,
+      descripcion: item.partida.denominacion,
+      busqueda: item.partida.codigo,
+    })
+  }
 
   /**
    * La imagen se maneja aparte del formulario porque su endpoint responde al
@@ -99,15 +121,27 @@ export function ItemFormDialog({
   async function onSubmit(valores: ItemFormValues) {
     if (esEdicion) {
       try {
-        // El backend NO admite cambiar codigo ni partida: el codigo deriva de la
-        // partida y moverlo lo dejaria inconsistente. La imagen tampoco viaja
-        // aca: en edicion se sube sola al elegirla.
-        await actualizar.mutateAsync({
+        // Partida y unidad viajan solo si el item no tiene movimientos (si no,
+        // el backend responde 409). La imagen no viaja aca: en edicion se sube
+        // sola al elegirla.
+        const actualizado = await actualizar.mutateAsync({
           id: item.id,
           descripcion: valores.descripcion,
-          unidadMedida: valores.unidadMedida,
           activo: valores.activo,
+          ...(fijo
+            ? {}
+            : {
+                unidadMedida: valores.unidadMedida,
+                partidaId: Number(valores.partidaId),
+              }),
         })
+        // Cambiar de partida cambia el codigo: se avisa, porque es el dato con
+        // el que la gente busca el item.
+        if (actualizado.codigo !== item.codigo) {
+          toast.info(
+            `El ítem cambió de partida: su código ahora es ${actualizado.codigo} (antes ${item.codigo}).`
+          )
+        }
         onOpenChange(false)
       } catch {
         // El toast de error lo emite la mutacion; el dialogo se queda abierto.
@@ -150,123 +184,141 @@ export function ItemFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl md:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{esEdicion ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
           <DialogDescription>
             {esEdicion
-              ? `Código ${item.codigo} — el código y la partida no se pueden cambiar.`
+              ? `Código ${item.codigo}.`
               : "El código se genera solo a partir de la partida elegida."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <FieldGroup>
-            {esEdicion ? (
-              // En edición la partida es informativa: no se puede mover el ítem.
-              <div className="rounded-md border bg-muted/50 p-3 text-sm">
-                <p className="text-muted-foreground">Partida</p>
-                <p className="font-medium">
-                  {item.partida.codigo} — {item.partida.denominacion}
-                </p>
-              </div>
-            ) : (
-              <ComboboxField
-                name="partidaId"
-                label="Partida"
-                control={control}
-                disabled={guardando}
-                placeholder="Buscá por código o denominación"
-                vacio="No hay partidas asignables."
-                options={partidas.map((partida) => ({
-                  value: String(partida.id),
-                  label: partida.codigo,
-                  descripcion: partida.denominacion,
-                  busqueda: partida.codigo,
-                }))}
-              />
-            )}
-
-            <InputField
-              name="descripcion"
-              label="Descripción"
-              control={control}
-              disabled={guardando}
-            />
-
-            <InputField
-              name="unidadMedida"
-              label="Unidad de medida"
-              control={control}
-              disabled={guardando}
-            />
-
-            <CheckboxField
-              name="activo"
-              label="Activo"
-              control={control}
-              required={false}
-              disabled={guardando}
-              description="Los ítems inactivos no aparecen para nuevos movimientos."
-            />
-
-            {esEdicion ? (
-              // Editando el ítem ya existe: la imagen se sube al instante
-              // contra su endpoint, sin esperar al submit.
-              <ImageField
-                label="Imagen referencial"
-                imagenUrl={imagenUrl}
-                procesando={imagen.isPending}
-                disabled={guardando}
-                description="Se guarda al momento, sin esperar a «Guardar cambios»."
-                onSeleccionar={(archivo) =>
-                  imagen.mutate({ id: item.id, archivo })
-                }
-                onQuitar={() => imagen.mutate({ id: item.id, archivo: null })}
-              />
-            ) : (
-              // Creando todavía no hay id, así que el archivo solo se guarda en
-              // el formulario y se sube después del POST (ver onSubmit).
-              <Controller
-                name="archivo"
-                control={control}
-                render={({ field }) => (
-                  <ImageField
-                    label="Imagen referencial"
-                    imagenUrl={null}
-                    archivoPendiente={field.value}
+          {/* Dos columnas desde md (pedido del usuario): los datos a la
+              izquierda y la imagen a la derecha, con alto para verse bien. En
+              pantallas chicas se apilan, la imagen debajo. */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <FieldGroup>
+              {fijo ? (
+                // Con movimientos la partida es informativa: moverla cambiaría
+                // el código de algo que ya figura en ingresos, kardex y reportes.
+                <div className="rounded-md border bg-muted/50 p-3 text-sm">
+                  <p className="text-muted-foreground">Partida</p>
+                  <p className="font-medium">
+                    {item.partida.codigo} — {item.partida.denominacion}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ya figura en ingresos: la partida y la unidad de medida no
+                    se pueden cambiar. Si fue un error, anulá esos ingresos, dá
+                    de baja el ítem y creálo de nuevo.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  <ComboboxField
+                    name="partidaId"
+                    label="Partida"
+                    control={control}
                     disabled={guardando}
-                    description="Opcional. Se sube al crear el ítem."
-                    onSeleccionar={(archivo) => field.onChange(archivo)}
-                    onQuitar={() => field.onChange(null)}
+                    placeholder="Buscá por código o denominación"
+                    vacio="No hay partidas asignables."
+                    options={opcionesPartida}
                   />
-                )}
-              />
-            )}
+                  {esEdicion && (
+                    <p className="text-xs text-muted-foreground">
+                      Todavía no tiene movimientos, así que se puede corregir.
+                      Si cambiás la partida, el ítem recibe un código nuevo.
+                    </p>
+                  )}
+                </div>
+              )}
 
-            <DialogFooter className="mt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
+              <InputField
+                name="descripcion"
+                label="Descripción"
+                control={control}
                 disabled={guardando}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={guardando}>
-                {guardando && <Loader2 className="size-4 animate-spin" />}
-                {/* Al crear con imagen son dos requests: conviene decir en cuál
+              />
+
+              <InputField
+                name="unidadMedida"
+                label="Unidad de medida"
+                control={control}
+                disabled={guardando || fijo}
+              />
+
+              <CheckboxField
+                name="activo"
+                label="Activo"
+                control={control}
+                required={false}
+                disabled={guardando}
+                description="Los ítems inactivos no aparecen para nuevos movimientos."
+              />
+            </FieldGroup>
+
+            <div>
+              {esEdicion ? (
+                // Editando el ítem ya existe: la imagen se sube al instante
+                // contra su endpoint, sin esperar al submit.
+                <ImageField
+                  label="Imagen referencial"
+                  imagenUrl={imagenUrl}
+                  procesando={imagen.isPending}
+                  disabled={guardando}
+                  description="Se guarda al momento, sin esperar a «Guardar cambios»."
+                  altoPreview="h-52 md:h-64"
+                  onSeleccionar={(archivo) =>
+                    imagen.mutate({ id: item.id, archivo })
+                  }
+                  onQuitar={() => imagen.mutate({ id: item.id, archivo: null })}
+                />
+              ) : (
+                // Creando todavía no hay id, así que el archivo solo se guarda en
+                // el formulario y se sube después del POST (ver onSubmit).
+                <Controller
+                  name="archivo"
+                  control={control}
+                  render={({ field }) => (
+                    <ImageField
+                      label="Imagen referencial"
+                      imagenUrl={null}
+                      archivoPendiente={field.value}
+                      disabled={guardando}
+                      description="Opcional. Se sube al crear el ítem."
+                      altoPreview="h-52 md:h-64"
+                      onSeleccionar={(archivo) => field.onChange(archivo)}
+                      onQuitar={() => field.onChange(null)}
+                    />
+                  )}
+                />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={guardando}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={guardando}>
+              {guardando && <Loader2 className="size-4 animate-spin" />}
+              {/* Al crear con imagen son dos requests: conviene decir en cuál
                     va, si no parece que se colgó. */}
-                {crear.isPending
-                  ? "Creando..."
-                  : imagen.isPending
-                    ? "Subiendo imagen..."
-                    : esEdicion
-                      ? "Guardar cambios"
-                      : "Crear ítem"}
-              </Button>
-            </DialogFooter>
-          </FieldGroup>
+              {crear.isPending
+                ? "Creando..."
+                : imagen.isPending
+                  ? "Subiendo imagen..."
+                  : esEdicion
+                    ? "Guardar cambios"
+                    : "Crear ítem"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

@@ -162,8 +162,6 @@ export interface LoteDeLinea {
   saldoCantidad: string
   /** Nota que el almacén escribió al recibir el material (ej. «COLOR NEGRO»). */
   observacion: string | null
-  /** Foto de ESTE lote, si le sacaron una. Manda sobre la del catálogo. */
-  imagenUrl: string | null
   item: {
     id: number
     codigo: string

@@ -242,7 +242,6 @@ export const IngresoDetalleScalarFieldEnum = {
   precioUnitario: 'precioUnitario',
   saldoCantidad: 'saldoCantidad',
   observacion: 'observacion',
-  imagenUrl: 'imagenUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

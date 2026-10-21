@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 
+import { AvisoImagenReferencial } from "@/components/data/AvisoImagenReferencial"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,10 +86,9 @@ import type { LoteDeLinea } from "@/features/egresos/egresos.types"
 import type { LoteElegible } from "@/features/egresos/hooks/useBuscarLotes"
 
 /**
- * Miniatura del material de una línea, **ampliable al hacer clic**, con el MISMO
- * fallback que el selector: la foto del lote si le sacaron una al recibirlo y,
- * si no, la del catálogo del ítem. Si no hay ninguna muestra un marco vacío del
- * mismo tamaño, para que las filas de la tabla no cambien de alto entre una y
+ * Miniatura del material de una línea, **ampliable al hacer clic**: la foto del
+ * catálogo del ítem, la misma que el selector. Si no tiene, muestra un marco
+ * vacío del mismo tamaño, para que las filas de la tabla no cambien de alto entre una y
  * otra.
  *
  * Se amplía porque 40 px alcanzan para reconocer, no para revisar: quien está a
@@ -99,7 +99,7 @@ import type { LoteElegible } from "@/features/egresos/hooks/useBuscarLotes"
  */
 function MiniaturaLote({ lote }: { lote: LoteDeLinea }) {
   const [ampliada, setAmpliada] = useState(false)
-  const src = urlArchivo(lote.imagenUrl ?? lote.item.imagenUrl)
+  const src = urlArchivo(lote.item.imagenUrl)
   const etiqueta = descripcionConNota(lote.item.descripcion, lote.observacion)
 
   if (!src) {
@@ -140,6 +140,7 @@ function MiniaturaLote({ lote }: { lote: LoteDeLinea }) {
             alt={etiqueta}
             className="max-h-[60vh] w-full rounded object-contain"
           />
+          <AvisoImagenReferencial />
         </DialogContent>
       </Dialog>
     </>
@@ -242,10 +243,7 @@ export function EgresoFormPage() {
     itemDescripcion: d.ingresoDetalle.item.descripcion,
     observacion: d.ingresoDetalle.observacion,
     unidadMedida: d.ingresoDetalle.item.unidadMedida,
-    // La del lote si la tiene; si no, la del catálogo del ítem.
-    imagen: urlArchivo(
-      d.ingresoDetalle.imagenUrl ?? d.ingresoDetalle.item.imagenUrl
-    ),
+    imagen: urlArchivo(d.ingresoDetalle.item.imagenUrl),
     fuente:
       d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
     numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),

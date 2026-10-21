@@ -62,8 +62,8 @@ interna de Compose. Variables sensibles en un `.env` en la raíz (copiado de
   Docker o no — se descubrió recién acá porque es la primera vez que alguien
   corre el build de producción de punta a punta. Arreglado agregando
   `"include": ["src/**/*"]`.
-- **Uploads**: el volumen nombrado `uploads_data:/app/uploads` cubre las dos
-  subcarpetas (`items/` y `lotes/`) con un solo volumen en la raíz —
+- **Uploads**: el volumen nombrado `uploads_data:/app/uploads` cubre todas las
+  subcarpetas (`items/` y `logos/`) con un solo volumen en la raíz —
   cerraba el pendiente que `uploads.config.ts` ya tenía anotado.
 - **Sin pgAdmin** en producción (a diferencia del `docker-compose.yml` de
   dev): menos superficie expuesta; para mirar la base,
@@ -107,7 +107,7 @@ almacenes-institucion/
 - **Ingreso** (YA IMPLEMENTADO): cabecera del ingreso de material. `estado` (`CONFIRMADO`/`ANULADO` — **ya NO hay `BORRADOR`**; el encargado lo quitó el 2026-07-27: se crea definitivo en un solo paso, ver migración `20260727120000_ingresos_sin_borrador`), `numero` + `gestion` (nullable en la BD pero el service los estampa SIEMPRE al crear), `almacen_id`, **`fechaIngreso`** (ver abajo), respaldos (fechaRemision, notaRemision, procesoC31, certificacion, informeConformidad + **fechaInformeConformidad**, numeroFactura, observacion), `proveedor_id`, `fuente_financiamiento_id`, `responsable_conformidad_id` (→ Usuario rol `solicitador`), `unidad_solicitante_id`, auditoría (`registrado_por_id`) y anulación (`anulado_por_id`, `anulado_en`, `motivo_anulacion`). Los respaldos siguen nullable en la BD pero son **obligatorios**: la regla vive en el service (los exige al crear, como el `cargo` del usuario). `@@unique([almacenId, gestion, numero])`. Registrado por `responsable_almacen` de ESE almacén, **sin aprobación**.
   - **Las TRES fechas del ingreso** (no confundirlas — cambio del 2026-07-29, migración `20260729190000_ingreso_fecha_propia`): **`fechaIngreso`** es la de EFECTO CONTABLE: de ella salen la gestión (y con ella el correlativo), la fecha del movimiento de Kardex y el orden en que se consumen los lotes. **La estampa el backend con el momento del registro: nadie la tipea.** · **`fechaRemision`** es la del documento del proveedor: se sigue pidiendo e imprimiendo, pero **ya NO gobierna nada**. Antes definía la gestión, así que un error de tipeo en el año mandaba el ingreso a otra gestión y descolocaba el libro. · **`createdAt`** es auditoría pura y nunca se corrige.
   - **Solo `super_admin` puede corregir `fechaIngreso`** (`ForbiddenException` para el resto; el caso previsto es el cierre de gestión: material que entró el 28/12 y se registró el 2/1). La corrección va en UNA transacción porque arrastra tres cosas: mueve la fecha de los movimientos de Kardex, y **si cae en otra gestión re-estampa el correlativo** (el número se había asignado en la secuencia de la gestión anterior y ahí no vale). No se admite fecha futura.
-- **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). También `imagenUrl` (String?, foto de ESTE lote — ver "Foto por lote" más abajo). El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
+- **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). **NO lleva foto**: la tuvo (`imagenUrl`) y se quitó el 2026-10-20 — ver "Foto por lote: ELIMINADA". El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
 - **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
 - **EgresoDetalle**: apunta al **LOTE** (`ingreso_detalle_id`, no al ítem), `cantidadSolicitada` y `cantidadEntregada` (null hasta la entrega; la ajusta SOLO el `responsable_almacen`). **NO lleva observación por línea**, a diferencia de `IngresoDetalle`: lo que hay que aclarar de un pedido va en la `justificacion` de la cabecera, que es obligatoria. La columna existió y se quitó el 2026-07-30 (migración `20260730120000_egreso_detalle_sin_observacion`) por decisión del encargado — no volver a agregarla.
@@ -229,13 +229,9 @@ Un Egreso `APROBADO` se puede anular:
 
 ## Imágenes (subida de archivos)
 
-Hay **DOS** fotos y responden preguntas distintas — no se pisan por accidente, se
-pisan a propósito (ver "Foto por lote"):
-
-| Foto | Pregunta que responde | Dónde vive |
-|---|---|---|
-| **Ítem** (catálogo) | ¿Qué TIPO de cosa es esto? | `Item.imagenUrl` → `uploads/items/` |
-| **Lote** (stock) | ¿Qué hay exactamente en ESTA compra? | `IngresoDetalle.imagenUrl` → `uploads/lotes/` |
+**Solo el ÍTEM lleva foto** (la de catálogo, `Item.imagenUrl` → `uploads/items/`). Hubo también una
+foto por lote y se eliminó — ver "Foto por lote: ELIMINADA" más abajo. Aparte están los logos
+institucionales (`uploads/logos/`), que tienen su propia sección.
 
 Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decisiones tomadas (confirmadas con el usuario):
 
@@ -244,20 +240,19 @@ Cada `Item` puede tener **UNA imagen referencial** (foto de catálogo). Decision
 - **Procesamiento**: la imagen subida NUNCA toca disco cruda. Se re-procesa con **`sharp`** (redimensiona a máx. `1024px` lado mayor sin ampliar + convierte a **WebP** calidad 80) y recién el resultado se escribe. Límites: máx. 5 MB de entrada, MIME permitidos `image/jpeg|png|webp`.
 - **Servido**: **estáticas públicas** bajo `/uploads` vía `app.useStaticAssets` en `main.ts`. Quedan **FUERA** del prefijo global de la API y del `JwtAuthGuard` global — decisión deliberada para poder usarlas con `<img src>` directo. Trade-off aceptado: son adivinables solo por fuerza bruta (mitigado por el sufijo aleatorio); son fotos referenciales no sensibles.
 - **Endpoints** (solo `super_admin`/`admin`): `POST /items/:id/imagen` (campo multipart `imagen`; reemplaza y borra la anterior del disco) y `DELETE /items/:id/imagen` (limpia archivo + pone `imagenUrl=null`). El CRUD normal (`PATCH`) NO toca la imagen.
-- **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre los services de items e ingresos y `main.ts`). El **pipeline** (sharp → WebP, escritura y borrado best-effort) vive en `src/common/uploads/imagenes.ts` y lo comparten los dos: si el tamaño o la calidad se tocaran en un solo lado, la foto del ítem y la del lote que la pisa saldrían con distinto peso y nitidez, una al lado de la otra.
-- **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` y en `IngresoLineas` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
-- **Despliegue — resuelto (2026-10-07)**: `docker-compose.prod.yml` monta `uploads/` como **volumen** nombrado (`uploads_data:/app/uploads`) para que las imágenes sobrevivan a reconstrucciones del contenedor. Cubre las dos subcarpetas (`items/` y `lotes/`) con un solo volumen en la raíz. Ojo con el tamaño: las de ítem son una por ítem y se sacan una sola vez; las de lote son **una por línea de cada ingreso y no dejan de acumularse** (un lote agotado hace tres gestiones conserva su archivo). Por eso van en subcarpetas separadas: se pueden medir —y algún día limpiar— sin tocar el catálogo.
+- **Config central**: constantes y opciones de Multer en `src/common/uploads/uploads.config.ts` (compartidas entre los services de items y logos y `main.ts`). El **pipeline** (sharp → WebP para el ítem, → PNG para los logos; escritura y borrado best-effort) vive en `src/common/uploads/imagenes.ts`.
+- **Frontend**: `ImageField` (subida con preview) YA construido y cableado en `ItemFormDialog` — ver las notas de `items` más abajo (no es un campo de react-hook-form como el resto de los `*Field`).
+- **Despliegue — resuelto (2026-10-07)**: `docker-compose.prod.yml` monta `uploads/` como **volumen** nombrado (`uploads_data:/app/uploads`) para que las imágenes sobrevivan a reconstrucciones del contenedor. Cubre todas las subcarpetas con un solo volumen en la raíz.
 
-### Foto por lote (`IngresoDetalle.imagenUrl`) — 2026-08-07
+### Foto por lote: ELIMINADA (2026-10-20)
 
-**Opcional, con fallback**: donde se muestra el material vale `lote.imagenUrl ?? item.imagenUrl`. No hay nada que migrar y un lote sin foto propia sigue mostrando la del catálogo — que es lo correcto para la mayoría de los ítems (papel, bolígrafos), donde todos los lotes se ven igual.
-
-**Por qué existe**: el egreso hace la pregunta de STOCK, no la de catálogo. Si el catálogo tiene botas negras y esta compra trajo azules, la foto del ítem **desinforma** — y eso es peor que no tener foto, porque el propósito de la miniatura es justamente no confundir ítems parecidos. Solo hace falta fotografiar cuando la compra se ve distinta de lo que dice el catálogo, que es cuando además se llena la `observacion`.
-
-- **Endpoints** (`super_admin`/`admin`/`responsable_almacen`, y el service acota por almacén): `POST` y `DELETE /ingresos/:id/detalles/:detalleId/imagen`. El service comprueba que el lote **sea de ese ingreso**: sin eso el id del ingreso en la ruta sería decorativo y se podría tocar un lote de otro almacén pasando un `detalleId` ajeno.
-- **Siguen abiertos con el ingreso ya CONFIRMADO**, y es la ÚNICA excepción a que las líneas queden congeladas: la foto no mueve saldo, precio, correlativo ni Kardex, así que no hay nada contable que corregir anulando. Además es lo que el almacén necesita — registra el ingreso cuando llega el material y carga las fotos después. Un ingreso **ANULADO** sí las bloquea.
-- **Al CREAR, la subida es un segundo paso**: las líneas no tienen id hasta después de la transacción del POST, así que el archivo viaja en el campo `archivo` del formulario (dentro del schema, para que `reset()` lo limpie solo) y `subirFotosPendientes()` lo sube después. El emparejamiento es **posicional** y no puede ser otra cosa: funciona porque el backend crea los lotes en el orden de las líneas y `ingresoFullSelect` los devuelve `orderBy: { id: 'asc' }`. Si falla, el ingreso **ya está registrado**: se avisa qué fotos faltaron y se cargan desde la edición.
-- **`useImagenLote` NO invalida el detalle del ingreso**, a propósito: la página lo vuelca en el formulario con `reset()` dentro de un efecto, así que un refetch borraría lo que el usuario esté escribiendo en la cabecera. La foto recién subida se pisa con un `Map` local (`fotosCambiadas`) — el mismo recurso de `ItemFormDialog`, adaptado a que acá hay varias fotos por pantalla. Sí invalida `stock` y `egresos`, que es donde la foto la ve otro.
+Existió desde el 2026-08-07: cada línea de ingreso podía llevar su propia foto (`IngresoDetalle.imagenUrl`,
+en `uploads/lotes/`), y donde se elegía material valía `lote.imagenUrl ?? item.imagenUrl`. **La
+institución decidió que solo el ÍTEM lleva foto**, así que se quitó entera: el campo del formulario de
+ingreso (al crear y al editar), los endpoints `/ingresos/:id/detalles/:detalleId/imagen` y la columna
+(migración `20261020220000_ingreso_detalle_sin_imagen`). Egresos y stock muestran siempre la foto del
+ítem. **No volver a agregarla** sin consultarlo: lo que distingue dos lotes del mismo ítem es la
+`observacion` (la marca, el color), que se sigue mostrando en todos lados.
 
 ### Logos institucionales (`/logos`) — 2026-10-20
 
@@ -502,8 +497,14 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
   ítems, subtotal por línea y total en vivo). Era la pieza pendiente que faltaba construir. Cada línea
   lleva: Ítem · **Unidad** (solo lectura, deriva del ítem) · Cantidad · Precio unit. · Subtotal · 🗑,
   y debajo una **Observación** por línea (opcional, `IngresoDetalle.observacion`; se imprimirá como
-  "DESCRIPCIÓN (observación)" en el reporte). La fila usa **grilla de 12 columnas** (`sm:grid-cols-12`
-  + `col-span-*` por campo); el pie del Total replica esa grilla para caer bajo la columna Subtotal.
+  "DESCRIPCIÓN (observación)" en el reporte).
+  **Layout (2026-10-20)**: a la izquierda la **foto de catálogo del ítem** (`FotoItem`, solo
+  referencia, ampliable; el ingreso no guarda foto propia) ocupando las DOS filas — campos arriba,
+  Observación abajo —; por debajo de `lg` se apila con la foto arriba. Los campos van en una grilla
+  de **anchos FIJOS para los números** y el resto para el ítem
+  (`lg:grid-cols-[minmax(0,1fr)_6rem_5.5rem_6.5rem_8rem]`). Era una grilla de 12 con `col-span`, y
+  al sumarse la foto las columnas de 1/12 quedaron tan angostas que el subtotal tapaba al precio.
+  El selector de ítems muestra además la miniatura en cada opción (`ComboboxOption.imagen`).
 - **Layout de la cabecera** (`IngresoFormPage`): grilla de **12 columnas** plana (sin secciones), cada
   campo con su `col-span` (cortos ¼ = `col-span-3`, selectores ½ = `col-span-6`, Observación full).
 - **OJO — Certificación**: es un campo real (`ingresos.schema.ts` + backend). Se cayó por accidente en
@@ -621,8 +622,19 @@ Notas propias de `items`:
   reintentar es un clic. Se avisa con un toast de advertencia que incluye el código generado.
   El tamaño y el formato se validan **al elegir el archivo**, antes del POST, para que el caso
   más probable de fallo no llegue a crear nada.
-- En edición la partida se muestra como texto, no como selector: el backend no admite cambiarla
-  (el código deriva de ella).
+- **Partida y unidad de medida se corrigen SOLO mientras el ítem no tenga movimientos**
+  (2026-10-20, pedido del usuario; antes la partida no se podía cambiar nunca y la unidad siempre).
+  «Movimientos» = figura en algún lote (`ingreso_detalles`), anulado o no; los egresos apuntan a
+  lotes, así que quedan cubiertos. El backend lo expone como `tieneMovimientos` (listado y detalle,
+  vía `_count`) y lo hace cumplir en `ItemsService.update` (409). Por qué: cambiar cualquiera de las
+  dos con historia reescribe lo registrado — 100 PIEZA pasarían a leerse 100 CAJA, y lo comprado
+  con una partida aparecería en otra en reportes ya cerrados.
+  **Cambiar la partida le da un CÓDIGO NUEVO** en la destino (`asignarCodigo`, compartido con el
+  alta: misma validación de hoja + activo efectivo y mismo `increment` con lock). El correlativo de
+  la partida anterior queda sin usar: un salto en la numeración, preferible a reusarlo. El
+  formulario avisa el código nuevo con un toast.
+  Con movimientos, el diálogo muestra la partida como texto, deshabilita la unidad y explica la
+  salida: anular los ingresos, dar de baja el ítem y crearlo de nuevo.
 - `ComboboxField` (nuevo, compartido) es el selector con buscador para listas largas — acá se usa
   para las 90 partidas asignables. Su base `ui/command.tsx` se escribió a mano porque
   `shadcn add command` exige sobrescribir `dialog.tsx`, que ya está en uso.
@@ -995,7 +1007,7 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   dónde sale el material lo que decide es la fuente, que es de quien hay que rendir la plata. El número
   sigue estando donde importa (el diálogo de la foto y la ficha del pedido). No reponerlos.
 - **La observación del LOTE es lo único que distingue dos lotes del mismo ítem** (comparten código,
-  descripción y —salvo foto propia— también la imagen), así que se muestra en TODOS lados. Es del
+  descripción y foto), así que se muestra en TODOS lados. Es del
   **lote**, no de la línea de egreso, que no lleva observación propia a propósito.
   - En el **selector** va en `ComboboxOption.nota`, que el combo dibuja como **etiqueta con fondo**
     (`EtiquetaOpcion`), en la lista y también en el botón cerrado. Antes iba entre paréntesis dentro
@@ -1014,15 +1026,14 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
     ítem); haría falta su propio índice GIN. El filtro local de cmdk sí (está en `textoCmdk`).
 - **El lote muestra su FOTO**: miniatura en cada opción de la lista desplegada y junto a la
   línea elegida, ampliable en un diálogo (`FotoLote` en `EgresoLineas`). Sirve para no confundir ítems
-  de descripción casi igual. Es **`lote.imagenUrl ?? item.imagenUrl`** (ver "Foto por lote" arriba): manda
-  la del lote si le sacaron una al recibirlo, y si no cae en la del catálogo. Las dos viajan en
-  `GET /stock` y en `GET /egresos/:id`,
+  de descripción casi igual. Es la foto de **catálogo del ítem** (la foto por lote se eliminó el
+  2026-10-20). Viaja en `GET /stock` y en `GET /egresos/:id`,
   y se vuelven URL absoluta con `urlArchivo()` (las estáticas van fuera del prefijo de la API). El soporte
   es del `ComboboxField` compartido (`ComboboxOption.imagen`): si **alguna** opción trae foto, las que no
   muestran un marco vacío del mismo tamaño para que las filas no queden en zigzag.
   **La ficha del pedido también la muestra**, como primera columna de la tabla de líneas
   (`MiniaturaLote` en `EgresoFormPage`, `size-10`, sin rótulo en el encabezado — la miniatura se
-  explica sola). Usa el mismo fallback; sin ninguna foto dibuja un marco vacío del mismo tamaño para
+  explica sola). Usa la misma foto; sin ella dibuja un marco vacío del mismo tamaño para
   que las filas no cambien de alto.
   **El botón cerrado del combo NO lleva miniatura**: lo haría más alto que los campos vecinos y
   desalinearía toda la fila. `FotoLote` va **fuera del grid**, como bloque flex de la tarjeta, y mide

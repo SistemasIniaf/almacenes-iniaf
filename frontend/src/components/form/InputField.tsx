@@ -33,6 +33,13 @@ interface InputFieldProps<T extends FieldValues> {
    * backend compara exacto (`findUnique`): forzarlo rompería todos los accesos.
    */
   mayusculas?: boolean
+  /**
+   * Rótulo a la IZQUIERDA del campo en vez de arriba: la fila mide lo que el
+   * input (36 px) y no rótulo + input (64). Para líneas densas donde la altura
+   * importa — la Observación de cada línea del ingreso. El error y la
+   * descripción quedan debajo del input, alineados con él.
+   */
+  rotuloAlCostado?: boolean
   /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
   className?: string
 }
@@ -50,6 +57,7 @@ export function InputField<T extends FieldValues>({
   description,
   required = true,
   mayusculas,
+  rotuloAlCostado = false,
   className,
 }: InputFieldProps<T>) {
   const fieldId = id || `field-${name}`
@@ -64,7 +72,15 @@ export function InputField<T extends FieldValues>({
       render={({ field, fieldState }) => (
         <Field
           data-invalid={fieldState.invalid}
-          className={cn("gap-2", className)}
+          className={cn(
+            "gap-2",
+            // Grilla de dos columnas: rótulo a su ancho, input con el resto.
+            // `grid` pisa el `flex` del Field (twMerge), y lo que va debajo
+            // del input se corre a la segunda columna.
+            rotuloAlCostado &&
+              "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1",
+            className
+          )}
         >
           <FieldLabel htmlFor={fieldId}>
             {label}
@@ -88,9 +104,21 @@ export function InputField<T extends FieldValues>({
             }
           />
           {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p
+              className={cn(
+                "text-sm text-muted-foreground",
+                rotuloAlCostado && "col-start-2"
+              )}
+            >
+              {description}
+            </p>
           )}
-          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          {fieldState.invalid && (
+            <FieldError
+              errors={[fieldState.error]}
+              className={cn(rotuloAlCostado && "col-start-2")}
+            />
+          )}
         </Field>
       )}
     />

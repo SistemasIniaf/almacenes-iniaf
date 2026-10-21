@@ -23,20 +23,8 @@ export const ITEMS_IMAGE_SUBDIR = 'items';
 export const ITEMS_IMAGE_DIR = join(UPLOAD_ROOT, ITEMS_IMAGE_SUBDIR);
 
 /**
- * Subcarpeta de las fotos por LOTE (IngresoDetalle): <UPLOAD_ROOT>/lotes.
- *
- * Van separadas de las de items porque crecen distinto: la del item es una por
- * item y se saca una sola vez, la del lote es una por linea de cada ingreso y no
- * deja de acumularse (un lote agotado hace tres gestiones conserva su archivo).
- * Tenerlas aparte permite medirlas y, si algun dia hace falta, limpiarlas sin
- * tocar el catalogo.
- */
-export const LOTES_IMAGE_SUBDIR = 'lotes';
-export const LOTES_IMAGE_DIR = join(UPLOAD_ROOT, LOTES_IMAGE_SUBDIR);
-
-/**
  * Subcarpeta de los logos institucionales: <UPLOAD_ROOT>/logos. Cae dentro del
- * mismo volumen de produccion que las otras dos (se monta la raiz).
+ * mismo volumen de produccion que la de items (se monta la raiz).
  */
 export const LOGOS_IMAGE_SUBDIR = 'logos';
 export const LOGOS_IMAGE_DIR = join(UPLOAD_ROOT, LOGOS_IMAGE_SUBDIR);

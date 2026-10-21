@@ -56,7 +56,6 @@ export type IngresoDetalleMinAggregateOutputType = {
   precioUnitario: runtime.Decimal | null
   saldoCantidad: runtime.Decimal | null
   observacion: string | null
-  imagenUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -69,7 +68,6 @@ export type IngresoDetalleMaxAggregateOutputType = {
   precioUnitario: runtime.Decimal | null
   saldoCantidad: runtime.Decimal | null
   observacion: string | null
-  imagenUrl: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -82,7 +80,6 @@ export type IngresoDetalleCountAggregateOutputType = {
   precioUnitario: number
   saldoCantidad: number
   observacion: number
-  imagenUrl: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -115,7 +112,6 @@ export type IngresoDetalleMinAggregateInputType = {
   precioUnitario?: true
   saldoCantidad?: true
   observacion?: true
-  imagenUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -128,7 +124,6 @@ export type IngresoDetalleMaxAggregateInputType = {
   precioUnitario?: true
   saldoCantidad?: true
   observacion?: true
-  imagenUrl?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -141,7 +136,6 @@ export type IngresoDetalleCountAggregateInputType = {
   precioUnitario?: true
   saldoCantidad?: true
   observacion?: true
-  imagenUrl?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -241,7 +235,6 @@ export type IngresoDetalleGroupByOutputType = {
   precioUnitario: runtime.Decimal
   saldoCantidad: runtime.Decimal
   observacion: string | null
-  imagenUrl: string | null
   createdAt: Date
   updatedAt: Date
   _count: IngresoDetalleCountAggregateOutputType | null
@@ -277,7 +270,6 @@ export type IngresoDetalleWhereInput = {
   precioUnitario?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
-  imagenUrl?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
   ingreso?: Prisma.XOR<Prisma.IngresoScalarRelationFilter, Prisma.IngresoWhereInput>
@@ -294,7 +286,6 @@ export type IngresoDetalleOrderByWithRelationInput = {
   precioUnitario?: Prisma.SortOrder
   saldoCantidad?: Prisma.SortOrder
   observacion?: Prisma.SortOrderInput | Prisma.SortOrder
-  imagenUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   ingreso?: Prisma.IngresoOrderByWithRelationInput
@@ -314,7 +305,6 @@ export type IngresoDetalleWhereUniqueInput = Prisma.AtLeast<{
   precioUnitario?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
-  imagenUrl?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
   ingreso?: Prisma.XOR<Prisma.IngresoScalarRelationFilter, Prisma.IngresoWhereInput>
@@ -331,7 +321,6 @@ export type IngresoDetalleOrderByWithAggregationInput = {
   precioUnitario?: Prisma.SortOrder
   saldoCantidad?: Prisma.SortOrder
   observacion?: Prisma.SortOrderInput | Prisma.SortOrder
-  imagenUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.IngresoDetalleCountOrderByAggregateInput
@@ -352,7 +341,6 @@ export type IngresoDetalleScalarWhereWithAggregatesInput = {
   precioUnitario?: Prisma.DecimalWithAggregatesFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalWithAggregatesFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.StringNullableWithAggregatesFilter<"IngresoDetalle"> | string | null
-  imagenUrl?: Prisma.StringNullableWithAggregatesFilter<"IngresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"IngresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"IngresoDetalle"> | Date | string
 }
@@ -362,7 +350,6 @@ export type IngresoDetalleCreateInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
@@ -379,7 +366,6 @@ export type IngresoDetalleUncheckedCreateInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
@@ -391,7 +377,6 @@ export type IngresoDetalleUpdateInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -408,7 +393,6 @@ export type IngresoDetalleUncheckedUpdateInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
@@ -423,7 +407,6 @@ export type IngresoDetalleCreateManyInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -433,7 +416,6 @@ export type IngresoDetalleUpdateManyMutationInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -446,7 +428,6 @@ export type IngresoDetalleUncheckedUpdateManyInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -469,7 +450,6 @@ export type IngresoDetalleCountOrderByAggregateInput = {
   precioUnitario?: Prisma.SortOrder
   saldoCantidad?: Prisma.SortOrder
   observacion?: Prisma.SortOrder
-  imagenUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -491,7 +471,6 @@ export type IngresoDetalleMaxOrderByAggregateInput = {
   precioUnitario?: Prisma.SortOrder
   saldoCantidad?: Prisma.SortOrder
   observacion?: Prisma.SortOrder
-  imagenUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -504,7 +483,6 @@ export type IngresoDetalleMinOrderByAggregateInput = {
   precioUnitario?: Prisma.SortOrder
   saldoCantidad?: Prisma.SortOrder
   observacion?: Prisma.SortOrder
-  imagenUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -655,7 +633,6 @@ export type IngresoDetalleCreateWithoutItemInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
@@ -670,7 +647,6 @@ export type IngresoDetalleUncheckedCreateWithoutItemInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
@@ -714,7 +690,6 @@ export type IngresoDetalleScalarWhereInput = {
   precioUnitario?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFilter<"IngresoDetalle"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
-  imagenUrl?: Prisma.StringNullableFilter<"IngresoDetalle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"IngresoDetalle"> | Date | string
 }
@@ -724,7 +699,6 @@ export type IngresoDetalleCreateWithoutIngresoInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   item: Prisma.ItemCreateNestedOneWithoutIngresoDetallesInput
@@ -739,7 +713,6 @@ export type IngresoDetalleUncheckedCreateWithoutIngresoInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
@@ -777,7 +750,6 @@ export type IngresoDetalleCreateWithoutMovimientosInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
@@ -793,7 +765,6 @@ export type IngresoDetalleUncheckedCreateWithoutMovimientosInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   egresoDetalles?: Prisma.EgresoDetalleUncheckedCreateNestedManyWithoutIngresoDetalleInput
@@ -820,7 +791,6 @@ export type IngresoDetalleUpdateWithoutMovimientosInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -836,7 +806,6 @@ export type IngresoDetalleUncheckedUpdateWithoutMovimientosInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   egresoDetalles?: Prisma.EgresoDetalleUncheckedUpdateManyWithoutIngresoDetalleNestedInput
@@ -847,7 +816,6 @@ export type IngresoDetalleCreateWithoutEgresoDetallesInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   ingreso: Prisma.IngresoCreateNestedOneWithoutDetallesInput
@@ -863,7 +831,6 @@ export type IngresoDetalleUncheckedCreateWithoutEgresoDetallesInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoDetalleInput
@@ -890,7 +857,6 @@ export type IngresoDetalleUpdateWithoutEgresoDetallesInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -906,7 +872,6 @@ export type IngresoDetalleUncheckedUpdateWithoutEgresoDetallesInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
@@ -919,7 +884,6 @@ export type IngresoDetalleCreateManyItemInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -929,7 +893,6 @@ export type IngresoDetalleUpdateWithoutItemInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingreso?: Prisma.IngresoUpdateOneRequiredWithoutDetallesNestedInput
@@ -944,7 +907,6 @@ export type IngresoDetalleUncheckedUpdateWithoutItemInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
@@ -958,7 +920,6 @@ export type IngresoDetalleUncheckedUpdateManyWithoutItemInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -970,7 +931,6 @@ export type IngresoDetalleCreateManyIngresoInput = {
   precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: string | null
-  imagenUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -980,7 +940,6 @@ export type IngresoDetalleUpdateWithoutIngresoInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   item?: Prisma.ItemUpdateOneRequiredWithoutIngresoDetallesNestedInput
@@ -995,7 +954,6 @@ export type IngresoDetalleUncheckedUpdateWithoutIngresoInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleNestedInput
@@ -1009,7 +967,6 @@ export type IngresoDetalleUncheckedUpdateManyWithoutIngresoInput = {
   precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   saldoCantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  imagenUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1062,7 +1019,6 @@ export type IngresoDetalleSelect<ExtArgs extends runtime.Types.Extensions.Intern
   precioUnitario?: boolean
   saldoCantidad?: boolean
   observacion?: boolean
-  imagenUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
@@ -1080,7 +1036,6 @@ export type IngresoDetalleSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   precioUnitario?: boolean
   saldoCantidad?: boolean
   observacion?: boolean
-  imagenUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
@@ -1095,7 +1050,6 @@ export type IngresoDetalleSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   precioUnitario?: boolean
   saldoCantidad?: boolean
   observacion?: boolean
-  imagenUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
@@ -1110,12 +1064,11 @@ export type IngresoDetalleSelectScalar = {
   precioUnitario?: boolean
   saldoCantidad?: boolean
   observacion?: boolean
-  imagenUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type IngresoDetalleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ingresoId" | "itemId" | "cantidad" | "precioUnitario" | "saldoCantidad" | "observacion" | "imagenUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["ingresoDetalle"]>
+export type IngresoDetalleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ingresoId" | "itemId" | "cantidad" | "precioUnitario" | "saldoCantidad" | "observacion" | "createdAt" | "updatedAt", ExtArgs["result"]["ingresoDetalle"]>
 export type IngresoDetalleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ingreso?: boolean | Prisma.IngresoDefaultArgs<ExtArgs>
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
@@ -1157,19 +1110,6 @@ export type $IngresoDetallePayload<ExtArgs extends runtime.Types.Extensions.Inte
      * la descripcion del item entre parentesis: "BOTAS DE AGUA (COLOR NEGRO)".
      */
     observacion: string | null
-    /**
-     * Foto de ESTE lote (ruta publica relativa, ej. "/uploads/lotes/7-ab12cd34.webp").
-     * 
-     * OPCIONAL y con FALLBACK: donde se muestra el material vale
-     * `lote.imagenUrl ?? item.imagenUrl`. Las dos fotos responden preguntas
-     * distintas — la del Item es de CATALOGO ("que tipo de cosa es") y la del lote
-     * es de STOCK ("que hay exactamente en esta compra"). El egreso hace la
-     * segunda: si el catalogo tiene botas negras y esta compra trajo azules, la
-     * foto del item desinforma. Por eso se puede pisar por lote, sin obligar:
-     * para la mayoria de los items (papel, boligrafos) todos los lotes se ven
-     * igual y la del catalogo alcanza.
-     */
-    imagenUrl: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["ingresoDetalle"]>
@@ -1606,7 +1546,6 @@ export interface IngresoDetalleFieldRefs {
   readonly precioUnitario: Prisma.FieldRef<"IngresoDetalle", 'Decimal'>
   readonly saldoCantidad: Prisma.FieldRef<"IngresoDetalle", 'Decimal'>
   readonly observacion: Prisma.FieldRef<"IngresoDetalle", 'String'>
-  readonly imagenUrl: Prisma.FieldRef<"IngresoDetalle", 'String'>
   readonly createdAt: Prisma.FieldRef<"IngresoDetalle", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"IngresoDetalle", 'DateTime'>
 }

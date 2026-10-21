@@ -13,13 +13,11 @@ import {
 } from './uploads.config';
 
 /**
- * Procesado y escritura de las imagenes subidas, compartido por los dos lugares
- * que las aceptan: la foto de CATALOGO del Item y la del LOTE (IngresoDetalle).
+ * Procesado y escritura de las imagenes subidas: la foto de CATALOGO del Item
+ * (WebP) y los logos institucionales (PNG, ver `guardarLogo`).
  *
- * Vive aca y no en un service porque el pipeline tiene que ser identico en los
- * dos: si el tamano o la calidad se tocan en un solo lado, dos fotos que el
- * usuario ve una al lado de la otra —la del item y la del lote que la pisa—
- * saldrian con distinto peso y nitidez.
+ * La foto por LOTE (IngresoDetalle) que tambien pasaba por aca se elimino el
+ * 2026-10-20: la institucion decidio que solo el item lleva foto.
  */
 
 /**

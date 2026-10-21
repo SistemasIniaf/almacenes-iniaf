@@ -28,9 +28,8 @@ export function useNotaIngreso() {
       const completo =
         typeof ingreso === "number" ? await obtenerIngreso(ingreso) : ingreso
       // pdfmake se carga sólo acá: no pesa en el bundle de quien no imprime.
-      const { crearNotaIngresoPdf, nombreArchivo } = await import(
-        "@/features/ingresos/lib/nota-ingreso-pdf"
-      )
+      const { crearNotaIngresoPdf, nombreArchivo } =
+        await import("@/features/ingresos/lib/nota-ingreso-pdf")
       const documento = await crearNotaIngresoPdf(completo)
       await mostrarPdf(ventana, documento, nombreArchivo(completo))
     } catch (error) {

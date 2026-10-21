@@ -1,17 +1,27 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 /**
  * Campos opcionales (definido explicito, no con PartialType — ver CLAUDE.md).
- * No se puede cambiar `codigo` (autogenerado) ni `partidaId`: el codigo deriva de
- * la partida, mover el item a otra partida dejaria un codigo inconsistente.
+ * El `codigo` no se edita: lo genera el sistema. `partidaId` y `unidadMedida`
+ * solo se aceptan mientras el item no tenga movimientos (lo valida el service);
+ * cambiar la partida le asigna un codigo nuevo en la partida destino.
  */
 export class UpdateItemDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  partidaId?: number;
+
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'La descripcion no puede estar vacia' })

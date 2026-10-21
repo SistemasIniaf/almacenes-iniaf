@@ -80,7 +80,7 @@ export function useBuscarLotes(termino: string) {
               itemDescripcion: item.descripcion,
               observacion: lote.observacion,
               unidadMedida: item.unidadMedida,
-              imagen: urlArchivo(lote.imagenUrl ?? item.imagenUrl),
+              imagen: urlArchivo(item.imagenUrl),
               fuente: lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
               numeroIngreso: numeroDocumento(lote.ingreso),
               disponible: lote.disponible,

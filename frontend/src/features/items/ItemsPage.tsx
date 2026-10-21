@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { ImageOff, Pencil, Plus, PowerOff, Search } from "lucide-react"
 
+import { AvisoImagenReferencial } from "@/components/data/AvisoImagenReferencial"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +13,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { BadgeEstado } from "@/components/data/BadgeEstado"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -42,6 +50,64 @@ import { usePagination } from "@/hooks/use-pagination"
 import { urlArchivo } from "@/lib/files"
 
 import type { Item } from "@/features/items/items.types"
+
+/**
+ * Miniatura de la tabla, **ampliable al hacer clic**. Muestra la imagen ENTERA
+ * (`object-contain` sobre blanco), no recortada: los ítems suelen ser largos
+ * o angostos —un bolígrafo— y recortados al cuadrado quedaban en una raya.
+ * Mismo patrón que la foto del selector de lotes del egreso.
+ */
+function MiniaturaItem({ item }: { item: Item }) {
+  const [ampliada, setAmpliada] = useState(false)
+  const src = urlArchivo(item.imagenUrl)
+
+  if (!src) {
+    return (
+      <div className="flex size-12 items-center justify-center rounded border bg-muted">
+        <ImageOff className="size-4 text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAmpliada(true)}
+        className="flex size-12 cursor-zoom-in items-center justify-center overflow-hidden rounded border bg-white p-0.5 transition-opacity hover:opacity-80"
+        aria-label={`Ver imagen de ${item.descripcion}`}
+        title="Ver imagen"
+      >
+        <img
+          src={src}
+          alt={item.descripcion}
+          className="max-h-full max-w-full object-contain"
+          loading="lazy"
+        />
+      </button>
+
+      <Dialog open={ampliada} onOpenChange={setAmpliada}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{item.descripcion}</DialogTitle>
+            <DialogDescription>
+              {item.codigo} · {item.partida.denominacion} · {item.unidadMedida}
+            </DialogDescription>
+          </DialogHeader>
+          {/* Fondo blanco fijo: la foto se ve igual en los dos temas. */}
+          <div className="flex justify-center rounded border bg-white p-2">
+            <img
+              src={src}
+              alt={item.descripcion}
+              className="max-h-[70vh] w-auto max-w-full object-contain"
+            />
+          </div>
+          <AvisoImagenReferencial />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
 type FiltroEstado = "todos" | "activos" | "inactivos"
 
@@ -200,22 +266,10 @@ export function ItemsPage() {
 
             {!isError &&
               items.map((item) => {
-                const src = urlArchivo(item.imagenUrl)
                 return (
                   <TableRow key={item.id}>
                     <TableCell>
-                      <div className="flex size-10 items-center justify-center overflow-hidden rounded border bg-muted">
-                        {src ? (
-                          <img
-                            src={src}
-                            alt={item.descripcion}
-                            className="size-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <ImageOff className="size-4 text-muted-foreground" />
-                        )}
-                      </div>
+                      <MiniaturaItem item={item} />
                     </TableCell>
                     <TableCell>
                       <code className="font-mono text-sm">{item.codigo}</code>

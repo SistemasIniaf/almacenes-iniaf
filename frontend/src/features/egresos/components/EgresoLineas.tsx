@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useFieldArray, useFormState, useWatch } from "react-hook-form"
 import { ImageOff, Plus, X } from "lucide-react"
 
+import { AvisoImagenReferencial } from "@/components/data/AvisoImagenReferencial"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,11 +15,7 @@ import { FieldLabel } from "@/components/ui/field"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { NumberField } from "@/components/form/NumberField"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
-import {
-  BOTON_AGREGAR_LINEA,
-  BOTON_AGREGAR_LINEA_ERROR,
-  cn,
-} from "@/lib/utils"
+import { BOTON_AGREGAR_LINEA, BOTON_AGREGAR_LINEA_ERROR, cn } from "@/lib/utils"
 import {
   ITEMS_POR_BUSQUEDA,
   useBuscarLotes,
@@ -55,8 +52,7 @@ interface EgresoLineasProps {
  * (2026-08-07). Antes iba entre paréntesis dentro del `label`, en el mismo tono
  * que el resto, y se leía como parte del nombre del ítem — o sea que no cumplía
  * su única función, que es avisar que ESTE lote no es el otro. Es lo único que
- * los distingue: comparten código, descripción y, salvo que les hayan sacado
- * foto propia, también la imagen.
+ * los distingue: comparten código, descripción y foto (la del ítem).
  *
  * El disponible se corre a `descripcion` (gris) para dejarle el tono fuerte a lo
  * que identifica al lote. No se pierde nada: el dato contra el que se escribe la
@@ -131,6 +127,7 @@ function FotoLote({ lote }: { lote?: LoteElegible }) {
             alt={lote.itemDescripcion}
             className="max-h-[60vh] w-full rounded object-contain"
           />
+          <AvisoImagenReferencial />
         </DialogContent>
       </Dialog>
     </>
@@ -244,7 +241,10 @@ export function EgresoLineas({
           // `bg-card`: la sección va sobre un panel tintado, así que cada línea
           // necesita superficie propia para leerse como una ficha. Igual que en
           // `IngresoLineas`.
-          <div key={field.id} className="relative rounded-md border bg-card p-3">
+          <div
+            key={field.id}
+            className="relative rounded-md border bg-card p-3"
+          >
             {/* Quitar la línea va en la esquina de la tarjeta, no en la fila de
                 campos: así no gasta una columna del grid —se la queda el selector
                 de lote, que es el que más texto necesita— ni participa de la

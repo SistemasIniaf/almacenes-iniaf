@@ -13,9 +13,12 @@ import type {
 export async function listarIngresos(
   query: QueryIngresos
 ): Promise<PaginatedResult<IngresoListItem>> {
-  const { data } = await api.get<PaginatedResult<IngresoListItem>>("/ingresos", {
-    params: query,
-  })
+  const { data } = await api.get<PaginatedResult<IngresoListItem>>(
+    "/ingresos",
+    {
+      params: query,
+    }
+  )
   return data
 }
 
@@ -60,40 +63,5 @@ export async function anularIngreso(
   motivo: string
 ): Promise<Ingreso> {
   const { data } = await api.post<Ingreso>(`/ingresos/${id}/anular`, { motivo })
-  return data
-}
-
-/**
- * Sube (o reemplaza) la foto de UN lote. El campo multipart se llama `imagen`.
- * No se fija el Content-Type: axios lo arma con el boundary correcto al detectar
- * un FormData (ver el comentario en `lib/api.ts`).
- *
- * Funciona con el ingreso ya confirmado, a diferencia del resto de la línea: la
- * foto no mueve saldo ni correlativo, así que el almacén puede registrar el
- * ingreso apenas llega el material y cargar las fotos después.
- */
-export async function subirImagenLote(
-  ingresoId: number,
-  detalleId: number,
-  archivo: File
-): Promise<Ingreso> {
-  const formData = new FormData()
-  formData.append("imagen", archivo)
-
-  const { data } = await api.post<Ingreso>(
-    `/ingresos/${ingresoId}/detalles/${detalleId}/imagen`,
-    formData
-  )
-  return data
-}
-
-/** Quita la foto del lote: vuelve a regir la del catálogo del ítem. */
-export async function quitarImagenLote(
-  ingresoId: number,
-  detalleId: number
-): Promise<Ingreso> {
-  const { data } = await api.delete<Ingreso>(
-    `/ingresos/${ingresoId}/detalles/${detalleId}/imagen`
-  )
   return data
 }
