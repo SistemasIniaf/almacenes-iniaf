@@ -211,9 +211,9 @@ export function UsuariosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Usuario</TableHead>
+              <TableHead>Usuario / Rol</TableHead>
               <TableHead>Nombre y cargo</TableHead>
-              <TableHead>Rol / Almacén</TableHead>
+              <TableHead>Almacén</TableHead>
               <TableHead>Estado</TableHead>
               {puedeEscribir && (
                 <TableHead className="text-right">Acciones</TableHead>
@@ -270,8 +270,16 @@ export function UsuariosPage() {
                   esPropia || !user || puedeGestionarRol(user.rol, usuario.rol)
                 return (
                   <TableRow key={usuario.id}>
-                    <TableCell className="font-medium">
-                      {usuario.usuario}
+                    <TableCell>
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="font-medium">{usuario.usuario}</span>
+                        <Badge
+                          variant="outline"
+                          className={ROL_BADGE_CLASS[usuario.rol]}
+                        >
+                          {ROL_LABEL[usuario.rol]}
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
@@ -284,20 +292,14 @@ export function UsuariosPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col items-start gap-1">
-                        <Badge
-                          variant="outline"
-                          className={ROL_BADGE_CLASS[usuario.rol]}
-                        >
-                          {ROL_LABEL[usuario.rol]}
-                        </Badge>
-                        {describirAlmacen(usuario) && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Warehouse className="size-3 shrink-0" />
-                            {describirAlmacen(usuario)}
-                          </span>
-                        )}
-                      </div>
+                      {describirAlmacen(usuario) ? (
+                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Warehouse className="size-3.5 shrink-0" />
+                          {describirAlmacen(usuario)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <BadgeEstado tono={usuario.activo ? "ok" : "alto"}>
