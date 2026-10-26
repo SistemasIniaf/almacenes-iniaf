@@ -74,10 +74,12 @@ import {
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
 import {
+  describirPaso,
   descripcionConNota,
   ESTADO_LABEL,
   ESTADO_PUNTO,
   etiquetaNumero,
+  rechazoVigente,
 } from "@/features/egresos/egresos.types"
 
 import type { FieldErrors } from "react-hook-form"
@@ -190,6 +192,7 @@ export function EgresoFormPage() {
 
   const estado = egreso?.estado
   const esPropio = egreso?.solicitante.id === user?.id
+  const rechazo = egreso ? rechazoVigente(egreso) : null
   // El borrador es lo único editable, y solo por su dueño. Enviado, el pedido
   // ya es problema de otro.
   const editable = esNuevo || (estado === "BORRADOR" && esPropio)
@@ -400,14 +403,16 @@ export function EgresoFormPage() {
             </Button>
           )}
 
-          {/* Solo ENTREGADO (o ANULADO, que siempre viene despues de entregado
-              — ver la maquina de estados) — pedido del usuario, 2026-10-13:
+          {/* Solo si hubo entrega (`fechaEntrega`): ENTREGADO, o ANULADO
+              después de entregado. Se mira la fecha y no el estado porque un
+              devuelto desistido también queda ANULADO sin haber salido nada
+              del almacén. Pedido del usuario, 2026-10-13:
               mientras está pendiente de aprobación o de entrega no hay nada
               que imprimir todavía, solo lo hay una vez que el material
               efectivamente salió del almacén. */}
           {!entregando &&
             egreso &&
-            (estado === "ENTREGADO" || estado === "ANULADO") &&
+            egreso.fechaEntrega != null &&
             puedeImprimir && (
               <Button
                 variant="outline"
@@ -499,6 +504,33 @@ export function EgresoFormPage() {
           )}
         </div>
       </div>
+
+      {/* El motivo del rechazo es lo único que le dice al solicitante qué
+          corregir: va a la vista, no escondido en el historial. */}
+      {rechazo && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+          <span className="font-medium">
+            Devuelto por el {describirPaso(rechazo).actor.toLowerCase()} (
+            {rechazo.usuario.nombre}) el{" "}
+            {new Date(rechazo.createdAt).toLocaleString("es-BO", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+            :
+          </span>{" "}
+          {rechazo.motivo}
+          {esPropio && (
+            <p className="mt-1 text-muted-foreground">
+              Corregí el pedido y volvé a enviarlo: arranca otra vez desde el
+              aprobador de unidad. El stock queda reservado 48 h desde el
+              rechazo.
+            </p>
+          )}
+        </div>
+      )}
 
       {estado === "ANULADO" && egreso?.motivoAnulacion && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">

@@ -71,6 +71,8 @@ import {
   ESTADOS_CON_MOVIMIENTO,
   ESTADO_LABEL,
   ESTADO_PUNTO,
+  etiquetaNumero,
+  fueDevuelto,
 } from "@/features/egresos/egresos.types"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { getApiErrorMessage } from "@/lib/api"
@@ -503,9 +505,16 @@ export function EgresosPage() {
                     {egreso._count.detalles}
                   </TableCell>
                   <TableCell>
-                    <BadgeEstado tono={ESTADO_PUNTO[egreso.estado]}>
-                      {ESTADO_LABEL[egreso.estado]}
-                    </BadgeEstado>
+                    {/* Un devuelto está en BORRADOR igual que uno nunca
+                        enviado, pero no es lo mismo: tiene un rechazo que
+                        atender. Punto rojo, como el rechazo en el historial. */}
+                    {fueDevuelto(egreso) ? (
+                      <BadgeEstado tono="alto">Devuelto</BadgeEstado>
+                    ) : (
+                      <BadgeEstado tono={ESTADO_PUNTO[egreso.estado]}>
+                        {ESTADO_LABEL[egreso.estado]}
+                      </BadgeEstado>
+                    )}
                   </TableCell>
                   <TableCell
                     className="text-right whitespace-nowrap"
@@ -529,9 +538,11 @@ export function EgresosPage() {
                         />
                       </>
                     )}
+                    {/* Solo si salió del almacén: ENTREGADO, o ANULADO después
+                        de entregado. Un devuelto desistido también queda
+                        ANULADO y no tiene nada que imprimir. */}
                     {puedeImprimir &&
-                      (egreso.estado === "ENTREGADO" ||
-                        egreso.estado === "ANULADO") && (
+                      egreso.fechaEntrega != null && (
                         <IconAction
                           icono={generandoId === egreso.id ? Loader2 : FileText}
                           etiqueta="Ver la solicitud en PDF"
@@ -599,12 +610,29 @@ export function EgresosPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Descartar el pedido?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se elimina y libera el stock que tenía reservado. A diferencia del
-              resto del sistema, un pedido sin enviar sí se borra: todavía no es
-              un documento ni movió existencias.
-            </AlertDialogDescription>
+            {/* Un devuelto ya es un documento con número e historial: no se
+                borra, queda anulado (ver `remove` en el backend). */}
+            {aDescartar && fueDevuelto(aDescartar) ? (
+              <>
+                <AlertDialogTitle>
+                  ¿Desistir del pedido {etiquetaNumero(aDescartar)}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  El pedido ya tiene número, así que no se borra: queda anulado
+                  como «desistido por el solicitante», con su historial, y libera
+                  el stock que tenía reservado. No se puede deshacer.
+                </AlertDialogDescription>
+              </>
+            ) : (
+              <>
+                <AlertDialogTitle>¿Descartar el pedido?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se elimina y libera el stock que tenía reservado. A diferencia
+                  del resto del sistema, un pedido sin enviar sí se borra:
+                  todavía no es un documento ni movió existencias.
+                </AlertDialogDescription>
+              </>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={descartar.isPending}>
@@ -622,7 +650,7 @@ export function EgresosPage() {
                   .catch(() => undefined)
               }}
             >
-              Descartar
+              {aDescartar && fueDevuelto(aDescartar) ? "Desistir" : "Descartar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

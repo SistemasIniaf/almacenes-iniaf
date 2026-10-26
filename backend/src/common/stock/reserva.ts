@@ -39,7 +39,9 @@ export function egresoReservaWhere(ahora: Date = new Date()) {
           ],
         },
       },
-      { estado: EstadoEgreso.BORRADOR, createdAt: { gt: limite } },
+      // `reservaDesde` y no `createdAt`: el rechazo devuelve el pedido a
+      // BORRADOR y reinicia la ventana (ver `EgresosService.rechazar`).
+      { estado: EstadoEgreso.BORRADOR, reservaDesde: { gt: limite } },
     ],
   };
 }

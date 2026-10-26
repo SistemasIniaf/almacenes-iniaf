@@ -118,9 +118,13 @@ export function useDescartarEgreso() {
   const invalidar = useInvalidarEgresos()
   return useMutation({
     mutationFn: (id: number) => descartarEgreso(id),
-    onSuccess: () => {
+    onSuccess: (resultado) => {
       invalidar()
-      toast.success("Pedido descartado")
+      toast.success(
+        resultado.anulado
+          ? "Desististe del pedido: quedó anulado con su historial"
+          : "Pedido descartado"
+      )
     },
     onError: (error) => toast.error(getApiErrorMessage(error)),
   })

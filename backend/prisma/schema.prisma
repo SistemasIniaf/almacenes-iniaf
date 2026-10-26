@@ -492,6 +492,13 @@ model Egreso {
   fechaEnvio   DateTime? @map("fecha_envio")
   fechaEntrega DateTime? @map("fecha_entrega")
 
+  /// Desde cuando corre la reserva de 48 h de un BORRADOR. Arranca al crear y
+  /// se REINICIA al rechazar: el solicitante tiene que tener el mismo plazo
+  /// para corregir un pedido devuelto que para enviar uno nuevo. Con
+  /// `createdAt` un pedido creado hace dias perdia la reserva en el instante
+  /// en que se lo rechazaban. Ver `common/stock/reserva.ts`.
+  reservaDesde DateTime @default(now()) @map("reserva_desde")
+
   /// Quien entrego (responsable del almacen).
   entregadoPorId Int?     @map("entregado_por_id")
   entregadoPor   Usuario? @relation("EgresoEntregadoPor", fields: [entregadoPorId], references: [id])

@@ -1910,6 +1910,7 @@ export const EgresoScalarFieldEnum = {
   justificacion: 'justificacion',
   fechaEnvio: 'fechaEnvio',
   fechaEntrega: 'fechaEntrega',
+  reservaDesde: 'reservaDesde',
   entregadoPorId: 'entregadoPorId',
   anuladoPorId: 'anuladoPorId',
   anuladoEn: 'anuladoEn',

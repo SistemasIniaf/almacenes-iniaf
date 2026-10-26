@@ -152,6 +152,14 @@ const ESTADOS_EN_CURSO = [
 const ESTADOS_CERRADOS = [EstadoEgreso.ENTREGADO, EstadoEgreso.ANULADO];
 
 /**
+ * Motivo con el que queda ANULADO un pedido rechazado que el solicitante
+ * descarta en vez de corregir (ver `remove`). Fijo: no es una decision de
+ * auditoria como la anulacion de una entrega, y el motivo del RECHAZO ya quedo
+ * en el historial.
+ */
+const MOTIVO_DESISTIMIENTO = 'DESISTIDO POR EL SOLICITANTE';
+
+/**
  * Roles con bandeja propia: los que tienen algo esperando una accion SUYA.
  * `admin`, `super_admin` y `observador_almacen` no la tienen — ven todo, pero
  * nada les espera a ellos.
@@ -416,15 +424,45 @@ export class EgresosService {
   }
 
   /**
-   * Descarta un borrador. Se borra de verdad, a diferencia de un ingreso o de un
-   * egreso ya enviado: un borrador todavia NO es un documento (no tiene numero) y
-   * no toco stock. Dejarlo como "anulado" solo ensuciaria el listado y seguiria
-   * apareciendo en el historial de nadie.
+   * Descarta un borrador. Depende de si alguna vez se envio:
+   *
+   * - **Nunca enviado** (sin numero): se borra de verdad. Todavia no es un
+   *   documento y no toco stock; dejarlo como "anulado" solo ensuciaria el
+   *   listado.
+   * - **Rechazado** (volvio a BORRADOR con su numero): NO se borra. Ya es un
+   *   documento con serie y tiene historial —quien lo aprobo, quien lo rechazo y
+   *   por que—; borrarlo dejaria un hueco en el correlativo del almacen y se
+   *   perderia una trazabilidad que el sistema promete no borrar nunca. Queda
+   *   ANULADO con el motivo del desistimiento. No hay stock que revertir: nunca
+   *   se entrego, y salir de BORRADOR ya libera la reserva.
    */
   async remove(id: number, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.BORRADOR);
     this.exigirSolicitante(egreso.solicitanteId, user);
+
+    if (egreso.numero != null) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.egreso.update({
+          where: { id },
+          data: {
+            estado: EstadoEgreso.ANULADO,
+            anuladoPorId: user.id,
+            anuladoEn: new Date(),
+            motivoAnulacion: MOTIVO_DESISTIMIENTO,
+          },
+        });
+        await this.registrarHistorial(
+          tx,
+          id,
+          EstadoEgreso.BORRADOR,
+          EstadoEgreso.ANULADO,
+          user,
+          MOTIVO_DESISTIMIENTO,
+        );
+      });
+      return { id, eliminado: false, anulado: true };
+    }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.egresoHistorial.deleteMany({ where: { egresoId: id } });
@@ -432,7 +470,7 @@ export class EgresosService {
       await tx.egreso.delete({ where: { id } });
     });
 
-    return { id, eliminado: true };
+    return { id, eliminado: true, anulado: false };
   }
 
   // ---------------------------------------------------------------------------
@@ -533,8 +571,11 @@ export class EgresosService {
    * nunca al nivel anterior. El motivo es obligatorio: es lo unico que le dice
    * al solicitante que corregir.
    *
-   * El rechazo no es un estado — queda en el historial. Y libera la reserva sin
-   * hacer nada: al volver a BORRADOR arranca de nuevo la ventana de 48 h.
+   * El rechazo no es un estado — queda en el historial. Al volver a BORRADOR
+   * se reinicia `reservaDesde`: el solicitante tiene 48 h desde AHORA para
+   * corregir y reenviar, con el stock todavia reservado. Contarlas desde la
+   * creacion le quitaba la reserva en el instante del rechazo a cualquier
+   * pedido de mas de dos dias.
    */
   async rechazar(id: number, dto: MotivoDto, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
@@ -560,7 +601,7 @@ export class EgresosService {
     await this.prisma.$transaction(async (tx) => {
       await tx.egreso.update({
         where: { id },
-        data: { estado: EstadoEgreso.BORRADOR },
+        data: { estado: EstadoEgreso.BORRADOR, reservaDesde: new Date() },
       });
       await this.registrarHistorial(
         tx,
@@ -813,6 +854,7 @@ export class EgresosService {
         almacenId: true,
         unidadId: true,
         solicitanteId: true,
+        numero: true,
         gestion: true,
       },
     });

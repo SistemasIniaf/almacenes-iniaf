@@ -97,6 +97,16 @@ export function describirPaso(paso: {
   }
 
   if (a === "ANULADO") {
+    // Un pedido RECHAZADO que el solicitante descartó en vez de corregir: ya
+    // tenía número, así que no se borra (ver `remove` en el backend).
+    if (de === "BORRADOR") {
+      return {
+        accion: "Desistió del pedido",
+        consecuencia: "queda anulado, sin haber movido stock",
+        verbo: "Desistió",
+        actor: "Solicitante",
+      }
+    }
     return de === "ENTREGADO"
       ? {
           accion: "Anuló la entrega",
@@ -201,6 +211,32 @@ export function descripcionConNota(
   observacion: string | null
 ) {
   return observacion ? `${descripcion} (${observacion})` : descripcion
+}
+
+/**
+ * Un BORRADOR con número es un pedido DEVUELTO: el número se estampa al enviar
+ * y el rechazo lo conserva, así que es la única forma de estar en BORRADOR con
+ * él. Sirve para el listado, que no trae el historial.
+ */
+export function fueDevuelto(egreso: {
+  estado: EstadoEgreso
+  numero: number | null
+}) {
+  return egreso.estado === "BORRADOR" && egreso.numero != null
+}
+
+/**
+ * El rechazo que dejó el pedido en BORRADOR, o `null` si no está devuelto. Es
+ * el último paso del historial: mientras sigue en BORRADOR no pudo pasar nada
+ * después (editar no deja renglón).
+ */
+export function rechazoVigente(egreso: {
+  estado: EstadoEgreso
+  historial: EgresoHistorial[]
+}): EgresoHistorial | null {
+  if (egreso.estado !== "BORRADOR") return null
+  const ultimo = egreso.historial.at(-1)
+  return ultimo && ultimo.estadoAnterior !== null ? ultimo : null
 }
 
 export interface EgresoDetalle {

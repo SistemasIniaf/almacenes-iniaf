@@ -912,7 +912,10 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   reservado`, y `reservado` se deriva de las líneas cuyo egreso está pendiente **o** en un borrador de
   menos de `HORAS_RESERVA_BORRADOR` (48). El vencimiento es una condición del `where`: **no hay cron**
   — uno que falle dejaría stock reservado que nadie puede liberar. Si hay que subirlo a 72 h, es esa
-  constante.
+  constante. **Las 48 h corren desde `Egreso.reservaDesde`, NO desde `createdAt`** (2026-10-26,
+  migración `20261026120000_egreso_reserva_desde`): se estampa al crear y **se reinicia al
+  rechazar**. Con `createdAt`, un pedido de más de dos días perdía la reserva en el instante del
+  rechazo y otro podía llevarse el saldo mientras el solicitante lo corregía.
 - **El descuento al entregar es un UPDATE condicional** (`saldoCantidad >= cantidad` + `decrement`),
   no un leer-y-escribir: la base garantiza que el saldo no quede negativo. Además, `bloquearLotes()`
   hace `SELECT … FOR UPDATE` (SQL crudo; Prisma no lo expresa) al crear/editar/enviar, para que dos
@@ -923,10 +926,16 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
 - **El `solicitador` ahora lee `stock`** (`stock.controller` + `almacenesPermitidos`): su pedido
   apunta a un lote, así que necesita ver cuáles hay y con cuánto disponible. Está en el helper de
   scope y no solo en el `@Roles` — si no, abrirle el endpoint le mostraría los otros ocho almacenes.
-- **Descartar un borrador lo BORRA de verdad**, a diferencia de todo lo demás: todavía no es un
-  documento (no tiene número) ni tocó stock.
+- **Descartar un borrador NUNCA ENVIADO lo BORRA de verdad**, a diferencia de todo lo demás:
+  todavía no es un documento (no tiene número) ni tocó stock. **Un DEVUELTO (rechazado) no se
+  borra** (2026-10-26): ya tiene número e historial, así que `remove()` lo deja `ANULADO` con
+  motivo «DESISTIDO POR EL SOLICITANTE» — borrarlo dejaba un hueco en el correlativo y perdía quién
+  aprobó y quién rechazó. No revierte stock (nunca se entregó). Por eso un ANULADO ya **no implica
+  entregado**: el PDF de la solicitud se ofrece por `fechaEntrega != null`, no por el estado.
 - El **número se estampa al enviar** y **el rechazo lo conserva** (el pedido rechazado vuelve a
-  BORRADOR pero ya es un documento con serie).
+  BORRADOR pero ya es un documento con serie). **BORRADOR + número = devuelto**: el listado lo
+  muestra con el badge «Devuelto» (`fueDevuelto()`) y la ficha, un aviso con quién lo rechazó,
+  cuándo y el motivo (`rechazoVigente()`), sin tener que abrir el historial.
 
 Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`, `pages/`):
 - **Una sola página para todo el ciclo**: `EgresoFormPage` es formulario editable si el pedido es un

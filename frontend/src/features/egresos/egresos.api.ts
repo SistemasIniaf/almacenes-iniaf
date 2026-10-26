@@ -75,11 +75,15 @@ export async function actualizarEgreso(
 }
 
 /**
- * Descarta un borrador. Se borra de verdad, a diferencia de todo lo demás del
- * sistema: todavía no es un documento (no tiene número) ni tocó stock.
+ * Descarta un borrador. Si nunca se envió se borra de verdad (todavía no es un
+ * documento); si es un devuelto —ya tiene número— el backend lo deja ANULADO
+ * como desistido, y `anulado` viene en `true`.
  */
-export async function descartarEgreso(id: number): Promise<void> {
-  await api.delete(`/egresos/${id}`)
+export async function descartarEgreso(
+  id: number
+): Promise<{ id: number; eliminado: boolean; anulado: boolean }> {
+  const { data } = await api.delete(`/egresos/${id}`)
+  return data
 }
 
 /** Lo manda al aprobador de unidad. Acá el backend estampa el correlativo. */

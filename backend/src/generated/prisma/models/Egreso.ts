@@ -69,6 +69,7 @@ export type EgresoMinAggregateOutputType = {
   justificacion: string | null
   fechaEnvio: Date | null
   fechaEntrega: Date | null
+  reservaDesde: Date | null
   entregadoPorId: number | null
   anuladoPorId: number | null
   anuladoEn: Date | null
@@ -88,6 +89,7 @@ export type EgresoMaxAggregateOutputType = {
   justificacion: string | null
   fechaEnvio: Date | null
   fechaEntrega: Date | null
+  reservaDesde: Date | null
   entregadoPorId: number | null
   anuladoPorId: number | null
   anuladoEn: Date | null
@@ -107,6 +109,7 @@ export type EgresoCountAggregateOutputType = {
   justificacion: number
   fechaEnvio: number
   fechaEntrega: number
+  reservaDesde: number
   entregadoPorId: number
   anuladoPorId: number
   anuladoEn: number
@@ -150,6 +153,7 @@ export type EgresoMinAggregateInputType = {
   justificacion?: true
   fechaEnvio?: true
   fechaEntrega?: true
+  reservaDesde?: true
   entregadoPorId?: true
   anuladoPorId?: true
   anuladoEn?: true
@@ -169,6 +173,7 @@ export type EgresoMaxAggregateInputType = {
   justificacion?: true
   fechaEnvio?: true
   fechaEntrega?: true
+  reservaDesde?: true
   entregadoPorId?: true
   anuladoPorId?: true
   anuladoEn?: true
@@ -188,6 +193,7 @@ export type EgresoCountAggregateInputType = {
   justificacion?: true
   fechaEnvio?: true
   fechaEntrega?: true
+  reservaDesde?: true
   entregadoPorId?: true
   anuladoPorId?: true
   anuladoEn?: true
@@ -294,6 +300,7 @@ export type EgresoGroupByOutputType = {
   justificacion: string
   fechaEnvio: Date | null
   fechaEntrega: Date | null
+  reservaDesde: Date
   entregadoPorId: number | null
   anuladoPorId: number | null
   anuladoEn: Date | null
@@ -336,6 +343,7 @@ export type EgresoWhereInput = {
   justificacion?: Prisma.StringFilter<"Egreso"> | string
   fechaEnvio?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
   fechaEntrega?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
+  reservaDesde?: Prisma.DateTimeFilter<"Egreso"> | Date | string
   entregadoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoEn?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
@@ -363,6 +371,7 @@ export type EgresoOrderByWithRelationInput = {
   justificacion?: Prisma.SortOrder
   fechaEnvio?: Prisma.SortOrderInput | Prisma.SortOrder
   fechaEntrega?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservaDesde?: Prisma.SortOrder
   entregadoPorId?: Prisma.SortOrderInput | Prisma.SortOrder
   anuladoPorId?: Prisma.SortOrderInput | Prisma.SortOrder
   anuladoEn?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -394,6 +403,7 @@ export type EgresoWhereUniqueInput = Prisma.AtLeast<{
   justificacion?: Prisma.StringFilter<"Egreso"> | string
   fechaEnvio?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
   fechaEntrega?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
+  reservaDesde?: Prisma.DateTimeFilter<"Egreso"> | Date | string
   entregadoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoEn?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
@@ -421,6 +431,7 @@ export type EgresoOrderByWithAggregationInput = {
   justificacion?: Prisma.SortOrder
   fechaEnvio?: Prisma.SortOrderInput | Prisma.SortOrder
   fechaEntrega?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservaDesde?: Prisma.SortOrder
   entregadoPorId?: Prisma.SortOrderInput | Prisma.SortOrder
   anuladoPorId?: Prisma.SortOrderInput | Prisma.SortOrder
   anuladoEn?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -448,6 +459,7 @@ export type EgresoScalarWhereWithAggregatesInput = {
   justificacion?: Prisma.StringWithAggregatesFilter<"Egreso"> | string
   fechaEnvio?: Prisma.DateTimeNullableWithAggregatesFilter<"Egreso"> | Date | string | null
   fechaEntrega?: Prisma.DateTimeNullableWithAggregatesFilter<"Egreso"> | Date | string | null
+  reservaDesde?: Prisma.DateTimeWithAggregatesFilter<"Egreso"> | Date | string
   entregadoPorId?: Prisma.IntNullableWithAggregatesFilter<"Egreso"> | number | null
   anuladoPorId?: Prisma.IntNullableWithAggregatesFilter<"Egreso"> | number | null
   anuladoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"Egreso"> | Date | string | null
@@ -463,6 +475,7 @@ export type EgresoCreateInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -488,6 +501,7 @@ export type EgresoUncheckedCreateInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -506,6 +520,7 @@ export type EgresoUpdateInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -531,6 +546,7 @@ export type EgresoUncheckedUpdateInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -553,6 +569,7 @@ export type EgresoCreateManyInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -568,6 +585,7 @@ export type EgresoUpdateManyMutationInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -585,6 +603,7 @@ export type EgresoUncheckedUpdateManyInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -625,6 +644,7 @@ export type EgresoCountOrderByAggregateInput = {
   justificacion?: Prisma.SortOrder
   fechaEnvio?: Prisma.SortOrder
   fechaEntrega?: Prisma.SortOrder
+  reservaDesde?: Prisma.SortOrder
   entregadoPorId?: Prisma.SortOrder
   anuladoPorId?: Prisma.SortOrder
   anuladoEn?: Prisma.SortOrder
@@ -655,6 +675,7 @@ export type EgresoMaxOrderByAggregateInput = {
   justificacion?: Prisma.SortOrder
   fechaEnvio?: Prisma.SortOrder
   fechaEntrega?: Prisma.SortOrder
+  reservaDesde?: Prisma.SortOrder
   entregadoPorId?: Prisma.SortOrder
   anuladoPorId?: Prisma.SortOrder
   anuladoEn?: Prisma.SortOrder
@@ -674,6 +695,7 @@ export type EgresoMinOrderByAggregateInput = {
   justificacion?: Prisma.SortOrder
   fechaEnvio?: Prisma.SortOrder
   fechaEntrega?: Prisma.SortOrder
+  reservaDesde?: Prisma.SortOrder
   entregadoPorId?: Prisma.SortOrder
   anuladoPorId?: Prisma.SortOrder
   anuladoEn?: Prisma.SortOrder
@@ -963,6 +985,7 @@ export type EgresoCreateWithoutUnidadInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -986,6 +1009,7 @@ export type EgresoUncheckedCreateWithoutUnidadInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1037,6 +1061,7 @@ export type EgresoScalarWhereInput = {
   justificacion?: Prisma.StringFilter<"Egreso"> | string
   fechaEnvio?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
   fechaEntrega?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
+  reservaDesde?: Prisma.DateTimeFilter<"Egreso"> | Date | string
   entregadoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoPorId?: Prisma.IntNullableFilter<"Egreso"> | number | null
   anuladoEn?: Prisma.DateTimeNullableFilter<"Egreso"> | Date | string | null
@@ -1052,6 +1077,7 @@ export type EgresoCreateWithoutAlmacenInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1075,6 +1101,7 @@ export type EgresoUncheckedCreateWithoutAlmacenInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1119,6 +1146,7 @@ export type EgresoCreateWithoutSolicitanteInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1142,6 +1170,7 @@ export type EgresoUncheckedCreateWithoutSolicitanteInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1170,6 +1199,7 @@ export type EgresoCreateWithoutEntregadoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1194,6 +1224,7 @@ export type EgresoUncheckedCreateWithoutEntregadoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
@@ -1221,6 +1252,7 @@ export type EgresoCreateWithoutAnuladoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1245,6 +1277,7 @@ export type EgresoUncheckedCreateWithoutAnuladoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
@@ -1320,6 +1353,7 @@ export type EgresoCreateWithoutMovimientosInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1344,6 +1378,7 @@ export type EgresoUncheckedCreateWithoutMovimientosInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1377,6 +1412,7 @@ export type EgresoUpdateWithoutMovimientosInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1401,6 +1437,7 @@ export type EgresoUncheckedUpdateWithoutMovimientosInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1418,6 +1455,7 @@ export type EgresoCreateWithoutDetallesInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1442,6 +1480,7 @@ export type EgresoUncheckedCreateWithoutDetallesInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1475,6 +1514,7 @@ export type EgresoUpdateWithoutDetallesInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1499,6 +1539,7 @@ export type EgresoUncheckedUpdateWithoutDetallesInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1516,6 +1557,7 @@ export type EgresoCreateWithoutHistorialInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   createdAt?: Date | string
@@ -1540,6 +1582,7 @@ export type EgresoUncheckedCreateWithoutHistorialInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1573,6 +1616,7 @@ export type EgresoUpdateWithoutHistorialInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1597,6 +1641,7 @@ export type EgresoUncheckedUpdateWithoutHistorialInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1617,6 +1662,7 @@ export type EgresoCreateManyUnidadInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1632,6 +1678,7 @@ export type EgresoUpdateWithoutUnidadInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1655,6 +1702,7 @@ export type EgresoUncheckedUpdateWithoutUnidadInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1676,6 +1724,7 @@ export type EgresoUncheckedUpdateManyWithoutUnidadInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1694,6 +1743,7 @@ export type EgresoCreateManyAlmacenInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1709,6 +1759,7 @@ export type EgresoUpdateWithoutAlmacenInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1732,6 +1783,7 @@ export type EgresoUncheckedUpdateWithoutAlmacenInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1753,6 +1805,7 @@ export type EgresoUncheckedUpdateManyWithoutAlmacenInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1771,6 +1824,7 @@ export type EgresoCreateManySolicitanteInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
@@ -1790,6 +1844,7 @@ export type EgresoCreateManyEntregadoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
@@ -1808,6 +1863,7 @@ export type EgresoCreateManyAnuladoPorInput = {
   justificacion: string
   fechaEnvio?: Date | string | null
   fechaEntrega?: Date | string | null
+  reservaDesde?: Date | string
   entregadoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
@@ -1822,6 +1878,7 @@ export type EgresoUpdateWithoutSolicitanteInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1845,6 +1902,7 @@ export type EgresoUncheckedUpdateWithoutSolicitanteInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1866,6 +1924,7 @@ export type EgresoUncheckedUpdateManyWithoutSolicitanteInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1881,6 +1940,7 @@ export type EgresoUpdateWithoutEntregadoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1905,6 +1965,7 @@ export type EgresoUncheckedUpdateWithoutEntregadoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1926,6 +1987,7 @@ export type EgresoUncheckedUpdateManyWithoutEntregadoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1940,6 +2002,7 @@ export type EgresoUpdateWithoutAnuladoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1964,6 +2027,7 @@ export type EgresoUncheckedUpdateWithoutAnuladoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1985,6 +2049,7 @@ export type EgresoUncheckedUpdateManyWithoutAnuladoPorInput = {
   justificacion?: Prisma.StringFieldUpdateOperationsInput | string
   fechaEnvio?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fechaEntrega?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reservaDesde?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entregadoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2052,6 +2117,7 @@ export type EgresoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   justificacion?: boolean
   fechaEnvio?: boolean
   fechaEntrega?: boolean
+  reservaDesde?: boolean
   entregadoPorId?: boolean
   anuladoPorId?: boolean
   anuladoEn?: boolean
@@ -2080,6 +2146,7 @@ export type EgresoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   justificacion?: boolean
   fechaEnvio?: boolean
   fechaEntrega?: boolean
+  reservaDesde?: boolean
   entregadoPorId?: boolean
   anuladoPorId?: boolean
   anuladoEn?: boolean
@@ -2104,6 +2171,7 @@ export type EgresoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   justificacion?: boolean
   fechaEnvio?: boolean
   fechaEntrega?: boolean
+  reservaDesde?: boolean
   entregadoPorId?: boolean
   anuladoPorId?: boolean
   anuladoEn?: boolean
@@ -2128,6 +2196,7 @@ export type EgresoSelectScalar = {
   justificacion?: boolean
   fechaEnvio?: boolean
   fechaEntrega?: boolean
+  reservaDesde?: boolean
   entregadoPorId?: boolean
   anuladoPorId?: boolean
   anuladoEn?: boolean
@@ -2136,7 +2205,7 @@ export type EgresoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EgresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "unidadId" | "solicitanteId" | "justificacion" | "fechaEnvio" | "fechaEntrega" | "entregadoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "createdAt" | "updatedAt", ExtArgs["result"]["egreso"]>
+export type EgresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "unidadId" | "solicitanteId" | "justificacion" | "fechaEnvio" | "fechaEntrega" | "reservaDesde" | "entregadoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "createdAt" | "updatedAt", ExtArgs["result"]["egreso"]>
 export type EgresoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
   unidad?: boolean | Prisma.UnidadDefaultArgs<ExtArgs>
@@ -2198,6 +2267,14 @@ export type $EgresoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     justificacion: string
     fechaEnvio: Date | null
     fechaEntrega: Date | null
+    /**
+     * Desde cuando corre la reserva de 48 h de un BORRADOR. Arranca al crear y
+     * se REINICIA al rechazar: el solicitante tiene que tener el mismo plazo
+     * para corregir un pedido devuelto que para enviar uno nuevo. Con
+     * `createdAt` un pedido creado hace dias perdia la reserva en el instante
+     * en que se lo rechazaban. Ver `common/stock/reserva.ts`.
+     */
+    reservaDesde: Date
     /**
      * Quien entrego (responsable del almacen).
      */
@@ -2648,6 +2725,7 @@ export interface EgresoFieldRefs {
   readonly justificacion: Prisma.FieldRef<"Egreso", 'String'>
   readonly fechaEnvio: Prisma.FieldRef<"Egreso", 'DateTime'>
   readonly fechaEntrega: Prisma.FieldRef<"Egreso", 'DateTime'>
+  readonly reservaDesde: Prisma.FieldRef<"Egreso", 'DateTime'>
   readonly entregadoPorId: Prisma.FieldRef<"Egreso", 'Int'>
   readonly anuladoPorId: Prisma.FieldRef<"Egreso", 'Int'>
   readonly anuladoEn: Prisma.FieldRef<"Egreso", 'DateTime'>
