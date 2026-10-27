@@ -12,6 +12,7 @@ import {
   aprobarEgreso,
   crearEgreso,
   descartarEgreso,
+  desistirEgreso,
   enviarEgreso,
   entregarEgreso,
   listarEgresos,
@@ -110,7 +111,13 @@ export function useActualizarEgreso() {
       invalidar()
       toast.success("Cambios guardados")
     },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
+    // Se recarga también al FALLAR: si la reserva venció, el backend vacía el
+    // pedido y rechaza el guardado, y la ficha tiene que mostrarlo vacío en vez
+    // de seguir con los ítems que ya se quitaron.
+    onError: (error) => {
+      invalidar()
+      toast.error(getApiErrorMessage(error))
+    },
   })
 }
 
@@ -126,6 +133,19 @@ export function useDescartarEgreso() {
   })
 }
 
+export function useDesistirEgreso() {
+  const invalidar = useInvalidarEgresos()
+  return useMutation({
+    mutationFn: ({ id, motivo }: { id: number; motivo: string }) =>
+      desistirEgreso(id, motivo),
+    onSuccess: (egreso) => {
+      invalidar()
+      toast.success(`Pedido ${etiquetaNumero(egreso)} cerrado como desistido`)
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+}
+
 export function useEnviarEgreso() {
   const invalidar = useInvalidarEgresos()
   return useMutation({
@@ -136,7 +156,12 @@ export function useEnviarEgreso() {
         `Pedido ${etiquetaNumero(egreso)} enviado al aprobador de unidad`
       )
     },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
+    // Igual que al guardar: un envío rechazado por reserva vencida deja el
+    // pedido vacío, y la pantalla tiene que enterarse.
+    onError: (error) => {
+      invalidar()
+      toast.error(getApiErrorMessage(error))
+    },
   })
 }
 

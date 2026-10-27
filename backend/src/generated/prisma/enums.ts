@@ -52,7 +52,8 @@ export const EstadoEgreso = {
   PENDIENTE_APROBADOR: 'PENDIENTE_APROBADOR',
   PENDIENTE_RESPONSABLE_ALMACEN: 'PENDIENTE_RESPONSABLE_ALMACEN',
   ENTREGADO: 'ENTREGADO',
-  ANULADO: 'ANULADO'
+  ANULADO: 'ANULADO',
+  DESISTIDO: 'DESISTIDO'
 } as const
 
 export type EstadoEgreso = (typeof EstadoEgreso)[keyof typeof EstadoEgreso]

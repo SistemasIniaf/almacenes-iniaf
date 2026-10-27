@@ -145,8 +145,12 @@ export type MovimientoKardex = Prisma.MovimientoKardexModel
  * lo aprueba el jefe de su unidad y lo entrega el responsable del almacen, que
  * es quien descarga el stock. Ver docs/decisiones-egresos.md.
  * 
- * TRES MOMENTOS, TRES FECHAS:
- * - `createdAt`   : se creo el borrador. De aca corren las 48 h de reserva.
+ * LAS FECHAS:
+ * - `createdAt`   : se creo el borrador. Auditoria pura.
+ * - `reservaDesde`: de aca corren las 48 h de reserva mientras esta pendiente
+ * de envio. Se pone al crear, al RECHAZAR (el solicitante
+ * tiene 48 h nuevas para corregir) y al volver a elegir
+ * items despues de un vencimiento.
  * - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
  * - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
  * 

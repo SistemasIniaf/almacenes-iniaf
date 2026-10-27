@@ -86,7 +86,7 @@ function firmas(egreso: Egreso): Content {
   // datos—. «Aprobador de Unidad» y no «Jefe de Unidad»: se unificó con el
   // vocabulario del sistema el 2026-07-30.
   const casillas: [string, string][] = [
-    ["Aprobador de Unidad", aprobacion?.usuario.nombre ?? ""],
+    ["Aprobador de Unidad", aprobacion?.usuario?.nombre ?? ""],
     ["Encargado de Almacenes", egreso.entregadoPor?.nombre ?? ""],
     ["Recibí conforme", egreso.solicitante.nombre],
   ]

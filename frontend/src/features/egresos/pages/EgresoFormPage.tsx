@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Ban,
   Check,
+  CircleOff,
   TrendingUp,
   ImageOff,
   Loader2,
@@ -51,6 +52,7 @@ import {
 } from "@/components/ui/table"
 import { TextareaField } from "@/components/form/TextareaField"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { AvisoReserva } from "@/features/egresos/components/AvisoReserva"
 import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
@@ -59,6 +61,7 @@ import {
   useAnularEgreso,
   useAprobarEgreso,
   useCrearEgreso,
+  useDesistirEgreso,
   useEgreso,
   useEntregarEgreso,
   useEnviarEgreso,
@@ -161,6 +164,7 @@ export function EgresoFormPage() {
   const aprobar = useAprobarEgreso()
   const rechazar = useRechazarEgreso()
   const anular = useAnularEgreso()
+  const desistir = useDesistirEgreso()
   const entregar = useEntregarEgreso()
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
@@ -174,7 +178,7 @@ export function EgresoFormPage() {
   const [dialogoEnviar, setDialogoEnviar] = useState(false)
   const [historialAbierto, setHistorialAbierto] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
-    "rechazar" | "anular" | null
+    "rechazar" | "anular" | "desistir" | null
   >(null)
   const [motivo, setMotivo] = useState("")
 
@@ -210,10 +214,20 @@ export function EgresoFormPage() {
     (user?.rol === "responsable_almacen" ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
+  // Un pedido CON número que volvió rechazado no se descarta: se desiste (ver
+  // `puedeDesistir` en el listado, misma regla que el backend).
+  const puedeDesistir =
+    estado === "BORRADOR" &&
+    egreso?.numero != null &&
+    (esPropio || user?.rol === "admin" || user?.rol === "super_admin")
   // Separa las acciones de INFORMACIÓN (Historial, Enviar, Ver PDF) de las de
   // DECISIÓN sobre el pedido — para que aprobar/rechazar no se pierdan entre
   // botones secundarios en la misma fila.
-  const hayAccionDecision = puedeRechazar || puedeAnular
+  const hayAccionDecision = puedeRechazar || puedeAnular || puedeDesistir
+  // El motivo de un desistido vive en su historial (no hay columna aparte,
+  // como la del anulado): es el del último paso.
+  const motivoDesistido =
+    estado === "DESISTIDO" ? egreso?.historial.at(-1)?.motivo : null
 
   const ocupado =
     crear.isPending ||
@@ -222,6 +236,7 @@ export function EgresoFormPage() {
     aprobar.isPending ||
     rechazar.isPending ||
     anular.isPending ||
+    desistir.isPending ||
     entregar.isPending
 
   // Mientras se entrega, no se puede confirmar más de lo pedido — misma
@@ -329,6 +344,8 @@ export function EgresoFormPage() {
     try {
       if (accionConMotivo === "rechazar") {
         await rechazar.mutateAsync({ id, motivo: motivo.trim() })
+      } else if (accionConMotivo === "desistir") {
+        await desistir.mutateAsync({ id, motivo: motivo.trim() })
       } else {
         await anular.mutateAsync({ id, motivo: motivo.trim() })
       }
@@ -497,6 +514,16 @@ export function EgresoFormPage() {
               Anular
             </Button>
           )}
+          {puedeDesistir && (
+            <Button
+              variant="destructive"
+              disabled={ocupado}
+              onClick={() => setAccionConMotivo("desistir")}
+            >
+              <CircleOff className="size-4" />
+              Desistir
+            </Button>
+          )}
         </div>
       </div>
 
@@ -504,6 +531,17 @@ export function EgresoFormPage() {
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
           <span className="font-medium">Anulado:</span> {egreso.motivoAnulacion}
         </div>
+      )}
+      {motivoDesistido && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+          <span className="font-medium">Desistido:</span> {motivoDesistido}
+        </div>
+      )}
+
+      {/* Hasta cuándo reserva, mientras está pendiente de envío: si vence, el
+          sistema le quita los ítems (regla del 2026-10-27). */}
+      {egreso && (
+        <AvisoReserva egreso={egreso} cantidadItems={egreso.detalles.length} />
       )}
 
       {/* TODO el pedido en UNA sola tarjeta — información, justificación e
@@ -778,12 +816,16 @@ export function EgresoFormPage() {
             <AlertDialogTitle>
               {accionConMotivo === "rechazar"
                 ? "¿Rechazar el pedido?"
-                : "¿Anular el egreso?"}
+                : accionConMotivo === "desistir"
+                  ? "¿Desistir del pedido?"
+                  : "¿Anular el egreso?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {accionConMotivo === "rechazar"
-                ? "Vuelve al solicitante para que lo corrija y lo envíe de nuevo. Conserva su número."
-                : "El material vuelve a sus lotes y queda una reversión en el Kardex. Anular dice que la salida nunca debió existir: no es el camino para material que se devuelve."}
+                ? "Vuelve al solicitante para que lo corrija y lo envíe de nuevo. Conserva su número, y su material queda reservado otras 48 horas para corregirlo."
+                : accionConMotivo === "desistir"
+                  ? "Queda cerrado sin entregarse y libera el material que tenía reservado. No se borra: ya tiene número, así que se conserva con su historial. No se puede volver a enviar."
+                  : "El material vuelve a sus lotes y queda una reversión en el Kardex. Anular dice que la salida nunca debió existir: no es el camino para material que se devuelve."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea
@@ -795,7 +837,9 @@ export function EgresoFormPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={ocupado}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              variant={accionConMotivo === "anular" ? "destructive" : "default"}
+              variant={
+                accionConMotivo === "rechazar" ? "default" : "destructive"
+              }
               disabled={ocupado || motivo.trim().length === 0}
               onClick={(event) => {
                 // Sin esto el diálogo se cierra antes de que responda el backend.

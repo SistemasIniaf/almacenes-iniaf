@@ -9,6 +9,12 @@ export type EstadoEgreso =
   | "PENDIENTE_RESPONSABLE_ALMACEN"
   | "ENTREGADO"
   | "ANULADO"
+  /**
+   * Cierre de un pedido CON número (enviado y rechazado) que no se va a
+   * reenviar. Reemplaza a «descartar» para esos: ya son documento y no se
+   * borran (2026-10-27).
+   */
+  | "DESISTIDO"
 
 /**
  * Etiqueta CORTA, para los badges de las tablas y la ficha. Dice qué falta, en
@@ -31,6 +37,7 @@ export const ESTADO_LABEL: Record<EstadoEgreso, string> = {
   PENDIENTE_RESPONSABLE_ALMACEN: "Pendiente de entrega",
   ENTREGADO: "Entregado",
   ANULADO: "Anulado",
+  DESISTIDO: "Desistido",
 }
 
 /**
@@ -48,6 +55,7 @@ export const ESTADO_DETALLE: Record<EstadoEgreso, string> = {
   PENDIENTE_RESPONSABLE_ALMACEN: "Esperando entrega en almacén",
   ENTREGADO: "Entregado",
   ANULADO: "Anulado",
+  DESISTIDO: "Desistido por el solicitante",
 }
 
 /**
@@ -63,6 +71,20 @@ export const ESTADO_PUNTO: Record<EstadoEgreso, TonoPunto> = {
   PENDIENTE_RESPONSABLE_ALMACEN: "proceso",
   ENTREGADO: "ok",
   ANULADO: "alto",
+  // Cerrado sin entregarse: el mismo semáforo que una baja.
+  DESISTIDO: "alto",
+}
+
+/**
+ * El paso que hace el SISTEMA cuando vence la reserva de 48 h sin que el pedido
+ * se envíe: le quita los ítems. Es el único que va de BORRADOR a BORRADOR (un
+ * rechazo viene de un estado pendiente) y el único sin usuario.
+ */
+export function esVaciado(paso: {
+  estadoAnterior: EstadoEgreso | null
+  estadoNuevo: EstadoEgreso
+}) {
+  return paso.estadoAnterior === "BORRADOR" && paso.estadoNuevo === "BORRADOR"
 }
 
 /**
@@ -94,6 +116,25 @@ export function describirPaso(paso: {
 
   if (de === null) {
     return { accion: "Creó el pedido", verbo: "Creó", actor: "Solicitante" }
+  }
+
+  if (esVaciado(paso)) {
+    return {
+      accion: "Venció la reserva",
+      consecuencia: "se quitaron los ítems: hay que volver a elegirlos",
+      verbo: "Venció",
+      actor: "Sistema",
+    }
+  }
+
+  if (a === "DESISTIDO") {
+    return {
+      accion: "Desistió del pedido",
+      consecuencia: "queda cerrado sin entregarse",
+      verbo: "Desistió",
+      // Lo hace su solicitante, o un admin por él: el paso es el mismo.
+      actor: "Solicitante",
+    }
   }
 
   if (a === "ANULADO") {
@@ -218,7 +259,8 @@ export interface EgresoHistorial {
   estadoNuevo: EstadoEgreso
   motivo: string | null
   createdAt: string
-  usuario: RefNombre
+  /** Null solo en el paso que hace el sistema (ver `esVaciado`). */
+  usuario: RefNombre | null
 }
 
 /** Forma completa (GET /egresos/:id). */
@@ -231,6 +273,14 @@ export interface Egreso {
   almacenId: number
   unidadId: number
   justificacion: string
+  reservaDesde: string
+  /**
+   * Hasta cuándo reserva su material mientras está pendiente de envío (48 h
+   * corridas desde que quedó en manos del solicitante: al crearlo, al
+   * rechazarlo o al volver a elegir ítems). `null` en cualquier otro estado:
+   * enviado, el reloj no corre. Lo calcula el backend.
+   */
+  reservaVence: string | null
   fechaEnvio: string | null
   fechaEntrega: string | null
   createdAt: string
@@ -258,6 +308,9 @@ export interface EgresoListItem {
   almacenId: number
   unidadId: number
   justificacion: string
+  reservaDesde: string
+  /** Ver `Egreso.reservaVence`. */
+  reservaVence: string | null
   fechaEnvio: string | null
   fechaEntrega: string | null
   createdAt: string
@@ -265,6 +318,31 @@ export interface EgresoListItem {
   unidad: { id: number; nombre: string; sigla: string }
   solicitante: RefNombre
   _count: { detalles: number }
+}
+
+/**
+ * En qué anda la reserva de un pedido pendiente de envío, para el aviso del
+ * listado y de la ficha. `null` si no aplica (enviado, cerrado).
+ *
+ * - `vigente`: reserva hasta `vence`.
+ * - `vencida`: pasó el plazo pero todavía figuran ítems — el proceso que lo
+ *   vacía corre cada 10 minutos. El material ya está liberado, y editar o
+ *   enviar lo vacía en el acto.
+ * - `vacio`: ya se le quitaron los ítems; hay que volver a elegirlos.
+ */
+export function estadoReserva(
+  egreso: Pick<EgresoListItem, "estado" | "reservaVence">,
+  cantidadItems: number,
+  ahora: Date = new Date()
+):
+  | { tipo: "vigente"; vence: Date }
+  | { tipo: "vencida"; vence: Date }
+  | { tipo: "vacio" }
+  | null {
+  if (egreso.estado !== "BORRADOR" || !egreso.reservaVence) return null
+  if (cantidadItems === 0) return { tipo: "vacio" }
+  const vence = new Date(egreso.reservaVence)
+  return vence > ahora ? { tipo: "vigente", vence } : { tipo: "vencida", vence }
 }
 
 /**

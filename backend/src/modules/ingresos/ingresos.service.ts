@@ -7,12 +7,25 @@ import {
 } from '@nestjs/common';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import {
+  fechaHoraBolivia,
+  gestionDe,
+  inicioDelDia,
+} from '../../common/fechas/zona-horaria';
+import { formatearNumero } from '../../common/formato/numero-documento';
+import {
+  egresoReservaWhere,
+  vencimientoReserva,
+} from '../../common/stock/reserva';
+import type { Prisma } from '../../generated/prisma/client';
 import {
   almacenesPermitidos,
   filtroAlmacen,
 } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import {
+  EstadoEgreso,
   EstadoIngreso,
   Rol,
   TipoMovimiento,
@@ -30,8 +43,8 @@ import { UpdateIngresoDto } from './dto/update-ingreso.dto';
  *
  * Los dos extremos son INCLUSIVOS: `hasta` se lleva al dia siguiente y se
  * compara con `lt`, porque la fecha guardada tiene hora y un `lte` sobre la
- * medianoche dejaria afuera todo lo registrado ese mismo dia. Se interpretan
- * en UTC, igual que el kardex (`Date.UTC` en `KardexService.findAll`).
+ * medianoche dejaria afuera todo lo registrado ese mismo dia. Los dias son de
+ * Bolivia, igual que en el kardex (ver `common/fechas/zona-horaria.ts`).
  */
 function rangoFechaIngreso(
   desde?: string,
@@ -39,15 +52,10 @@ function rangoFechaIngreso(
 ): { fechaIngreso?: { gte?: Date; lt?: Date } } {
   if (!desde && !hasta) return {};
 
-  const aUtc = (valor: string, sumarDias = 0) => {
-    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
-    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
-  };
-
   return {
     fechaIngreso: {
-      ...(desde ? { gte: aUtc(desde) } : {}),
-      ...(hasta ? { lt: aUtc(hasta, 1) } : {}),
+      ...(desde ? { gte: inicioDelDia(desde) } : {}),
+      ...(hasta ? { lt: inicioDelDia(hasta, 1) } : {}),
     },
   };
 }
@@ -328,10 +336,12 @@ export class IngresosService {
     // documento del proveedor y ya no gobierna nada. Solo el super_admin puede
     // corregirla despues (ver `update`).
     const fechaIngreso = new Date();
-    const gestion = fechaIngreso.getFullYear();
+    const gestion = gestionDe(fechaIngreso);
 
     const id = await this.prisma.$transaction(async (tx) => {
-      // Correlativo por almacen + gestion.
+      // Correlativo por almacen + gestion. El bloqueo hace que dos registros
+      // simultaneos del mismo almacen no lean el mismo MAX.
+      await bloquearSerie(tx, 'ingresos', almacenId);
       const agg = await tx.ingreso.aggregate({
         _max: { numero: true },
         where: { almacenId, gestion },
@@ -437,9 +447,10 @@ export class IngresosService {
       // (`@@unique([almacenId, gestion, numero])`). Va en la misma transaccion
       // que el resto para que el ingreso nunca quede con la gestion nueva y el
       // numero viejo.
-      const gestion = nuevaFecha.getFullYear();
+      const gestion = gestionDe(nuevaFecha);
       if (gestion === existente.gestion) return;
 
+      await bloquearSerie(tx, 'ingresos', existente.almacenId);
       const agg = await tx.ingreso.aggregate({
         _max: { numero: true },
         where: { almacenId: existente.almacenId, gestion },
@@ -508,19 +519,12 @@ export class IngresosService {
         'Solo se puede anular un ingreso confirmado',
       );
     }
-    // Bloqueo: si de algun lote ya salio material, no se puede anular.
-    const conSalida = ingreso.detalles.some(
-      (d) => !d.saldoCantidad.equals(d.cantidad),
-    );
-    if (conSalida) {
-      throw new ConflictException(
-        'No se puede anular: ya salió material de alguno de sus lotes. Anulá primero esos egresos.',
-      );
-    }
-
     await this.prisma.$transaction(async (tx) => {
-      await tx.ingreso.update({
-        where: { id },
+      // Lo PRIMERO: pasar a ANULADO solo si sigue confirmado. Dos anulaciones
+      // simultaneas (doble clic) duplicaban las REVERSIONES del Kardex; la
+      // segunda espera esta fila y, al tomarla, ya no lo encuentra confirmado.
+      const { count } = await tx.ingreso.updateMany({
+        where: { id, estado: EstadoIngreso.CONFIRMADO },
         data: {
           estado: EstadoIngreso.ANULADO,
           anuladoPorId: user.id,
@@ -528,6 +532,17 @@ export class IngresosService {
           motivoAnulacion: dto.motivo.trim(),
         },
       });
+      if (count !== 1) {
+        throw new ConflictException(
+          'El ingreso cambió de estado mientras tanto: actualizá la página para ver cómo quedó',
+        );
+      }
+
+      await this.verificarLotesSinUso(
+        tx,
+        ingreso.detalles.map((d) => d.id),
+      );
+
       for (const d of ingreso.detalles) {
         await tx.movimientoKardex.create({
           data: {
@@ -551,6 +566,101 @@ export class IngresosService {
     });
 
     return this.findOne(id, user);
+  }
+
+  /**
+   * Un ingreso no se puede anular si alguno de sus lotes esta EN USO:
+   *
+   * - si ya salio material (saldo distinto de la cantidad): hay que anular
+   *   primero esos egresos;
+   * - si un pedido lo tiene RESERVADO (pendiente, o borrador dentro de sus
+   *   48 h). Antes esto no se miraba: el ingreso se anulaba, el lote quedaba en
+   *   cero y el pedido seguia el circuito hasta que, al entregar, el almacen
+   *   recibia «el lote ya no tiene saldo suficiente», buscando un faltante que
+   *   no existia.
+   *
+   * Lo reservado se mide con `egresoReservaWhere`, la MISMA definicion que usa
+   * el disponible del stock y de los egresos: si hubiera dos reglas de que esta
+   * reservado, el ingreso se podria anular con un lote que el stock muestra
+   * comprometido.
+   *
+   * Bloquea los lotes ANTES de mirar, igual que `EgresosService.bloquearLotes`
+   * (mismo orden por id, para no trabarse con un pedido): un pedido que se graba
+   * en este mismo instante o entra antes y se ve aca, o espera y despues
+   * encuentra el lote anulado.
+   */
+  private async verificarLotesSinUso(
+    tx: Prisma.TransactionClient,
+    loteIds: number[],
+  ) {
+    if (loteIds.length === 0) return;
+    // Los ids vienen de la base, no del usuario.
+    await tx.$queryRawUnsafe(
+      `SELECT id FROM ingreso_detalles WHERE id IN (${loteIds.join(',')}) ORDER BY id FOR UPDATE`,
+    );
+
+    // Leidos DESPUES del bloqueo: el saldo pudo moverse desde que se cargo el
+    // ingreso, fuera de la transaccion.
+    const lotes = await tx.ingresoDetalle.findMany({
+      where: { id: { in: loteIds } },
+      select: { cantidad: true, saldoCantidad: true },
+    });
+    if (lotes.some((l) => !l.saldoCantidad.equals(l.cantidad))) {
+      throw new ConflictException(
+        'No se puede anular: ya salió material de alguno de sus lotes. Anulá primero esos egresos.',
+      );
+    }
+
+    const egresos = await tx.egreso.findMany({
+      where: {
+        ...egresoReservaWhere(),
+        detalles: { some: { ingresoDetalleId: { in: loteIds } } },
+      },
+      select: { estado: true, numero: true, gestion: true, reservaDesde: true },
+      orderBy: [{ gestion: 'asc' }, { numero: 'asc' }],
+    });
+    if (egresos.length === 0) return;
+
+    // Se separan por ESTADO y no por si tienen numero: un pedido rechazado
+    // vuelve a borrador CON su numero, y decirle al almacen que «hay que
+    // rechazarlo» seria pedirle algo que ya hizo. Los que circulan se nombran
+    // por su numero, que es como los encuentra el almacen; los borradores se
+    // cuentan, y se nombran solo los que ya tienen numero.
+    const enCurso = egresos
+      .filter((e) => e.estado !== EstadoEgreso.BORRADOR)
+      .map((e) => formatearNumero(e.numero, e.gestion));
+    const borradores = egresos.filter(
+      (e) => e.estado === EstadoEgreso.BORRADOR,
+    );
+    const borradoresConNumero = borradores
+      .map((e) => formatearNumero(e.numero, e.gestion))
+      .filter((n): n is string => n !== null);
+    const uno = borradores.length === 1;
+
+    const partes = [
+      enCurso.length
+        ? `${enCurso.length === 1 ? 'el pedido' : 'los pedidos'} ${enCurso.join(', ')}, que hay que rechazar primero`
+        : null,
+      borradores.length
+        ? `${uno ? 'un pedido' : `${borradores.length} pedidos`} sin enviar` +
+          (borradoresConNumero.length
+            ? ` (${borradoresConNumero.join(', ')}, devuelto${borradoresConNumero.length === 1 ? '' : 's'} al solicitante)`
+            : '') +
+          // El ultimo vencimiento: es cuando se puede anular sin que nadie
+          // haga nada, si ninguno se envia.
+          `, que lo ${uno ? 'reserva' : 'reservan'} hasta el ${fechaHoraBolivia(
+            vencimientoReserva(
+              new Date(
+                Math.max(...borradores.map((e) => e.reservaDesde.getTime())),
+              ),
+            ),
+          )} si no se envía`
+        : null,
+    ].filter(Boolean);
+
+    throw new ConflictException(
+      `No se puede anular: hay material de este ingreso reservado por ${partes.join(' y ')}.`,
+    );
   }
 
   // ---------------------------------------------------------------------------

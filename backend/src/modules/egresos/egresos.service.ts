@@ -3,13 +3,23 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { paginated } from '../../common/dto/paginated-result';
+import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import { gestionDe, inicioDelDia } from '../../common/fechas/zona-horaria';
+import type { Prisma } from '../../generated/prisma/client';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
-import { reservadoPorLote } from '../../common/stock/reserva';
+import {
+  HORAS_RESERVA_BORRADOR,
+  limiteReserva,
+  reservadoPorLote,
+  vencimientoReserva,
+} from '../../common/stock/reserva';
 import {
   EstadoEgreso,
   Rol,
@@ -33,19 +43,15 @@ import { UpdateEgresoDto } from './dto/update-egreso.dto';
  * rango.
  *
  * Ambos extremos INCLUSIVOS: `hasta` se lleva al dia siguiente y se compara con
- * `lt`, porque la fecha guardada tiene hora. En UTC, igual que el kardex.
+ * `lt`, porque la fecha guardada tiene hora. Dias de Bolivia, igual que el
+ * kardex (`common/fechas/zona-horaria.ts`).
  */
 function rangoFechaEgreso(desde?: string, hasta?: string) {
   if (!desde && !hasta) return {};
 
-  const aUtc = (valor: string, sumarDias = 0) => {
-    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
-    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
-  };
-
   const entre = {
-    ...(desde ? { gte: aUtc(desde) } : {}),
-    ...(hasta ? { lt: aUtc(hasta, 1) } : {}),
+    ...(desde ? { gte: inicioDelDia(desde) } : {}),
+    ...(hasta ? { lt: inicioDelDia(hasta, 1) } : {}),
   };
 
   return {
@@ -61,6 +67,7 @@ const egresoListSelect = {
   almacenId: true,
   unidadId: true,
   justificacion: true,
+  reservaDesde: true,
   fechaEnvio: true,
   fechaEntrega: true,
   createdAt: true,
@@ -69,6 +76,24 @@ const egresoListSelect = {
   solicitante: { select: { id: true, nombre: true } },
   _count: { select: { detalles: true } },
 } as const;
+
+/**
+ * Agrega `reservaVence`: hasta cuando reserva el pedido, o `null` si no esta
+ * pendiente de envio (enviado, el reloj no corre). Lo calcula el backend para
+ * que la regla de las 48 h viva en un solo lugar (`common/stock/reserva.ts`) y
+ * la pantalla no tenga que repetirla.
+ */
+function conVencimiento<T extends { estado: EstadoEgreso; reservaDesde: Date }>(
+  egreso: T,
+) {
+  return {
+    ...egreso,
+    reservaVence:
+      egreso.estado === EstadoEgreso.BORRADOR
+        ? vencimientoReserva(egreso.reservaDesde)
+        : null,
+  };
+}
 
 // El lote trae todo lo que la linea NO repite: item, fuente y precio.
 const loteSelect = {
@@ -164,6 +189,8 @@ const ROLES_CON_BANDEJA: Rol[] = [
 
 @Injectable()
 export class EgresosService {
+  private readonly logger = new Logger(EgresosService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   // ---------------------------------------------------------------------------
@@ -226,7 +253,7 @@ export class EgresosService {
       this.prisma.egreso.count({ where }),
     ]);
 
-    return paginated(data, total, page, pageSize);
+    return paginated(data.map(conVencimiento), total, page, pageSize);
   }
 
   /**
@@ -326,7 +353,7 @@ export class EgresosService {
     if (!egreso) {
       throw new NotFoundException(`No existe el egreso con id ${id}`);
     }
-    return egreso;
+    return conVencimiento(egreso);
   }
 
   // ---------------------------------------------------------------------------
@@ -349,10 +376,12 @@ export class EgresosService {
     }
 
     const almacenId = user.almacenId;
-    await this.validarDisponibilidad(dto.detalles, almacenId);
 
     const id = await this.prisma.$transaction(async (tx) => {
+      // Primero el bloqueo, DESPUES la validacion: al reves, dos pedidos que
+      // validan a la vez ven los dos el mismo disponible y los dos lo reservan.
       await this.bloquearLotes(tx, dto.detalles);
+      await this.validarDisponibilidad(tx, dto.detalles, almacenId);
 
       const egreso = await tx.egreso.create({
         data: {
@@ -379,21 +408,46 @@ export class EgresosService {
     return this.findOne(id, user);
   }
 
-  /** Edita el borrador. Si vienen `detalles`, reemplazan la lista completa. */
+  /**
+   * Edita el borrador. Si vienen `detalles`, reemplazan la lista completa.
+   *
+   * Si la reserva ya vencio y el pedido todavia tenia items (el proceso que lo
+   * vacia corre cada 10 minutos), se vacia ACA y se rechaza el guardado: el
+   * formulario mandaria los items viejos y eso seria renovar la reserva sin
+   * volver a elegir, que es justo lo que la regla quiere evitar.
+   */
   async update(id: number, dto: UpdateEgresoDto, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.BORRADOR);
     this.exigirSolicitante(egreso.solicitanteId, user);
+    await this.exigirReservaVigente(id);
 
-    if (dto.detalles) {
-      // El propio pedido se excluye del calculo: lo que el ya tenia reservado no
-      // puede competir contra el mismo.
-      await this.validarDisponibilidad(dto.detalles, egreso.almacenId, id);
-    }
+    // Volver a elegir items despues de un vencimiento abre una reserva NUEVA de
+    // 48 h. Mientras la reserva sigue vigente, editar NO la renueva: si no,
+    // tocar el pedido cada dos dias retendria el material indefinidamente.
+    const reabreReserva =
+      dto.detalles !== undefined && egreso.reservaDesde <= limiteReserva();
 
     await this.prisma.$transaction(async (tx) => {
+      // Confirma DENTRO de la transaccion que sigue siendo borrador: el
+      // solicitante pudo haberlo enviado desde otra pestaña mientras tanto.
+      await this.transicionar(tx, id, EstadoEgreso.BORRADOR, {
+        ...(dto.justificacion !== undefined
+          ? { justificacion: dto.justificacion.trim() }
+          : {}),
+        ...(reabreReserva ? { reservaDesde: new Date() } : {}),
+      });
+
       if (dto.detalles) {
         await this.bloquearLotes(tx, dto.detalles);
+        // El propio pedido se excluye del calculo: lo que el ya tenia reservado
+        // no puede competir contra el mismo.
+        await this.validarDisponibilidad(
+          tx,
+          dto.detalles,
+          egreso.almacenId,
+          id,
+        );
         await tx.egresoDetalle.deleteMany({ where: { egresoId: id } });
         await tx.egresoDetalle.createMany({
           data: dto.detalles.map((d) => ({
@@ -402,14 +456,6 @@ export class EgresosService {
           })),
         });
       }
-      await tx.egreso.update({
-        where: { id },
-        data: {
-          ...(dto.justificacion !== undefined
-            ? { justificacion: dto.justificacion.trim() }
-            : {}),
-        },
-      });
     });
 
     return this.findOne(id, user);
@@ -420,11 +466,20 @@ export class EgresosService {
    * egreso ya enviado: un borrador todavia NO es un documento (no tiene numero) y
    * no toco stock. Dejarlo como "anulado" solo ensuciaria el listado y seguiria
    * apareciendo en el historial de nadie.
+   *
+   * Un pedido CON numero —fue enviado y rechazado— ya no se borra: dejaria un
+   * hueco en la serie y se perderia su historial (quien lo aprobo, quien lo
+   * rechazo y por que). Ese se cierra con `desistir`.
    */
   async remove(id: number, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.BORRADOR);
     this.exigirSolicitante(egreso.solicitanteId, user);
+    if (egreso.numero != null) {
+      throw new BadRequestException(
+        'Este pedido ya tiene número: no se puede borrar. Si no lo vas a reenviar, desistilo.',
+      );
+    }
 
     await this.prisma.$transaction(async (tx) => {
       await tx.egresoHistorial.deleteMany({ where: { egresoId: id } });
@@ -451,40 +506,49 @@ export class EgresosService {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.BORRADOR);
     this.exigirSolicitante(egreso.solicitanteId, user);
-
-    const detalles = await this.prisma.egresoDetalle.findMany({
-      where: { egresoId: id },
-      select: { ingresoDetalleId: true, cantidadSolicitada: true },
-    });
-    if (detalles.length === 0) {
-      throw new BadRequestException('El pedido no tiene ítems');
-    }
-
-    const lineas = detalles.map((d) => ({
-      ingresoDetalleId: d.ingresoDetalleId,
-      cantidadSolicitada: Number(d.cantidadSolicitada),
-    }));
-    await this.validarDisponibilidad(lineas, egreso.almacenId, id);
+    // Vencidas las 48 h no se envia: se vacia y hay que volver a elegir.
+    await this.exigirReservaVigente(id);
 
     await this.prisma.$transaction(async (tx) => {
-      await this.bloquearLotes(tx, lineas);
-
       const fechaEnvio = new Date();
-      const gestion = fechaEnvio.getFullYear();
+      const gestion = gestionDe(fechaEnvio);
+      // Un envio a la vez por almacen: sin esto, dos pedidos enviados en el
+      // mismo instante leen el mismo MAX y el segundo choca contra el indice
+      // unico con un error 500.
+      await bloquearSerie(tx, 'egresos', egreso.almacenId);
       const agg = await tx.egreso.aggregate({
         _max: { numero: true },
         where: { almacenId: egreso.almacenId, gestion },
       });
 
-      await tx.egreso.update({
-        where: { id },
-        data: {
-          estado: EstadoEgreso.PENDIENTE_APROBADOR,
-          numero: (agg._max.numero ?? 0) + 1,
-          gestion,
-          fechaEnvio,
-        },
+      // Primero el cambio de estado: si dos envios del mismo pedido llegan a la
+      // vez (doble clic), el segundo encuentra que ya no es borrador y aborta.
+      await this.transicionar(tx, id, EstadoEgreso.BORRADOR, {
+        estado: EstadoEgreso.PENDIENTE_APROBADOR,
+        numero: (agg._max.numero ?? 0) + 1,
+        gestion,
+        fechaEnvio,
       });
+
+      // Las lineas se leen DESPUES de tomar la fila del pedido: asi ninguna
+      // edicion concurrente puede cambiarlas entre la validacion y el envio.
+      const detalles = await tx.egresoDetalle.findMany({
+        where: { egresoId: id },
+        select: { ingresoDetalleId: true, cantidadSolicitada: true },
+      });
+      if (detalles.length === 0) {
+        throw new BadRequestException(
+          'El pedido no tiene ítems: elegí lo que necesitás antes de enviarlo',
+        );
+      }
+
+      const lineas = detalles.map((d) => ({
+        ingresoDetalleId: d.ingresoDetalleId,
+        cantidadSolicitada: Number(d.cantidadSolicitada),
+      }));
+      await this.bloquearLotes(tx, lineas);
+      await this.validarDisponibilidad(tx, lineas, egreso.almacenId, id);
+
       await this.registrarHistorial(
         tx,
         id,
@@ -512,9 +576,8 @@ export class EgresosService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.egreso.update({
-        where: { id },
-        data: { estado: EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN },
+      await this.transicionar(tx, id, EstadoEgreso.PENDIENTE_APROBADOR, {
+        estado: EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN,
       });
       await this.registrarHistorial(
         tx,
@@ -533,8 +596,11 @@ export class EgresosService {
    * nunca al nivel anterior. El motivo es obligatorio: es lo unico que le dice
    * al solicitante que corregir.
    *
-   * El rechazo no es un estado — queda en el historial. Y libera la reserva sin
-   * hacer nada: al volver a BORRADOR arranca de nuevo la ventana de 48 h.
+   * El rechazo no es un estado — queda en el historial. Al volver a BORRADOR
+   * arranca una ventana NUEVA de 48 h (`reservaDesde`), con el material todavia
+   * reservado: el solicitante tiene ese plazo para corregir y reenviar. Antes
+   * las 48 h se contaban desde la creacion, asi que conservar o perder la
+   * reserva dependia de cuanto hubiera tardado el aprobador.
    */
   async rechazar(id: number, dto: MotivoDto, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
@@ -547,20 +613,38 @@ export class EgresosService {
         'Solo se puede rechazar un pedido que está esperando una decisión',
       );
     }
+    // Cada nivel rechaza SOLO en su propio nivel: ningun egreso saltea niveles.
+    // Sin esto el responsable podia rechazar un pedido que el aprobador todavia
+    // no habia visto, y el aprobador uno que ya habia aprobado y estaba en el
+    // almacen. admin y super_admin pueden en los dos.
     if (
-      egreso.estado === EstadoEgreso.PENDIENTE_APROBADOR &&
       user.rol === Rol.aprobador &&
-      user.unidadId !== egreso.unidadId
+      egreso.estado !== EstadoEgreso.PENDIENTE_APROBADOR
     ) {
+      throw new ForbiddenException(
+        'Este pedido ya pasó tu nivel: lo tiene que resolver el almacén',
+      );
+    }
+    if (
+      user.rol === Rol.responsable_almacen &&
+      egreso.estado !== EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN
+    ) {
+      throw new ForbiddenException(
+        'Este pedido todavía espera al aprobador de unidad',
+      );
+    }
+    if (user.rol === Rol.aprobador && user.unidadId !== egreso.unidadId) {
       throw new ForbiddenException(
         'Solo podés rechazar pedidos de tu propia unidad',
       );
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.egreso.update({
-        where: { id },
-        data: { estado: EstadoEgreso.BORRADOR },
+      await this.transicionar(tx, id, egreso.estado, {
+        estado: EstadoEgreso.BORRADOR,
+        // Vuelve a manos del solicitante: 48 h NUEVAS para corregirlo, con su
+        // material reservado. Si no lo reenvia en ese plazo, se vacia.
+        reservaDesde: new Date(),
       });
       await this.registrarHistorial(
         tx,
@@ -619,6 +703,15 @@ export class EgresosService {
     });
 
     const porId = new Map(detalles.map((d) => [d.id, d]));
+    // Tiene que venir CADA linea del pedido exactamente UNA vez. Comparar solo
+    // la cantidad no alcanza: con [A, A] para un pedido A+B, el lote de A se
+    // descontaba dos veces y B quedaba sin cantidad entregada.
+    const recibidas = new Set(dto.lineas.map((l) => l.detalleId));
+    if (recibidas.size !== dto.lineas.length) {
+      throw new BadRequestException(
+        'Hay una línea del pedido repetida en la entrega',
+      );
+    }
     if (dto.lineas.length !== detalles.length) {
       throw new BadRequestException(
         'Hay que indicar cuánto se entrega de CADA línea del pedido',
@@ -641,6 +734,21 @@ export class EgresosService {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      // Lo PRIMERO: pasar a ENTREGADO solo si sigue pendiente. Una segunda
+      // entrega del mismo pedido (doble clic, reintento) espera el bloqueo de
+      // esta fila y, al tomarlo, ya no lo encuentra pendiente: aborta sin
+      // descontar nada. Antes descontaba el lote dos veces.
+      await this.transicionar(
+        tx,
+        id,
+        EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN,
+        {
+          estado: EstadoEgreso.ENTREGADO,
+          fechaEntrega: new Date(),
+          entregadoPorId: user.id,
+        },
+      );
+
       for (const linea of dto.lineas) {
         const detalle = porId.get(linea.detalleId) as (typeof detalles)[number];
 
@@ -682,14 +790,6 @@ export class EgresosService {
         });
       }
 
-      await tx.egreso.update({
-        where: { id },
-        data: {
-          estado: EstadoEgreso.ENTREGADO,
-          fechaEntrega: new Date(),
-          entregadoPorId: user.id,
-        },
-      });
       await this.registrarHistorial(
         tx,
         id,
@@ -724,6 +824,16 @@ export class EgresosService {
     });
 
     await this.prisma.$transaction(async (tx) => {
+      // Igual que en la entrega: una segunda anulacion simultanea ya no lo
+      // encuentra ENTREGADO y aborta. Antes devolvia el material dos veces y el
+      // lote podia quedar con mas saldo del que entro.
+      await this.transicionar(tx, id, EstadoEgreso.ENTREGADO, {
+        estado: EstadoEgreso.ANULADO,
+        anuladoPorId: user.id,
+        anuladoEn: new Date(),
+        motivoAnulacion: dto.motivo.trim(),
+      });
+
       for (const d of detalles) {
         const cantidad = Number(d.cantidadEntregada ?? 0);
         if (cantidad === 0) continue;
@@ -748,15 +858,6 @@ export class EgresosService {
         });
       }
 
-      await tx.egreso.update({
-        where: { id },
-        data: {
-          estado: EstadoEgreso.ANULADO,
-          anuladoPorId: user.id,
-          anuladoEn: new Date(),
-          motivoAnulacion: dto.motivo.trim(),
-        },
-      });
       await this.registrarHistorial(
         tx,
         id,
@@ -768,6 +869,139 @@ export class EgresosService {
     });
 
     return this.findOne(id, user);
+  }
+
+  /**
+   * Cierra un pedido que ya tiene NUMERO (fue enviado y rechazado) y que no se
+   * va a reenviar. Es el equivalente de «descartar» para un pedido que ya es
+   * documento: no se borra —dejaria un hueco en la serie y perderia su
+   * historial— sino que queda DESISTIDO, con motivo. No toca stock (nunca salio
+   * nada) y deja de reservar, porque DESISTIDO no esta entre los estados que
+   * retienen.
+   *
+   * Lo puede hacer su solicitante, y tambien admin/super_admin: un pedido de
+   * alguien que ya no esta en la institucion no tiene que quedar abierto para
+   * siempre.
+   */
+  async desistir(id: number, dto: MotivoDto, user: AuthenticatedUser) {
+    const egreso = await this.cargarParaEscritura(id, user);
+    this.exigirEstado(egreso.estado, EstadoEgreso.BORRADOR);
+    this.exigirSolicitante(egreso.solicitanteId, user);
+    if (egreso.numero == null) {
+      throw new BadRequestException(
+        'Este pedido todavía no tiene número: se descarta, no se desiste',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await this.transicionar(tx, id, EstadoEgreso.BORRADOR, {
+        estado: EstadoEgreso.DESISTIDO,
+      });
+      await this.registrarHistorial(
+        tx,
+        id,
+        EstadoEgreso.BORRADOR,
+        EstadoEgreso.DESISTIDO,
+        user,
+        dto.motivo.trim(),
+      );
+    });
+
+    return this.findOne(id, user);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vencimiento de la reserva
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Vacia el pedido si su reserva de 48 h vencio sin enviarse: le quita las
+   * lineas, deja el paso en el historial (sin usuario: lo hace el sistema) y
+   * devuelve cuantas quito. Si no vencio, o ya estaba vacio, no hace nada y
+   * devuelve 0.
+   *
+   * Regla del encargado (2026-10-27): si el solicitante se olvida de enviarlo,
+   * el pedido queda pero sin items, y tiene que volver a elegir lo que necesita.
+   *
+   * La reserva YA estaba liberada antes de esto —se calcula, ver
+   * `egresoReservaWhere`—, asi que vaciar no cambia el stock: hace visible lo
+   * que ya paso. Por eso puede correr cada 10 minutos sin riesgo: si el
+   * proceso falla, el disponible sigue siendo correcto.
+   *
+   * El UPDATE condicional va primero, como en las acciones del circuito: si el
+   * solicitante envia el pedido en el mismo instante, uno de los dos encuentra
+   * que el otro ya actuo.
+   */
+  async vaciarSiVencio(id: number): Promise<number> {
+    return this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.egreso.updateMany({
+        where: {
+          id,
+          estado: EstadoEgreso.BORRADOR,
+          reservaDesde: { lte: limiteReserva() },
+          detalles: { some: {} },
+        },
+        data: { estado: EstadoEgreso.BORRADOR },
+      });
+      if (count === 0) return 0;
+
+      const { count: lineas } = await tx.egresoDetalle.deleteMany({
+        where: { egresoId: id },
+      });
+      await tx.egresoHistorial.create({
+        data: {
+          egresoId: id,
+          estadoAnterior: EstadoEgreso.BORRADOR,
+          estadoNuevo: EstadoEgreso.BORRADOR,
+          usuarioId: null,
+          motivo:
+            `Venció la reserva de ${HORAS_RESERVA_BORRADOR} h sin que el pedido se enviara: ` +
+            `se ${lineas === 1 ? 'quitó 1 ítem' : `quitaron ${lineas} ítems`} y el material volvió a estar disponible.`,
+        },
+      });
+      return lineas;
+    });
+  }
+
+  /** Vacia los pedidos vencidos. Cada 10 minutos; ver `vaciarSiVencio`. */
+  @Cron(CronExpression.EVERY_10_MINUTES, { name: 'vaciar-reservas-vencidas' })
+  async vaciarVencidos() {
+    const vencidos = await this.prisma.egreso.findMany({
+      where: {
+        estado: EstadoEgreso.BORRADOR,
+        reservaDesde: { lte: limiteReserva() },
+        detalles: { some: {} },
+      },
+      select: { id: true },
+    });
+
+    for (const { id } of vencidos) {
+      // Uno que falle no frena a los demas: el siguiente ciclo lo reintenta.
+      try {
+        await this.vaciarSiVencio(id);
+      } catch (error) {
+        this.logger.error(
+          `No se pudo vaciar el pedido ${id} con la reserva vencida`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    }
+  }
+
+  /**
+   * Antes de editar o enviar: si la reserva vencio y el pedido todavia tenia
+   * items (el proceso de cada 10 minutos no llego), se vacia en este momento y
+   * se corta la accion con el motivo. El vaciado va en su propia transaccion
+   * para que quede hecho aunque la accion se rechace.
+   */
+  private async exigirReservaVigente(id: number) {
+    const quitadas = await this.vaciarSiVencio(id);
+    if (quitadas > 0) {
+      throw new ConflictException(
+        `Venció la reserva de ${HORAS_RESERVA_BORRADOR} h sin que el pedido se enviara: ` +
+          'se quitaron sus ítems y el material volvió a estar disponible. Elegí de nuevo lo que necesitás.',
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -813,7 +1047,9 @@ export class EgresosService {
         almacenId: true,
         unidadId: true,
         solicitanteId: true,
+        numero: true,
         gestion: true,
+        reservaDesde: true,
       },
     });
     if (!egreso) {
@@ -830,6 +1066,37 @@ export class EgresosService {
     }
   }
 
+  /**
+   * Cambia el pedido SOLO si sigue en el estado `desde`, y aborta si no.
+   *
+   * Es lo que vuelve seguras las acciones del circuito frente a un doble clic o
+   * a dos usuarios a la vez. El estado se chequea antes, fuera de la
+   * transaccion, para dar un mensaje claro, pero ese chequeo NO protege: dos
+   * peticiones pueden pasarlo juntas. Este UPDATE condicional si, porque
+   * Postgres bloquea la fila y la segunda peticion, al tomarla, vuelve a
+   * evaluar el `where` contra el estado ya cambiado. Va PRIMERO en cada
+   * transaccion, antes de mover stock.
+   *
+   * Sin `data` igual toca la fila (re-escribe el mismo estado): sirve para
+   * tomar el bloqueo y confirmar el estado en una edicion de borrador.
+   */
+  private async transicionar(
+    tx: Prisma.TransactionClient,
+    id: number,
+    desde: EstadoEgreso,
+    data: Prisma.EgresoUncheckedUpdateManyInput,
+  ) {
+    const { count } = await tx.egreso.updateMany({
+      where: { id, estado: desde },
+      data: { estado: desde, ...data },
+    });
+    if (count !== 1) {
+      throw new ConflictException(
+        'El pedido cambió de estado mientras tanto: actualizá la página para ver cómo quedó',
+      );
+    }
+  }
+
   private exigirSolicitante(solicitanteId: number, user: AuthenticatedUser) {
     if (user.rol === Rol.solicitador && solicitanteId !== user.id) {
       throw new ForbiddenException('Este pedido no es tuyo');
@@ -840,8 +1107,14 @@ export class EgresosService {
    * Cada lote pedido tiene que existir, venir de un ingreso CONFIRMADO de ESTE
    * almacen y tener disponible suficiente. `disponible = saldo - reservado`, no
    * el saldo pelado: si no, dos pedidos podrian llevarse el mismo material.
+   *
+   * Corre DENTRO de la transaccion y DESPUES de `bloquearLotes`: asi el saldo y
+   * lo reservado que lee ya no pueden cambiar hasta que se grabe el pedido. Si
+   * validara antes del bloqueo (como al principio), dos pedidos simultaneos
+   * verian el mismo disponible y los dos lo reservarian.
    */
   private async validarDisponibilidad(
+    tx: Prisma.TransactionClient,
     detalles: { ingresoDetalleId: number; cantidadSolicitada: number }[],
     almacenId: number,
     excluirEgresoId?: number,
@@ -853,7 +1126,7 @@ export class EgresosService {
       );
     }
 
-    const lotes = await this.prisma.ingresoDetalle.findMany({
+    const lotes = await tx.ingresoDetalle.findMany({
       where: { id: { in: ids } },
       select: {
         id: true,
@@ -863,7 +1136,7 @@ export class EgresosService {
       },
     });
     const porId = new Map(lotes.map((l) => [l.id, l]));
-    const reservado = await reservadoPorLote(this.prisma, ids, {
+    const reservado = await reservadoPorLote(tx, ids, {
       excluirEgresoId,
     });
 
@@ -909,8 +1182,10 @@ export class EgresosService {
     const ids = [...new Set(detalles.map((d) => d.ingresoDetalleId))];
     if (ids.length === 0) return;
     // Los ids son enteros ya validados por class-validator (@IsInt).
+    // `ORDER BY id`: dos pedidos que comparten lotes los bloquean en el mismo
+    // orden, asi no se quedan esperando uno al otro (deadlock).
     await tx.$queryRawUnsafe(
-      `SELECT id FROM ingreso_detalles WHERE id IN (${ids.join(',')}) FOR UPDATE`,
+      `SELECT id FROM ingreso_detalles WHERE id IN (${ids.join(',')}) ORDER BY id FOR UPDATE`,
     );
   }
 

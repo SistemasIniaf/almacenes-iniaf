@@ -2,13 +2,15 @@ import {
   Ban,
   Check,
   ChevronUp,
+  CircleOff,
   FilePlus,
   PackageCheck,
   Send,
+  TimerOff,
   X,
 } from "lucide-react"
 
-import { describirPaso } from "@/features/egresos/egresos.types"
+import { describirPaso, esVaciado } from "@/features/egresos/egresos.types"
 import { cn } from "@/lib/utils"
 
 import type { LucideIcon } from "lucide-react"
@@ -36,6 +38,8 @@ function iconoDe(paso: {
   estadoNuevo: EstadoEgreso
 }): LucideIcon {
   if (paso.estadoAnterior === null) return FilePlus
+  if (esVaciado(paso)) return TimerOff
+  if (paso.estadoNuevo === "DESISTIDO") return CircleOff
   if (paso.estadoNuevo === "ANULADO") return Ban
   if (paso.estadoNuevo === "BORRADOR") return X
   if (paso.estadoNuevo === "PENDIENTE_APROBADOR") return Send
@@ -89,9 +93,13 @@ export function HistorialEgreso({ historial }: HistorialEgresoProps) {
           // columnas: todo cae a la derecha del hilo.
           const aLaDerecha = indice % 2 === 1
           // Los pasos que FRENAN el circuito se marcan en rojo: así se ubica de
-          // un vistazo dónde se trabó un pedido que dio vueltas.
+          // un vistazo dónde se trabó un pedido que dio vueltas. La CREACIÓN
+          // también termina en BORRADOR y no frena nada: por eso se excluye
+          // (hasta el 2026-10-27 salía en rojo, como un rechazo).
           const frena =
-            paso.estadoNuevo === "BORRADOR" || paso.estadoNuevo === "ANULADO"
+            (paso.estadoAnterior !== null && paso.estadoNuevo === "BORRADOR") ||
+            paso.estadoNuevo === "ANULADO" ||
+            paso.estadoNuevo === "DESISTIDO"
 
           return (
             <li key={paso.id} className="relative sm:grid sm:grid-cols-2">
@@ -123,9 +131,13 @@ export function HistorialEgreso({ historial }: HistorialEgresoProps) {
                   >
                     {actor}
                   </p>
-                  <p className="mt-0.5 text-sm font-medium">
-                    {paso.usuario.nombre}
-                  </p>
+                  {/* Sin usuario = lo hizo el sistema (el vencimiento de la
+                      reserva): el rótulo de arriba ya lo dice. */}
+                  {paso.usuario && (
+                    <p className="mt-0.5 text-sm font-medium">
+                      {paso.usuario.nombre}
+                    </p>
+                  )}
                   <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
                     {verbo} el {fechaHora(paso.createdAt)}
                   </p>

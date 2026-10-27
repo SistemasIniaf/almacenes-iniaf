@@ -4,6 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import {
+  gestionDe,
+  inicioDeGestion,
+  inicioDelDia,
+} from '../../common/fechas/zona-horaria';
+import { formatearNumero } from '../../common/formato/numero-documento';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
 import { TipoMovimiento } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -27,25 +33,6 @@ function refDocumento(
 }
 
 /**
- * `001-2026`, como se imprime en todos los documentos. Solo para el REPORTE:
- * en el papel el numero va entero, no hay estilos que aplicar y la fila es una
- * celda de texto.
- *
- * **Tiene que coincidir con `numeroDocumento()` de `lib/formato.ts` del
- * frontend.** Es el UNICO numero de documento que se formatea del lado del
- * servidor, y por eso se quedo con la barra cuando el resto paso al guion: un
- * refactor del frontend no alcanza un string que llega armado desde acá. Si
- * vuelve a cambiar el formato, este es el segundo lugar a tocar.
- */
-function formatearNumero(
-  numero?: number | null,
-  gestion?: number | null,
-): string | null {
-  if (numero == null || gestion == null) return null;
-  return `${String(numero).padStart(3, '0')}-${gestion}`;
-}
-
-/**
  * Los dos cortes del libro: desde donde se listan los movimientos y hasta
  * donde. Todo lo ANTERIOR a `inicio` se acumula como saldo de apertura.
  *
@@ -55,21 +42,19 @@ function formatearNumero(
  * marzo no abre con el saldo de enero.
  *
  * `hasta` es inclusivo (se lleva al dia siguiente y se compara con `lt`, porque
- * la fecha guardada tiene hora). Todo en UTC.
+ * la fecha guardada tiene hora). Los dias y la gestion son de Bolivia, los
+ * mismos con que se numeran los documentos (`common/fechas/zona-horaria.ts`):
+ * si no, un ingreso del 31/12 a la noche quedaria numerado en una gestion y su
+ * movimiento contado en el kardex de la otra.
  */
 function ventana(
   gestion: number,
   desde?: string,
   hasta?: string,
 ): { inicio: Date; fin: Date } {
-  const aUtc = (valor: string, sumarDias = 0) => {
-    const [anio, mes, dia] = valor.slice(0, 10).split('-').map(Number);
-    return new Date(Date.UTC(anio, mes - 1, dia + sumarDias));
-  };
-
   return {
-    inicio: desde ? aUtc(desde) : new Date(Date.UTC(gestion, 0, 1)),
-    fin: hasta ? aUtc(hasta, 1) : new Date(Date.UTC(gestion + 1, 0, 1)),
+    inicio: desde ? inicioDelDia(desde) : inicioDeGestion(gestion),
+    fin: hasta ? inicioDelDia(hasta, 1) : inicioDeGestion(gestion + 1),
   };
 }
 
@@ -105,7 +90,7 @@ export class KardexService {
 
   async findAll(query: QueryKardexDto, user: AuthenticatedUser) {
     const almacenId = await this.resolverAlmacen(query.almacenId, user);
-    const gestion = query.gestion ?? new Date().getFullYear();
+    const gestion = query.gestion ?? gestionDe(new Date());
 
     const item = await this.prisma.item.findUnique({
       where: { id: query.itemId },
@@ -247,7 +232,7 @@ export class KardexService {
    */
   async reporte(query: QueryReporteKardexDto, user: AuthenticatedUser) {
     const almacenId = await this.resolverAlmacen(query.almacenId, user);
-    const gestion = query.gestion ?? new Date().getFullYear();
+    const gestion = query.gestion ?? gestionDe(new Date());
 
     const almacen = await this.prisma.almacen.findUnique({
       where: { id: almacenId },

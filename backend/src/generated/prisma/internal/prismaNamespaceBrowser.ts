@@ -277,6 +277,7 @@ export const EgresoScalarFieldEnum = {
   unidadId: 'unidadId',
   solicitanteId: 'solicitanteId',
   justificacion: 'justificacion',
+  reservaDesde: 'reservaDesde',
   fechaEnvio: 'fechaEnvio',
   fechaEntrega: 'fechaEntrega',
   entregadoPorId: 'entregadoPorId',

@@ -63,12 +63,17 @@ enum TipoMovimiento {
 /// El RECHAZO no es un estado: es una transicion que devuelve a BORRADOR desde
 /// cualquier nivel. Queda registrado en EgresoHistorial con su motivo — si fuera
 /// un estado, un pedido rechazado y corregido perderia la traza.
+///
+/// DESISTIDO (2026-10-27): cierre de un pedido que ya tiene NUMERO (fue enviado
+/// y rechazado) y no se va a reenviar. No se puede borrar como un borrador sin
+/// numero: dejaria un hueco en la serie y perderia su historial.
 enum EstadoEgreso {
   BORRADOR
   PENDIENTE_APROBADOR
   PENDIENTE_RESPONSABLE_ALMACEN
   ENTREGADO
   ANULADO
+  DESISTIDO
 }
 
 // ---------------------------------------------------------------------------
@@ -459,8 +464,12 @@ model MovimientoKardex {
 /// lo aprueba el jefe de su unidad y lo entrega el responsable del almacen, que
 /// es quien descarga el stock. Ver docs/decisiones-egresos.md.
 ///
-/// TRES MOMENTOS, TRES FECHAS:
-///   - `createdAt`   : se creo el borrador. De aca corren las 48 h de reserva.
+/// LAS FECHAS:
+///   - `createdAt`   : se creo el borrador. Auditoria pura.
+///   - `reservaDesde`: de aca corren las 48 h de reserva mientras esta pendiente
+///                     de envio. Se pone al crear, al RECHAZAR (el solicitante
+///                     tiene 48 h nuevas para corregir) y al volver a elegir
+///                     items despues de un vencimiento.
 ///   - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
 ///   - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
 ///
@@ -489,6 +498,7 @@ model Egreso {
   /// anterior; su "categoria"/«Programa» se elimino. Obligatoria (300).
   justificacion String
 
+  reservaDesde DateTime  @default(now()) @map("reserva_desde")
   fechaEnvio   DateTime? @map("fecha_envio")
   fechaEntrega DateTime? @map("fecha_entrega")
 
@@ -566,8 +576,11 @@ model EgresoHistorial {
   estadoAnterior EstadoEgreso? @map("estado_anterior")
   estadoNuevo    EstadoEgreso  @map("estado_nuevo")
 
-  usuarioId Int     @map("usuario_id")
-  usuario   Usuario @relation("EgresoHistorialUsuario", fields: [usuarioId], references: [id])
+  /// Null SOLO en los pasos que hace el sistema: el vaciado de un pedido cuya
+  /// reserva de 48 h vencio sin enviarse. `onDelete: Restrict` explicito para
+  /// conservar la FK como era cuando el campo era obligatorio.
+  usuarioId Int?     @map("usuario_id")
+  usuario   Usuario? @relation("EgresoHistorialUsuario", fields: [usuarioId], references: [id], onDelete: Restrict)
 
   /// Obligatorio al rechazar y al anular (lo exige el service).
   motivo String?

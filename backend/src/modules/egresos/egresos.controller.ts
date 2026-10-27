@@ -120,6 +120,21 @@ export class EgresosController {
     return this.egresosService.remove(id, user);
   }
 
+  /**
+   * Cierra un pedido CON numero (enviado y rechazado) que no se va a reenviar.
+   * Reemplaza a «descartar» para esos: ya son documento y no se borran. Lo
+   * puede hacer su solicitante o admin/super_admin.
+   */
+  @Roles(Rol.super_admin, Rol.admin, Rol.solicitador)
+  @Post(':id/desistir')
+  desistir(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: MotivoDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.egresosService.desistir(id, dto, user);
+  }
+
   /** Lo manda al jefe de unidad. Aca se estampa el correlativo. */
   @Roles(Rol.solicitador)
   @Post(':id/enviar')

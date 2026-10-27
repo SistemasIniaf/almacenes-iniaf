@@ -207,7 +207,7 @@ export type EgresoHistorialGroupByOutputType = {
   egresoId: number
   estadoAnterior: $Enums.EstadoEgreso | null
   estadoNuevo: $Enums.EstadoEgreso
-  usuarioId: number
+  usuarioId: number | null
   motivo: string | null
   createdAt: Date
   _count: EgresoHistorialCountAggregateOutputType | null
@@ -240,11 +240,11 @@ export type EgresoHistorialWhereInput = {
   egresoId?: Prisma.IntFilter<"EgresoHistorial"> | number
   estadoAnterior?: Prisma.EnumEstadoEgresoNullableFilter<"EgresoHistorial"> | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFilter<"EgresoHistorial"> | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFilter<"EgresoHistorial"> | number
+  usuarioId?: Prisma.IntNullableFilter<"EgresoHistorial"> | number | null
   motivo?: Prisma.StringNullableFilter<"EgresoHistorial"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoHistorial"> | Date | string
   egreso?: Prisma.XOR<Prisma.EgresoScalarRelationFilter, Prisma.EgresoWhereInput>
-  usuario?: Prisma.XOR<Prisma.UsuarioScalarRelationFilter, Prisma.UsuarioWhereInput>
+  usuario?: Prisma.XOR<Prisma.UsuarioNullableScalarRelationFilter, Prisma.UsuarioWhereInput> | null
 }
 
 export type EgresoHistorialOrderByWithRelationInput = {
@@ -252,7 +252,7 @@ export type EgresoHistorialOrderByWithRelationInput = {
   egresoId?: Prisma.SortOrder
   estadoAnterior?: Prisma.SortOrderInput | Prisma.SortOrder
   estadoNuevo?: Prisma.SortOrder
-  usuarioId?: Prisma.SortOrder
+  usuarioId?: Prisma.SortOrderInput | Prisma.SortOrder
   motivo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   egreso?: Prisma.EgresoOrderByWithRelationInput
@@ -267,11 +267,11 @@ export type EgresoHistorialWhereUniqueInput = Prisma.AtLeast<{
   egresoId?: Prisma.IntFilter<"EgresoHistorial"> | number
   estadoAnterior?: Prisma.EnumEstadoEgresoNullableFilter<"EgresoHistorial"> | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFilter<"EgresoHistorial"> | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFilter<"EgresoHistorial"> | number
+  usuarioId?: Prisma.IntNullableFilter<"EgresoHistorial"> | number | null
   motivo?: Prisma.StringNullableFilter<"EgresoHistorial"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoHistorial"> | Date | string
   egreso?: Prisma.XOR<Prisma.EgresoScalarRelationFilter, Prisma.EgresoWhereInput>
-  usuario?: Prisma.XOR<Prisma.UsuarioScalarRelationFilter, Prisma.UsuarioWhereInput>
+  usuario?: Prisma.XOR<Prisma.UsuarioNullableScalarRelationFilter, Prisma.UsuarioWhereInput> | null
 }, "id">
 
 export type EgresoHistorialOrderByWithAggregationInput = {
@@ -279,7 +279,7 @@ export type EgresoHistorialOrderByWithAggregationInput = {
   egresoId?: Prisma.SortOrder
   estadoAnterior?: Prisma.SortOrderInput | Prisma.SortOrder
   estadoNuevo?: Prisma.SortOrder
-  usuarioId?: Prisma.SortOrder
+  usuarioId?: Prisma.SortOrderInput | Prisma.SortOrder
   motivo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.EgresoHistorialCountOrderByAggregateInput
@@ -297,7 +297,7 @@ export type EgresoHistorialScalarWhereWithAggregatesInput = {
   egresoId?: Prisma.IntWithAggregatesFilter<"EgresoHistorial"> | number
   estadoAnterior?: Prisma.EnumEstadoEgresoNullableWithAggregatesFilter<"EgresoHistorial"> | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoWithAggregatesFilter<"EgresoHistorial"> | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntWithAggregatesFilter<"EgresoHistorial"> | number
+  usuarioId?: Prisma.IntNullableWithAggregatesFilter<"EgresoHistorial"> | number | null
   motivo?: Prisma.StringNullableWithAggregatesFilter<"EgresoHistorial"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EgresoHistorial"> | Date | string
 }
@@ -308,7 +308,7 @@ export type EgresoHistorialCreateInput = {
   motivo?: string | null
   createdAt?: Date | string
   egreso: Prisma.EgresoCreateNestedOneWithoutHistorialInput
-  usuario: Prisma.UsuarioCreateNestedOneWithoutDecisionesEgresoInput
+  usuario?: Prisma.UsuarioCreateNestedOneWithoutDecisionesEgresoInput
 }
 
 export type EgresoHistorialUncheckedCreateInput = {
@@ -316,7 +316,7 @@ export type EgresoHistorialUncheckedCreateInput = {
   egresoId: number
   estadoAnterior?: $Enums.EstadoEgreso | null
   estadoNuevo: $Enums.EstadoEgreso
-  usuarioId: number
+  usuarioId?: number | null
   motivo?: string | null
   createdAt?: Date | string
 }
@@ -327,7 +327,7 @@ export type EgresoHistorialUpdateInput = {
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   egreso?: Prisma.EgresoUpdateOneRequiredWithoutHistorialNestedInput
-  usuario?: Prisma.UsuarioUpdateOneRequiredWithoutDecisionesEgresoNestedInput
+  usuario?: Prisma.UsuarioUpdateOneWithoutDecisionesEgresoNestedInput
 }
 
 export type EgresoHistorialUncheckedUpdateInput = {
@@ -335,7 +335,7 @@ export type EgresoHistorialUncheckedUpdateInput = {
   egresoId?: Prisma.IntFieldUpdateOperationsInput | number
   estadoAnterior?: Prisma.NullableEnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFieldUpdateOperationsInput | number
+  usuarioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -345,7 +345,7 @@ export type EgresoHistorialCreateManyInput = {
   egresoId: number
   estadoAnterior?: $Enums.EstadoEgreso | null
   estadoNuevo: $Enums.EstadoEgreso
-  usuarioId: number
+  usuarioId?: number | null
   motivo?: string | null
   createdAt?: Date | string
 }
@@ -362,7 +362,7 @@ export type EgresoHistorialUncheckedUpdateManyInput = {
   egresoId?: Prisma.IntFieldUpdateOperationsInput | number
   estadoAnterior?: Prisma.NullableEnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFieldUpdateOperationsInput | number
+  usuarioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -558,7 +558,7 @@ export type EgresoHistorialScalarWhereInput = {
   egresoId?: Prisma.IntFilter<"EgresoHistorial"> | number
   estadoAnterior?: Prisma.EnumEstadoEgresoNullableFilter<"EgresoHistorial"> | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFilter<"EgresoHistorial"> | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFilter<"EgresoHistorial"> | number
+  usuarioId?: Prisma.IntNullableFilter<"EgresoHistorial"> | number | null
   motivo?: Prisma.StringNullableFilter<"EgresoHistorial"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EgresoHistorial"> | Date | string
 }
@@ -568,14 +568,14 @@ export type EgresoHistorialCreateWithoutEgresoInput = {
   estadoNuevo: $Enums.EstadoEgreso
   motivo?: string | null
   createdAt?: Date | string
-  usuario: Prisma.UsuarioCreateNestedOneWithoutDecisionesEgresoInput
+  usuario?: Prisma.UsuarioCreateNestedOneWithoutDecisionesEgresoInput
 }
 
 export type EgresoHistorialUncheckedCreateWithoutEgresoInput = {
   id?: number
   estadoAnterior?: $Enums.EstadoEgreso | null
   estadoNuevo: $Enums.EstadoEgreso
-  usuarioId: number
+  usuarioId?: number | null
   motivo?: string | null
   createdAt?: Date | string
 }
@@ -645,7 +645,7 @@ export type EgresoHistorialCreateManyEgresoInput = {
   id?: number
   estadoAnterior?: $Enums.EstadoEgreso | null
   estadoNuevo: $Enums.EstadoEgreso
-  usuarioId: number
+  usuarioId?: number | null
   motivo?: string | null
   createdAt?: Date | string
 }
@@ -655,14 +655,14 @@ export type EgresoHistorialUpdateWithoutEgresoInput = {
   estadoNuevo?: Prisma.EnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  usuario?: Prisma.UsuarioUpdateOneRequiredWithoutDecisionesEgresoNestedInput
+  usuario?: Prisma.UsuarioUpdateOneWithoutDecisionesEgresoNestedInput
 }
 
 export type EgresoHistorialUncheckedUpdateWithoutEgresoInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   estadoAnterior?: Prisma.NullableEnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFieldUpdateOperationsInput | number
+  usuarioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -671,7 +671,7 @@ export type EgresoHistorialUncheckedUpdateManyWithoutEgresoInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   estadoAnterior?: Prisma.NullableEnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso | null
   estadoNuevo?: Prisma.EnumEstadoEgresoFieldUpdateOperationsInput | $Enums.EstadoEgreso
-  usuarioId?: Prisma.IntFieldUpdateOperationsInput | number
+  usuarioId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -687,7 +687,7 @@ export type EgresoHistorialSelect<ExtArgs extends runtime.Types.Extensions.Inter
   motivo?: boolean
   createdAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }, ExtArgs["result"]["egresoHistorial"]>
 
 export type EgresoHistorialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -699,7 +699,7 @@ export type EgresoHistorialSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   motivo?: boolean
   createdAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }, ExtArgs["result"]["egresoHistorial"]>
 
 export type EgresoHistorialSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -711,7 +711,7 @@ export type EgresoHistorialSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   motivo?: boolean
   createdAt?: boolean
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }, ExtArgs["result"]["egresoHistorial"]>
 
 export type EgresoHistorialSelectScalar = {
@@ -727,22 +727,22 @@ export type EgresoHistorialSelectScalar = {
 export type EgresoHistorialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "egresoId" | "estadoAnterior" | "estadoNuevo" | "usuarioId" | "motivo" | "createdAt", ExtArgs["result"]["egresoHistorial"]>
 export type EgresoHistorialInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }
 export type EgresoHistorialIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }
 export type EgresoHistorialIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   egreso?: boolean | Prisma.EgresoDefaultArgs<ExtArgs>
-  usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
+  usuario?: boolean | Prisma.EgresoHistorial$usuarioArgs<ExtArgs>
 }
 
 export type $EgresoHistorialPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EgresoHistorial"
   objects: {
     egreso: Prisma.$EgresoPayload<ExtArgs>
-    usuario: Prisma.$UsuarioPayload<ExtArgs>
+    usuario: Prisma.$UsuarioPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -752,7 +752,12 @@ export type $EgresoHistorialPayload<ExtArgs extends runtime.Types.Extensions.Int
      */
     estadoAnterior: $Enums.EstadoEgreso | null
     estadoNuevo: $Enums.EstadoEgreso
-    usuarioId: number
+    /**
+     * Null SOLO en los pasos que hace el sistema: el vaciado de un pedido cuya
+     * reserva de 48 h vencio sin enviarse. `onDelete: Restrict` explicito para
+     * conservar la FK como era cuando el campo era obligatorio.
+     */
+    usuarioId: number | null
     /**
      * Obligatorio al rechazar y al anular (lo exige el service).
      */
@@ -1153,7 +1158,7 @@ readonly fields: EgresoHistorialFieldRefs;
 export interface Prisma__EgresoHistorialClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   egreso<T extends Prisma.EgresoDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EgresoDefaultArgs<ExtArgs>>): Prisma.Prisma__EgresoClient<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  usuario<T extends Prisma.UsuarioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UsuarioDefaultArgs<ExtArgs>>): Prisma.Prisma__UsuarioClient<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  usuario<T extends Prisma.EgresoHistorial$usuarioArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EgresoHistorial$usuarioArgs<ExtArgs>>): Prisma.Prisma__UsuarioClient<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1588,6 +1593,25 @@ export type EgresoHistorialDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many EgresoHistorials to delete.
    */
   limit?: number
+}
+
+/**
+ * EgresoHistorial.usuario
+ */
+export type EgresoHistorial$usuarioArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Usuario
+   */
+  select?: Prisma.UsuarioSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Usuario
+   */
+  omit?: Prisma.UsuarioOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UsuarioInclude<ExtArgs> | null
+  where?: Prisma.UsuarioWhereInput
 }
 
 /**

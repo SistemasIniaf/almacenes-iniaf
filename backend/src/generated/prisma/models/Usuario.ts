@@ -793,10 +793,12 @@ export type UsuarioCreateNestedOneWithoutDecisionesEgresoInput = {
   connect?: Prisma.UsuarioWhereUniqueInput
 }
 
-export type UsuarioUpdateOneRequiredWithoutDecisionesEgresoNestedInput = {
+export type UsuarioUpdateOneWithoutDecisionesEgresoNestedInput = {
   create?: Prisma.XOR<Prisma.UsuarioCreateWithoutDecisionesEgresoInput, Prisma.UsuarioUncheckedCreateWithoutDecisionesEgresoInput>
   connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutDecisionesEgresoInput
   upsert?: Prisma.UsuarioUpsertWithoutDecisionesEgresoInput
+  disconnect?: Prisma.UsuarioWhereInput | boolean
+  delete?: Prisma.UsuarioWhereInput | boolean
   connect?: Prisma.UsuarioWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutDecisionesEgresoInput, Prisma.UsuarioUpdateWithoutDecisionesEgresoInput>, Prisma.UsuarioUncheckedUpdateWithoutDecisionesEgresoInput>
 }

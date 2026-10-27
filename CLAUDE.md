@@ -658,7 +658,8 @@ negocio con el encargado de almacenes — ver `docs/preguntas-encargado-almacene
 **crear** = `POST /ingresos` registra el ingreso `CONFIRMADO` en UNA transacción: valida respaldos + ≥1 ítem, que el responsable sea `solicitador` activo y que la unidad pertenezca al almacén; estampa `fechaIngreso` = **ahora**, `gestion` = año de esa fecha y `numero` = `MAX+1` por almacén+gestión; crea los lotes con `saldoCantidad = cantidad` y una ENTRADA de Kardex por línea (fechada con `fechaIngreso`). Si falta un dato, responde la lista de pendientes y **no crea nada**.
 → **editar** (`PATCH /ingresos/:id`, solo `CONFIRMADO`): cambia la cabecera documental (factura, respaldos, proveedor, responsable, unidad). NO toca líneas, almacén, fuente ni fecha de remisión (el `UpdateIngresoDto` ni siquiera los acepta), así que el stock queda intacto. **La excepción es `fechaIngreso`**, que solo acepta de `super_admin` y que sí mueve el Kardex y el correlativo (ver la entidad `Ingreso` más arriba).
   **El responsable de recepción se valida SOLO si cambia**: reenviar el que ya tenía se acepta aunque hoy esté dado de baja. Si no, dar de baja a esa persona dejaba el ingreso imposible de editar —ni siquiera para corregir la factura— porque el formulario reenvía su id. Regla general: **los catálogos filtran activos para lo NUEVO; los documentos ya emitidos conservan su referencia.** El frontend la acompaña con `conReferenciaActual()` en `IngresoFormPage`, que agrega al selector lo que el ingreso ya referencia con la etiqueta «(inactivo)» — aplicado al responsable y al proveedor.
-→ **anular** (`POST /ingresos/:id/anular`, solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo).
+→ **anular** (`POST /ingresos/:id/anular`, solo CONFIRMADO; bloqueado si algún lote ya tuvo salidas **o está reservado por un pedido** —pendiente, o borrador dentro de sus 48 h—; crea REVERSION, pone saldo 0 y registra quién/cuándo/motivo). Lo de las reservas es del 2026-10-27 (`verificarLotesSinUso`): antes el ingreso se anulaba igual y el pedido llegaba a la entrega con un lote en cero y el mensaje engañoso «no tiene saldo suficiente». Lo reservado se mide con `egresoReservaWhere`, la misma regla del stock; los lotes se bloquean (`FOR UPDATE`, orden por id) antes de mirar, y el cambio a ANULADO es condicional al estado, así un doble clic no duplica las REVERSIONES.
+**Correlativos**: ingresos (al crear y al corregir la fecha) y egresos (al enviar) toman `bloquearSerie()` (`common/correlativo/`, advisory lock por serie + almacén) justo antes del `MAX + 1`. Sin él, dos documentos del mismo almacén en el mismo instante leían el mismo MAX y el segundo moría con un 500 contra el índice único.
 Un ingreso NO se borra nunca (no existe DELETE): un error se corrige anulando y registrando de nuevo. **No hay endpoint `confirmar` ni `remove`** (eran del borrador; se eliminaron).
 **Scope por almacén** (lo aplica el service): `responsable_almacen` solo SU almacén, `observador_almacen` solo los que observa, admin/super_admin todo.
 El número se imprime `001-2026` (`padStart(3)` + guion + gestión) — se deriva, NO se guarda
@@ -687,8 +688,8 @@ egresos (ver «El número de documento» más abajo).
 - **El rango de fechas es sobre `fechaIngreso`**, la de efecto contable, NO sobre la de remisión: así
   el reporte coincide con lo que movió el Kardex. Ambos extremos **inclusivos** — `hasta` se lleva al
   día siguiente y se compara con `lt`, porque la fecha guardada tiene hora y un `lte` sobre la
-  medianoche dejaría afuera todo lo registrado ese día. Se interpretan en **UTC**, igual que el
-  kardex.
+  medianoche dejaría afuera todo lo registrado ese día. Los días son **de Bolivia**, igual que en el
+  kardex (ver «Calendario: hora de Bolivia» más abajo).
   Lo elige **`components/data/DateRangeFilter.tsx`** (`Popover` + `Calendar` en modo `range`, dos
   meses a la vista y atajos *Este mes · Mes pasado · Esta gestión · Gestión anterior*). No es un campo
   de react-hook-form —como sí lo es `DatePickerField`— sino un filtro suelto: recibe valor y callback.
@@ -811,7 +812,8 @@ vista**, que es exactamente cuando el dato importa.
 
 Consecuencia práctica: `formatearNumero()` es el único formateo de número de documento fuera del
 navegador, así que **si el formato vuelve a cambiar hay DOS lugares a tocar**. Están anotados uno en
-el otro (el service y `kardex.types.ts`).
+el otro. Vive en `backend/src/common/formato/numero-documento.ts` desde el 2026-10-27: salió del
+kardex cuando lo necesitó el mensaje de anulación de ingresos, para que siga siendo uno solo.
 
 **En las TABLAS lo dibuja `components/data/NumeroDocumento.tsx`**, no el string pelado:
 
@@ -861,7 +863,17 @@ texto muestra (para quien elige almacén se pasa entero a la segunda fila).
 saldo al 1/3, no con el de enero — si no, el saldo corriente de la primera fila no cerraría. Lo
 resuelve `ventana()` en `kardex.service`, compartida por la pantalla y el reporte: sin rango la
 ventana es la gestión entera (del 1/1 al 31/12), con rango mandan los extremos, ambos inclusivos y en
-UTC.
+hora de Bolivia.
+
+**Calendario: hora de Bolivia, no la del servidor** (2026-10-27). La gestión de un documento y los
+límites de un día (filtros de ingresos y egresos, ventana del kardex) salen SOLO de
+`backend/src/common/fechas/zona-horaria.ts` (`gestionDe`, `inicioDelDia`, `inicioDeGestion`). Antes
+salían de `getFullYear()` y `Date.UTC`: en el contenedor (UTC) todo lo registrado entre las 20:00 y la
+medianoche caía en el día siguiente, y el 31/12 a esa hora, en la **gestión siguiente** con el
+correlativo 001. El desfase va **fijo (UTC-4)** y no vía `TZ`, para que dev (Windows) y prod
+(contenedor) den lo mismo sin depender de la configuración del servidor; Bolivia no tiene horario de
+verano. **No volver a usar `getFullYear()` ni `Date.UTC` para fechas de negocio.** El frontend ya
+mandaba los días en hora local (`aIsoLocal`), así que ahora los dos lados coinciden.
 
 **El ítem sigue siendo obligatorio en la PANTALLA** (confirmado con el usuario el 2026-08-04): el
 saldo corriente no significa nada mezclando ítems. El reporte es el que sale de todos — esa es la
@@ -909,14 +921,49 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
 - **La línea apunta al LOTE** (`ingresoDetalleId`), no al ítem: el ítem, la fuente y el precio de la
   salida se derivan de él. Por eso la SALIDA del Kardex sale valorizada al precio de ESE lote.
 - **La reserva vive en `common/stock/reserva.ts`**, compartida con `stock`. `disponible = saldo −
-  reservado`, y `reservado` se deriva de las líneas cuyo egreso está pendiente **o** en un borrador de
-  menos de `HORAS_RESERVA_BORRADOR` (48). El vencimiento es una condición del `where`: **no hay cron**
-  — uno que falle dejaría stock reservado que nadie puede liberar. Si hay que subirlo a 72 h, es esa
-  constante.
+  reservado`, y `reservado` se deriva de las líneas cuyo egreso está pendiente **o** en un borrador
+  cuyo `reservaDesde` tiene menos de `HORAS_RESERVA_BORRADOR` (48, **corridas**). El vencimiento es
+  una condición del `where`, así que **la reserva nunca depende de un proceso**. Si hay que subirlo a
+  72 h, es esa constante.
+- **El ciclo de la reserva (regla del encargado, 2026-10-27)**:
+  - **El reloj corre SOLO mientras el pedido está «Pendiente de envío»**, desde `Egreso.reservaDesde`
+    (no `createdAt`). Se pone al crear, **al rechazar** (48 h nuevas para corregir, con el material
+    todavía reservado) y al volver a elegir ítems tras un vencimiento. Editar con la reserva vigente
+    **no** la renueva: tocar el pedido cada dos días retendría el material para siempre. Enviado, el
+    reloj se detiene.
+  - **Al vencer, el pedido se VACÍA**: se le quitan las líneas, queda pendiente de envío sin ítems y el
+    solicitante vuelve a elegir (`vaciarSiVencio`). El historial registra el paso **sin usuario**
+    (`EgresoHistorial.usuarioId` es nullable solo por esto; en pantalla figura como «Sistema»).
+  - **Lo vacía un cron cada 10 minutos** (`@nestjs/schedule`, `vaciarVencidos`). Acá un cron SÍ es
+    seguro, a diferencia de la reserva: solo hace visible algo que ya pasó, y si falla el disponible
+    sigue siendo correcto. Para no depender de él, **editar o enviar un pedido vencido lo vacía en el
+    acto y responde 409** (`exigirReservaVigente`): sin eso, un formulario abierto desde antes del
+    vencimiento reenviaría los ítems viejos y renovaría la reserva sin volver a elegir.
+  - El backend devuelve **`reservaVence`** calculado (null fuera de pendiente de envío) y el frontend
+    lo muestra con `AvisoReserva`: una línea bajo el estado en el listado y un recuadro en la ficha
+    (ámbar con menos de 12 h, rojo vencido o vacío).
+- **`DESISTIDO`** (2026-10-27): cierre de un pedido **con número** (enviado y rechazado) que no se va
+  a reenviar (`POST /egresos/:id/desistir`, motivo obligatorio; su solicitante o admin/super_admin).
+  No toca stock y deja de reservar. Existe porque **descartar borraba también los rechazados** —que
+  ya tienen número—, y eso dejaba un hueco en la serie y perdía su historial. El motivo vive en el
+  historial (no hay columna aparte).
 - **El descuento al entregar es un UPDATE condicional** (`saldoCantidad >= cantidad` + `decrement`),
   no un leer-y-escribir: la base garantiza que el saldo no quede negativo. Además, `bloquearLotes()`
-  hace `SELECT … FOR UPDATE` (SQL crudo; Prisma no lo expresa) al crear/editar/enviar, para que dos
-  solicitantes no reserven a la vez el mismo último saldo.
+  hace `SELECT … FOR UPDATE ORDER BY id` (SQL crudo; Prisma no lo expresa) al crear/editar/enviar,
+  para que dos solicitantes no reserven a la vez el mismo último saldo. **`validarDisponibilidad` va
+  DENTRO de la transacción y DESPUÉS del bloqueo** (recibe `tx`): hasta el 2026-10-26 corría antes,
+  fuera de la transacción, y el bloqueo no protegía nada — dos pedidos simultáneos reservaban los dos
+  el mismo saldo (verificado).
+- **Toda acción del circuito arranca con `transicionar(tx, id, desde, data)`**: un `updateMany`
+  condicionado a `estado = desde` que aborta con 409 si no tocó la fila (2026-10-26). El chequeo de
+  estado previo, fuera de la transacción, solo da el mensaje claro; no protege. Sin esto un doble
+  clic en *Entregar* descontaba el lote dos veces, y en *Anular* lo devolvía dos veces. Va PRIMERO,
+  antes de mover stock. Si agregás una acción nueva, usalo.
+- **Cada nivel rechaza solo en SU nivel**: el `aprobador` en `PENDIENTE_APROBADOR`, el
+  `responsable_almacen` en `PENDIENTE_RESPONSABLE_ALMACEN` (admin/super_admin en los dos). El frontend
+  ya lo respetaba (`puedeRechazar = puedeAprobar || puedeEntregar`); el backend no, hasta el 2026-10-26.
+- **La entrega exige cada línea del pedido exactamente UNA vez** (con `Set`): contar solo la cantidad
+  dejaba pasar `[A, A]` para un pedido A+B.
 - **El alcance NO es solo por almacén**, a diferencia de ingresos/stock: el `solicitador` ve LOS SUYOS
   y el `aprobador`, los de SU UNIDAD (`EgresosService.alcance`). El decorador `@Roles` dice quién
   puede intentar una acción; el service dice **sobre qué**.
@@ -924,7 +971,8 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   apunta a un lote, así que necesita ver cuáles hay y con cuánto disponible. Está en el helper de
   scope y no solo en el `@Roles` — si no, abrirle el endpoint le mostraría los otros ocho almacenes.
 - **Descartar un borrador lo BORRA de verdad**, a diferencia de todo lo demás: todavía no es un
-  documento (no tiene número) ni tocó stock.
+  documento (no tiene número) ni tocó stock. **Solo si no tiene número**: uno rechazado ya lo tiene,
+  así que el backend rechaza el borrado (400) y la UI ofrece *Desistir* en lugar del 🗑.
 - El **número se estampa al enviar** y **el rechazo lo conserva** (el pedido rechazado vuelve a
   BORRADOR pero ya es un documento con serie).
 

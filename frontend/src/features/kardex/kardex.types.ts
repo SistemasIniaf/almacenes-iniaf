@@ -23,7 +23,7 @@ export interface MovimientoKardex {
    *
    * El REPORTE del kardex recibe lo mismo pero ya formateado (`documento:
    * string`), porque en el papel el número va entero — ver `formatearNumero` en
-   * `kardex.service.ts`.
+   * `backend/src/common/formato/numero-documento.ts`.
    */
   documento: { numero: number; gestion: number } | null
   ingresoId: number | null

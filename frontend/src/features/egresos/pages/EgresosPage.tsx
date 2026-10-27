@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   ChevronDown,
+  CircleOff,
   TrendingUp,
   FileSpreadsheet,
   Inbox,
@@ -41,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Table,
   TableBody,
@@ -56,10 +58,12 @@ import { DateRangeFilter } from "@/components/data/DateRangeFilter"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
+import { AvisoReserva } from "@/features/egresos/components/AvisoReserva"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
 import {
   useDescartarEgreso,
+  useDesistirEgreso,
   useEgresos,
 } from "@/features/egresos/hooks/useEgresos"
 import { useReporteEgresos } from "@/features/egresos/hooks/useReporteEgresos"
@@ -100,6 +104,7 @@ const ESTADOS: EstadoEgreso[] = [
   "PENDIENTE_RESPONSABLE_ALMACEN",
   "ENTREGADO",
   "ANULADO",
+  "DESISTIDO",
 ]
 
 const fecha = (iso: string | null) =>
@@ -127,9 +132,12 @@ export function EgresosPage() {
     estadoUrl && ESTADOS.includes(estadoUrl) ? estadoUrl : TODOS
 
   const descartar = useDescartarEgreso()
-  // Enviar y descartar piden confirmación: los dos son sin vuelta atrás.
+  const desistir = useDesistirEgreso()
+  // Enviar, descartar y desistir piden confirmación: son sin vuelta atrás.
   const [aEnviar, setAEnviar] = useState<EgresoListItem | null>(null)
   const [aDescartar, setADescartar] = useState<EgresoListItem | null>(null)
+  const [aDesistir, setADesistir] = useState<EgresoListItem | null>(null)
+  const [motivoDesistir, setMotivoDesistir] = useState("")
   const [historialDe, setHistorialDe] = useState<number | null>(null)
 
   // El ALMACÉN solo se muestra a quien ve más de uno, igual que en ingresos y
@@ -210,6 +218,25 @@ export function EgresosPage() {
    */
   const puedeGestionar = (egreso: EgresoListItem) =>
     egreso.estado === "BORRADOR" && egreso.solicitante.id === user?.id
+
+  /**
+   * Cerrar un pedido pendiente de envío tiene dos caminos según si ya es
+   * documento (2026-10-27):
+   *
+   * - **Sin número** (nunca se envió): se DESCARTA, y se borra de verdad.
+   * - **Con número** (se envió y lo rechazaron): se DESISTE. Borrarlo dejaría
+   *   un hueco en la serie y perdería su historial. Además de su dueño, lo
+   *   puede hacer admin/super_admin, igual que el backend: un pedido de alguien
+   *   que ya no está no tiene que quedar abierto para siempre.
+   */
+  const puedeDescartar = (egreso: EgresoListItem) =>
+    puedeGestionar(egreso) && egreso.numero == null
+  const puedeDesistir = (egreso: EgresoListItem) =>
+    egreso.estado === "BORRADOR" &&
+    egreso.numero != null &&
+    (egreso.solicitante.id === user?.id ||
+      user?.rol === "admin" ||
+      user?.rol === "super_admin")
 
   // Fijas: Nº, Fecha, Justificación, Ítems, Estado y Acciones — esta última
   // siempre está, porque «Ver historial» lo puede usar cualquier rol.
@@ -506,6 +533,12 @@ export function EgresosPage() {
                     <BadgeEstado tono={ESTADO_PUNTO[egreso.estado]}>
                       {ESTADO_LABEL[egreso.estado]}
                     </BadgeEstado>
+                    {/* Solo en «pendiente de envío»: hasta cuándo reserva. */}
+                    <AvisoReserva
+                      egreso={egreso}
+                      cantidadItems={egreso._count.detalles}
+                      compacto
+                    />
                   </TableCell>
                   <TableCell
                     className="text-right whitespace-nowrap"
@@ -553,12 +586,20 @@ export function EgresosPage() {
                     {/* Descartar va SIEMPRE al final: es la única irreversible,
                         y separarla de las demás baja la chance de un clic por
                         inercia. */}
-                    {puedeGestionar(egreso) && (
+                    {puedeDescartar(egreso) && (
                       <IconAction
                         icono={Trash2}
                         etiqueta="Descartar el pedido"
                         destructiva
                         onClick={() => setADescartar(egreso)}
+                      />
+                    )}
+                    {puedeDesistir(egreso) && (
+                      <IconAction
+                        icono={CircleOff}
+                        etiqueta="Desistir del pedido"
+                        destructiva
+                        onClick={() => setADesistir(egreso)}
                       />
                     )}
                   </TableCell>
@@ -623,6 +664,68 @@ export function EgresosPage() {
               }}
             >
               Descartar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={aDesistir !== null}
+        onOpenChange={(abierto) => {
+          if (abierto) return
+          setADesistir(null)
+          setMotivoDesistir("")
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Desistir del pedido{" "}
+              {aDesistir && (
+                <NumeroDocumento
+                  numero={aDesistir.numero}
+                  gestion={aDesistir.gestion}
+                />
+              )}
+              ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Queda cerrado sin entregarse y libera el material que tenía
+              reservado. No se borra: ya tiene número, así que se conserva con
+              su historial. No se puede volver a enviar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={motivoDesistir}
+            onChange={(event) => setMotivoDesistir(event.target.value)}
+            placeholder="Motivo (obligatorio)"
+            rows={3}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={desistir.isPending}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={
+                desistir.isPending || motivoDesistir.trim().length === 0
+              }
+              onClick={(event) => {
+                event.preventDefault()
+                if (!aDesistir) return
+                void desistir
+                  .mutateAsync({
+                    id: aDesistir.id,
+                    motivo: motivoDesistir.trim(),
+                  })
+                  .then(() => {
+                    setADesistir(null)
+                    setMotivoDesistir("")
+                  })
+                  .catch(() => undefined)
+              }}
+            >
+              Desistir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

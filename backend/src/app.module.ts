@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AlmacenesModule } from './modules/almacenes/almacenes.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -23,6 +24,9 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Tareas periodicas. Hoy una sola: vaciar los pedidos de egreso cuya
+    // reserva de 48 h vencio sin enviarse (`EgresosService.vaciarVencidos`).
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     UsuariosModule,
