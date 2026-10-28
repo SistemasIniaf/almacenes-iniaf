@@ -8,16 +8,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useState } from "react"
+
 import { Skeleton } from "@/components/ui/skeleton"
 import { useEnviarEgreso } from "@/features/egresos/hooks/useEgresos"
 import { useMiAprobador } from "@/features/usuarios/useUsuarios"
 
-interface EnviarDialogProps {
-  egresoId: number
+type EnviarDialogProps = {
   onClose: () => void
   /** Se llama tras enviar con éxito (para navegar o cerrar). */
   onEnviado?: () => void
-}
+} & (
+  | { egresoId: number; crearPedido?: never; onGuardadoSinEnviar?: never }
+  | {
+      egresoId?: never
+      /**
+       * «Guardar y enviar» de un pedido NUEVO: al confirmar, primero lo crea
+       * (devuelve su id) y recién después lo envía. Confirmar ANTES de crear
+       * es a propósito: si el solicitante cancela, no queda un pedido creado
+       * que no pidió.
+       */
+      crearPedido: () => Promise<number>
+      /**
+       * Se creó pero el envío falló (sin disponible, sin ítems…): el pedido
+       * ya existe, pendiente de envío, y el error lo dice el toast.
+       */
+      onGuardadoSinEnviar: () => void
+    }
+)
 
 /**
  * Confirma el envío del pedido y dice A QUIÉN le llega. Enviar es un paso sin
@@ -31,9 +49,39 @@ export function EnviarDialog({
   egresoId,
   onClose,
   onEnviado,
+  crearPedido,
+  onGuardadoSinEnviar,
 }: EnviarDialogProps) {
   const enviar = useEnviarEgreso()
   const { data: aprobador, isPending } = useMiAprobador()
+  // Cubre también la creación, que no es una mutación de este diálogo: sin
+  // esto, el botón quedaba habilitado mientras se creaba el pedido.
+  const [ocupado, setOcupado] = useState(false)
+
+  async function confirmar() {
+    setOcupado(true)
+    let id = egresoId
+    try {
+      if (crearPedido) id = await crearPedido()
+    } catch {
+      // No se creó nada: el toast lo emite la mutación y el formulario sigue
+      // como estaba para corregir.
+      setOcupado(false)
+      onClose()
+      return
+    }
+    try {
+      await enviar.mutateAsync(id as number)
+      onEnviado?.()
+      onClose()
+    } catch {
+      setOcupado(false)
+      if (crearPedido) {
+        onGuardadoSinEnviar?.()
+        onClose()
+      }
+    }
+  }
 
   return (
     <AlertDialog open onOpenChange={(abierto) => !abierto && onClose()}>
@@ -77,23 +125,15 @@ export function EnviarDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={enviar.isPending}>
-            Cancelar
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={ocupado}>Cancelar</AlertDialogCancel>
           <AlertDialogAction
-            disabled={enviar.isPending}
+            disabled={ocupado}
             onClick={(event) => {
               event.preventDefault()
-              void enviar
-                .mutateAsync(egresoId)
-                .then(() => {
-                  onEnviado?.()
-                  onClose()
-                })
-                .catch(() => undefined)
+              void confirmar()
             }}
           >
-            Enviar
+            {crearPedido ? "Guardar y enviar" : "Enviar"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

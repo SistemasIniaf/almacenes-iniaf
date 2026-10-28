@@ -36,7 +36,8 @@ interface EgresoLineasProps {
    * del combo es una búsqueda del servidor: sin ellos, un lote ya elegido que no
    * esté en los resultados actuales se mostraría en blanco. Y además un lote
    * pedido puede haber quedado sin disponible justamente porque ESTE pedido lo
-   * reservó.
+   * reservó: su `disponible` viene calculado para este pedido y manda sobre el
+   * de la búsqueda.
    */
   lotesIniciales?: LoteElegible[]
 }
@@ -156,7 +157,10 @@ export function EgresoLineas({
   const encontrados = data?.lotes ?? []
 
   const porId = new Map<number, LoteElegible>()
-  for (const l of [...lotesIniciales, ...vistos, ...encontrados]) {
+  // Los del propio pedido van ÚLTIMOS, para que su disponible le gane al de la
+  // búsqueda: el del stock ya le resta lo que reserva este mismo pedido, y un
+  // lote de 820 con 10 pedidos acá se veía «disp. 810».
+  for (const l of [...vistos, ...encontrados, ...lotesIniciales]) {
     porId.set(l.id, l)
   }
   const opciones = [...porId.values()].map(aOpcion)

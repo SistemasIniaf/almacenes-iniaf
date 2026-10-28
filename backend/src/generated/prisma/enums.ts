@@ -49,6 +49,7 @@ export type TipoMovimiento = (typeof TipoMovimiento)[keyof typeof TipoMovimiento
 
 export const EstadoEgreso = {
   BORRADOR: 'BORRADOR',
+  DEVUELTO: 'DEVUELTO',
   PENDIENTE_APROBADOR: 'PENDIENTE_APROBADOR',
   PENDIENTE_RESPONSABLE_ALMACEN: 'PENDIENTE_RESPONSABLE_ALMACEN',
   ENTREGADO: 'ENTREGADO',

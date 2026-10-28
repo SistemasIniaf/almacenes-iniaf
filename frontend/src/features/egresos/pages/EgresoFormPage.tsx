@@ -77,9 +77,12 @@ import {
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
 import {
+  describirPaso,
   descripcionConNota,
+  esRechazo,
   ESTADO_LABEL,
   ESTADO_PUNTO,
+  ESTADOS_DEL_SOLICITANTE,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
 
@@ -176,6 +179,9 @@ export function EgresoFormPage() {
     Record<number, string>
   >({})
   const [dialogoEnviar, setDialogoEnviar] = useState(false)
+  // «Guardar y enviar» de un pedido nuevo: los valores ya validados, a la
+  // espera de que se confirme el envío (recién ahí se crea).
+  const [paraEnviar, setParaEnviar] = useState<EgresoFormValues | null>(null)
   const [historialAbierto, setHistorialAbierto] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
     "rechazar" | "anular" | "desistir" | null
@@ -194,9 +200,13 @@ export function EgresoFormPage() {
 
   const estado = egreso?.estado
   const esPropio = egreso?.solicitante.id === user?.id
-  // El borrador es lo único editable, y solo por su dueño. Enviado, el pedido
-  // ya es problema de otro.
-  const editable = esNuevo || (estado === "BORRADOR" && esPropio)
+  // Lo editable es lo que está en manos del solicitante (sin enviar o
+  // devuelto), y solo por su dueño. Enviado, el pedido ya es problema de otro.
+  const editable =
+    esNuevo ||
+    (estado !== undefined &&
+      ESTADOS_DEL_SOLICITANTE.includes(estado) &&
+      esPropio)
 
   const puedeAprobar =
     estado === "PENDIENTE_APROBADOR" &&
@@ -214,12 +224,17 @@ export function EgresoFormPage() {
     (user?.rol === "responsable_almacen" ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
-  // Un pedido CON número que volvió rechazado no se descarta: se desiste (ver
-  // `puedeDesistir` en el listado, misma regla que el backend).
+  // Un DEVUELTO no se descarta: se desiste (ver `puedeDesistir` en el listado,
+  // misma regla que el backend).
   const puedeDesistir =
-    estado === "BORRADOR" &&
-    egreso?.numero != null &&
+    estado === "DEVUELTO" &&
     (esPropio || user?.rol === "admin" || user?.rol === "super_admin")
+  // Quién lo devolvió y por qué: el último rechazo del historial. Va arriba de
+  // la ficha porque es lo primero que el solicitante necesita para corregir.
+  const rechazo =
+    estado === "DEVUELTO"
+      ? egreso?.historial.findLast((paso) => esRechazo(paso))
+      : undefined
   // Separa las acciones de INFORMACIÓN (Historial, Enviar, Ver PDF) de las de
   // DECISIÓN sobre el pedido — para que aprobar/rechazar no se pierdan entre
   // botones secundarios en la misma fila.
@@ -262,7 +277,9 @@ export function EgresoFormPage() {
     fuente:
       d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
     numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),
-    disponible: Number(d.ingresoDetalle.saldoCantidad),
+    // Lo que puede pedir ESTE pedido, calculado por el backend (sin restarse
+    // su propia reserva). `null` solo fuera de edición, donde no se usa.
+    disponible: d.disponible ?? Number(d.ingresoDetalle.saldoCantidad),
   }))
 
   /**
@@ -293,6 +310,7 @@ export function EgresoFormPage() {
         // nada. Desde la tabla se ve el pedido con su estado y a un clic están
         // sus acciones (enviar, editar, descartar), que viven ahí.
         await crear.mutateAsync(aPayload(valores))
+        toast.success("Pedido guardado. Falta enviarlo al aprobador de unidad")
         navigate("/egresos")
       } else {
         await actualizar.mutateAsync({
@@ -413,7 +431,9 @@ export function EgresoFormPage() {
               onClick={() => setDialogoEnviar(true)}
             >
               <Send className="size-4" />
-              Enviar a aprobador unidad
+              {estado === "DEVUELTO"
+                ? "Reenviar a aprobador unidad"
+                : "Enviar a aprobador unidad"}
             </Button>
           )}
 
@@ -532,6 +552,21 @@ export function EgresoFormPage() {
           <span className="font-medium">Anulado:</span> {egreso.motivoAnulacion}
         </div>
       )}
+      {rechazo && (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+          <span className="font-medium">
+            Devuelto por {rechazo.usuario?.nombre ?? "—"} (
+            {describirPaso(rechazo).actor.toLowerCase()}):
+          </span>{" "}
+          {rechazo.motivo}
+          {esPropio && (
+            <span className="text-muted-foreground">
+              {" "}
+              · Corregilo y volvé a enviarlo, o desistí si ya no lo necesitás.
+            </span>
+          )}
+        </div>
+      )}
       {motivoDesistido && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
           <span className="font-medium">Desistido:</span> {motivoDesistido}
@@ -618,15 +653,35 @@ export function EgresoFormPage() {
             {/* Acción principal al pie del formulario — igual que el de
                 ingresos. Queda al final de lo que hay que completar, no en la
                 barra de arriba junto a las acciones del documento. */}
-            <div className="mt-2 flex justify-end">
-              <Button type="submit" disabled={ocupado}>
+            {/* Al CREAR hay dos salidas (pedido del usuario, 2026-10-28): lo
+                normal es armar el pedido y mandarlo de una, así que «Guardar y
+                enviar» es la principal; «Guardar sin enviar» lo deja pendiente
+                de envío para terminarlo después. Las dos vuelven al listado. Al
+                editar sigue habiendo un solo «Guardar»: el envío de un pedido
+                ya creado está arriba, con las acciones del documento. */}
+            <div className="mt-2 flex flex-col-reverse justify-end gap-2 sm:flex-row">
+              <Button
+                type="submit"
+                variant={esNuevo ? "outline" : "default"}
+                disabled={ocupado}
+              >
                 {ocupado ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Save className="size-4" />
                 )}
-                Guardar
+                {esNuevo ? "Guardar sin enviar" : "Guardar"}
               </Button>
+              {esNuevo && (
+                <Button
+                  type="button"
+                  disabled={ocupado}
+                  onClick={handleSubmit(setParaEnviar, avisarInvalido)}
+                >
+                  <Send className="size-4" />
+                  Guardar y enviar al aprobador
+                </Button>
+              )}
             </div>
           </form>
         ) : (
@@ -803,6 +858,21 @@ export function EgresoFormPage() {
 
       {/* Se monta solo al abrirse: así consulta el aprobador recién cuando hace
           falta. */}
+      {paraEnviar && (
+        <EnviarDialog
+          crearPedido={async () =>
+            (await crear.mutateAsync(aPayload(paraEnviar))).id
+          }
+          onEnviado={() => navigate("/egresos")}
+          onGuardadoSinEnviar={() => {
+            toast.info(
+              "El pedido quedó guardado, pendiente de envío: corregilo y envialo desde el listado."
+            )
+            navigate("/egresos")
+          }}
+          onClose={() => setParaEnviar(null)}
+        />
+      )}
       {dialogoEnviar && id != null && (
         <EnviarDialog egresoId={id} onClose={() => setDialogoEnviar(false)} />
       )}

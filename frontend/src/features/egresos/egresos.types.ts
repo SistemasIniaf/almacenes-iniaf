@@ -5,16 +5,27 @@ import type { PaginationQuery } from "@/lib/types"
 
 export type EstadoEgreso =
   | "BORRADOR"
+  /**
+   * Rechazado por el aprobador o por el almacén: vuelve al solicitante para
+   * corregirlo y reenviarlo, CON su número (2026-10-28). Hasta esa fecha el
+   * rechazo volvía a BORRADOR y se lo distinguía por tener número.
+   */
+  | "DEVUELTO"
   | "PENDIENTE_APROBADOR"
   | "PENDIENTE_RESPONSABLE_ALMACEN"
   | "ENTREGADO"
   | "ANULADO"
   /**
-   * Cierre de un pedido CON número (enviado y rechazado) que no se va a
-   * reenviar. Reemplaza a «descartar» para esos: ya son documento y no se
-   * borran (2026-10-27).
+   * Cierre de un DEVUELTO que no se va a reenviar. Reemplaza a «descartar»
+   * para esos: ya son documento y no se borran (2026-10-27).
    */
   | "DESISTIDO"
+
+/**
+ * Los estados en manos del SOLICITANTE: los únicos que se editan y en los que
+ * corre el reloj de la reserva. Espeja `ESTADOS_CON_RELOJ` del backend.
+ */
+export const ESTADOS_DEL_SOLICITANTE: EstadoEgreso[] = ["BORRADOR", "DEVUELTO"]
 
 /**
  * Etiqueta CORTA, para los badges de las tablas y la ficha. Dice qué falta, en
@@ -33,6 +44,10 @@ export const ESTADO_LABEL: Record<EstadoEgreso, string> = {
   // llamándose BORRADOR — es interno y renombrarlo costaría una migración sin
   // ninguna ganancia.
   BORRADOR: "Pendiente de envío",
+  // Fuera de la serie a propósito (elegido por el usuario el 2026-10-28): dice
+  // lo que pasó, y el recuadro de la ficha nombra quién lo devolvió y por qué.
+  // Se descartó «Rechazado», que se lee como un trámite cerrado.
+  DEVUELTO: "Devuelto",
   PENDIENTE_APROBADOR: "Pendiente de aprobación",
   PENDIENTE_RESPONSABLE_ALMACEN: "Pendiente de entrega",
   ENTREGADO: "Entregado",
@@ -51,6 +66,7 @@ export const ESTADO_LABEL: Record<EstadoEgreso, string> = {
  */
 export const ESTADO_DETALLE: Record<EstadoEgreso, string> = {
   BORRADOR: "Pendiente de envío",
+  DEVUELTO: "Devuelto al solicitante para corregir",
   PENDIENTE_APROBADOR: "Esperando al aprobador de unidad",
   PENDIENTE_RESPONSABLE_ALMACEN: "Esperando entrega en almacén",
   ENTREGADO: "Entregado",
@@ -66,6 +82,8 @@ export const ESTADO_DETALLE: Record<EstadoEgreso, string> = {
 export const ESTADO_PUNTO: Record<EstadoEgreso, TonoPunto> = {
   // Todavía no salió: no espera a nadie más que a su autor.
   BORRADOR: "neutro",
+  // Espera a alguien —a su solicitante— y con plazo: no es un borrador quieto.
+  DEVUELTO: "espera",
   PENDIENTE_APROBADOR: "espera",
   // Ya pasó la aprobación: avanzó un paso y está en manos del almacén.
   PENDIENTE_RESPONSABLE_ALMACEN: "proceso",
@@ -77,14 +95,33 @@ export const ESTADO_PUNTO: Record<EstadoEgreso, TonoPunto> = {
 
 /**
  * El paso que hace el SISTEMA cuando vence la reserva de 48 h sin que el pedido
- * se envíe: le quita los ítems. Es el único que va de BORRADOR a BORRADOR (un
- * rechazo viene de un estado pendiente) y el único sin usuario.
+ * se envíe: le quita los ítems. Es el único que no cambia el estado (BORRADOR →
+ * BORRADOR o DEVUELTO → DEVUELTO) y el único sin usuario.
  */
 export function esVaciado(paso: {
   estadoAnterior: EstadoEgreso | null
   estadoNuevo: EstadoEgreso
 }) {
-  return paso.estadoAnterior === "BORRADOR" && paso.estadoNuevo === "BORRADOR"
+  return (
+    paso.estadoAnterior === paso.estadoNuevo &&
+    ESTADOS_DEL_SOLICITANTE.includes(paso.estadoNuevo)
+  )
+}
+
+/**
+ * El paso de un RECHAZO: de un estado pendiente al solicitante. Los nuevos
+ * terminan en DEVUELTO; los anteriores al 2026-10-28 quedaron registrados
+ * terminando en BORRADOR (el historial no se reescribe) y se narran igual.
+ */
+export function esRechazo(paso: {
+  estadoAnterior: EstadoEgreso | null
+  estadoNuevo: EstadoEgreso
+}) {
+  return (
+    (paso.estadoAnterior === "PENDIENTE_APROBADOR" ||
+      paso.estadoAnterior === "PENDIENTE_RESPONSABLE_ALMACEN") &&
+    ESTADOS_DEL_SOLICITANTE.includes(paso.estadoNuevo)
+  )
 }
 
 /**
@@ -148,7 +185,7 @@ export function describirPaso(paso: {
       : { accion: "Anuló el pedido", verbo: "Anuló", actor: "Almacén" }
   }
 
-  if (a === "BORRADOR") {
+  if (esRechazo(paso)) {
     return {
       accion: "Rechazó el pedido",
       consecuencia: "vuelve al solicitante para corregirlo",
@@ -162,6 +199,16 @@ export function describirPaso(paso: {
   }
 
   if (a === "PENDIENTE_APROBADOR") {
+    // El reenvío de un devuelto. Los anteriores al estado DEVUELTO salían de
+    // BORRADOR y se narran como envío, que es lo que dijo siempre el historial.
+    if (de === "DEVUELTO") {
+      return {
+        accion: "Reenvió el pedido corregido",
+        consecuencia: "pasa al aprobador de unidad",
+        verbo: "Reenvió",
+        actor: "Solicitante",
+      }
+    }
     return {
       accion: "Envió el pedido",
       consecuencia: "pasa al aprobador de unidad",
@@ -250,6 +297,13 @@ export interface EgresoDetalle {
   cantidadSolicitada: string
   /** Null hasta la entrega. La ajusta solo el responsable de almacén. */
   cantidadEntregada: string | null
+  /**
+   * Cuánto puede pedir ESTE pedido del lote: el saldo menos lo reservado por
+   * los DEMÁS pedidos (la misma cuenta del backend al guardar). El disponible
+   * del stock no sirve acá: ya le resta la reserva de este mismo pedido. `null`
+   * fuera de edición (enviado o cerrado).
+   */
+  disponible: number | null
   ingresoDetalle: LoteDeLinea
 }
 
@@ -339,7 +393,8 @@ export function estadoReserva(
   | { tipo: "vencida"; vence: Date }
   | { tipo: "vacio" }
   | null {
-  if (egreso.estado !== "BORRADOR" || !egreso.reservaVence) return null
+  if (!ESTADOS_DEL_SOLICITANTE.includes(egreso.estado) || !egreso.reservaVence)
+    return null
   if (cantidadItems === 0) return { tipo: "vacio" }
   const vence = new Date(egreso.reservaVence)
   return vence > ahora ? { tipo: "vigente", vence } : { tipo: "vencida", vence }

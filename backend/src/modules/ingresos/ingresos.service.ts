@@ -16,6 +16,7 @@ import {
 import { formatearNumero } from '../../common/formato/numero-documento';
 import {
   egresoReservaWhere,
+  ESTADOS_CON_RELOJ,
   vencimientoReserva,
 } from '../../common/stock/reserva';
 import type { Prisma } from '../../generated/prisma/client';
@@ -624,15 +625,17 @@ export class IngresosService {
     // Se separan por ESTADO y no por si tienen numero: un pedido rechazado
     // vuelve a borrador CON su numero, y decirle al almacen que «hay que
     // rechazarlo» seria pedirle algo que ya hizo. Los que circulan se nombran
-    // por su numero, que es como los encuentra el almacen; los borradores se
-    // cuentan, y se nombran solo los que ya tienen numero.
+    // por su numero, que es como los encuentra el almacen; los que estan en
+    // manos del solicitante se cuentan, y se nombran los DEVUELTOS (los unicos
+    // con numero).
+    const enManos = (e: { estado: EstadoEgreso }) =>
+      ESTADOS_CON_RELOJ.includes(e.estado);
     const enCurso = egresos
-      .filter((e) => e.estado !== EstadoEgreso.BORRADOR)
+      .filter((e) => !enManos(e))
       .map((e) => formatearNumero(e.numero, e.gestion));
-    const borradores = egresos.filter(
-      (e) => e.estado === EstadoEgreso.BORRADOR,
-    );
+    const borradores = egresos.filter(enManos);
     const borradoresConNumero = borradores
+      .filter((e) => e.estado === EstadoEgreso.DEVUELTO)
       .map((e) => formatearNumero(e.numero, e.gestion))
       .filter((n): n is string => n !== null);
     const uno = borradores.length === 1;

@@ -92,10 +92,9 @@ export function useCrearEgreso() {
   const invalidar = useInvalidarEgresos()
   return useMutation({
     mutationFn: (payload: CreateEgresoPayload) => crearEgreso(payload),
-    onSuccess: () => {
-      invalidar()
-      toast.success("Pedido guardado. Falta enviarlo al aprobador de unidad")
-    },
+    // El aviso de éxito lo da quien llama: «guardado, falta enviarlo» sería
+    // falso en «Guardar y enviar», donde el envío viene en el mismo clic.
+    onSuccess: () => invalidar(),
     // Los errores útiles los arma el backend (sin disponible suficiente, lote
     // de otro almacén, ingreso anulado): se muestran tal cual.
     onError: (error) => toast.error(getApiErrorMessage(error)),

@@ -11,14 +11,23 @@ import { PrismaService } from '../../prisma/prisma.service';
  * la tarde vence el domingo.
  *
  * El reloj corre SOLO mientras el pedido esta en manos del solicitante, desde
- * `Egreso.reservaDesde`: se pone al crear, al rechazar (48 h nuevas para
- * corregir) y al volver a elegir items tras un vencimiento. Enviado, el reloj
+ * `Egreso.reservaDesde`: se pone al crear, al rechazar (pasa a DEVUELTO, con
+ * 48 h nuevas para corregir) y al volver a elegir items tras un vencimiento. Enviado, el reloj
  * no corre — si el aprobador o el almacen tardan, no es culpa del solicitante.
  *
  * Al vencer, el pedido se VACIA: se le quitan las lineas y el solicitante tiene
  * que volver a elegir lo que necesita (`EgresosService.vaciarSiVencio`).
  */
 export const MINUTOS_RESERVA_POR_DEFECTO = 48 * 60;
+
+/**
+ * Los estados en manos del SOLICITANTE, que son los unicos donde corre el reloj:
+ * el pedido sin enviar y el DEVUELTO (rechazado, para corregir y reenviar).
+ */
+export const ESTADOS_CON_RELOJ: EstadoEgreso[] = [
+  EstadoEgreso.BORRADOR,
+  EstadoEgreso.DEVUELTO,
+];
 
 /**
  * Cuantos minutos dura la reserva. Siempre 48 h, salvo que se defina
@@ -87,7 +96,10 @@ export function egresoReservaWhere(ahora: Date = new Date()) {
           ],
         },
       },
-      { estado: EstadoEgreso.BORRADOR, reservaDesde: { gt: limite } },
+      {
+        estado: { in: ESTADOS_CON_RELOJ },
+        reservaDesde: { gt: limite },
+      },
     ],
   };
 }

@@ -12,7 +12,7 @@ import {
 import { EgresoDetalleDto } from './create-egreso.dto';
 
 /**
- * Edicion del BORRADOR, y solo del borrador: una vez enviado, el pedido entro al
+ * Edicion del BORRADOR o del DEVUELTO, y solo de esos: una vez enviado, el pedido entro al
  * circuito de otro y el solicitante no lo toca mas. Si mandan `detalles`,
  * REEMPLAZA la lista completa (es como se comporta el formulario).
  */

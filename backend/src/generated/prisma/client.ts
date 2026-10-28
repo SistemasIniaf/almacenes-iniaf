@@ -148,10 +148,11 @@ export type MovimientoKardex = Prisma.MovimientoKardexModel
  * LAS FECHAS:
  * - `createdAt`   : se creo el borrador. Auditoria pura.
  * - `reservaDesde`: de aca corren las 48 h de reserva mientras esta pendiente
- * de envio. Se pone al crear, al RECHAZAR (el solicitante
- * tiene 48 h nuevas para corregir) y al volver a elegir
- * items despues de un vencimiento.
- * - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
+ * de envio o DEVUELTO. Se pone al crear, al RECHAZAR (el
+ * solicitante tiene 48 h nuevas para corregir) y al volver
+ * a elegir items despues de un vencimiento.
+ * - `fechaEnvio`  : el PRIMER envio. De aca salen `gestion` y `numero`, y
+ * reenviar un devuelto no cambia ninguno de los tres.
  * - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
  * 
  * El NUMERO se estampa al ENVIAR, no al crear: un borrador que se descarta no

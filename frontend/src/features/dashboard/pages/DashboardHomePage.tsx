@@ -6,6 +6,7 @@ import {
   Boxes,
   CheckCircle2,
   FileEdit,
+  Undo2,
   Inbox,
   PackageCheck,
   Plus,
@@ -116,6 +117,7 @@ export function DashboardHomePage() {
   // Cada conteo significa lo correcto para quien lo pide porque el alcance lo
   // aplica el backend (los míos / los de mi unidad / los de mi almacén).
   const borradores = useConteoEgresos({ estado: "BORRADOR" }, esSolicitador)
+  const devueltos = useConteoEgresos({ estado: "DEVUELTO" }, esSolicitador)
   const conJefe = useConteoEgresos({ estado: "PENDIENTE_APROBADOR" })
   const enAlmacen = useConteoEgresos({
     estado: "PENDIENTE_RESPONSABLE_ALMACEN",
@@ -152,6 +154,15 @@ export function DashboardHomePage() {
             detalle: "Pedidos tuyos que todavía no salieron",
             a: "/egresos?estado=BORRADOR",
             icono: FileEdit,
+            urgente: true,
+          },
+          {
+            titulo: "Devueltos",
+            valor: devueltos.data,
+            cargando: devueltos.isPending,
+            detalle: "Rechazados: corregilos y volvé a enviarlos",
+            a: "/egresos?estado=DEVUELTO",
+            icono: Undo2,
             urgente: true,
           },
         ]

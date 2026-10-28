@@ -147,25 +147,38 @@ El almacén destino de un Egreso es **siempre el `almacen_id` del usuario Solici
 ## Máquina de estados del Egreso
 
 ```
-BORRADOR
-   │ enviar
-   ▼
+BORRADOR (sin número)            DEVUELTO (con número) ──desiste──► DESISTIDO
+   │ enviar (estampa número)        │ reenviar (CONSERVA número)
+   ▼                                ▼
 PENDIENTE_APROBADOR   (aprobador = jefe de la unidad del solicitante)
    │ aprueba — NO toca cantidades ─────► PENDIENTE_RESPONSABLE_ALMACEN
-   │ rechaza ──────────────────────────► BORRADOR
+   │ rechaza ──────────────────────────► DEVUELTO
    ▼
 PENDIENTE_RESPONSABLE_ALMACEN   (responsable del almacén del solicitante — último nivel)
    │ aprueba y entrega (AJUSTA la cantidad final)
    │    → descuenta el saldo de los lotes pedidos
    │    → genera movimiento de SALIDA en Kardex
-   │ rechaza ──────────────────────────► BORRADOR
+   │ rechaza ──────────────────────────► DEVUELTO
    ▼
 APROBADO (entregado)
 ```
 
+**`DEVUELTO` (2026-10-28, pedido del usuario)**: hasta esa fecha el rechazo volvía a `BORRADOR`, y
+el sistema distinguía «nunca enviado» de «rechazado» mirando si tenía número, en media docena de
+lugares. Son cosas distintas —el devuelto ya es un documento de la serie, no se descarta sino que se
+desiste, y le importa también al almacén—, así que tienen estado propio. La regla del encargado no
+cambió: vuelve al solicitante y reinicia desde el aprobador. En pantalla se llama **«Devuelto»**
+(elegido por el usuario; se descartó «Rechazado», que se lee como trámite cerrado) y la ficha
+muestra quién lo devolvió y el motivo. Los dos estados en manos del solicitante son
+`ESTADOS_CON_RELOJ` (backend) / `ESTADOS_DEL_SOLICITANTE` (frontend): ahí se edita y corre la
+reserva. **El historial viejo no se reescribió**: los rechazos anteriores quedaron como
+`… → BORRADOR`, y `esRechazo()` los narra igual que los nuevos. La migración va en DOS carpetas
+(`…_egresos_estado_devuelto` y `…_devuelto_relleno`) porque Postgres no deja usar un valor de enum en
+la misma transacción que lo agrega.
+
 **Quién ajusta cantidades** (confirmado con el encargado el 2026-07-29): SOLO el `responsable_almacen` al entregar, y el `solicitador` cuando corrige un pedido rechazado. El `aprobador` **solo aprueba o rechaza**.
 
-**Regla clave**: un rechazo en CUALQUIER nivel (aprobador o responsable_almacen) regresa el Egreso al estado `BORRADOR` (nivel 1, el solicitador), nunca al nivel anterior. El solicitador corrige y reenvía desde el inicio.
+**Regla clave**: un rechazo en CUALQUIER nivel (aprobador o responsable_almacen) regresa el Egreso al solicitador (estado `DEVUELTO`; hasta el 2026-10-28, `BORRADOR`), nunca al nivel anterior. El solicitador corrige y reenvía desde el inicio.
 
 **Sin cancelación ni saltos ni suplencia**: enviado el pedido, el solicitador no puede anularlo; ningún egreso saltea niveles; y si el aprobador o el responsable están ausentes, **los pedidos esperan** (no hay reemplazo).
 
@@ -926,12 +939,13 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   una condición del `where`, así que **la reserva nunca depende de un proceso**. Si hay que subirlo a
   72 h, es esa constante.
 - **El ciclo de la reserva (regla del encargado, 2026-10-27)**:
-  - **El reloj corre SOLO mientras el pedido está «Pendiente de envío»**, desde `Egreso.reservaDesde`
-    (no `createdAt`). Se pone al crear, **al rechazar** (48 h nuevas para corregir, con el material
+  - **El reloj corre SOLO mientras el pedido está en manos del solicitante** («Pendiente de envío» o
+    «Devuelto»), desde `Egreso.reservaDesde`
+    (no `createdAt`). Se pone al crear, **al rechazar** (pasa a DEVUELTO con 48 h nuevas, con el material
     todavía reservado) y al volver a elegir ítems tras un vencimiento. Editar con la reserva vigente
     **no** la renueva: tocar el pedido cada dos días retendría el material para siempre. Enviado, el
     reloj se detiene.
-  - **Al vencer, el pedido se VACÍA**: se le quitan las líneas, queda pendiente de envío sin ítems y el
+  - **Al vencer, el pedido se VACÍA**: se le quitan las líneas, queda en su estado sin ítems y el
     solicitante vuelve a elegir (`vaciarSiVencio`). El historial registra el paso **sin usuario**
     (`EgresoHistorial.usuarioId` es nullable solo por esto; en pantalla figura como «Sistema»).
   - **Lo vacía un cron cada minuto** (`@nestjs/schedule`, `vaciarVencidos`). Acá un cron SÍ es
@@ -947,8 +961,8 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   - El backend devuelve **`reservaVence`** calculado (null fuera de pendiente de envío) y el frontend
     lo muestra con `AvisoReserva`: una línea bajo el estado en el listado y un recuadro en la ficha
     (ámbar con menos de 12 h, rojo vencido o vacío).
-- **`DESISTIDO`** (2026-10-27): cierre de un pedido **con número** (enviado y rechazado) que no se va
-  a reenviar (`POST /egresos/:id/desistir`, motivo obligatorio; su solicitante o admin/super_admin).
+- **`DESISTIDO`** (2026-10-27): cierre de un **`DEVUELTO`** (enviado y rechazado, con número) que no
+  se va a reenviar (`POST /egresos/:id/desistir`, motivo obligatorio; su solicitante o admin/super_admin).
   No toca stock y deja de reservar. Existe porque **descartar borraba también los rechazados** —que
   ya tienen número—, y eso dejaba un hueco en la serie y perdía su historial. El motivo vive en el
   historial (no hay columna aparte).
@@ -976,10 +990,14 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   apunta a un lote, así que necesita ver cuáles hay y con cuánto disponible. Está en el helper de
   scope y no solo en el `@Roles` — si no, abrirle el endpoint le mostraría los otros ocho almacenes.
 - **Descartar un borrador lo BORRA de verdad**, a diferencia de todo lo demás: todavía no es un
-  documento (no tiene número) ni tocó stock. **Solo si no tiene número**: uno rechazado ya lo tiene,
+  documento (no tiene número) ni tocó stock. **Solo un `BORRADOR`**: un `DEVUELTO` ya tiene número,
   así que el backend rechaza el borrado (400) y la UI ofrece *Desistir* en lugar del 🗑.
-- El **número se estampa al enviar** y **el rechazo lo conserva** (el pedido rechazado vuelve a
-  BORRADOR pero ya es un documento con serie).
+- El **número se estampa al PRIMER envío** y **el rechazo y el reenvío lo conservan**, junto con la
+  gestión y `fechaEnvio` (`siguienteNumero()` solo corre desde `BORRADOR`). Hasta el 2026-10-28 el
+  reenvío de un rechazado volvía a tomar `MAX + 1`: el pedido cambiaba de número y dejaba un hueco.
+- **La bandeja del `solicitador` son sus `DEVUELTO`** (lo que le pidieron corregir), y eso es lo que
+  cuenta el badge del menú; sus pedidos sin enviar no lo esperan a nadie. El almacén ve los devueltos
+  en «En curso» (`ESTADOS_EN_CURSO` del backend): ya son documentos abiertos de la serie.
 
 Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`, `pages/`):
 - **Una sola página para todo el ciclo**: `EgresoFormPage` es formulario editable si el pedido es un
@@ -1130,6 +1148,14 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   además es donde viven las acciones del borrador (enviar, editar, descartar). El pedido nuevo
   aparece arriba de todo: el orden es `createdAt desc` y el `solicitador` no tiene bandeja, así
   que el filtro `pendientesMios` arranca apagado para él y no se lo esconde.
+- **Al crear hay DOS botones** (2026-10-28, pedido del usuario): **«Guardar y enviar al aprobador»**
+  (el principal: lo normal es armar el pedido y mandarlo) y **«Guardar sin enviar»** (queda pendiente
+  de envío). Los dos vuelven al listado. El primero abre el mismo `EnviarDialog` que nombra al
+  destinatario, y **confirma ANTES de crear** (`crearPedido`): cancelar no deja un pedido creado que
+  nadie pidió. Si se crea pero el envío falla (sin disponible), va igual al listado, con el error y
+  un aviso de que quedó pendiente de envío (`onGuardadoSinEnviar`). Por eso el toast de éxito de
+  `useCrearEgreso` se dejó en quien llama: «falta enviarlo» sería falso en el camino con envío. Al
+  EDITAR sigue habiendo un solo «Guardar».
 - **Las acciones del borrador viven en el LISTADO, no en la ficha**: editar (✏), enviar (➤) y descartar
   (🗑) son iconos de fila, y solo aparecen si el borrador es PROPIO (`egreso.solicitante.id === user.id`,
   lo mismo que exige el backend — un admin ve borradores ajenos y tampoco puede tocarlos). En la ficha
@@ -1154,6 +1180,13 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   la cantidad. Se pone **en rojo apenas lo pedido lo supera**, con un aviso corto. Es solo un aviso —
   quien rechaza sigue siendo el backend al guardar (`validarDisponibilidad`), porque el disponible
   puede haber cambiado mientras se llenaba el formulario.
+  **Al EDITAR un pedido, el disponible de sus líneas lo calcula el backend** (`detalles[].disponible`
+  de `GET /egresos/:id`, `conDisponible()`): saldo menos lo reservado por los DEMÁS pedidos, la
+  misma cuenta de `validarDisponibilidad`. El de `GET /stock` no sirve ahí porque ya le resta la
+  reserva de este mismo pedido: hasta el 2026-10-28 un lote de 820 con 10 pedidos se veía
+  «disp. 810», y pedir 815 salía en rojo aunque el backend lo aceptaba. Por eso en `EgresoLineas`
+  los `lotesIniciales` se cargan ÚLTIMOS en el mapa de opciones: su disponible le gana al de la
+  búsqueda.
 - **Un lote NO puede repetirse en dos líneas** (el mismo ÍTEM sí, desde lotes distintos). Si se repitiera,
   cada línea mostraría el disponible entero sin descontar lo que pide la otra y se podría pedir el doble
   de lo que hay. Se sostiene en tres lugares: el backend lo rechaza (`validarDisponibilidad`, la barrera

@@ -60,15 +60,19 @@ enum TipoMovimiento {
 ///
 /// BORRADOR -> PENDIENTE_APROBADOR -> PENDIENTE_RESPONSABLE_ALMACEN -> ENTREGADO
 ///
-/// El RECHAZO no es un estado: es una transicion que devuelve a BORRADOR desde
-/// cualquier nivel. Queda registrado en EgresoHistorial con su motivo — si fuera
-/// un estado, un pedido rechazado y corregido perderia la traza.
+/// DEVUELTO (2026-10-28): adonde va un pedido RECHAZADO, desde cualquiera de los
+/// dos niveles. Vuelve al solicitante igual que antes —corrige y reenvia desde el
+/// aprobador—, pero ya no se mezcla con BORRADOR: el devuelto ya tiene NUMERO (es
+/// un documento de la serie) y el borrador todavia no. Hasta esa fecha el rechazo
+/// volvia a BORRADOR y la diferencia se deducia de `numero != null` en varios
+/// lugares. El motivo del rechazo sigue en EgresoHistorial.
 ///
-/// DESISTIDO (2026-10-27): cierre de un pedido que ya tiene NUMERO (fue enviado
-/// y rechazado) y no se va a reenviar. No se puede borrar como un borrador sin
-/// numero: dejaria un hueco en la serie y perderia su historial.
+/// DESISTIDO (2026-10-27): cierre de un DEVUELTO que no se va a reenviar. No se
+/// puede borrar como un borrador: dejaria un hueco en la serie y perderia su
+/// historial.
 enum EstadoEgreso {
   BORRADOR
+  DEVUELTO
   PENDIENTE_APROBADOR
   PENDIENTE_RESPONSABLE_ALMACEN
   ENTREGADO
@@ -402,7 +406,6 @@ model IngresoDetalle {
   /// la descripcion del item entre parentesis: "BOTAS DE AGUA (COLOR NEGRO)".
   observacion String?
 
-
   movimientos MovimientoKardex[]
 
   /// Pedidos que salen de ESTE lote. De aca sale el stock RESERVADO: la suma de
@@ -467,10 +470,11 @@ model MovimientoKardex {
 /// LAS FECHAS:
 ///   - `createdAt`   : se creo el borrador. Auditoria pura.
 ///   - `reservaDesde`: de aca corren las 48 h de reserva mientras esta pendiente
-///                     de envio. Se pone al crear, al RECHAZAR (el solicitante
-///                     tiene 48 h nuevas para corregir) y al volver a elegir
-///                     items despues de un vencimiento.
-///   - `fechaEnvio`  : entro al circuito. De aca salen `gestion` y `numero`.
+///                     de envio o DEVUELTO. Se pone al crear, al RECHAZAR (el
+///                     solicitante tiene 48 h nuevas para corregir) y al volver
+///                     a elegir items despues de un vencimiento.
+///   - `fechaEnvio`  : el PRIMER envio. De aca salen `gestion` y `numero`, y
+///                     reenviar un devuelto no cambia ninguno de los tres.
 ///   - `fechaEntrega`: se descargo el stock. Es la fecha del Kardex.
 ///
 /// El NUMERO se estampa al ENVIAR, no al crear: un borrador que se descarta no

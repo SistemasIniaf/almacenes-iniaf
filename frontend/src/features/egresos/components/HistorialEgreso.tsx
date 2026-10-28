@@ -10,7 +10,11 @@ import {
   X,
 } from "lucide-react"
 
-import { describirPaso, esVaciado } from "@/features/egresos/egresos.types"
+import {
+  describirPaso,
+  esRechazo,
+  esVaciado,
+} from "@/features/egresos/egresos.types"
 import { cn } from "@/lib/utils"
 
 import type { LucideIcon } from "lucide-react"
@@ -41,7 +45,7 @@ function iconoDe(paso: {
   if (esVaciado(paso)) return TimerOff
   if (paso.estadoNuevo === "DESISTIDO") return CircleOff
   if (paso.estadoNuevo === "ANULADO") return Ban
-  if (paso.estadoNuevo === "BORRADOR") return X
+  if (esRechazo(paso)) return X
   if (paso.estadoNuevo === "PENDIENTE_APROBADOR") return Send
   if (paso.estadoNuevo === "PENDIENTE_RESPONSABLE_ALMACEN") return Check
   return PackageCheck
@@ -93,11 +97,11 @@ export function HistorialEgreso({ historial }: HistorialEgresoProps) {
           // columnas: todo cae a la derecha del hilo.
           const aLaDerecha = indice % 2 === 1
           // Los pasos que FRENAN el circuito se marcan en rojo: así se ubica de
-          // un vistazo dónde se trabó un pedido que dio vueltas. La CREACIÓN
-          // también termina en BORRADOR y no frena nada: por eso se excluye
-          // (hasta el 2026-10-27 salía en rojo, como un rechazo).
+          // un vistazo dónde se trabó un pedido que dio vueltas: el rechazo, el
+          // vencimiento de la reserva, la anulación y el desistimiento.
           const frena =
-            (paso.estadoAnterior !== null && paso.estadoNuevo === "BORRADOR") ||
+            esRechazo(paso) ||
+            esVaciado(paso) ||
             paso.estadoNuevo === "ANULADO" ||
             paso.estadoNuevo === "DESISTIDO"
 

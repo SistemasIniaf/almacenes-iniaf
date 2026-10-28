@@ -73,6 +73,7 @@ import { TONO_ACCION } from "@/components/data/tonos-accion"
 import {
   ESTADO_DETALLE,
   ESTADOS_CON_MOVIMIENTO,
+  ESTADOS_DEL_SOLICITANTE,
   ESTADO_LABEL,
   ESTADO_PUNTO,
 } from "@/features/egresos/egresos.types"
@@ -100,6 +101,7 @@ const MOVIMIENTO = "movimiento"
 
 const ESTADOS: EstadoEgreso[] = [
   "BORRADOR",
+  "DEVUELTO",
   "PENDIENTE_APROBADOR",
   "PENDIENTE_RESPONSABLE_ALMACEN",
   "ENTREGADO",
@@ -217,23 +219,24 @@ export function EgresosPage() {
    * tampoco puede tocarlos.
    */
   const puedeGestionar = (egreso: EgresoListItem) =>
-    egreso.estado === "BORRADOR" && egreso.solicitante.id === user?.id
+    ESTADOS_DEL_SOLICITANTE.includes(egreso.estado) &&
+    egreso.solicitante.id === user?.id
 
   /**
-   * Cerrar un pedido pendiente de envío tiene dos caminos según si ya es
+   * Cerrar un pedido en manos del solicitante tiene dos caminos según si ya es
    * documento (2026-10-27):
    *
-   * - **Sin número** (nunca se envió): se DESCARTA, y se borra de verdad.
-   * - **Con número** (se envió y lo rechazaron): se DESISTE. Borrarlo dejaría
-   *   un hueco en la serie y perdería su historial. Además de su dueño, lo
-   *   puede hacer admin/super_admin, igual que el backend: un pedido de alguien
-   *   que ya no está no tiene que quedar abierto para siempre.
+   * - **Pendiente de envío** (nunca se envió, sin número): se DESCARTA, y se
+   *   borra de verdad.
+   * - **Devuelto** (se envió y lo rechazaron, ya tiene número): se DESISTE.
+   *   Borrarlo dejaría un hueco en la serie y perdería su historial. Además de
+   *   su dueño, lo puede hacer admin/super_admin, igual que el backend: un
+   *   pedido de alguien que ya no está no tiene que quedar abierto para siempre.
    */
   const puedeDescartar = (egreso: EgresoListItem) =>
-    puedeGestionar(egreso) && egreso.numero == null
+    puedeGestionar(egreso) && egreso.estado === "BORRADOR"
   const puedeDesistir = (egreso: EgresoListItem) =>
-    egreso.estado === "BORRADOR" &&
-    egreso.numero != null &&
+    egreso.estado === "DEVUELTO" &&
     (egreso.solicitante.id === user?.id ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
