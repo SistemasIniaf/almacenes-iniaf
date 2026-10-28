@@ -242,9 +242,6 @@ export function EgresoLineas({
         const excedido = lote != null && pedido > lote.disponible
 
         return (
-          // `bg-card`: la sección va sobre un panel tintado, así que cada línea
-          // necesita superficie propia para leerse como una ficha. Igual que en
-          // `IngresoLineas`.
           <div
             key={field.id}
             className="relative rounded-md border bg-card p-3"

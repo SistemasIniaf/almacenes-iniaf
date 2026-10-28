@@ -106,10 +106,9 @@ export function useActualizarEgreso() {
   return useMutation({
     mutationFn: ({ id, ...payload }: UpdateEgresoPayload & { id: number }) =>
       actualizarEgreso(id, payload),
-    onSuccess: () => {
-      invalidar()
-      toast.success("Cambios guardados")
-    },
+    // El toast de éxito lo pone quien llama: en «Guardar y enviar» el aviso
+    // es el del envío.
+    onSuccess: () => invalidar(),
     // Se recarga también al FALLAR: si la reserva venció, el backend vacía el
     // pedido y rechaza el guardado, y la ficha tiene que mostrarlo vacío en vez
     // de seguir con los ítems que ya se quitaron.

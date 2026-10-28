@@ -255,8 +255,6 @@ export function IngresoLineas({
         return (
           <div
             key={campo.id}
-            // `bg-card`: la sección entera va sobre un panel tintado, así que
-            // cada línea necesita superficie propia para leerse como una ficha.
             className="relative flex flex-col gap-2 rounded-md border bg-card p-3"
           >
             {/* Quitar la línea: «X» en la esquina de la tarjeta, igual que en

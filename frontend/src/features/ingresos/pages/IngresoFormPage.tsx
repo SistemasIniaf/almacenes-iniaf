@@ -502,10 +502,11 @@ export function IngresoFormPage() {
           </div>
 
           {/* Los ítems SON el ingreso: la cabecera es el papeleo que lo respalda,
-              pero lo que entra al almacén es esto. Va en un panel con superficie
-              propia para que pese lo que pesa — antes era un rótulo chico bajo
-              una raya y quedaba como un apéndice del formulario. */}
-          <div className="mt-6 rounded-md border bg-muted/30 p-4">
+              pero lo que entra al almacén es esto. El peso se lo da el
+              encabezado (título + contador) y la raya que lo separa, no un
+              panel: con panel quedaban tres cajas una dentro de otra
+              (formulario → panel → línea). Igual que en el de egreso. */}
+          <div className="mt-6 border-t pt-6">
             <IngresoLineas
               control={control}
               disabled={bloqueoStock}

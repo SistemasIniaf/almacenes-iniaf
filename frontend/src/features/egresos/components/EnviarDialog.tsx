@@ -19,21 +19,28 @@ type EnviarDialogProps = {
   /** Se llama tras enviar con éxito (para navegar o cerrar). */
   onEnviado?: () => void
 } & (
-  | { egresoId: number; crearPedido?: never; onGuardadoSinEnviar?: never }
+  | {
+      egresoId: number
+      guardarPedido?: never
+      onGuardadoSinEnviar?: never
+      reenvio?: never
+    }
   | {
       egresoId?: never
       /**
-       * «Guardar y enviar» de un pedido NUEVO: al confirmar, primero lo crea
-       * (devuelve su id) y recién después lo envía. Confirmar ANTES de crear
-       * es a propósito: si el solicitante cancela, no queda un pedido creado
-       * que no pidió.
+       * «Guardar y enviar» desde el formulario: al confirmar, primero crea o
+       * guarda el pedido (devuelve su id) y recién después lo envía. Confirmar
+       * ANTES de guardar es a propósito: si el solicitante cancela, no queda
+       * un pedido creado —ni cambios guardados— que no pidió.
        */
-      crearPedido: () => Promise<number>
+      guardarPedido: () => Promise<number>
       /**
-       * Se creó pero el envío falló (sin disponible, sin ítems…): el pedido
-       * ya existe, pendiente de envío, y el error lo dice el toast.
+       * Se guardó pero el envío falló (sin disponible, sin ítems…): el pedido
+       * sigue en manos del solicitante, y el error lo dice el toast.
        */
       onGuardadoSinEnviar: () => void
+      /** Un DEVUELTO se reenvía: solo cambia el texto del botón. */
+      reenvio?: boolean
     }
 )
 
@@ -49,22 +56,23 @@ export function EnviarDialog({
   egresoId,
   onClose,
   onEnviado,
-  crearPedido,
+  guardarPedido,
   onGuardadoSinEnviar,
+  reenvio,
 }: EnviarDialogProps) {
   const enviar = useEnviarEgreso()
   const { data: aprobador, isPending } = useMiAprobador()
-  // Cubre también la creación, que no es una mutación de este diálogo: sin
-  // esto, el botón quedaba habilitado mientras se creaba el pedido.
+  // Cubre también el guardado, que no es una mutación de este diálogo: sin
+  // esto, el botón quedaba habilitado mientras se guardaba el pedido.
   const [ocupado, setOcupado] = useState(false)
 
   async function confirmar() {
     setOcupado(true)
     let id = egresoId
     try {
-      if (crearPedido) id = await crearPedido()
+      if (guardarPedido) id = await guardarPedido()
     } catch {
-      // No se creó nada: el toast lo emite la mutación y el formulario sigue
+      // No se guardó nada: el toast lo emite la mutación y el formulario sigue
       // como estaba para corregir.
       setOcupado(false)
       onClose()
@@ -76,7 +84,7 @@ export function EnviarDialog({
       onClose()
     } catch {
       setOcupado(false)
-      if (crearPedido) {
+      if (guardarPedido) {
         onGuardadoSinEnviar?.()
         onClose()
       }
@@ -133,7 +141,11 @@ export function EnviarDialog({
               void confirmar()
             }}
           >
-            {crearPedido ? "Guardar y enviar" : "Enviar"}
+            {guardarPedido
+              ? reenvio
+                ? "Guardar y reenviar"
+                : "Guardar y enviar"
+              : "Enviar"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

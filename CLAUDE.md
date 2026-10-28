@@ -1154,12 +1154,16 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   destinatario, y **confirma ANTES de crear** (`crearPedido`): cancelar no deja un pedido creado que
   nadie pidió. Si se crea pero el envío falla (sin disponible), va igual al listado, con el error y
   un aviso de que quedó pendiente de envío (`onGuardadoSinEnviar`). Por eso el toast de éxito de
-  `useCrearEgreso` se dejó en quien llama: «falta enviarlo» sería falso en el camino con envío. Al
-  EDITAR sigue habiendo un solo «Guardar».
+  `useCrearEgreso` se dejó en quien llama: «falta enviarlo» sería falso en el camino con envío.
+  **Al EDITAR (pendiente de envío o devuelto) es el mismo par**, al pie, y también vuelve al listado;
+  en un devuelto el principal dice «Guardar y reenviar al aprobador». El botón «Enviar» de arriba
+  se quitó: mandaba el pedido SIN los cambios del formulario que no se habían guardado. El
+  `EnviarDialog` recibe `guardarPedido` (crea o actualiza y devuelve el id) y el toast de
+  `useActualizarEgreso` también pasó a quien llama.
 - **Las acciones del borrador viven en el LISTADO, no en la ficha**: editar (✏), enviar (➤) y descartar
   (🗑) son iconos de fila, y solo aparecen si el borrador es PROPIO (`egreso.solicitante.id === user.id`,
   lo mismo que exige el backend — un admin ve borradores ajenos y tampoco puede tocarlos). En la ficha
-  quedan únicamente los pasos del circuito: *Guardar* y *Enviar a aprobador unidad*.
+  quedan únicamente los pasos del circuito: *Guardar sin enviar* y *Guardar y enviar*, al pie.
 - **La cabecera de la ficha NO repite unidad/almacén/solicitante**: eso vive en el bloque de datos, que
   va FUERA del `<form>` para verse igual en edición y en lectura. Un pedido sin número muestra
   «Pedido» a secas, no «Pedido —».
@@ -1394,12 +1398,14 @@ botón también es una ACCIÓN («Reporte», «Cancelar»), y un botón que se v
 que uno sin relleno. Por eso los dos `*Field` piden la superficie explícitamente: ahí el `outline` es
 un campo disfrazado de botón, no un botón.
 
-**La sección de ítems va en un panel `bg-muted/30`** con las líneas en `bg-card`, y el encabezado
-lleva peso propio más un contador. Los ítems SON el documento —la cabecera del ingreso es el papeleo
-que lo respalda, y la justificación del egreso es lo que lo explica—, y antes eran un rótulo chico
-bajo una raya: lo más débil de la pantalla. **Rige en los DOS formularios de líneas**, que siguen
-siendo gemelos; el panel lo pone la página (`IngresoFormPage` / `EgresoFormPage`), no el componente
-de líneas.
+**La sección de ítems la separa una raya (`border-t`), con un encabezado de peso propio más un
+contador**; cada línea es una tarjeta con borde. Los ítems SON el documento —la cabecera del ingreso
+es el papeleo que lo respalda, y la justificación del egreso es lo que lo explica—. Entre el
+2026-08-07 y el 2026-10-28 la sección iba además en un panel `bg-muted/30` con borde, y se quitó por
+pedido del usuario: quedaban **tres cajas una dentro de otra** (formulario → panel → línea). El peso
+lo da el encabezado, no la caja; no reponer el panel. **Rige en los DOS formularios de líneas**, que
+siguen siendo gemelos; la raya la pone la página (`IngresoFormPage` / `EgresoFormPage`), no el
+componente de líneas.
 
 ### Mayúsculas automáticas (2026-08-07)
 

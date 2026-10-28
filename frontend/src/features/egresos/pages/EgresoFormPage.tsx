@@ -178,9 +178,8 @@ export function EgresoFormPage() {
   const [cantidadesEntrega, setCantidadesEntrega] = useState<
     Record<number, string>
   >({})
-  const [dialogoEnviar, setDialogoEnviar] = useState(false)
-  // «Guardar y enviar» de un pedido nuevo: los valores ya validados, a la
-  // espera de que se confirme el envío (recién ahí se crea).
+  // «Guardar y enviar»: los valores ya validados, a la espera de que se
+  // confirme el envío (recién ahí se crea o se guarda).
   const [paraEnviar, setParaEnviar] = useState<EgresoFormValues | null>(null)
   const [historialAbierto, setHistorialAbierto] = useState(false)
   const [accionConMotivo, setAccionConMotivo] = useState<
@@ -317,6 +316,12 @@ export function EgresoFormPage() {
           id: id as number,
           ...aPayloadEdicion(valores),
         })
+        toast.success(
+          estado === "DEVUELTO"
+            ? "Cambios guardados. Falta reenviarlo al aprobador de unidad"
+            : "Cambios guardados. Falta enviarlo al aprobador de unidad"
+        )
+        navigate("/egresos")
       }
     } catch {
       // El toast lo emite la mutación (sin disponible, lote de otro almacén…).
@@ -411,9 +416,10 @@ export function EgresoFormPage() {
             </BadgeEstado>
           )}
 
-          {/* Acá arriba van solo las acciones sobre el DOCUMENTO (enviar,
-              aprobar, entregar, anular, imprimir). El submit del formulario está
-              al pie, dentro del propio form, como en el de ingresos.
+          {/* Acá arriba van solo las acciones sobre el DOCUMENTO (aprobar,
+              entregar, anular, desistir, imprimir). Guardar y enviar están al
+              pie, dentro del propio form, como en el de ingresos: enviar desde
+              acá mandaba el pedido SIN los cambios que no se habían guardado.
 
               Descartar tampoco está acá: es una acción de limpieza, no un paso
               del circuito. Vive en el listado, como acción de fila. */}
@@ -421,19 +427,6 @@ export function EgresoFormPage() {
             <Button variant="outline" onClick={() => setHistorialAbierto(true)}>
               <TrendingUp className="size-4" />
               Historial
-            </Button>
-          )}
-
-          {!entregando && !esNuevo && editable && (
-            <Button
-              variant="secondary"
-              disabled={ocupado}
-              onClick={() => setDialogoEnviar(true)}
-            >
-              <Send className="size-4" />
-              {estado === "DEVUELTO"
-                ? "Reenviar a aprobador unidad"
-                : "Enviar a aprobador unidad"}
             </Button>
           )}
 
@@ -640,9 +633,10 @@ export function EgresoFormPage() {
               disabled={ocupado}
             />
             {/* Los ítems SON el pedido: la justificación es lo que lo explica,
-                pero lo que sale del almacén es esto. Panel con superficie
-                propia, igual que en el formulario de ingreso. */}
-            <div className="rounded-md border bg-muted/30 p-4">
+                pero lo que sale del almacén es esto. Los separa una raya, no un
+                panel: con panel quedaban tres cajas una dentro de otra
+                (formulario → panel → línea). Igual que en el de ingreso. */}
+            <div className="border-t pt-4">
               <EgresoLineas
                 control={control}
                 disabled={ocupado}
@@ -653,35 +647,31 @@ export function EgresoFormPage() {
             {/* Acción principal al pie del formulario — igual que el de
                 ingresos. Queda al final de lo que hay que completar, no en la
                 barra de arriba junto a las acciones del documento. */}
-            {/* Al CREAR hay dos salidas (pedido del usuario, 2026-10-28): lo
-                normal es armar el pedido y mandarlo de una, así que «Guardar y
-                enviar» es la principal; «Guardar sin enviar» lo deja pendiente
-                de envío para terminarlo después. Las dos vuelven al listado. Al
-                editar sigue habiendo un solo «Guardar»: el envío de un pedido
-                ya creado está arriba, con las acciones del documento. */}
+            {/* Dos salidas, al crear y al editar (pedido del usuario,
+                2026-10-28): lo normal es armar o corregir el pedido y mandarlo
+                de una, así que «Guardar y enviar» es la principal; «Guardar sin
+                enviar» lo deja en manos del solicitante para terminarlo
+                después. Las dos vuelven al listado. Un devuelto se «reenvía»:
+                conserva su número. */}
             <div className="mt-2 flex flex-col-reverse justify-end gap-2 sm:flex-row">
-              <Button
-                type="submit"
-                variant={esNuevo ? "outline" : "default"}
-                disabled={ocupado}
-              >
+              <Button type="submit" variant="outline" disabled={ocupado}>
                 {ocupado ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Save className="size-4" />
                 )}
-                {esNuevo ? "Guardar sin enviar" : "Guardar"}
+                Guardar sin enviar
               </Button>
-              {esNuevo && (
-                <Button
-                  type="button"
-                  disabled={ocupado}
-                  onClick={handleSubmit(setParaEnviar, avisarInvalido)}
-                >
-                  <Send className="size-4" />
-                  Guardar y enviar al aprobador
-                </Button>
-              )}
+              <Button
+                type="button"
+                disabled={ocupado}
+                onClick={handleSubmit(setParaEnviar, avisarInvalido)}
+              >
+                <Send className="size-4" />
+                {estado === "DEVUELTO"
+                  ? "Guardar y reenviar al aprobador"
+                  : "Guardar y enviar al aprobador"}
+              </Button>
             </div>
           </form>
         ) : (
@@ -860,21 +850,25 @@ export function EgresoFormPage() {
           falta. */}
       {paraEnviar && (
         <EnviarDialog
-          crearPedido={async () =>
-            (await crear.mutateAsync(aPayload(paraEnviar))).id
-          }
+          reenvio={estado === "DEVUELTO"}
+          guardarPedido={async () => {
+            if (esNuevo)
+              return (await crear.mutateAsync(aPayload(paraEnviar))).id
+            await actualizar.mutateAsync({
+              id: id as number,
+              ...aPayloadEdicion(paraEnviar),
+            })
+            return id as number
+          }}
           onEnviado={() => navigate("/egresos")}
           onGuardadoSinEnviar={() => {
             toast.info(
-              "El pedido quedó guardado, pendiente de envío: corregilo y envialo desde el listado."
+              "El pedido quedó guardado pero no se envió: corregilo y envialo desde el listado."
             )
             navigate("/egresos")
           }}
           onClose={() => setParaEnviar(null)}
         />
-      )}
-      {dialogoEnviar && id != null && (
-        <EnviarDialog egresoId={id} onClose={() => setDialogoEnviar(false)} />
       )}
 
       <AlertDialog
