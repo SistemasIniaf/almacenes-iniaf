@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -15,9 +16,11 @@ import type { Prisma } from '../../generated/prisma/client';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
 import {
-  HORAS_RESERVA_BORRADOR,
   limiteReserva,
+  MINUTOS_RESERVA_POR_DEFECTO,
+  minutosReserva,
   reservadoPorLote,
+  textoDuracionReserva,
   vencimientoReserva,
 } from '../../common/stock/reserva';
 import {
@@ -188,10 +191,24 @@ const ROLES_CON_BANDEJA: Rol[] = [
 ];
 
 @Injectable()
-export class EgresosService {
+export class EgresosService implements OnModuleInit {
   private readonly logger = new Logger(EgresosService.name);
 
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Avisa si la reserva NO dura 48 h (`RESERVA_BORRADOR_MINUTOS` en el `.env`,
+   * modo de prueba). Es facil olvidarla puesta, y en produccion vaciaria los
+   * pedidos a los pocos minutos.
+   */
+  onModuleInit() {
+    if (minutosReserva() !== MINUTOS_RESERVA_POR_DEFECTO) {
+      this.logger.warn(
+        `MODO DE PRUEBA: la reserva de los pedidos dura ${textoDuracionReserva()} ` +
+          `(RESERVA_BORRADOR_MINUTOS=${minutosReserva()}), no 48 h. Sacala del .env fuera de las pruebas.`,
+      );
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Lectura
@@ -412,7 +429,7 @@ export class EgresosService {
    * Edita el borrador. Si vienen `detalles`, reemplazan la lista completa.
    *
    * Si la reserva ya vencio y el pedido todavia tenia items (el proceso que lo
-   * vacia corre cada 10 minutos), se vacia ACA y se rechaza el guardado: el
+   * vacia corre cada minuto), se vacia ACA y se rechaza el guardado: el
    * formulario mandaria los items viejos y eso seria renovar la reserva sin
    * volver a elegir, que es justo lo que la regla quiere evitar.
    */
@@ -925,7 +942,7 @@ export class EgresosService {
    *
    * La reserva YA estaba liberada antes de esto —se calcula, ver
    * `egresoReservaWhere`—, asi que vaciar no cambia el stock: hace visible lo
-   * que ya paso. Por eso puede correr cada 10 minutos sin riesgo: si el
+   * que ya paso. Por eso puede correr cada minuto sin riesgo: si el
    * proceso falla, el disponible sigue siendo correcto.
    *
    * El UPDATE condicional va primero, como en las acciones del circuito: si el
@@ -955,7 +972,7 @@ export class EgresosService {
           estadoNuevo: EstadoEgreso.BORRADOR,
           usuarioId: null,
           motivo:
-            `Venció la reserva de ${HORAS_RESERVA_BORRADOR} h sin que el pedido se enviara: ` +
+            `Venció la reserva de ${textoDuracionReserva()} sin que el pedido se enviara: ` +
             `se ${lineas === 1 ? 'quitó 1 ítem' : `quitaron ${lineas} ítems`} y el material volvió a estar disponible.`,
         },
       });
@@ -963,8 +980,13 @@ export class EgresosService {
     });
   }
 
-  /** Vacia los pedidos vencidos. Cada 10 minutos; ver `vaciarSiVencio`. */
-  @Cron(CronExpression.EVERY_10_MINUTES, { name: 'vaciar-reservas-vencidas' })
+  /**
+   * Vacia los pedidos vencidos. Cada MINUTO (era cada 10 hasta que se agrego
+   * el modo de prueba de 2 min): es una consulta sobre indices que casi
+   * siempre no encuentra nada, y asi el pedido se ve vacio enseguida de vencer.
+   * Ver `vaciarSiVencio`.
+   */
+  @Cron(CronExpression.EVERY_MINUTE, { name: 'vaciar-reservas-vencidas' })
   async vaciarVencidos() {
     const vencidos = await this.prisma.egreso.findMany({
       where: {
@@ -990,7 +1012,7 @@ export class EgresosService {
 
   /**
    * Antes de editar o enviar: si la reserva vencio y el pedido todavia tenia
-   * items (el proceso de cada 10 minutos no llego), se vacia en este momento y
+   * items (el proceso de cada minuto todavia no paso), se vacia en este momento y
    * se corta la accion con el motivo. El vaciado va en su propia transaccion
    * para que quede hecho aunque la accion se rechace.
    */
@@ -998,7 +1020,7 @@ export class EgresosService {
     const quitadas = await this.vaciarSiVencio(id);
     if (quitadas > 0) {
       throw new ConflictException(
-        `Venció la reserva de ${HORAS_RESERVA_BORRADOR} h sin que el pedido se enviara: ` +
+        `Venció la reserva de ${textoDuracionReserva()} sin que el pedido se enviara: ` +
           'se quitaron sus ítems y el material volvió a estar disponible. Elegí de nuevo lo que necesitás.',
       );
     }

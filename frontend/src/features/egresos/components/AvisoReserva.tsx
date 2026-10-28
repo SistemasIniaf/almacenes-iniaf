@@ -123,7 +123,8 @@ export function AvisoReserva({
           <>
             Venció la reserva y se quitaron los ítems.{" "}
             <span className="font-medium">Elegí de nuevo lo que necesitás</span>
-            : al guardar, el material queda reservado otras 48 horas.
+            : al guardar, el material queda reservado de nuevo, con un plazo
+            nuevo.
           </>
         )}
       </p>

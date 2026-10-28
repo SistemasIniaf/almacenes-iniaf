@@ -326,7 +326,7 @@ export interface EgresoListItem {
  *
  * - `vigente`: reserva hasta `vence`.
  * - `vencida`: pasó el plazo pero todavía figuran ítems — el proceso que lo
- *   vacía corre cada 10 minutos. El material ya está liberado, y editar o
+ *   vacía corre cada minuto. El material ya está liberado, y editar o
  *   enviar lo vacía en el acto.
  * - `vacio`: ya se le quitaron los ítems; hay que volver a elegirlos.
  */

@@ -822,7 +822,7 @@ export function EgresoFormPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {accionConMotivo === "rechazar"
-                ? "Vuelve al solicitante para que lo corrija y lo envíe de nuevo. Conserva su número, y su material queda reservado otras 48 horas para corregirlo."
+                ? "Vuelve al solicitante para que lo corrija y lo envíe de nuevo. Conserva su número, y su material sigue reservado con un plazo nuevo para corregirlo."
                 : accionConMotivo === "desistir"
                   ? "Queda cerrado sin entregarse y libera el material que tenía reservado. No se borra: ya tiene número, así que se conserva con su historial. No se puede volver a enviar."
                   : "El material vuelve a sus lotes y queda una reversión en el Kardex. Anular dice que la salida nunca debió existir: no es el camino para material que se devuelve."}

@@ -934,11 +934,16 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
   - **Al vencer, el pedido se VACÍA**: se le quitan las líneas, queda pendiente de envío sin ítems y el
     solicitante vuelve a elegir (`vaciarSiVencio`). El historial registra el paso **sin usuario**
     (`EgresoHistorial.usuarioId` es nullable solo por esto; en pantalla figura como «Sistema»).
-  - **Lo vacía un cron cada 10 minutos** (`@nestjs/schedule`, `vaciarVencidos`). Acá un cron SÍ es
+  - **Lo vacía un cron cada minuto** (`@nestjs/schedule`, `vaciarVencidos`). Acá un cron SÍ es
     seguro, a diferencia de la reserva: solo hace visible algo que ya pasó, y si falla el disponible
     sigue siendo correcto. Para no depender de él, **editar o enviar un pedido vencido lo vacía en el
     acto y responde 409** (`exigirReservaVigente`): sin eso, un formulario abierto desde antes del
     vencimiento reenviaría los ítems viejos y renovaría la reserva sin volver a elegir.
+  - **Modo de prueba: `RESERVA_BORRADOR_MINUTOS`** en `backend/.env` (ej. `2`) acorta la reserva para
+    probar el vencimiento a mano; sin definir son 48 h. Se lee en cada uso (`minutosReserva()`), no al
+    importar: el módulo carga antes que el `.env`. El backend avisa con un WARN al arrancar si está
+    puesta, y **afecta a TODOS los pedidos pendientes de envío** apenas se reinicia. No dejarla en
+    producción.
   - El backend devuelve **`reservaVence`** calculado (null fuera de pendiente de envío) y el frontend
     lo muestra con `AvisoReserva`: una línea bajo el estado en el listado y un recuadro en la ficha
     (ámbar con menos de 12 h, rojo vencido o vacío).

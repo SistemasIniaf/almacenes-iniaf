@@ -18,13 +18,37 @@ import { PrismaService } from '../../prisma/prisma.service';
  * Al vencer, el pedido se VACIA: se le quitan las lineas y el solicitante tiene
  * que volver a elegir lo que necesita (`EgresosService.vaciarSiVencio`).
  */
-export const HORAS_RESERVA_BORRADOR = 48;
+export const MINUTOS_RESERVA_POR_DEFECTO = 48 * 60;
 
-const MS_RESERVA = HORAS_RESERVA_BORRADOR * 60 * 60 * 1000;
+/**
+ * Cuantos minutos dura la reserva. Siempre 48 h, salvo que se defina
+ * `RESERVA_BORRADOR_MINUTOS` en el `.env` — que existe SOLO para probar el
+ * vencimiento a mano sin esperar dos dias (ej. `2`). Un valor que no sea un
+ * entero positivo se ignora. Si esta puesta, el backend lo avisa al arrancar
+ * (`EgresosService.onModuleInit`), para que no quede olvidada en produccion.
+ *
+ * Se lee en CADA uso y no al cargar el archivo: este modulo se importa antes de
+ * que `ConfigModule` cargue el `.env`, asi que leerla arriba daria siempre el
+ * valor por defecto.
+ */
+export function minutosReserva(): number {
+  const valor = Number(process.env.RESERVA_BORRADOR_MINUTOS);
+  return Number.isInteger(valor) && valor > 0
+    ? valor
+    : MINUTOS_RESERVA_POR_DEFECTO;
+}
+
+/** «48 h», o «2 min» con el modo de prueba: para los mensajes. */
+export function textoDuracionReserva(): string {
+  const minutos = minutosReserva();
+  return minutos % 60 === 0 ? `${minutos / 60} h` : `${minutos} min`;
+}
+
+const msReserva = () => minutosReserva() * 60 * 1000;
 
 /** Hasta cuando reserva un pedido pendiente de envio. */
 export function vencimientoReserva(reservaDesde: Date): Date {
-  return new Date(reservaDesde.getTime() + MS_RESERVA);
+  return new Date(reservaDesde.getTime() + msReserva());
 }
 
 /**
@@ -33,7 +57,7 @@ export function vencimientoReserva(reservaDesde: Date): Date {
  * que un pedido nunca esta a la vez reservando y vencido.
  */
 export function limiteReserva(ahora: Date = new Date()): Date {
-  return new Date(ahora.getTime() - MS_RESERVA);
+  return new Date(ahora.getTime() - msReserva());
 }
 
 /**
