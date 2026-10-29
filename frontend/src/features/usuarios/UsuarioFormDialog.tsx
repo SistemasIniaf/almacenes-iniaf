@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { KeyRound, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -32,6 +32,7 @@ import {
 } from "@/features/usuarios/usuarios.types"
 import {
   useActualizarUsuario,
+  useClaveInicial,
   useCrearUsuario,
 } from "@/features/usuarios/useUsuarios"
 
@@ -47,6 +48,8 @@ interface UsuarioFormDialogProps {
   onOpenChange: (open: boolean) => void
   /** `null` = crear; con usuario = editar. */
   usuario: Usuario | null
+  /** Tras crear: la página ofrece copiar los datos de acceso. */
+  onCreado?: (usuario: Usuario) => void
 }
 
 const VALORES_INICIALES: UsuarioFormValues = {
@@ -72,6 +75,7 @@ export function UsuarioFormDialog({
   open,
   onOpenChange,
   usuario,
+  onCreado,
 }: UsuarioFormDialogProps) {
   const esEdicion = usuario !== null
   const crear = useCrearUsuario()
@@ -81,6 +85,8 @@ export function UsuarioFormDialog({
   const { user: actor } = useAuth()
   const { data: unidades = [] } = useUnidadesActivas()
   const { data: almacenes = [] } = useAlmacenesActivos()
+  // Solo al crear: es la contraseña que hay que darle al usuario nuevo.
+  const { data: claveInicial } = useClaveInicial(open && !esEdicion)
 
   // El admin crea usuarios operativos pero no cuentas admin/super_admin: el
   // selector directamente no le ofrece esos roles (el backend rechaza igual
@@ -132,7 +138,6 @@ export function UsuarioFormDialog({
       nombre: valores.nombre,
       cargo: valores.cargo || null,
       usuario: valores.usuario,
-      password: valores.password,
       rol: valores.rol,
       activo: valores.activo,
       unidadId: requiereUnidad(valores.rol) ? Number(valores.unidadId) : null,
@@ -147,16 +152,17 @@ export function UsuarioFormDialog({
     try {
       if (esEdicion) {
         // Password vacio = no se cambia: no debe viajar en el PATCH.
-        const { password, ...resto } = payload
         await actualizar.mutateAsync({
           id: usuario.id,
-          ...resto,
-          ...(password ? { password } : {}),
+          ...payload,
+          ...(valores.password ? { password: valores.password } : {}),
         })
+        onOpenChange(false)
       } else {
-        await crear.mutateAsync(payload)
+        const creado = await crear.mutateAsync(payload)
+        onOpenChange(false)
+        onCreado?.(creado)
       }
-      onOpenChange(false)
     } catch {
       // El toast de error lo emite la mutacion (username en uso, rol unico ya
       // ocupado...); el dialogo se queda abierto para corregir.
@@ -253,19 +259,32 @@ export function UsuarioFormDialog({
               mayusculas={false}
             />
 
-            <InputPasswordField
-              name="password"
-              label="Contraseña"
-              control={control}
-              required={!esEdicion}
-              disabled={guardando}
-              autoComplete="new-password"
-              description={
-                esEdicion
-                  ? "Dejala vacía para no cambiar la contraseña actual."
-                  : ""
-              }
-            />
+            {/* Al crear NO se elige contraseña (2026-10-29): toda cuenta nace
+                con la inicial genérica, que se muestra para dársela al usuario.
+                Cambiarla después es opcional (decisión del usuario). Al editar
+                (solo super_admin) se puede poner una. */}
+            {esEdicion ? (
+              <InputPasswordField
+                name="password"
+                label="Contraseña"
+                control={control}
+                required={false}
+                disabled={guardando}
+                autoComplete="new-password"
+                description="Dejala vacía para no cambiarla."
+              />
+            ) : (
+              <div className="flex items-start gap-2 self-end rounded-md border bg-muted/30 p-3 text-sm">
+                <KeyRound className="mt-0.5 size-4 shrink-0 text-primary" />
+                <p>
+                  Entra con la contraseña inicial{" "}
+                  <span className="rounded bg-muted px-1.5 py-0.5 font-mono font-medium">
+                    {claveInicial?.claveInicial ?? "…"}
+                  </span>{" "}
+                  Después puede cambiarla desde su menú, si quiere.
+                </p>
+              </div>
+            )}
 
             {permiteObservados(rol) && (
               <Controller

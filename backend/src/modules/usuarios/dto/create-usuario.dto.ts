@@ -33,10 +33,9 @@ export class CreateUsuarioDto {
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
   usuario!: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'La contrasena es requerida' })
-  @MinLength(6, { message: 'La contrasena debe tener al menos 6 caracteres' })
-  password!: string;
+  // SIN contraseña (2026-10-29): toda cuenta nueva nace con la contraseña
+  // inicial generica (`ConfiguracionSistema.claveInicial`); el usuario la cambia
+  // si quiere. Mandarla da 400 (`forbidNonWhitelisted`).
 
   @IsEnum(Rol, { message: 'El rol no es valido' })
   rol!: Rol;

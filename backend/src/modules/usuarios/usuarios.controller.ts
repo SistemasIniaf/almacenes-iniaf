@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 
@@ -14,6 +15,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { Rol } from '../../generated/prisma/enums';
+import { ClaveInicialDto } from './dto/clave-inicial.dto';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { QueryUsuariosDto } from './dto/query-usuarios.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -64,6 +66,26 @@ export class UsuariosController {
     return this.usuariosService.aprobadorDeUnidad(user.unidadId);
   }
 
+  /**
+   * La contraseña inicial de las cuentas nuevas. La LEEN los dos que crean
+   * cuentas —tienen que dársela al usuario nuevo—; la CAMBIA solo el super_admin,
+   * mismo criterio que los catálogos estructurales. Antes de `:id`, como
+   * `mi-aprobador`.
+   */
+  @Get('clave-inicial')
+  obtenerClaveInicial() {
+    return this.usuariosService.obtenerClaveInicial();
+  }
+
+  @Roles(Rol.super_admin)
+  @Put('clave-inicial')
+  actualizarClaveInicial(
+    @Body() dto: ClaveInicialDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.actualizarClaveInicial(dto.claveInicial, user);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.findOne(id);
@@ -96,5 +118,20 @@ export class UsuariosController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.usuariosService.activar(id, user);
+  }
+
+  /** Usuario + contraseña inicial (si todavía la tiene) para copiar y mandar. */
+  @Get(':id/credenciales')
+  credenciales(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.credenciales(id);
+  }
+
+  /** Vuelve la contraseña a la inicial. Mismo alcance que `remove`. */
+  @Post(':id/restablecer-clave')
+  restablecerClave(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.usuariosService.restablecerClave(id, user);
   }
 }

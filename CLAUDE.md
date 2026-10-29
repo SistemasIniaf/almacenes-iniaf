@@ -578,8 +578,50 @@ Notas propias de `ingresos` (el más complejo; usa subcarpetas `components/`, `h
 Los módulos simples siguen la misma
 plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*FormDialog.tsx`,
 `*Page.tsx`). Notas propias de `usuarios` (el más complejo):
-- El schema de Zod es una **función** `usuarioSchema(esEdicion)`: al crear, la contraseña es
-  obligatoria; al editar, vacía significa "no cambiar" y no viaja en el PATCH.
+- El schema de Zod es una **función** `usuarioSchema(esEdicion)`: al crear **no hay contraseña**
+  (ver abajo); al editar, vacía significa "no cambiar" y no viaja en el PATCH.
+- **Contraseña inicial genérica** (2026-10-29, pedido del usuario): al crear un usuario NO se
+  elige contraseña. Toda cuenta nace con la de `ConfiguracionSistema.claveInicial` (una sola fila,
+  `id = 1`, la crea la migración `20261029120000_clave_inicial` con `iniaf2026`) y con
+  **`conClaveInicial = true`**. El formulario muestra cuál es, para dársela al usuario.
+  - **Se gestiona desde Usuarios → «Contraseña inicial»** (`ClaveInicialDialog`,
+    `GET`/`PUT /usuarios/clave-inicial`): la LEEN `super_admin` y `admin` (los dos crean cuentas y
+    tienen que dársela al usuario), la CAMBIA solo el `super_admin`. Cambiarla rige para lo que se
+    cree o restablezca después; las cuentas pendientes conservan la anterior (está hasheada en
+    cada una). **Se guarda en texto plano a propósito**: hay que poder leérsela al usuario nuevo, y
+    ya la conocen todos los que crean cuentas — cifrarla no protegería nada.
+  - **Cambiarla NO es obligatorio** (decisión del usuario, 2026-10-29): el usuario entra con la
+    inicial y usa el sistema normal; la cambia si quiere, desde «Cambiar contraseña». Se construyó
+    primero obligatoria —`ProtectedRoute` mostraba solo el cambio y el `JwtAuthGuard` respondía 403
+    a todo lo demás— y se quitó el mismo día. **Riesgo aceptado**: una cuenta que nunca la cambió
+    la puede usar cualquiera que conozca la inicial. Si se quiere reponer, el lugar del bloqueo es
+    el `JwtAuthGuard` (no solo la pantalla, que no es una barrera).
+  - **`conClaveInicial` es solo INFORMATIVA**: «todavía tiene una contraseña que le dieron». La
+    usan la marca «Contraseña inicial» de la tabla y el ícono de copiar; la baja el propio usuario
+    al cambiarla. La columna se llamó `debe_cambiar_clave` mientras el cambio era obligatorio — la
+    migración se corrigió antes de salir de la máquina de desarrollo.
+  - **«Restablecer contraseña»** (ícono en la fila, `POST /usuarios/:id/restablecer-clave`): la
+    vuelve a la inicial — la salida para «me la olvidé». Mismo alcance que dar de baja (el admin no
+    la usa sobre cuentas admin/super_admin ajenas) y nunca sobre la propia.
+  - Una contraseña que el `super_admin` pone **al editar** también deja `conClaveInicial`: se la
+    dieron. Salvo que se la esté poniendo a sí mismo.
+  - **Datos de acceso para copiar** (pedido del usuario): el texto `SISTEMA ALMACENES / ENLACE /
+    USUARIO / CONTRASEÑA`, para pegarlo en WhatsApp o un correo, lo arma `textoCredenciales()`
+    (`features/usuarios/credenciales.ts`) y sale por dos lados: el diálogo que aparece justo después
+    de crear o restablecer (`CredencialesDialog`) y el **ícono de copiar junto a cada usuario** en la
+    tabla (`CopiarCredenciales`). El ícono pide `GET /usuarios/:id/credenciales` al hacer clic, y
+    **la contraseña va solo si la cuenta todavía tiene la inicial VIGENTE** — el backend lo compara
+    contra el hash, no confía en `conClaveInicial`, que no distingue si la inicial cambió después de
+    crear la cuenta. Si no, se copia sin la línea de contraseña y se avisa: una contraseña equivocada
+    en el mensaje es peor que ninguna. El ENLACE sale de `window.location.origin` (dominio en el
+    servidor definitivo, IP en la VM), no de una constante.
+    Copia con **`copiarTexto()` de `lib/portapapeles.ts`**: `navigator.clipboard` no existe fuera de
+    HTTPS/localhost —la VM es `http://<ip>`—, así que cae al `<textarea>` + `execCommand("copy")`.
+    Ese textarea va **dentro del diálogo abierto**: en el `<body>`, el foco atrapado de Radix lo
+    deseleccionaba y `execCommand` devolvía true sin copiar nada (visto en la prueba por IP).
+  - La tabla marca «Contraseña inicial» bajo el rol de quien todavía no la cambió. Va ahí y no en
+    Estado: esa columna es angosta y empujaba las acciones fuera de la tabla. Por lo mismo la
+    celda Almacén parte renglón (`whitespace-normal`): los nombres de almacén son largos.
 - Los campos unidad / almacén / almacenes observados se muestran según el rol, replicando
   `ROLES_CON_UNIDAD` y `ROLES_CON_ALMACEN` del service (ver `usuarios.types.ts`).
 - El payload se arma **según el rol**, no según lo que quedó en el formulario: si el usuario

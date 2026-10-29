@@ -67,7 +67,8 @@ export const ModelName = {
   EgresoDetalle: 'EgresoDetalle',
   EgresoHistorial: 'EgresoHistorial',
   LogoInstitucional: 'LogoInstitucional',
-  LogoVersion: 'LogoVersion'
+  LogoVersion: 'LogoVersion',
+  ConfiguracionSistema: 'ConfiguracionSistema'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -127,6 +128,7 @@ export const UsuarioScalarFieldEnum = {
   password: 'password',
   rol: 'rol',
   activo: 'activo',
+  conClaveInicial: 'conClaveInicial',
   unidadId: 'unidadId',
   almacenId: 'almacenId',
   createdAt: 'createdAt',
@@ -337,6 +339,17 @@ export const LogoVersionScalarFieldEnum = {
 } as const
 
 export type LogoVersionScalarFieldEnum = (typeof LogoVersionScalarFieldEnum)[keyof typeof LogoVersionScalarFieldEnum]
+
+
+export const ConfiguracionSistemaScalarFieldEnum = {
+  id: 'id',
+  claveInicial: 'claveInicial',
+  actualizadoPorId: 'actualizadoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConfiguracionSistemaScalarFieldEnum = (typeof ConfiguracionSistemaScalarFieldEnum)[keyof typeof ConfiguracionSistemaScalarFieldEnum]
 
 
 export const SortOrder = {

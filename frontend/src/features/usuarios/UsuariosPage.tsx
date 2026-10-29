@@ -1,5 +1,14 @@
 import { useState } from "react"
-import { Pencil, Plus, Power, PowerOff, Search, Warehouse } from "lucide-react"
+import {
+  KeyRound,
+  Pencil,
+  Plus,
+  Power,
+  PowerOff,
+  RotateCcwKey,
+  Search,
+  Warehouse,
+} from "lucide-react"
 
 import {
   AlertDialog,
@@ -40,11 +49,15 @@ import {
   ROL_LABEL,
 } from "@/features/auth/lib/auth.types"
 import { tienePermiso } from "@/features/auth/lib/permisos"
+import { ClaveInicialDialog } from "@/features/usuarios/ClaveInicialDialog"
+import { CopiarCredenciales } from "@/features/usuarios/CopiarCredenciales"
+import { CredencialesDialog } from "@/features/usuarios/CredencialesDialog"
 import { UsuarioFormDialog } from "@/features/usuarios/UsuarioFormDialog"
 import { puedeGestionarRol } from "@/features/usuarios/usuarios.types"
 import {
   useActivarUsuario,
   useDesactivarUsuario,
+  useRestablecerClave,
   useUsuarios,
 } from "@/features/usuarios/useUsuarios"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
@@ -90,9 +103,18 @@ export function UsuariosPage() {
   const [usuarioADesactivar, setUsuarioADesactivar] = useState<Usuario | null>(
     null
   )
+  const [usuarioARestablecer, setUsuarioARestablecer] =
+    useState<Usuario | null>(null)
+  const [viendoClaveInicial, setViendoClaveInicial] = useState(false)
+  // Datos de acceso para copiar, justo después de crear o restablecer.
+  const [credenciales, setCredenciales] = useState<{
+    usuario: string
+    motivo: "creado" | "restablecido"
+  } | null>(null)
 
   const desactivar = useDesactivarUsuario()
   const activar = useActivarUsuario()
+  const restablecer = useRestablecerClave()
 
   const { data, isPending, isError, error } = useUsuarios({
     page,
@@ -128,6 +150,18 @@ export function UsuariosPage() {
     }
   }
 
+  async function confirmarRestablecer() {
+    if (!usuarioARestablecer) return
+    try {
+      const restablecido = await restablecer.mutateAsync(usuarioARestablecer.id)
+      setCredenciales({ usuario: restablecido.usuario, motivo: "restablecido" })
+    } catch {
+      // El toast de error lo emite la mutacion.
+    } finally {
+      setUsuarioARestablecer(null)
+    }
+  }
+
   async function handleActivar(usuario: Usuario) {
     try {
       await activar.mutateAsync(usuario.id)
@@ -150,10 +184,21 @@ export function UsuariosPage() {
         </div>
 
         {puedeEscribir && (
-          <Button onClick={abrirCreacion}>
-            <Plus className="size-4" />
-            Nuevo usuario
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {/* Al lado de «Nuevo usuario» porque es lo que hay que darle a cada
+                cuenta nueva. Solo el super_admin la cambia; el admin la ve. */}
+            <Button
+              variant="outline"
+              onClick={() => setViendoClaveInicial(true)}
+            >
+              <KeyRound className="size-4" />
+              Contraseña inicial
+            </Button>
+            <Button onClick={abrirCreacion}>
+              <Plus className="size-4" />
+              Nuevo usuario
+            </Button>
+          </div>
         )}
       </div>
 
@@ -272,13 +317,31 @@ export function UsuariosPage() {
                   <TableRow key={usuario.id}>
                     <TableCell>
                       <div className="flex flex-col items-start gap-1">
-                        <span className="font-medium">{usuario.usuario}</span>
+                        {/* El ícono de copiar va pegado al usuario: es el dato
+                            que se le manda a la persona. */}
+                        <span className="flex items-center gap-1">
+                          <span className="font-medium">{usuario.usuario}</span>
+                          <CopiarCredenciales usuario={usuario} />
+                        </span>
                         <Badge
                           variant="outline"
                           className={ROL_BADGE_CLASS[usuario.rol]}
                         >
                           {ROL_LABEL[usuario.rol]}
                         </Badge>
+                        {/* Todavía con la contraseña inicial (o una puesta por
+                            otro): no entró nunca, o entró y no la cambió. Acá
+                            y no en Estado: esa columna es angosta y empujaba
+                            las acciones fuera de la tabla. */}
+                        {usuario.conClaveInicial && (
+                          <span
+                            className="flex items-center gap-1 text-xs text-muted-foreground"
+                            title="Todavía no cambió la contraseña inicial"
+                          >
+                            <KeyRound className="size-3" />
+                            Contraseña inicial
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -291,7 +354,10 @@ export function UsuariosPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* Los nombres de almacén son largos («OFICINA DEPARTAMENTAL
+                        DE SEMILLAS (ODS) ORURO»): parten renglón en vez de
+                        empujar las acciones fuera de la tabla. */}
+                    <TableCell className="whitespace-normal">
                       {describirAlmacen(usuario) ? (
                         <span className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Warehouse className="size-3.5 shrink-0" />
@@ -313,6 +379,15 @@ export function UsuariosPage() {
                             icono={Pencil}
                             etiqueta="Editar"
                             onClick={() => abrirEdicion(usuario)}
+                          />
+                        )}
+                        {/* Mismo alcance que dar de baja; la propia no: para
+                            eso está «Cambiar contraseña» del menú. */}
+                        {puedeCambiarEstado && !esPropia && (
+                          <IconAction
+                            icono={RotateCcwKey}
+                            etiqueta="Restablecer contraseña"
+                            onClick={() => setUsuarioARestablecer(usuario)}
                           />
                         )}
                         {puedeCambiarEstado &&
@@ -356,7 +431,56 @@ export function UsuariosPage() {
         open={dialogoAbierto}
         onOpenChange={setDialogoAbierto}
         usuario={usuarioEnEdicion}
+        onCreado={(creado) =>
+          setCredenciales({ usuario: creado.usuario, motivo: "creado" })
+        }
       />
+
+      {credenciales && (
+        <CredencialesDialog
+          usuario={credenciales.usuario}
+          motivo={credenciales.motivo}
+          onClose={() => setCredenciales(null)}
+        />
+      )}
+
+      {viendoClaveInicial && (
+        <ClaveInicialDialog
+          puedeCambiar={puedeEditar}
+          onClose={() => setViendoClaveInicial(false)}
+        />
+      )}
+
+      <AlertDialog
+        open={usuarioARestablecer !== null}
+        onOpenChange={(abierto) => !abierto && setUsuarioARestablecer(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Restablecer la contraseña de «{usuarioARestablecer?.nombre}»?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Su contraseña vuelve a ser la inicial: la que tenía deja de
+              funcionar. Sirve cuando se la olvidó.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={restablecer.isPending}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault()
+                void confirmarRestablecer()
+              }}
+              disabled={restablecer.isPending}
+            >
+              Restablecer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={usuarioADesactivar !== null}

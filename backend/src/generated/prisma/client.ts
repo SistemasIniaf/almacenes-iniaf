@@ -189,3 +189,9 @@ export type LogoInstitucional = Prisma.LogoInstitucionalModel
  * vigente).
  */
 export type LogoVersion = Prisma.LogoVersionModel
+/**
+ * Model ConfiguracionSistema
+ * Configuracion general del sistema: UNA sola fila (id = 1, la crea la
+ * migracion). Hoy guarda solo la contraseña inicial de las cuentas nuevas.
+ */
+export type ConfiguracionSistema = Prisma.ConfiguracionSistemaModel

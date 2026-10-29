@@ -400,7 +400,8 @@ export const ModelName = {
   EgresoDetalle: 'EgresoDetalle',
   EgresoHistorial: 'EgresoHistorial',
   LogoInstitucional: 'LogoInstitucional',
-  LogoVersion: 'LogoVersion'
+  LogoVersion: 'LogoVersion',
+  ConfiguracionSistema: 'ConfiguracionSistema'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion" | "configuracionSistema"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ConfiguracionSistema: {
+      payload: Prisma.$ConfiguracionSistemaPayload<ExtArgs>
+      fields: Prisma.ConfiguracionSistemaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConfiguracionSistemaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConfiguracionSistemaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        findFirst: {
+          args: Prisma.ConfiguracionSistemaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConfiguracionSistemaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        findMany: {
+          args: Prisma.ConfiguracionSistemaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>[]
+        }
+        create: {
+          args: Prisma.ConfiguracionSistemaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        createMany: {
+          args: Prisma.ConfiguracionSistemaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConfiguracionSistemaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>[]
+        }
+        delete: {
+          args: Prisma.ConfiguracionSistemaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        update: {
+          args: Prisma.ConfiguracionSistemaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConfiguracionSistemaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConfiguracionSistemaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConfiguracionSistemaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConfiguracionSistemaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConfiguracionSistemaPayload>
+        }
+        aggregate: {
+          args: Prisma.ConfiguracionSistemaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConfiguracionSistema>
+        }
+        groupBy: {
+          args: Prisma.ConfiguracionSistemaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConfiguracionSistemaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConfiguracionSistemaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConfiguracionSistemaCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1758,6 +1833,7 @@ export const UsuarioScalarFieldEnum = {
   password: 'password',
   rol: 'rol',
   activo: 'activo',
+  conClaveInicial: 'conClaveInicial',
   unidadId: 'unidadId',
   almacenId: 'almacenId',
   createdAt: 'createdAt',
@@ -1968,6 +2044,17 @@ export const LogoVersionScalarFieldEnum = {
 } as const
 
 export type LogoVersionScalarFieldEnum = (typeof LogoVersionScalarFieldEnum)[keyof typeof LogoVersionScalarFieldEnum]
+
+
+export const ConfiguracionSistemaScalarFieldEnum = {
+  id: 'id',
+  claveInicial: 'claveInicial',
+  actualizadoPorId: 'actualizadoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConfiguracionSistemaScalarFieldEnum = (typeof ConfiguracionSistemaScalarFieldEnum)[keyof typeof ConfiguracionSistemaScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2273,6 +2360,7 @@ export type GlobalOmitConfig = {
   egresoHistorial?: Prisma.EgresoHistorialOmit
   logoInstitucional?: Prisma.LogoInstitucionalOmit
   logoVersion?: Prisma.LogoVersionOmit
+  configuracionSistema?: Prisma.ConfiguracionSistemaOmit
 }
 
 /* Types for Logging */

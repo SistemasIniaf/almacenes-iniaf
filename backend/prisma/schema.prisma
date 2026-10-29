@@ -171,6 +171,13 @@ model Usuario {
   rol      Rol
   activo   Boolean @default(true)
 
+  /// true mientras la cuenta tenga una contraseña que le DIERON: la inicial
+  /// generica (al crearla o al restablecerla) o una puesta por el super_admin al
+  /// editar. Solo informa (la marca de la tabla de Usuarios y si el icono de
+  /// copiar puede incluir la inicial): cambiarla NO es obligatorio (decision
+  /// del usuario, 2026-10-29). La baja el propio usuario al cambiarla.
+  conClaveInicial Boolean @default(false) @map("con_clave_inicial")
+
   unidadId  Int?     @map("unidad_id")
   unidad    Unidad?  @relation(fields: [unidadId], references: [id])
   almacenId Int?     @map("almacen_id")
@@ -192,6 +199,8 @@ model Usuario {
 
   logosActualizados LogoInstitucional[] @relation("LogoActualizadoPor")
   logosSubidos      LogoVersion[]       @relation("LogoSubidoPor")
+
+  configuracionesActualizadas ConfiguracionSistema[] @relation("ConfiguracionActualizadaPor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -637,4 +646,24 @@ model LogoVersion {
 
   @@index([clave])
   @@map("logo_versiones")
+}
+
+/// Configuracion general del sistema: UNA sola fila (id = 1, la crea la
+/// migracion). Hoy guarda solo la contraseña inicial de las cuentas nuevas.
+model ConfiguracionSistema {
+  id Int @id @default(1)
+
+  /// Contraseña con la que nace toda cuenta nueva (y a la que vuelve al
+  /// restablecerla). Va en TEXTO PLANO a proposito: quien crea la cuenta tiene
+  /// que poder leersela al usuario nuevo, y ya la conocen todos los que crean
+  /// cuentas — cifrarla no protegeria nada.
+  claveInicial String @map("clave_inicial")
+
+  actualizadoPorId Int?     @map("actualizado_por_id")
+  actualizadoPor   Usuario? @relation("ConfiguracionActualizadaPor", fields: [actualizadoPorId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("configuracion_sistema")
 }

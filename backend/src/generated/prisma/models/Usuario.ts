@@ -55,6 +55,7 @@ export type UsuarioMinAggregateOutputType = {
   password: string | null
   rol: $Enums.Rol | null
   activo: boolean | null
+  conClaveInicial: boolean | null
   unidadId: number | null
   almacenId: number | null
   createdAt: Date | null
@@ -69,6 +70,7 @@ export type UsuarioMaxAggregateOutputType = {
   password: string | null
   rol: $Enums.Rol | null
   activo: boolean | null
+  conClaveInicial: boolean | null
   unidadId: number | null
   almacenId: number | null
   createdAt: Date | null
@@ -83,6 +85,7 @@ export type UsuarioCountAggregateOutputType = {
   password: number
   rol: number
   activo: number
+  conClaveInicial: number
   unidadId: number
   almacenId: number
   createdAt: number
@@ -111,6 +114,7 @@ export type UsuarioMinAggregateInputType = {
   password?: true
   rol?: true
   activo?: true
+  conClaveInicial?: true
   unidadId?: true
   almacenId?: true
   createdAt?: true
@@ -125,6 +129,7 @@ export type UsuarioMaxAggregateInputType = {
   password?: true
   rol?: true
   activo?: true
+  conClaveInicial?: true
   unidadId?: true
   almacenId?: true
   createdAt?: true
@@ -139,6 +144,7 @@ export type UsuarioCountAggregateInputType = {
   password?: true
   rol?: true
   activo?: true
+  conClaveInicial?: true
   unidadId?: true
   almacenId?: true
   createdAt?: true
@@ -240,6 +246,7 @@ export type UsuarioGroupByOutputType = {
   password: string
   rol: $Enums.Rol
   activo: boolean
+  conClaveInicial: boolean
   unidadId: number | null
   almacenId: number | null
   createdAt: Date
@@ -277,6 +284,7 @@ export type UsuarioWhereInput = {
   password?: Prisma.StringFilter<"Usuario"> | string
   rol?: Prisma.EnumRolFilter<"Usuario"> | $Enums.Rol
   activo?: Prisma.BoolFilter<"Usuario"> | boolean
+  conClaveInicial?: Prisma.BoolFilter<"Usuario"> | boolean
   unidadId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   almacenId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Usuario"> | Date | string
@@ -293,6 +301,7 @@ export type UsuarioWhereInput = {
   decisionesEgreso?: Prisma.EgresoHistorialListRelationFilter
   logosActualizados?: Prisma.LogoInstitucionalListRelationFilter
   logosSubidos?: Prisma.LogoVersionListRelationFilter
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaListRelationFilter
 }
 
 export type UsuarioOrderByWithRelationInput = {
@@ -303,6 +312,7 @@ export type UsuarioOrderByWithRelationInput = {
   password?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  conClaveInicial?: Prisma.SortOrder
   unidadId?: Prisma.SortOrderInput | Prisma.SortOrder
   almacenId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -319,6 +329,7 @@ export type UsuarioOrderByWithRelationInput = {
   decisionesEgreso?: Prisma.EgresoHistorialOrderByRelationAggregateInput
   logosActualizados?: Prisma.LogoInstitucionalOrderByRelationAggregateInput
   logosSubidos?: Prisma.LogoVersionOrderByRelationAggregateInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaOrderByRelationAggregateInput
 }
 
 export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
@@ -332,6 +343,7 @@ export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringFilter<"Usuario"> | string
   rol?: Prisma.EnumRolFilter<"Usuario"> | $Enums.Rol
   activo?: Prisma.BoolFilter<"Usuario"> | boolean
+  conClaveInicial?: Prisma.BoolFilter<"Usuario"> | boolean
   unidadId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   almacenId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Usuario"> | Date | string
@@ -348,6 +360,7 @@ export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
   decisionesEgreso?: Prisma.EgresoHistorialListRelationFilter
   logosActualizados?: Prisma.LogoInstitucionalListRelationFilter
   logosSubidos?: Prisma.LogoVersionListRelationFilter
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaListRelationFilter
 }, "id" | "usuario">
 
 export type UsuarioOrderByWithAggregationInput = {
@@ -358,6 +371,7 @@ export type UsuarioOrderByWithAggregationInput = {
   password?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  conClaveInicial?: Prisma.SortOrder
   unidadId?: Prisma.SortOrderInput | Prisma.SortOrder
   almacenId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -380,6 +394,7 @@ export type UsuarioScalarWhereWithAggregatesInput = {
   password?: Prisma.StringWithAggregatesFilter<"Usuario"> | string
   rol?: Prisma.EnumRolWithAggregatesFilter<"Usuario"> | $Enums.Rol
   activo?: Prisma.BoolWithAggregatesFilter<"Usuario"> | boolean
+  conClaveInicial?: Prisma.BoolWithAggregatesFilter<"Usuario"> | boolean
   unidadId?: Prisma.IntNullableWithAggregatesFilter<"Usuario"> | number | null
   almacenId?: Prisma.IntNullableWithAggregatesFilter<"Usuario"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Usuario"> | Date | string
@@ -393,6 +408,7 @@ export type UsuarioCreateInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -407,6 +423,7 @@ export type UsuarioCreateInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateInput = {
@@ -417,6 +434,7 @@ export type UsuarioUncheckedCreateInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -431,6 +449,7 @@ export type UsuarioUncheckedCreateInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUpdateInput = {
@@ -440,6 +459,7 @@ export type UsuarioUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -454,6 +474,7 @@ export type UsuarioUpdateInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateInput = {
@@ -464,6 +485,7 @@ export type UsuarioUncheckedUpdateInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -478,6 +500,7 @@ export type UsuarioUncheckedUpdateInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateManyInput = {
@@ -488,6 +511,7 @@ export type UsuarioCreateManyInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -501,6 +525,7 @@ export type UsuarioUpdateManyMutationInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -513,6 +538,7 @@ export type UsuarioUncheckedUpdateManyInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -537,6 +563,7 @@ export type UsuarioCountOrderByAggregateInput = {
   password?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  conClaveInicial?: Prisma.SortOrder
   unidadId?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -557,6 +584,7 @@ export type UsuarioMaxOrderByAggregateInput = {
   password?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  conClaveInicial?: Prisma.SortOrder
   unidadId?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -571,6 +599,7 @@ export type UsuarioMinOrderByAggregateInput = {
   password?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   activo?: Prisma.SortOrder
+  conClaveInicial?: Prisma.SortOrder
   unidadId?: Prisma.SortOrder
   almacenId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -835,6 +864,22 @@ export type UsuarioUpdateOneWithoutLogosSubidosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutLogosSubidosInput, Prisma.UsuarioUpdateWithoutLogosSubidosInput>, Prisma.UsuarioUncheckedUpdateWithoutLogosSubidosInput>
 }
 
+export type UsuarioCreateNestedOneWithoutConfiguracionesActualizadasInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutConfiguracionesActualizadasInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioUpdateOneWithoutConfiguracionesActualizadasNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutConfiguracionesActualizadasInput
+  upsert?: Prisma.UsuarioUpsertWithoutConfiguracionesActualizadasInput
+  disconnect?: Prisma.UsuarioWhereInput | boolean
+  delete?: Prisma.UsuarioWhereInput | boolean
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUpdateWithoutConfiguracionesActualizadasInput>, Prisma.UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput>
+}
+
 export type UsuarioCreateWithoutUnidadInput = {
   nombre: string
   cargo?: string | null
@@ -842,6 +887,7 @@ export type UsuarioCreateWithoutUnidadInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
@@ -855,6 +901,7 @@ export type UsuarioCreateWithoutUnidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutUnidadInput = {
@@ -865,6 +912,7 @@ export type UsuarioUncheckedCreateWithoutUnidadInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   almacenId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -878,6 +926,7 @@ export type UsuarioUncheckedCreateWithoutUnidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutUnidadInput = {
@@ -917,6 +966,7 @@ export type UsuarioScalarWhereInput = {
   password?: Prisma.StringFilter<"Usuario"> | string
   rol?: Prisma.EnumRolFilter<"Usuario"> | $Enums.Rol
   activo?: Prisma.BoolFilter<"Usuario"> | boolean
+  conClaveInicial?: Prisma.BoolFilter<"Usuario"> | boolean
   unidadId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   almacenId?: Prisma.IntNullableFilter<"Usuario"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Usuario"> | Date | string
@@ -930,6 +980,7 @@ export type UsuarioCreateWithoutAlmacenInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -943,6 +994,7 @@ export type UsuarioCreateWithoutAlmacenInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenInput = {
@@ -953,6 +1005,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -966,6 +1019,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenInput = {
@@ -1001,6 +1055,7 @@ export type UsuarioCreateWithoutAlmacenesObservadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1014,6 +1069,7 @@ export type UsuarioCreateWithoutAlmacenesObservadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
@@ -1024,6 +1080,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1037,6 +1094,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenesObservadosInput = {
@@ -1062,6 +1120,7 @@ export type UsuarioUpdateWithoutAlmacenesObservadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1075,6 +1134,7 @@ export type UsuarioUpdateWithoutAlmacenesObservadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
@@ -1085,6 +1145,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1098,6 +1159,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateWithoutIngresosConformidadInput = {
@@ -1107,6 +1169,7 @@ export type UsuarioCreateWithoutIngresosConformidadInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1120,6 +1183,7 @@ export type UsuarioCreateWithoutIngresosConformidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
@@ -1130,6 +1194,7 @@ export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1143,6 +1208,7 @@ export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosConformidadInput = {
@@ -1157,6 +1223,7 @@ export type UsuarioCreateWithoutIngresosRegistradosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1170,6 +1237,7 @@ export type UsuarioCreateWithoutIngresosRegistradosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
@@ -1180,6 +1248,7 @@ export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1193,6 +1262,7 @@ export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosRegistradosInput = {
@@ -1207,6 +1277,7 @@ export type UsuarioCreateWithoutIngresosAnuladosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1220,6 +1291,7 @@ export type UsuarioCreateWithoutIngresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
@@ -1230,6 +1302,7 @@ export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1243,6 +1316,7 @@ export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosAnuladosInput = {
@@ -1268,6 +1342,7 @@ export type UsuarioUpdateWithoutIngresosConformidadInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1281,6 +1356,7 @@ export type UsuarioUpdateWithoutIngresosConformidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
@@ -1291,6 +1367,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1304,6 +1381,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosRegistradosInput = {
@@ -1324,6 +1402,7 @@ export type UsuarioUpdateWithoutIngresosRegistradosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1337,6 +1416,7 @@ export type UsuarioUpdateWithoutIngresosRegistradosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
@@ -1347,6 +1427,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1360,6 +1441,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosAnuladosInput = {
@@ -1380,6 +1462,7 @@ export type UsuarioUpdateWithoutIngresosAnuladosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1393,6 +1476,7 @@ export type UsuarioUpdateWithoutIngresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
@@ -1403,6 +1487,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1416,6 +1501,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateWithoutEgresosSolicitadosInput = {
@@ -1425,6 +1511,7 @@ export type UsuarioCreateWithoutEgresosSolicitadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1438,6 +1525,7 @@ export type UsuarioCreateWithoutEgresosSolicitadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
@@ -1448,6 +1536,7 @@ export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1461,6 +1550,7 @@ export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosSolicitadosInput = {
@@ -1475,6 +1565,7 @@ export type UsuarioCreateWithoutEgresosEntregadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1488,6 +1579,7 @@ export type UsuarioCreateWithoutEgresosEntregadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
@@ -1498,6 +1590,7 @@ export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1511,6 +1604,7 @@ export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosEntregadosInput = {
@@ -1525,6 +1619,7 @@ export type UsuarioCreateWithoutEgresosAnuladosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1538,6 +1633,7 @@ export type UsuarioCreateWithoutEgresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
@@ -1548,6 +1644,7 @@ export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1561,6 +1658,7 @@ export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosAnuladosInput = {
@@ -1586,6 +1684,7 @@ export type UsuarioUpdateWithoutEgresosSolicitadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1599,6 +1698,7 @@ export type UsuarioUpdateWithoutEgresosSolicitadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
@@ -1609,6 +1709,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1622,6 +1723,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutEgresosEntregadosInput = {
@@ -1642,6 +1744,7 @@ export type UsuarioUpdateWithoutEgresosEntregadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1655,6 +1758,7 @@ export type UsuarioUpdateWithoutEgresosEntregadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
@@ -1665,6 +1769,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1678,6 +1783,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutEgresosAnuladosInput = {
@@ -1698,6 +1804,7 @@ export type UsuarioUpdateWithoutEgresosAnuladosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1711,6 +1818,7 @@ export type UsuarioUpdateWithoutEgresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
@@ -1721,6 +1829,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1734,6 +1843,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateWithoutDecisionesEgresoInput = {
@@ -1743,6 +1853,7 @@ export type UsuarioCreateWithoutDecisionesEgresoInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1756,6 +1867,7 @@ export type UsuarioCreateWithoutDecisionesEgresoInput = {
   egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
@@ -1766,6 +1878,7 @@ export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1779,6 +1892,7 @@ export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
   egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutDecisionesEgresoInput = {
@@ -1804,6 +1918,7 @@ export type UsuarioUpdateWithoutDecisionesEgresoInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1817,6 +1932,7 @@ export type UsuarioUpdateWithoutDecisionesEgresoInput = {
   egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
@@ -1827,6 +1943,7 @@ export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1840,6 +1957,7 @@ export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
   egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateWithoutLogosActualizadosInput = {
@@ -1849,6 +1967,7 @@ export type UsuarioCreateWithoutLogosActualizadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1862,6 +1981,7 @@ export type UsuarioCreateWithoutLogosActualizadosInput = {
   egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutLogosActualizadosInput = {
@@ -1872,6 +1992,7 @@ export type UsuarioUncheckedCreateWithoutLogosActualizadosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1885,6 +2006,7 @@ export type UsuarioUncheckedCreateWithoutLogosActualizadosInput = {
   egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutLogosActualizadosInput = {
@@ -1910,6 +2032,7 @@ export type UsuarioUpdateWithoutLogosActualizadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -1923,6 +2046,7 @@ export type UsuarioUpdateWithoutLogosActualizadosInput = {
   egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutLogosActualizadosInput = {
@@ -1933,6 +2057,7 @@ export type UsuarioUncheckedUpdateWithoutLogosActualizadosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1946,6 +2071,7 @@ export type UsuarioUncheckedUpdateWithoutLogosActualizadosInput = {
   egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioCreateWithoutLogosSubidosInput = {
@@ -1955,6 +2081,7 @@ export type UsuarioCreateWithoutLogosSubidosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
@@ -1968,6 +2095,7 @@ export type UsuarioCreateWithoutLogosSubidosInput = {
   egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
   decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutLogosSubidosInput = {
@@ -1978,6 +2106,7 @@ export type UsuarioUncheckedCreateWithoutLogosSubidosInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
@@ -1991,6 +2120,7 @@ export type UsuarioUncheckedCreateWithoutLogosSubidosInput = {
   egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutLogosSubidosInput = {
@@ -2016,6 +2146,7 @@ export type UsuarioUpdateWithoutLogosSubidosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -2029,6 +2160,7 @@ export type UsuarioUpdateWithoutLogosSubidosInput = {
   egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutLogosSubidosInput = {
@@ -2039,6 +2171,7 @@ export type UsuarioUncheckedUpdateWithoutLogosSubidosInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2052,9 +2185,34 @@ export type UsuarioUncheckedUpdateWithoutLogosSubidosInput = {
   egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
-export type UsuarioCreateManyUnidadInput = {
+export type UsuarioCreateWithoutConfiguracionesActualizadasInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  conClaveInicial?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
+  logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
+  logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+}
+
+export type UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput = {
   id?: number
   nombre: string
   cargo?: string | null
@@ -2062,20 +2220,50 @@ export type UsuarioCreateManyUnidadInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
+  unidadId?: number | null
   almacenId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
+  logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
+  logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
 }
 
-export type UsuarioUpdateWithoutUnidadInput = {
+export type UsuarioCreateOrConnectWithoutConfiguracionesActualizadasInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput>
+}
+
+export type UsuarioUpsertWithoutConfiguracionesActualizadasInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutConfiguracionesActualizadasInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutConfiguracionesActualizadasInput, Prisma.UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput>
+}
+
+export type UsuarioUpdateWithoutConfiguracionesActualizadasInput = {
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usuario?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
   almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
   almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
   ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
@@ -2089,7 +2277,7 @@ export type UsuarioUpdateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
 }
 
-export type UsuarioUncheckedUpdateWithoutUnidadInput = {
+export type UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
   cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2097,6 +2285,8 @@ export type UsuarioUncheckedUpdateWithoutUnidadInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2112,6 +2302,69 @@ export type UsuarioUncheckedUpdateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
 }
 
+export type UsuarioCreateManyUnidadInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  conClaveInicial?: boolean
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type UsuarioUpdateWithoutUnidadInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
+  logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
+  logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutUnidadInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+  logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
+  logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
+}
+
 export type UsuarioUncheckedUpdateManyWithoutUnidadInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   nombre?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2120,6 +2373,7 @@ export type UsuarioUncheckedUpdateManyWithoutUnidadInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2133,6 +2387,7 @@ export type UsuarioCreateManyAlmacenInput = {
   password: string
   rol: $Enums.Rol
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2145,6 +2400,7 @@ export type UsuarioUpdateWithoutAlmacenInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
@@ -2158,6 +2414,7 @@ export type UsuarioUpdateWithoutAlmacenInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
@@ -2168,6 +2425,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2181,6 +2439,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
   decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateManyWithoutAlmacenInput = {
@@ -2191,6 +2450,7 @@ export type UsuarioUncheckedUpdateManyWithoutAlmacenInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2212,6 +2472,7 @@ export type UsuarioCountOutputType = {
   decisionesEgreso: number
   logosActualizados: number
   logosSubidos: number
+  configuracionesActualizadas: number
 }
 
 export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2225,6 +2486,7 @@ export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   decisionesEgreso?: boolean | UsuarioCountOutputTypeCountDecisionesEgresoArgs
   logosActualizados?: boolean | UsuarioCountOutputTypeCountLogosActualizadosArgs
   logosSubidos?: boolean | UsuarioCountOutputTypeCountLogosSubidosArgs
+  configuracionesActualizadas?: boolean | UsuarioCountOutputTypeCountConfiguracionesActualizadasArgs
 }
 
 /**
@@ -2307,6 +2569,13 @@ export type UsuarioCountOutputTypeCountLogosSubidosArgs<ExtArgs extends runtime.
   where?: Prisma.LogoVersionWhereInput
 }
 
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountConfiguracionesActualizadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConfiguracionSistemaWhereInput
+}
+
 
 export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2316,6 +2585,7 @@ export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   password?: boolean
   rol?: boolean
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: boolean
   almacenId?: boolean
   createdAt?: boolean
@@ -2332,6 +2602,7 @@ export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   decisionesEgreso?: boolean | Prisma.Usuario$decisionesEgresoArgs<ExtArgs>
   logosActualizados?: boolean | Prisma.Usuario$logosActualizadosArgs<ExtArgs>
   logosSubidos?: boolean | Prisma.Usuario$logosSubidosArgs<ExtArgs>
+  configuracionesActualizadas?: boolean | Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["usuario"]>
 
@@ -2343,6 +2614,7 @@ export type UsuarioSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   password?: boolean
   rol?: boolean
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: boolean
   almacenId?: boolean
   createdAt?: boolean
@@ -2359,6 +2631,7 @@ export type UsuarioSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   password?: boolean
   rol?: boolean
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: boolean
   almacenId?: boolean
   createdAt?: boolean
@@ -2375,13 +2648,14 @@ export type UsuarioSelectScalar = {
   password?: boolean
   rol?: boolean
   activo?: boolean
+  conClaveInicial?: boolean
   unidadId?: boolean
   almacenId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UsuarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "cargo" | "usuario" | "password" | "rol" | "activo" | "unidadId" | "almacenId" | "createdAt" | "updatedAt", ExtArgs["result"]["usuario"]>
+export type UsuarioOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "cargo" | "usuario" | "password" | "rol" | "activo" | "conClaveInicial" | "unidadId" | "almacenId" | "createdAt" | "updatedAt", ExtArgs["result"]["usuario"]>
 export type UsuarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   unidad?: boolean | Prisma.Usuario$unidadArgs<ExtArgs>
   almacen?: boolean | Prisma.Usuario$almacenArgs<ExtArgs>
@@ -2395,6 +2669,7 @@ export type UsuarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   decisionesEgreso?: boolean | Prisma.Usuario$decisionesEgresoArgs<ExtArgs>
   logosActualizados?: boolean | Prisma.Usuario$logosActualizadosArgs<ExtArgs>
   logosSubidos?: boolean | Prisma.Usuario$logosSubidosArgs<ExtArgs>
+  configuracionesActualizadas?: boolean | Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UsuarioIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2421,6 +2696,7 @@ export type $UsuarioPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     decisionesEgreso: Prisma.$EgresoHistorialPayload<ExtArgs>[]
     logosActualizados: Prisma.$LogoInstitucionalPayload<ExtArgs>[]
     logosSubidos: Prisma.$LogoVersionPayload<ExtArgs>[]
+    configuracionesActualizadas: Prisma.$ConfiguracionSistemaPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2430,6 +2706,14 @@ export type $UsuarioPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     password: string
     rol: $Enums.Rol
     activo: boolean
+    /**
+     * true mientras la cuenta tenga una contraseña que le DIERON: la inicial
+     * generica (al crearla o al restablecerla) o una puesta por el super_admin al
+     * editar. Solo informa (la marca de la tabla de Usuarios y si el icono de
+     * copiar puede incluir la inicial): cambiarla NO es obligatorio (decision
+     * del usuario, 2026-10-29). La baja el propio usuario al cambiarla.
+     */
+    conClaveInicial: boolean
     unidadId: number | null
     almacenId: number | null
     createdAt: Date
@@ -2840,6 +3124,7 @@ export interface Prisma__UsuarioClient<T, Null = never, ExtArgs extends runtime.
   decisionesEgreso<T extends Prisma.Usuario$decisionesEgresoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$decisionesEgresoArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EgresoHistorialPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   logosActualizados<T extends Prisma.Usuario$logosActualizadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$logosActualizadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LogoInstitucionalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   logosSubidos<T extends Prisma.Usuario$logosSubidosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$logosSubidosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LogoVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  configuracionesActualizadas<T extends Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConfiguracionSistemaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2876,6 +3161,7 @@ export interface UsuarioFieldRefs {
   readonly password: Prisma.FieldRef<"Usuario", 'String'>
   readonly rol: Prisma.FieldRef<"Usuario", 'Rol'>
   readonly activo: Prisma.FieldRef<"Usuario", 'Boolean'>
+  readonly conClaveInicial: Prisma.FieldRef<"Usuario", 'Boolean'>
   readonly unidadId: Prisma.FieldRef<"Usuario", 'Int'>
   readonly almacenId: Prisma.FieldRef<"Usuario", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Usuario", 'DateTime'>
@@ -3556,6 +3842,30 @@ export type Usuario$logosSubidosArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.LogoVersionScalarFieldEnum | Prisma.LogoVersionScalarFieldEnum[]
+}
+
+/**
+ * Usuario.configuracionesActualizadas
+ */
+export type Usuario$configuracionesActualizadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConfiguracionSistema
+   */
+  select?: Prisma.ConfiguracionSistemaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConfiguracionSistema
+   */
+  omit?: Prisma.ConfiguracionSistemaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConfiguracionSistemaInclude<ExtArgs> | null
+  where?: Prisma.ConfiguracionSistemaWhereInput
+  orderBy?: Prisma.ConfiguracionSistemaOrderByWithRelationInput | Prisma.ConfiguracionSistemaOrderByWithRelationInput[]
+  cursor?: Prisma.ConfiguracionSistemaWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConfiguracionSistemaScalarFieldEnum | Prisma.ConfiguracionSistemaScalarFieldEnum[]
 }
 
 /**

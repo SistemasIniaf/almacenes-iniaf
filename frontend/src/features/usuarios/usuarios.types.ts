@@ -9,6 +9,12 @@ export interface Usuario {
   usuario: string
   rol: Rol
   activo: boolean
+  /**
+   * Todavía tiene una contraseña que le DIERON (la inicial, o una puesta por el
+   * super_admin): todavía no eligió la suya. Solo informa — cambiarla no es
+   * obligatorio.
+   */
+  conClaveInicial: boolean
   unidadId: number | null
   almacenId: number | null
   unidad: { id: number; nombre: string; sigla: string } | null
@@ -30,7 +36,7 @@ export interface CreateUsuarioPayload {
   nombre: string
   cargo?: string | null
   usuario: string
-  password: string
+  // Sin contraseña: la cuenta nace con la inicial (ver `ClaveInicial`).
   rol: Rol
   activo?: boolean
   unidadId?: number | null
@@ -38,8 +44,24 @@ export interface CreateUsuarioPayload {
   almacenesObservados?: number[]
 }
 
-/** En update todo es opcional; `password` solo viaja si se quiere cambiar. */
-export type UpdateUsuarioPayload = Partial<CreateUsuarioPayload>
+/**
+ * En update todo es opcional; `password` solo viaja si se quiere cambiar (solo
+ * super_admin).
+ */
+export type UpdateUsuarioPayload = Partial<CreateUsuarioPayload> & {
+  password?: string
+}
+
+/**
+ * Contraseña con la que nace toda cuenta nueva (`GET /usuarios/clave-inicial`).
+ * Viaja en claro a propósito: quien crea la cuenta se la tiene que dar al
+ * usuario, y ya la conocen todos los que crean cuentas.
+ */
+export interface ClaveInicial {
+  claveInicial: string
+  updatedAt: string
+  actualizadoPor: { id: number; nombre: string } | null
+}
 
 // ---------------------------------------------------------------------------
 // Reglas de campos por rol — espejo de ROLES_CON_UNIDAD / ROLES_CON_ALMACEN

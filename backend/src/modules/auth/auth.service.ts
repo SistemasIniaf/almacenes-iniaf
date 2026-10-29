@@ -142,7 +142,12 @@ export class AuthService {
 
     await this.prisma.usuario.update({
       where: { id: usuarioId },
-      data: { password: await bcrypt.hash(dto.nueva, 10) },
+      // Recién ahora la contraseña es solo suya (la marca de la tabla de
+      // Usuarios y el ícono de copiar dejan de ofrecer la inicial).
+      data: {
+        password: await bcrypt.hash(dto.nueva, 10),
+        conClaveInicial: false,
+      },
     });
   }
 

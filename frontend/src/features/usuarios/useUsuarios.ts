@@ -8,11 +8,14 @@ import { toast } from "sonner"
 
 import {
   activarUsuario,
+  actualizarClaveInicial,
   actualizarUsuario,
   crearUsuario,
   desactivarUsuario,
   listarUsuarios,
+  obtenerClaveInicial,
   obtenerMiAprobador,
+  restablecerClaveUsuario,
 } from "@/features/usuarios/usuarios.api"
 import { getApiErrorMessage } from "@/lib/api"
 
@@ -45,6 +48,43 @@ export function useMiAprobador(habilitado = true) {
     queryKey: ["usuarios", "mi-aprobador"],
     queryFn: obtenerMiAprobador,
     enabled: habilitado,
+  })
+}
+
+const CLAVE_INICIAL_KEY = ["usuarios", "clave-inicial"] as const
+
+/** La contraseña inicial vigente: la muestran el alta de usuarios y su diálogo. */
+export function useClaveInicial(habilitado = true) {
+  return useQuery({
+    queryKey: CLAVE_INICIAL_KEY,
+    queryFn: obtenerClaveInicial,
+    enabled: habilitado,
+  })
+}
+
+export function useActualizarClaveInicial() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: actualizarClaveInicial,
+    onSuccess: (dato) => {
+      queryClient.setQueryData(CLAVE_INICIAL_KEY, dato)
+      toast.success("Contraseña inicial actualizada")
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
+  })
+}
+
+export function useRestablecerClave() {
+  const invalidar = useInvalidarUsuarios()
+  return useMutation({
+    mutationFn: restablecerClaveUsuario,
+    onSuccess: (usuario) => {
+      invalidar()
+      toast.success(
+        `Contraseña de "${usuario.usuario}" restablecida a la inicial`
+      )
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error)),
   })
 }
 

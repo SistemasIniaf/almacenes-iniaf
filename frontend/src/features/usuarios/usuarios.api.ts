@@ -2,6 +2,7 @@ import { api } from "@/lib/api"
 
 import type { PaginatedResult } from "@/lib/types"
 import type {
+  ClaveInicial,
   CreateUsuarioPayload,
   QueryUsuarios,
   UpdateUsuarioPayload,
@@ -65,6 +66,43 @@ export async function actualizarUsuario(
 /** Baja logica: desactiva al usuario y libera su cupo de rol unico. */
 export async function desactivarUsuario(id: number): Promise<Usuario> {
   const { data } = await api.delete<Usuario>(`/usuarios/${id}`)
+  return data
+}
+
+/** Contraseña inicial de las cuentas nuevas (la leen super_admin y admin). */
+export async function obtenerClaveInicial(): Promise<ClaveInicial> {
+  const { data } = await api.get<ClaveInicial>("/usuarios/clave-inicial")
+  return data
+}
+
+/** Solo super_admin. Rige para las cuentas que se creen o restablezcan después. */
+export async function actualizarClaveInicial(
+  claveInicial: string
+): Promise<ClaveInicial> {
+  const { data } = await api.put<ClaveInicial>("/usuarios/clave-inicial", {
+    claveInicial,
+  })
+  return data
+}
+
+/**
+ * Usuario + contraseña inicial para copiar. `claveInicial` es `null` si la
+ * cuenta ya no tiene la inicial vigente (la cambió): el backend lo compara
+ * contra el hash.
+ */
+export async function obtenerCredenciales(
+  id: number
+): Promise<{ usuario: string; claveInicial: string | null }> {
+  const { data } = await api.get<{
+    usuario: string
+    claveInicial: string | null
+  }>(`/usuarios/${id}/credenciales`)
+  return data
+}
+
+/** Vuelve la contraseña del usuario a la inicial, obligado a cambiarla. */
+export async function restablecerClaveUsuario(id: number): Promise<Usuario> {
+  const { data } = await api.post<Usuario>(`/usuarios/${id}/restablecer-clave`)
   return data
 }
 

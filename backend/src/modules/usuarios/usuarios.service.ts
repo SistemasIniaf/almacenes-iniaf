@@ -54,6 +54,8 @@ const usuarioSelect = {
   usuario: true,
   rol: true,
   activo: true,
+  // Para que la tabla marque quien todavia no cambio la contraseña inicial.
+  conClaveInicial: true,
   unidadId: true,
   almacenId: true,
   unidad: { select: { id: true, nombre: true, sigla: true } },
@@ -92,7 +94,7 @@ export class UsuariosService {
     await this.validarReferencias(campos);
     await this.validarUnicidadRol(dto.rol, campos, activo);
 
-    const password = await bcrypt.hash(dto.password, 10);
+    const password = await bcrypt.hash(await this.claveInicial(), 10);
 
     const id = await this.prisma.$transaction(async (tx) => {
       const usuario = await tx.usuario.create({
@@ -101,6 +103,7 @@ export class UsuariosService {
           cargo,
           usuario: dto.usuario,
           password,
+          conClaveInicial: true,
           rol: dto.rol,
           activo,
           unidadId: campos.unidadId,
@@ -253,7 +256,11 @@ export class UsuariosService {
           // requerido (o dejar de serlo) sin que el cliente lo mande.
           cargo,
           ...(dto.usuario !== undefined ? { usuario: dto.usuario } : {}),
-          ...(password ? { password } : {}),
+          // Una contraseña puesta por el super_admin se la DIERON, igual que la
+          // inicial: queda marcada. Salvo que se la esté poniendo a sí mismo.
+          ...(password
+            ? { password, conClaveInicial: id !== actingUser.id }
+            : {}),
           rol: rolFinal,
           activo: activoFinal,
           unidadId: campos.unidadId,
@@ -357,6 +364,110 @@ export class UsuariosService {
       });
     }
     return this.findOne(id);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Contraseña inicial (2026-10-29)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Vuelve la contraseña de un usuario a la INICIAL: es la salida para «me
+   * olvidé la contraseña» sin que nadie tenga que inventar una. Mismo alcance que `remove`: el admin puede, salvo sobre cuentas
+   * admin/super_admin ajenas. La propia no: para eso está «Cambiar contraseña».
+   */
+  /**
+   * Datos de acceso para copiar y mandar por WhatsApp o correo (el ícono junto
+   * al usuario en la tabla). La contraseña va SOLO si la cuenta todavía tiene
+   * la inicial VIGENTE; si no, `null` y la pantalla copia sin ella.
+   *
+   * Se compara contra el hash y no se confía en `conClaveInicial`: la marca
+   * no distingue si la inicial cambió después de crear la cuenta (la cuenta
+   * conserva la vieja), ni una contraseña puesta por el super_admin al editar.
+   * Revelarla no filtra nada: es la inicial, que quien consulta ya puede ver.
+   */
+  async credenciales(id: number) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: { usuario: true, password: true, conClaveInicial: true },
+    });
+    if (!usuario) {
+      throw new NotFoundException(`No existe el usuario con id ${id}`);
+    }
+    const inicial = await this.claveInicial();
+    const tieneLaInicial =
+      usuario.conClaveInicial &&
+      (await bcrypt.compare(inicial, usuario.password));
+    return {
+      usuario: usuario.usuario,
+      claveInicial: tieneLaInicial ? inicial : null,
+    };
+  }
+
+  async restablecerClave(id: number, actingUser: AuthenticatedUser) {
+    if (id === actingUser.id) {
+      throw new BadRequestException(
+        'Tu propia contraseña se cambia desde «Cambiar contraseña», en tu menú de usuario.',
+      );
+    }
+    const existente = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: { rol: true },
+    });
+    if (!existente) {
+      throw new NotFoundException(`No existe el usuario con id ${id}`);
+    }
+    if (
+      actingUser.rol === Rol.admin &&
+      this.esRolAdminOSuperAdmin(existente.rol)
+    ) {
+      throw new ForbiddenException(
+        'El rol admin no puede restablecer la contraseña de cuentas admin o super_admin.',
+      );
+    }
+    await this.prisma.usuario.update({
+      where: { id },
+      data: {
+        password: await bcrypt.hash(await this.claveInicial(), 10),
+        conClaveInicial: true,
+      },
+    });
+    return this.findOne(id);
+  }
+
+  /**
+   * La contraseña inicial vigente, para mostrarla a quien crea cuentas (tiene
+   * que dársela al usuario nuevo) y con quién la cambió por última vez.
+   */
+  async obtenerClaveInicial() {
+    return this.prisma.configuracionSistema.findUniqueOrThrow({
+      where: { id: 1 },
+      select: {
+        claveInicial: true,
+        updatedAt: true,
+        actualizadoPor: { select: { id: true, nombre: true } },
+      },
+    });
+  }
+
+  /**
+   * Cambia la contraseña inicial. Rige para las cuentas que se creen o
+   * restablezcan DE ACÁ EN ADELANTE: las que ya la tienen pendiente de cambio
+   * conservan la anterior (está hasheada en cada cuenta, no se puede
+   * «re-aplicar» sin pisar algo).
+   */
+  async actualizarClaveInicial(
+    claveInicial: string,
+    actingUser: AuthenticatedUser,
+  ) {
+    await this.prisma.configuracionSistema.update({
+      where: { id: 1 },
+      data: { claveInicial, actualizadoPorId: actingUser.id },
+    });
+    return this.obtenerClaveInicial();
+  }
+
+  private async claveInicial(): Promise<string> {
+    return (await this.obtenerClaveInicial()).claveInicial;
   }
 
   // ---------------------------------------------------------------------------

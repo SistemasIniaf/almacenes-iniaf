@@ -34,13 +34,13 @@ const base = z.object({
 export type UsuarioFormValues = z.infer<typeof base>
 
 /**
- * El schema depende de si se esta creando (password obligatorio) o editando
- * (password opcional: vacio = no cambiar), por eso es una funcion.
+ * El schema depende de si se esta creando o editando, por eso es una funcion.
+ * Al crear NO hay contraseña (la cuenta nace con la inicial generica); al
+ * editar es opcional: vacia = no cambiar.
  */
 export function usuarioSchema(esEdicion: boolean) {
   return base.superRefine((valores, ctx) => {
-    // Password: requerido al crear; al editar, vacio significa "no cambiar".
-    if (!esEdicion || valores.password.length > 0) {
+    if (esEdicion && valores.password.length > 0) {
       if (valores.password.length < 6) {
         ctx.addIssue({
           code: "custom",
