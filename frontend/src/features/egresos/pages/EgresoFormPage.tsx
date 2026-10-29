@@ -55,6 +55,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth"
 import { AvisoReserva } from "@/features/egresos/components/AvisoReserva"
 import { EgresoLineas } from "@/features/egresos/components/EgresoLineas"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
+import { EsperaPedido } from "@/features/egresos/components/EsperaPedido"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
 import {
   useActualizarEgreso,
@@ -571,6 +572,8 @@ export function EgresoFormPage() {
       {egreso && (
         <AvisoReserva egreso={egreso} cantidadItems={egreso.detalles.length} />
       )}
+      {/* Con quién está el pedido y desde cuándo (2026-10-29). */}
+      {egreso && !entregando && <EsperaPedido egreso={egreso} />}
 
       {/* TODO el pedido en UNA sola tarjeta — información, justificación e
           ítems son secciones de un mismo documento, no piezas sueltas (pedido

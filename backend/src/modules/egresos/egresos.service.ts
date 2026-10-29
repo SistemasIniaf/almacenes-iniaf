@@ -77,7 +77,9 @@ const egresoListSelect = {
   createdAt: true,
   almacen: { select: { id: true, nombre: true } },
   unidad: { select: { id: true, nombre: true, sigla: true } },
-  solicitante: { select: { id: true, nombre: true } },
+  solicitante: {
+    select: { id: true, nombre: true, cargo: true, usuario: true },
+  },
   _count: { select: { detalles: true } },
 } as const;
 
@@ -97,6 +99,26 @@ function conVencimiento<T extends { estado: EstadoEgreso; reservaDesde: Date }>(
       : null,
   };
 }
+
+/**
+ * Quien tiene el pedido AHORA, por el rol que le toca segun el estado. Los
+ * cerrados (entregado, anulado, desistido) no lo tiene nadie.
+ */
+const ROL_QUE_ESPERA: Partial<
+  Record<EstadoEgreso, 'solicitante' | 'aprobador' | 'responsable_almacen'>
+> = {
+  [EstadoEgreso.BORRADOR]: 'solicitante',
+  [EstadoEgreso.DEVUELTO]: 'solicitante',
+  [EstadoEgreso.PENDIENTE_APROBADOR]: 'aprobador',
+  [EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN]: 'responsable_almacen',
+};
+
+type PersonaEspera = {
+  id: number;
+  nombre: string;
+  cargo: string | null;
+  usuario: string;
+};
 
 // El lote trae todo lo que la linea NO repite: item, fuente y precio.
 const loteSelect = {
@@ -274,7 +296,12 @@ export class EgresosService implements OnModuleInit {
       this.prisma.egreso.count({ where }),
     ]);
 
-    return paginated(data.map(conVencimiento), total, page, pageSize);
+    return paginated(
+      await this.conEspera(data.map(conVencimiento)),
+      total,
+      page,
+      pageSize,
+    );
   }
 
   /**
@@ -374,7 +401,112 @@ export class EgresosService implements OnModuleInit {
     if (!egreso) {
       throw new NotFoundException(`No existe el egreso con id ${id}`);
     }
-    return conVencimiento(await this.conDisponible(egreso));
+    const [conTodo] = await this.conEspera([
+      conVencimiento(await this.conDisponible(egreso)),
+    ]);
+    return conTodo;
+  }
+
+  /**
+   * Agrega `espera`: QUIEN tiene el pedido ahora y DESDE CUANDO (2026-10-29,
+   * pedido del usuario: la primera pregunta de quien espera material es «¿a
+   * quien le reclamo?»). `null` en los cerrados.
+   *
+   * No se guarda en el pedido: se deduce del estado, porque cada paso lo tiene
+   * UNA persona (el solicitante, el aprobador activo de la unidad o el
+   * responsable activo del almacen — los dos ultimos son unicos por indice).
+   * Asi, si cambian al aprobador, sus pedidos pasan solos al nuevo.
+   * `persona: null` en un paso de aprobador o responsable = no hay nadie
+   * designado: el pedido no va a avanzar (no hay suplencia), y la pantalla lo
+   * tiene que decir.
+   *
+   * `desde` es el ultimo CAMBIO de estado del historial. El vaciado por
+   * vencimiento deja el estado igual, asi que no cuenta: el pedido ya estaba
+   * en manos del solicitante desde antes.
+   */
+  private async conEspera<
+    T extends {
+      id: number;
+      estado: EstadoEgreso;
+      unidadId: number;
+      almacenId: number;
+      createdAt: Date;
+      solicitante: PersonaEspera;
+    },
+  >(egresos: T[]) {
+    const abiertos = egresos.filter((e) => ROL_QUE_ESPERA[e.estado]);
+    const unidades = abiertos
+      .filter((e) => ROL_QUE_ESPERA[e.estado] === 'aprobador')
+      .map((e) => e.unidadId);
+    const almacenes = abiertos
+      .filter((e) => ROL_QUE_ESPERA[e.estado] === 'responsable_almacen')
+      .map((e) => e.almacenId);
+
+    const [designados, pasos] = await Promise.all([
+      // Con listas vacias Prisma no trae nada: no hace falta saltear la consulta.
+      this.prisma.usuario.findMany({
+        where: {
+          activo: true,
+          OR: [
+            { rol: Rol.aprobador, unidadId: { in: unidades } },
+            { rol: Rol.responsable_almacen, almacenId: { in: almacenes } },
+          ],
+        },
+        select: {
+          id: true,
+          nombre: true,
+          cargo: true,
+          usuario: true,
+          rol: true,
+          unidadId: true,
+          almacenId: true,
+        },
+      }),
+      this.prisma.egresoHistorial.findMany({
+        where: { egresoId: { in: abiertos.map((e) => e.id) } },
+        select: {
+          egresoId: true,
+          estadoAnterior: true,
+          estadoNuevo: true,
+          createdAt: true,
+        },
+        orderBy: { id: 'asc' },
+      }),
+    ]);
+
+    const desde = new Map<number, Date>();
+    for (const p of pasos) {
+      if (p.estadoAnterior !== p.estadoNuevo)
+        desde.set(p.egresoId, p.createdAt);
+    }
+    const persona = ({ id, nombre, cargo, usuario }: PersonaEspera) => ({
+      id,
+      nombre,
+      cargo,
+      usuario,
+    });
+
+    return egresos.map((e) => {
+      const rol = ROL_QUE_ESPERA[e.estado];
+      if (!rol) return { ...e, espera: null };
+      const designado =
+        rol === 'solicitante'
+          ? e.solicitante
+          : designados.find((u) =>
+              rol === 'aprobador'
+                ? u.rol === Rol.aprobador && u.unidadId === e.unidadId
+                : u.rol === Rol.responsable_almacen &&
+                  u.almacenId === e.almacenId,
+            );
+      return {
+        ...e,
+        espera: {
+          rol,
+          persona: designado ? persona(designado) : null,
+          desde: desde.get(e.id) ?? e.createdAt,
+        },
+      };
+    });
   }
 
   /**

@@ -60,6 +60,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { AvisoReserva } from "@/features/egresos/components/AvisoReserva"
 import { EnviarDialog } from "@/features/egresos/components/EnviarDialog"
+import { EsperaPedido } from "@/features/egresos/components/EsperaPedido"
 import { HistorialSheet } from "@/features/egresos/components/HistorialSheet"
 import {
   useDescartarEgreso,
@@ -542,6 +543,8 @@ export function EgresosPage() {
                       cantidadItems={egreso._count.detalles}
                       compacto
                     />
+                    {/* Con quién está y desde hace cuánto (los abiertos). */}
+                    <EsperaPedido egreso={egreso} compacto />
                   </TableCell>
                   <TableCell
                     className="text-right whitespace-nowrap"

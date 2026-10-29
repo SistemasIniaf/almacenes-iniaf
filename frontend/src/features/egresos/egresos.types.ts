@@ -243,6 +243,27 @@ interface RefPersona extends RefNombre {
   cargo: string | null
 }
 
+/** A qué rol le toca el pedido ahora (ver `EsperaEgreso`). */
+export type RolEspera = "solicitante" | "aprobador" | "responsable_almacen"
+
+export const ROL_ESPERA_LABEL: Record<RolEspera, string> = {
+  solicitante: "solicitante",
+  aprobador: "aprobador de unidad",
+  responsable_almacen: "encargado de almacén",
+}
+
+/**
+ * QUIÉN tiene el pedido ahora y DESDE CUÁNDO. Lo deduce el backend del estado
+ * (`conEspera`), no se guarda: si cambian al aprobador, sus pedidos pasan solos
+ * al nuevo. `persona: null` = el paso no tiene a nadie designado y el pedido no
+ * va a avanzar (no hay suplencia). `desde` = el último cambio de estado.
+ */
+export interface EsperaEgreso {
+  rol: RolEspera
+  persona: (RefPersona & { usuario: string }) | null
+  desde: string
+}
+
 /** El lote del que sale el material: de él derivan ítem, fuente y precio. */
 export interface LoteDeLinea {
   id: number
@@ -335,6 +356,8 @@ export interface Egreso {
    * enviado, el reloj no corre. Lo calcula el backend.
    */
   reservaVence: string | null
+  /** Ver `EsperaEgreso`. `null` en los cerrados. */
+  espera: EsperaEgreso | null
   fechaEnvio: string | null
   fechaEntrega: string | null
   createdAt: string
@@ -365,12 +388,14 @@ export interface EgresoListItem {
   reservaDesde: string
   /** Ver `Egreso.reservaVence`. */
   reservaVence: string | null
+  /** Ver `EsperaEgreso`. `null` en los cerrados. */
+  espera: EsperaEgreso | null
   fechaEnvio: string | null
   fechaEntrega: string | null
   createdAt: string
   almacen: RefNombre
   unidad: { id: number; nombre: string; sigla: string }
-  solicitante: RefNombre
+  solicitante: RefPersona & { usuario: string }
   _count: { detalles: number }
 }
 

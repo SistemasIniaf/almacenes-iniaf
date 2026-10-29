@@ -995,6 +995,18 @@ Endpoints: `GET /egresos` (+ `pendientesMios=true` = la bandeja de cada rol) · 
 - El **número se estampa al PRIMER envío** y **el rechazo y el reenvío lo conservan**, junto con la
   gestión y `fechaEnvio` (`siguienteNumero()` solo corre desde `BORRADOR`). Hasta el 2026-10-28 el
   reenvío de un rechazado volvía a tomar `MAX + 1`: el pedido cambiaba de número y dejaba un hueco.
+- **Con quién está el pedido y desde cuándo** (`espera`, 2026-10-29, pedido del usuario): el
+  listado y la ficha traen `espera: { rol, persona, desde }` (`conEspera()` en el service; `null` en
+  los cerrados). **No se guarda: se deduce del estado** —el solicitante, el aprobador ACTIVO de la
+  unidad del pedido o el responsable ACTIVO del almacén, únicos por índice—, así que si cambian al
+  aprobador sus pedidos pasan solos al nuevo. `persona: null` en un paso de aprobador o responsable
+  = **no hay nadie designado** y el pedido no avanza (no hay suplencia): la pantalla lo dice en rojo.
+  `desde` es el último CAMBIO de estado del historial; el vaciado por vencimiento no cuenta (deja el
+  estado igual). En el frontend lo dibuja `EsperaPedido` (una línea bajo el estado en el listado, un
+  recuadro en la ficha), con nombre **y nombre de usuario** —en el listado, si no entra, se corta el
+  nombre y no el usuario ni el tiempo—, y **no dibuja nada cuando el pedido lo tiene el propio usuario como
+  solicitante**: ahí ya hablan el aviso de la reserva y el de devuelto. Sin alertas por demora a
+  propósito: harían falta plazos por nivel, que siguen pendientes con el encargado.
 - **La bandeja del `solicitador` son sus `DEVUELTO`** (lo que le pidieron corregir), y eso es lo que
   cuenta el badge del menú; sus pedidos sin enviar no lo esperan a nadie. El almacén ve los devueltos
   en «En curso» (`ESTADOS_EN_CURSO` del backend): ya son documentos abiertos de la serie.
