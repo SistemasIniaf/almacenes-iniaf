@@ -149,6 +149,7 @@ const loteSelect = {
       gestion: true,
       fechaIngreso: true,
       fuenteFinanciamiento: { select: { id: true, nombre: true } },
+      traspaso: { select: { id: true, numero: true, gestion: true } },
     },
   },
 } as const;

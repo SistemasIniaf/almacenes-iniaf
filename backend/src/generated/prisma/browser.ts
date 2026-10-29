@@ -173,3 +173,25 @@ export type LogoVersion = Prisma.LogoVersionModel
  * migracion). Hoy guarda solo la contraseña inicial de las cuentas nuevas.
  */
 export type ConfiguracionSistema = Prisma.ConfiguracionSistemaModel
+/**
+ * Model Traspaso
+ * TRASPASO de material entre almacenes (2026-10-29). Pensado para el CIERRE de
+ * un almacen (pasar uno, varios o todos sus lotes a otro), pero sirve para
+ * cualquier traspaso. Version minima acordada con el usuario: inmediato (sin
+ * aprobacion ni recepcion), solo el super_admin, sin anulacion.
+ * 
+ * En UNA transaccion: cada linea descuenta el saldo del lote de origen (SALIDA
+ * en el kardex de origen) y crea en el destino un lote NUEVO con el mismo item,
+ * precio, fuente y observacion (ENTRADA en el kardex de destino). Asi el valor
+ * y la fuente no cambian: los reportes nacionales siguen cuadrando y cada
+ * financiador sigue viendo su plata.
+ * 
+ * Correlativo propio por almacen de ORIGEN + gestion (serie `traspasos`).
+ */
+export type Traspaso = Prisma.TraspasoModel
+/**
+ * Model TraspasoDetalle
+ * Linea de un traspaso: de que lote salio, cuanto, y que lote nacio en el
+ * destino. El item, el precio y la fuente se derivan del lote de origen.
+ */
+export type TraspasoDetalle = Prisma.TraspasoDetalleModel

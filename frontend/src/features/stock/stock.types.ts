@@ -34,6 +34,8 @@ export interface LoteStock {
     almacen: RefNombre
     fuenteFinanciamiento: RefNombre | null
     proveedor: RefNombre | null
+    /** Si el lote llegó por un traspaso, ese es su documento. */
+    traspaso: { id: number; numero: number; gestion: number } | null
   }
 }
 

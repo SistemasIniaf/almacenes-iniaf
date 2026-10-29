@@ -5,7 +5,7 @@ import type { Prisma } from '../../generated/prisma/client';
  * asi un ingreso y un egreso del mismo almacen no se esperan entre si. No
  * cambiar los valores con transacciones en vuelo.
  */
-const SERIES = { ingresos: 1, egresos: 2 } as const;
+const SERIES = { ingresos: 1, egresos: 2, traspasos: 3 } as const;
 
 /**
  * Serializa la asignacion de correlativos de UNA serie en UN almacen hasta el

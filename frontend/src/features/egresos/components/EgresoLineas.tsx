@@ -120,7 +120,7 @@ function FotoLote({ lote }: { lote?: LoteElegible }) {
               {descripcionConNota(lote.itemDescripcion, lote.observacion)}
             </DialogTitle>
             <DialogDescription>
-              {lote.itemCodigo} · ingreso {lote.numeroIngreso} · {lote.fuente}
+              {lote.itemCodigo} · {lote.documento} · {lote.fuente}
             </DialogDescription>
           </DialogHeader>
           <img

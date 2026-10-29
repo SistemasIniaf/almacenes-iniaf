@@ -129,6 +129,9 @@ model Almacen {
   egresos      Egreso[]
   movimientos  MovimientoKardex[]
 
+  traspasosSalientes Traspaso[] @relation("TraspasoOrigen")
+  traspasosEntrantes Traspaso[] @relation("TraspasoDestino")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -201,6 +204,8 @@ model Usuario {
   logosSubidos      LogoVersion[]       @relation("LogoSubidoPor")
 
   configuracionesActualizadas ConfiguracionSistema[] @relation("ConfiguracionActualizadaPor")
+
+  traspasosRegistrados Traspaso[] @relation("TraspasoRegistradoPor")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -382,6 +387,16 @@ model Ingreso {
   detalles    IngresoDetalle[]
   movimientos MovimientoKardex[]
 
+  /// No nulo = NO es una compra: es el PORTADOR de los lotes que un traspaso
+  /// trajo a este almacen (uno por cada ingreso de origen, con sus respaldos
+  /// copiados). No lleva numero, no sale en el listado de ingresos y no se
+  /// edita ni se anula por su cuenta — el documento es el traspaso. Existe para
+  /// que el lote nuevo tenga almacen, fuente y fecha como cualquier otro, y asi
+  /// stock, egresos, kardex y reportes lo traten igual sin saber nada de
+  /// traspasos. Ver TraspasosService.
+  traspasoId Int?      @map("traspaso_id")
+  traspaso   Traspaso? @relation(fields: [traspasoId], references: [id])
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -392,6 +407,7 @@ model Ingreso {
   @@index([fuenteFinanciamientoId])
   // El stock ordena los lotes por esta fecha (el mas antiguo primero).
   @@index([fechaIngreso])
+  @@index([traspasoId])
   @@map("ingresos")
 }
 
@@ -421,6 +437,12 @@ model IngresoDetalle {
   /// las lineas cuyo egreso esta pendiente (o en un borrador de menos de 48 h).
   /// La reserva no es una columna a proposito — ver docs/decisiones-egresos.md.
   egresoDetalles EgresoDetalle[]
+
+  /// Traspasos que SACARON material de este lote (hacia otro almacen).
+  traspasosSalida TraspasoDetalle[] @relation("TraspasoLoteOrigen")
+  /// Si el lote nacio de un traspaso, la linea que lo creo (de ahi sale el
+  /// lote de origen: misma compra, mismo precio, misma fuente).
+  traspasoEntrada TraspasoDetalle?  @relation("TraspasoLoteDestino")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -458,6 +480,12 @@ model MovimientoKardex {
   egresoDetalleId Int?           @map("egreso_detalle_id")
   egresoDetalle   EgresoDetalle? @relation(fields: [egresoDetalleId], references: [id])
 
+  /// Movimiento de un TRASPASO: la SALIDA en el almacen de origen y la ENTRADA
+  /// en el de destino llevan los dos el mismo traspaso. La entrada ademas
+  /// apunta al ingreso portador (`Ingreso.traspasoId`).
+  traspasoId Int?      @map("traspaso_id")
+  traspaso   Traspaso? @relation(fields: [traspasoId], references: [id])
+
   /// Fecha del movimiento (la del documento; para el ingreso, su fechaRemision).
   fecha  DateTime
   motivo String?
@@ -469,6 +497,7 @@ model MovimientoKardex {
   @@index([ingresoDetalleId])
   @@index([egresoId])
   @@index([egresoDetalleId])
+  @@index([traspasoId])
   @@map("movimientos_kardex")
 }
 
@@ -666,4 +695,69 @@ model ConfiguracionSistema {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("configuracion_sistema")
+}
+
+/// TRASPASO de material entre almacenes (2026-10-29). Pensado para el CIERRE de
+/// un almacen (pasar uno, varios o todos sus lotes a otro), pero sirve para
+/// cualquier traspaso. Version minima acordada con el usuario: inmediato (sin
+/// aprobacion ni recepcion), solo el super_admin, sin anulacion.
+///
+/// En UNA transaccion: cada linea descuenta el saldo del lote de origen (SALIDA
+/// en el kardex de origen) y crea en el destino un lote NUEVO con el mismo item,
+/// precio, fuente y observacion (ENTRADA en el kardex de destino). Asi el valor
+/// y la fuente no cambian: los reportes nacionales siguen cuadrando y cada
+/// financiador sigue viendo su plata.
+///
+/// Correlativo propio por almacen de ORIGEN + gestion (serie `traspasos`).
+model Traspaso {
+  id      Int @id @default(autoincrement())
+  numero  Int
+  gestion Int
+
+  almacenOrigenId  Int     @map("almacen_origen_id")
+  almacenOrigen    Almacen @relation("TraspasoOrigen", fields: [almacenOrigenId], references: [id])
+  almacenDestinoId Int     @map("almacen_destino_id")
+  almacenDestino   Almacen @relation("TraspasoDestino", fields: [almacenDestinoId], references: [id])
+
+  /// Momento del registro: la fecha de los dos movimientos de kardex y la
+  /// fecha de ingreso de los lotes nuevos. La estampa el backend.
+  fecha       DateTime
+  /// Por que se traspasa (ej. «CIERRE DEL ALMACEN ORURO»). Obligatoria.
+  observacion String
+
+  registradoPorId Int     @map("registrado_por_id")
+  registradoPor   Usuario @relation("TraspasoRegistradoPor", fields: [registradoPorId], references: [id])
+
+  detalles    TraspasoDetalle[]
+  /// Los ingresos portadores de los lotes nuevos, en el destino.
+  ingresos    Ingreso[]
+  movimientos MovimientoKardex[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([almacenOrigenId, gestion, numero])
+  @@index([almacenDestinoId])
+  @@map("traspasos")
+}
+
+/// Linea de un traspaso: de que lote salio, cuanto, y que lote nacio en el
+/// destino. El item, el precio y la fuente se derivan del lote de origen.
+model TraspasoDetalle {
+  id         Int      @id @default(autoincrement())
+  traspasoId Int      @map("traspaso_id")
+  traspaso   Traspaso @relation(fields: [traspasoId], references: [id])
+
+  loteOrigenId  Int            @map("lote_origen_id")
+  loteOrigen    IngresoDetalle @relation("TraspasoLoteOrigen", fields: [loteOrigenId], references: [id])
+  loteDestinoId Int            @unique @map("lote_destino_id")
+  loteDestino   IngresoDetalle @relation("TraspasoLoteDestino", fields: [loteDestinoId], references: [id])
+
+  cantidad Decimal @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([traspasoId])
+  @@index([loteOrigenId])
+  @@map("traspaso_detalles")
 }

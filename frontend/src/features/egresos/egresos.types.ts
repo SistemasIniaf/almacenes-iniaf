@@ -286,6 +286,8 @@ export interface LoteDeLinea {
     gestion: number | null
     fechaIngreso: string
     fuenteFinanciamiento: RefNombre | null
+    /** Si el lote llegó por un traspaso, ese es su documento. */
+    traspaso: { id: number; numero: number; gestion: number } | null
   }
 }
 

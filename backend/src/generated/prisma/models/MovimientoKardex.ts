@@ -38,6 +38,7 @@ export type MovimientoKardexAvgAggregateOutputType = {
   ingresoDetalleId: number | null
   egresoId: number | null
   egresoDetalleId: number | null
+  traspasoId: number | null
 }
 
 export type MovimientoKardexSumAggregateOutputType = {
@@ -50,6 +51,7 @@ export type MovimientoKardexSumAggregateOutputType = {
   ingresoDetalleId: number | null
   egresoId: number | null
   egresoDetalleId: number | null
+  traspasoId: number | null
 }
 
 export type MovimientoKardexMinAggregateOutputType = {
@@ -63,6 +65,7 @@ export type MovimientoKardexMinAggregateOutputType = {
   ingresoDetalleId: number | null
   egresoId: number | null
   egresoDetalleId: number | null
+  traspasoId: number | null
   fecha: Date | null
   motivo: string | null
   createdAt: Date | null
@@ -79,6 +82,7 @@ export type MovimientoKardexMaxAggregateOutputType = {
   ingresoDetalleId: number | null
   egresoId: number | null
   egresoDetalleId: number | null
+  traspasoId: number | null
   fecha: Date | null
   motivo: string | null
   createdAt: Date | null
@@ -95,6 +99,7 @@ export type MovimientoKardexCountAggregateOutputType = {
   ingresoDetalleId: number
   egresoId: number
   egresoDetalleId: number
+  traspasoId: number
   fecha: number
   motivo: number
   createdAt: number
@@ -112,6 +117,7 @@ export type MovimientoKardexAvgAggregateInputType = {
   ingresoDetalleId?: true
   egresoId?: true
   egresoDetalleId?: true
+  traspasoId?: true
 }
 
 export type MovimientoKardexSumAggregateInputType = {
@@ -124,6 +130,7 @@ export type MovimientoKardexSumAggregateInputType = {
   ingresoDetalleId?: true
   egresoId?: true
   egresoDetalleId?: true
+  traspasoId?: true
 }
 
 export type MovimientoKardexMinAggregateInputType = {
@@ -137,6 +144,7 @@ export type MovimientoKardexMinAggregateInputType = {
   ingresoDetalleId?: true
   egresoId?: true
   egresoDetalleId?: true
+  traspasoId?: true
   fecha?: true
   motivo?: true
   createdAt?: true
@@ -153,6 +161,7 @@ export type MovimientoKardexMaxAggregateInputType = {
   ingresoDetalleId?: true
   egresoId?: true
   egresoDetalleId?: true
+  traspasoId?: true
   fecha?: true
   motivo?: true
   createdAt?: true
@@ -169,6 +178,7 @@ export type MovimientoKardexCountAggregateInputType = {
   ingresoDetalleId?: true
   egresoId?: true
   egresoDetalleId?: true
+  traspasoId?: true
   fecha?: true
   motivo?: true
   createdAt?: true
@@ -272,6 +282,7 @@ export type MovimientoKardexGroupByOutputType = {
   ingresoDetalleId: number | null
   egresoId: number | null
   egresoDetalleId: number | null
+  traspasoId: number | null
   fecha: Date
   motivo: string | null
   createdAt: Date
@@ -311,6 +322,7 @@ export type MovimientoKardexWhereInput = {
   ingresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
+  traspasoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   fecha?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
   motivo?: Prisma.StringNullableFilter<"MovimientoKardex"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
@@ -320,6 +332,7 @@ export type MovimientoKardexWhereInput = {
   ingresoDetalle?: Prisma.XOR<Prisma.IngresoDetalleNullableScalarRelationFilter, Prisma.IngresoDetalleWhereInput> | null
   egreso?: Prisma.XOR<Prisma.EgresoNullableScalarRelationFilter, Prisma.EgresoWhereInput> | null
   egresoDetalle?: Prisma.XOR<Prisma.EgresoDetalleNullableScalarRelationFilter, Prisma.EgresoDetalleWhereInput> | null
+  traspaso?: Prisma.XOR<Prisma.TraspasoNullableScalarRelationFilter, Prisma.TraspasoWhereInput> | null
 }
 
 export type MovimientoKardexOrderByWithRelationInput = {
@@ -333,6 +346,7 @@ export type MovimientoKardexOrderByWithRelationInput = {
   ingresoDetalleId?: Prisma.SortOrderInput | Prisma.SortOrder
   egresoId?: Prisma.SortOrderInput | Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  traspasoId?: Prisma.SortOrderInput | Prisma.SortOrder
   fecha?: Prisma.SortOrder
   motivo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -342,6 +356,7 @@ export type MovimientoKardexOrderByWithRelationInput = {
   ingresoDetalle?: Prisma.IngresoDetalleOrderByWithRelationInput
   egreso?: Prisma.EgresoOrderByWithRelationInput
   egresoDetalle?: Prisma.EgresoDetalleOrderByWithRelationInput
+  traspaso?: Prisma.TraspasoOrderByWithRelationInput
 }
 
 export type MovimientoKardexWhereUniqueInput = Prisma.AtLeast<{
@@ -358,6 +373,7 @@ export type MovimientoKardexWhereUniqueInput = Prisma.AtLeast<{
   ingresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
+  traspasoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   fecha?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
   motivo?: Prisma.StringNullableFilter<"MovimientoKardex"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
@@ -367,6 +383,7 @@ export type MovimientoKardexWhereUniqueInput = Prisma.AtLeast<{
   ingresoDetalle?: Prisma.XOR<Prisma.IngresoDetalleNullableScalarRelationFilter, Prisma.IngresoDetalleWhereInput> | null
   egreso?: Prisma.XOR<Prisma.EgresoNullableScalarRelationFilter, Prisma.EgresoWhereInput> | null
   egresoDetalle?: Prisma.XOR<Prisma.EgresoDetalleNullableScalarRelationFilter, Prisma.EgresoDetalleWhereInput> | null
+  traspaso?: Prisma.XOR<Prisma.TraspasoNullableScalarRelationFilter, Prisma.TraspasoWhereInput> | null
 }, "id">
 
 export type MovimientoKardexOrderByWithAggregationInput = {
@@ -380,6 +397,7 @@ export type MovimientoKardexOrderByWithAggregationInput = {
   ingresoDetalleId?: Prisma.SortOrderInput | Prisma.SortOrder
   egresoId?: Prisma.SortOrderInput | Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  traspasoId?: Prisma.SortOrderInput | Prisma.SortOrder
   fecha?: Prisma.SortOrder
   motivo?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -404,6 +422,7 @@ export type MovimientoKardexScalarWhereWithAggregatesInput = {
   ingresoDetalleId?: Prisma.IntNullableWithAggregatesFilter<"MovimientoKardex"> | number | null
   egresoId?: Prisma.IntNullableWithAggregatesFilter<"MovimientoKardex"> | number | null
   egresoDetalleId?: Prisma.IntNullableWithAggregatesFilter<"MovimientoKardex"> | number | null
+  traspasoId?: Prisma.IntNullableWithAggregatesFilter<"MovimientoKardex"> | number | null
   fecha?: Prisma.DateTimeWithAggregatesFilter<"MovimientoKardex"> | Date | string
   motivo?: Prisma.StringNullableWithAggregatesFilter<"MovimientoKardex"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"MovimientoKardex"> | Date | string
@@ -422,6 +441,7 @@ export type MovimientoKardexCreateInput = {
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateInput = {
@@ -435,6 +455,7 @@ export type MovimientoKardexUncheckedCreateInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -453,6 +474,7 @@ export type MovimientoKardexUpdateInput = {
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateInput = {
@@ -466,6 +488,7 @@ export type MovimientoKardexUncheckedUpdateInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -482,6 +505,7 @@ export type MovimientoKardexCreateManyInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -507,6 +531,7 @@ export type MovimientoKardexUncheckedUpdateManyInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -533,6 +558,7 @@ export type MovimientoKardexCountOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   egresoId?: Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrder
+  traspasoId?: Prisma.SortOrder
   fecha?: Prisma.SortOrder
   motivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -548,6 +574,7 @@ export type MovimientoKardexAvgOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   egresoId?: Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrder
+  traspasoId?: Prisma.SortOrder
 }
 
 export type MovimientoKardexMaxOrderByAggregateInput = {
@@ -561,6 +588,7 @@ export type MovimientoKardexMaxOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   egresoId?: Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrder
+  traspasoId?: Prisma.SortOrder
   fecha?: Prisma.SortOrder
   motivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -577,6 +605,7 @@ export type MovimientoKardexMinOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   egresoId?: Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrder
+  traspasoId?: Prisma.SortOrder
   fecha?: Prisma.SortOrder
   motivo?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -592,6 +621,7 @@ export type MovimientoKardexSumOrderByAggregateInput = {
   ingresoDetalleId?: Prisma.SortOrder
   egresoId?: Prisma.SortOrder
   egresoDetalleId?: Prisma.SortOrder
+  traspasoId?: Prisma.SortOrder
 }
 
 export type MovimientoKardexCreateNestedManyWithoutAlmacenInput = {
@@ -850,6 +880,48 @@ export type MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleNestedInput =
   deleteMany?: Prisma.MovimientoKardexScalarWhereInput | Prisma.MovimientoKardexScalarWhereInput[]
 }
 
+export type MovimientoKardexCreateNestedManyWithoutTraspasoInput = {
+  create?: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput> | Prisma.MovimientoKardexCreateWithoutTraspasoInput[] | Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput[]
+  connectOrCreate?: Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput | Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput[]
+  createMany?: Prisma.MovimientoKardexCreateManyTraspasoInputEnvelope
+  connect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+}
+
+export type MovimientoKardexUncheckedCreateNestedManyWithoutTraspasoInput = {
+  create?: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput> | Prisma.MovimientoKardexCreateWithoutTraspasoInput[] | Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput[]
+  connectOrCreate?: Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput | Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput[]
+  createMany?: Prisma.MovimientoKardexCreateManyTraspasoInputEnvelope
+  connect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+}
+
+export type MovimientoKardexUpdateManyWithoutTraspasoNestedInput = {
+  create?: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput> | Prisma.MovimientoKardexCreateWithoutTraspasoInput[] | Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput[]
+  connectOrCreate?: Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput | Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput[]
+  upsert?: Prisma.MovimientoKardexUpsertWithWhereUniqueWithoutTraspasoInput | Prisma.MovimientoKardexUpsertWithWhereUniqueWithoutTraspasoInput[]
+  createMany?: Prisma.MovimientoKardexCreateManyTraspasoInputEnvelope
+  set?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  disconnect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  delete?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  connect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  update?: Prisma.MovimientoKardexUpdateWithWhereUniqueWithoutTraspasoInput | Prisma.MovimientoKardexUpdateWithWhereUniqueWithoutTraspasoInput[]
+  updateMany?: Prisma.MovimientoKardexUpdateManyWithWhereWithoutTraspasoInput | Prisma.MovimientoKardexUpdateManyWithWhereWithoutTraspasoInput[]
+  deleteMany?: Prisma.MovimientoKardexScalarWhereInput | Prisma.MovimientoKardexScalarWhereInput[]
+}
+
+export type MovimientoKardexUncheckedUpdateManyWithoutTraspasoNestedInput = {
+  create?: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput> | Prisma.MovimientoKardexCreateWithoutTraspasoInput[] | Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput[]
+  connectOrCreate?: Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput | Prisma.MovimientoKardexCreateOrConnectWithoutTraspasoInput[]
+  upsert?: Prisma.MovimientoKardexUpsertWithWhereUniqueWithoutTraspasoInput | Prisma.MovimientoKardexUpsertWithWhereUniqueWithoutTraspasoInput[]
+  createMany?: Prisma.MovimientoKardexCreateManyTraspasoInputEnvelope
+  set?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  disconnect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  delete?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  connect?: Prisma.MovimientoKardexWhereUniqueInput | Prisma.MovimientoKardexWhereUniqueInput[]
+  update?: Prisma.MovimientoKardexUpdateWithWhereUniqueWithoutTraspasoInput | Prisma.MovimientoKardexUpdateWithWhereUniqueWithoutTraspasoInput[]
+  updateMany?: Prisma.MovimientoKardexUpdateManyWithWhereWithoutTraspasoInput | Prisma.MovimientoKardexUpdateManyWithWhereWithoutTraspasoInput[]
+  deleteMany?: Prisma.MovimientoKardexScalarWhereInput | Prisma.MovimientoKardexScalarWhereInput[]
+}
+
 export type MovimientoKardexCreateWithoutAlmacenInput = {
   tipo: $Enums.TipoMovimiento
   cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -862,6 +934,7 @@ export type MovimientoKardexCreateWithoutAlmacenInput = {
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutAlmacenInput = {
@@ -874,6 +947,7 @@ export type MovimientoKardexUncheckedCreateWithoutAlmacenInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -919,6 +993,7 @@ export type MovimientoKardexScalarWhereInput = {
   ingresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   egresoDetalleId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
+  traspasoId?: Prisma.IntNullableFilter<"MovimientoKardex"> | number | null
   fecha?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
   motivo?: Prisma.StringNullableFilter<"MovimientoKardex"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MovimientoKardex"> | Date | string
@@ -936,6 +1011,7 @@ export type MovimientoKardexCreateWithoutItemInput = {
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutItemInput = {
@@ -948,6 +1024,7 @@ export type MovimientoKardexUncheckedCreateWithoutItemInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -991,6 +1068,7 @@ export type MovimientoKardexCreateWithoutIngresoInput = {
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutIngresoInput = {
@@ -1003,6 +1081,7 @@ export type MovimientoKardexUncheckedCreateWithoutIngresoInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1046,6 +1125,7 @@ export type MovimientoKardexCreateWithoutIngresoDetalleInput = {
   ingreso?: Prisma.IngresoCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutIngresoDetalleInput = {
@@ -1058,6 +1138,7 @@ export type MovimientoKardexUncheckedCreateWithoutIngresoDetalleInput = {
   ingresoId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1101,6 +1182,7 @@ export type MovimientoKardexCreateWithoutEgresoInput = {
   ingreso?: Prisma.IngresoCreateNestedOneWithoutMovimientosInput
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutEgresoInput = {
@@ -1113,6 +1195,7 @@ export type MovimientoKardexUncheckedCreateWithoutEgresoInput = {
   ingresoId?: number | null
   ingresoDetalleId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1156,6 +1239,7 @@ export type MovimientoKardexCreateWithoutEgresoDetalleInput = {
   ingreso?: Prisma.IngresoCreateNestedOneWithoutMovimientosInput
   ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
   egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
+  traspaso?: Prisma.TraspasoCreateNestedOneWithoutMovimientosInput
 }
 
 export type MovimientoKardexUncheckedCreateWithoutEgresoDetalleInput = {
@@ -1168,6 +1252,7 @@ export type MovimientoKardexUncheckedCreateWithoutEgresoDetalleInput = {
   ingresoId?: number | null
   ingresoDetalleId?: number | null
   egresoId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1199,6 +1284,63 @@ export type MovimientoKardexUpdateManyWithWhereWithoutEgresoDetalleInput = {
   data: Prisma.XOR<Prisma.MovimientoKardexUpdateManyMutationInput, Prisma.MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleInput>
 }
 
+export type MovimientoKardexCreateWithoutTraspasoInput = {
+  tipo: $Enums.TipoMovimiento
+  cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
+  fecha: Date | string
+  motivo?: string | null
+  createdAt?: Date | string
+  item: Prisma.ItemCreateNestedOneWithoutMovimientosInput
+  almacen: Prisma.AlmacenCreateNestedOneWithoutMovimientosInput
+  ingreso?: Prisma.IngresoCreateNestedOneWithoutMovimientosInput
+  ingresoDetalle?: Prisma.IngresoDetalleCreateNestedOneWithoutMovimientosInput
+  egreso?: Prisma.EgresoCreateNestedOneWithoutMovimientosInput
+  egresoDetalle?: Prisma.EgresoDetalleCreateNestedOneWithoutMovimientosInput
+}
+
+export type MovimientoKardexUncheckedCreateWithoutTraspasoInput = {
+  id?: number
+  tipo: $Enums.TipoMovimiento
+  itemId: number
+  almacenId: number
+  cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ingresoId?: number | null
+  ingresoDetalleId?: number | null
+  egresoId?: number | null
+  egresoDetalleId?: number | null
+  fecha: Date | string
+  motivo?: string | null
+  createdAt?: Date | string
+}
+
+export type MovimientoKardexCreateOrConnectWithoutTraspasoInput = {
+  where: Prisma.MovimientoKardexWhereUniqueInput
+  create: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput>
+}
+
+export type MovimientoKardexCreateManyTraspasoInputEnvelope = {
+  data: Prisma.MovimientoKardexCreateManyTraspasoInput | Prisma.MovimientoKardexCreateManyTraspasoInput[]
+  skipDuplicates?: boolean
+}
+
+export type MovimientoKardexUpsertWithWhereUniqueWithoutTraspasoInput = {
+  where: Prisma.MovimientoKardexWhereUniqueInput
+  update: Prisma.XOR<Prisma.MovimientoKardexUpdateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedUpdateWithoutTraspasoInput>
+  create: Prisma.XOR<Prisma.MovimientoKardexCreateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedCreateWithoutTraspasoInput>
+}
+
+export type MovimientoKardexUpdateWithWhereUniqueWithoutTraspasoInput = {
+  where: Prisma.MovimientoKardexWhereUniqueInput
+  data: Prisma.XOR<Prisma.MovimientoKardexUpdateWithoutTraspasoInput, Prisma.MovimientoKardexUncheckedUpdateWithoutTraspasoInput>
+}
+
+export type MovimientoKardexUpdateManyWithWhereWithoutTraspasoInput = {
+  where: Prisma.MovimientoKardexScalarWhereInput
+  data: Prisma.XOR<Prisma.MovimientoKardexUpdateManyMutationInput, Prisma.MovimientoKardexUncheckedUpdateManyWithoutTraspasoInput>
+}
+
 export type MovimientoKardexCreateManyAlmacenInput = {
   id?: number
   tipo: $Enums.TipoMovimiento
@@ -1209,6 +1351,7 @@ export type MovimientoKardexCreateManyAlmacenInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1226,6 +1369,7 @@ export type MovimientoKardexUpdateWithoutAlmacenInput = {
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutAlmacenInput = {
@@ -1238,6 +1382,7 @@ export type MovimientoKardexUncheckedUpdateWithoutAlmacenInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1253,6 +1398,7 @@ export type MovimientoKardexUncheckedUpdateManyWithoutAlmacenInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1268,6 +1414,7 @@ export type MovimientoKardexCreateManyItemInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1285,6 +1432,7 @@ export type MovimientoKardexUpdateWithoutItemInput = {
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutItemInput = {
@@ -1297,6 +1445,7 @@ export type MovimientoKardexUncheckedUpdateWithoutItemInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1312,6 +1461,7 @@ export type MovimientoKardexUncheckedUpdateManyWithoutItemInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1327,6 +1477,7 @@ export type MovimientoKardexCreateManyIngresoInput = {
   ingresoDetalleId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1344,6 +1495,7 @@ export type MovimientoKardexUpdateWithoutIngresoInput = {
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutIngresoInput = {
@@ -1356,6 +1508,7 @@ export type MovimientoKardexUncheckedUpdateWithoutIngresoInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1371,6 +1524,7 @@ export type MovimientoKardexUncheckedUpdateManyWithoutIngresoInput = {
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1386,6 +1540,7 @@ export type MovimientoKardexCreateManyIngresoDetalleInput = {
   ingresoId?: number | null
   egresoId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1403,6 +1558,7 @@ export type MovimientoKardexUpdateWithoutIngresoDetalleInput = {
   ingreso?: Prisma.IngresoUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutIngresoDetalleInput = {
@@ -1415,6 +1571,7 @@ export type MovimientoKardexUncheckedUpdateWithoutIngresoDetalleInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1430,6 +1587,7 @@ export type MovimientoKardexUncheckedUpdateManyWithoutIngresoDetalleInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1445,6 +1603,7 @@ export type MovimientoKardexCreateManyEgresoInput = {
   ingresoId?: number | null
   ingresoDetalleId?: number | null
   egresoDetalleId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1462,6 +1621,7 @@ export type MovimientoKardexUpdateWithoutEgresoInput = {
   ingreso?: Prisma.IngresoUpdateOneWithoutMovimientosNestedInput
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutEgresoInput = {
@@ -1474,6 +1634,7 @@ export type MovimientoKardexUncheckedUpdateWithoutEgresoInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1489,6 +1650,7 @@ export type MovimientoKardexUncheckedUpdateManyWithoutEgresoInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1504,6 +1666,7 @@ export type MovimientoKardexCreateManyEgresoDetalleInput = {
   ingresoId?: number | null
   ingresoDetalleId?: number | null
   egresoId?: number | null
+  traspasoId?: number | null
   fecha: Date | string
   motivo?: string | null
   createdAt?: Date | string
@@ -1521,6 +1684,7 @@ export type MovimientoKardexUpdateWithoutEgresoDetalleInput = {
   ingreso?: Prisma.IngresoUpdateOneWithoutMovimientosNestedInput
   ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
   egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
+  traspaso?: Prisma.TraspasoUpdateOneWithoutMovimientosNestedInput
 }
 
 export type MovimientoKardexUncheckedUpdateWithoutEgresoDetalleInput = {
@@ -1533,6 +1697,7 @@ export type MovimientoKardexUncheckedUpdateWithoutEgresoDetalleInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1548,6 +1713,70 @@ export type MovimientoKardexUncheckedUpdateManyWithoutEgresoDetalleInput = {
   ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MovimientoKardexCreateManyTraspasoInput = {
+  id?: number
+  tipo: $Enums.TipoMovimiento
+  itemId: number
+  almacenId: number
+  cantidad: runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario: runtime.Decimal | runtime.DecimalJsLike | number | string
+  ingresoId?: number | null
+  ingresoDetalleId?: number | null
+  egresoId?: number | null
+  egresoDetalleId?: number | null
+  fecha: Date | string
+  motivo?: string | null
+  createdAt?: Date | string
+}
+
+export type MovimientoKardexUpdateWithoutTraspasoInput = {
+  tipo?: Prisma.EnumTipoMovimientoFieldUpdateOperationsInput | $Enums.TipoMovimiento
+  cantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  item?: Prisma.ItemUpdateOneRequiredWithoutMovimientosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneRequiredWithoutMovimientosNestedInput
+  ingreso?: Prisma.IngresoUpdateOneWithoutMovimientosNestedInput
+  ingresoDetalle?: Prisma.IngresoDetalleUpdateOneWithoutMovimientosNestedInput
+  egreso?: Prisma.EgresoUpdateOneWithoutMovimientosNestedInput
+  egresoDetalle?: Prisma.EgresoDetalleUpdateOneWithoutMovimientosNestedInput
+}
+
+export type MovimientoKardexUncheckedUpdateWithoutTraspasoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoMovimientoFieldUpdateOperationsInput | $Enums.TipoMovimiento
+  itemId?: Prisma.IntFieldUpdateOperationsInput | number
+  almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  cantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type MovimientoKardexUncheckedUpdateManyWithoutTraspasoInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tipo?: Prisma.EnumTipoMovimientoFieldUpdateOperationsInput | $Enums.TipoMovimiento
+  itemId?: Prisma.IntFieldUpdateOperationsInput | number
+  almacenId?: Prisma.IntFieldUpdateOperationsInput | number
+  cantidad?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  precioUnitario?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  ingresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ingresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  egresoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  egresoDetalleId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fecha?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   motivo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1566,6 +1795,7 @@ export type MovimientoKardexSelect<ExtArgs extends runtime.Types.Extensions.Inte
   ingresoDetalleId?: boolean
   egresoId?: boolean
   egresoDetalleId?: boolean
+  traspasoId?: boolean
   fecha?: boolean
   motivo?: boolean
   createdAt?: boolean
@@ -1575,6 +1805,7 @@ export type MovimientoKardexSelect<ExtArgs extends runtime.Types.Extensions.Inte
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }, ExtArgs["result"]["movimientoKardex"]>
 
 export type MovimientoKardexSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1588,6 +1819,7 @@ export type MovimientoKardexSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   ingresoDetalleId?: boolean
   egresoId?: boolean
   egresoDetalleId?: boolean
+  traspasoId?: boolean
   fecha?: boolean
   motivo?: boolean
   createdAt?: boolean
@@ -1597,6 +1829,7 @@ export type MovimientoKardexSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }, ExtArgs["result"]["movimientoKardex"]>
 
 export type MovimientoKardexSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1610,6 +1843,7 @@ export type MovimientoKardexSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   ingresoDetalleId?: boolean
   egresoId?: boolean
   egresoDetalleId?: boolean
+  traspasoId?: boolean
   fecha?: boolean
   motivo?: boolean
   createdAt?: boolean
@@ -1619,6 +1853,7 @@ export type MovimientoKardexSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }, ExtArgs["result"]["movimientoKardex"]>
 
 export type MovimientoKardexSelectScalar = {
@@ -1632,12 +1867,13 @@ export type MovimientoKardexSelectScalar = {
   ingresoDetalleId?: boolean
   egresoId?: boolean
   egresoDetalleId?: boolean
+  traspasoId?: boolean
   fecha?: boolean
   motivo?: boolean
   createdAt?: boolean
 }
 
-export type MovimientoKardexOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tipo" | "itemId" | "almacenId" | "cantidad" | "precioUnitario" | "ingresoId" | "ingresoDetalleId" | "egresoId" | "egresoDetalleId" | "fecha" | "motivo" | "createdAt", ExtArgs["result"]["movimientoKardex"]>
+export type MovimientoKardexOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tipo" | "itemId" | "almacenId" | "cantidad" | "precioUnitario" | "ingresoId" | "ingresoDetalleId" | "egresoId" | "egresoDetalleId" | "traspasoId" | "fecha" | "motivo" | "createdAt", ExtArgs["result"]["movimientoKardex"]>
 export type MovimientoKardexInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
@@ -1645,6 +1881,7 @@ export type MovimientoKardexInclude<ExtArgs extends runtime.Types.Extensions.Int
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }
 export type MovimientoKardexIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
@@ -1653,6 +1890,7 @@ export type MovimientoKardexIncludeCreateManyAndReturn<ExtArgs extends runtime.T
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }
 export type MovimientoKardexIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   item?: boolean | Prisma.ItemDefaultArgs<ExtArgs>
@@ -1661,6 +1899,7 @@ export type MovimientoKardexIncludeUpdateManyAndReturn<ExtArgs extends runtime.T
   ingresoDetalle?: boolean | Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>
   egreso?: boolean | Prisma.MovimientoKardex$egresoArgs<ExtArgs>
   egresoDetalle?: boolean | Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>
+  traspaso?: boolean | Prisma.MovimientoKardex$traspasoArgs<ExtArgs>
 }
 
 export type $MovimientoKardexPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1672,6 +1911,7 @@ export type $MovimientoKardexPayload<ExtArgs extends runtime.Types.Extensions.In
     ingresoDetalle: Prisma.$IngresoDetallePayload<ExtArgs> | null
     egreso: Prisma.$EgresoPayload<ExtArgs> | null
     egresoDetalle: Prisma.$EgresoDetallePayload<ExtArgs> | null
+    traspaso: Prisma.$TraspasoPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1684,6 +1924,12 @@ export type $MovimientoKardexPayload<ExtArgs extends runtime.Types.Extensions.In
     ingresoDetalleId: number | null
     egresoId: number | null
     egresoDetalleId: number | null
+    /**
+     * Movimiento de un TRASPASO: la SALIDA en el almacen de origen y la ENTRADA
+     * en el de destino llevan los dos el mismo traspaso. La entrada ademas
+     * apunta al ingreso portador (`Ingreso.traspasoId`).
+     */
+    traspasoId: number | null
     /**
      * Fecha del movimiento (la del documento; para el ingreso, su fechaRemision).
      */
@@ -2090,6 +2336,7 @@ export interface Prisma__MovimientoKardexClient<T, Null = never, ExtArgs extends
   ingresoDetalle<T extends Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MovimientoKardex$ingresoDetalleArgs<ExtArgs>>): Prisma.Prisma__IngresoDetalleClient<runtime.Types.Result.GetResult<Prisma.$IngresoDetallePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   egreso<T extends Prisma.MovimientoKardex$egresoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MovimientoKardex$egresoArgs<ExtArgs>>): Prisma.Prisma__EgresoClient<runtime.Types.Result.GetResult<Prisma.$EgresoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   egresoDetalle<T extends Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MovimientoKardex$egresoDetalleArgs<ExtArgs>>): Prisma.Prisma__EgresoDetalleClient<runtime.Types.Result.GetResult<Prisma.$EgresoDetallePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  traspaso<T extends Prisma.MovimientoKardex$traspasoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MovimientoKardex$traspasoArgs<ExtArgs>>): Prisma.Prisma__TraspasoClient<runtime.Types.Result.GetResult<Prisma.$TraspasoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2129,6 +2376,7 @@ export interface MovimientoKardexFieldRefs {
   readonly ingresoDetalleId: Prisma.FieldRef<"MovimientoKardex", 'Int'>
   readonly egresoId: Prisma.FieldRef<"MovimientoKardex", 'Int'>
   readonly egresoDetalleId: Prisma.FieldRef<"MovimientoKardex", 'Int'>
+  readonly traspasoId: Prisma.FieldRef<"MovimientoKardex", 'Int'>
   readonly fecha: Prisma.FieldRef<"MovimientoKardex", 'DateTime'>
   readonly motivo: Prisma.FieldRef<"MovimientoKardex", 'String'>
   readonly createdAt: Prisma.FieldRef<"MovimientoKardex", 'DateTime'>
@@ -2606,6 +2854,25 @@ export type MovimientoKardex$egresoDetalleArgs<ExtArgs extends runtime.Types.Ext
    */
   include?: Prisma.EgresoDetalleInclude<ExtArgs> | null
   where?: Prisma.EgresoDetalleWhereInput
+}
+
+/**
+ * MovimientoKardex.traspaso
+ */
+export type MovimientoKardex$traspasoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Traspaso
+   */
+  select?: Prisma.TraspasoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Traspaso
+   */
+  omit?: Prisma.TraspasoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TraspasoInclude<ExtArgs> | null
+  where?: Prisma.TraspasoWhereInput
 }
 
 /**

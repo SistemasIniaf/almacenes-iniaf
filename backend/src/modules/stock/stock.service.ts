@@ -131,6 +131,9 @@ export class StockService {
             almacen: { select: { id: true, nombre: true } },
             fuenteFinanciamiento: { select: { id: true, nombre: true } },
             proveedor: { select: { id: true, nombre: true } },
+            // Lote llegado por traspaso: su documento es el traspaso (el
+            // ingreso portador no tiene numero).
+            traspaso: { select: { id: true, numero: true, gestion: true } },
           },
         },
       },

@@ -32,6 +32,7 @@ const SECCIONES: Record<string, string> = {
   kardex: "Kardex",
   ingresos: "Ingresos",
   egresos: "Egresos",
+  traspasos: "Traspasos",
 }
 
 export const DashboardLayout = () => {

@@ -68,7 +68,9 @@ export const ModelName = {
   EgresoHistorial: 'EgresoHistorial',
   LogoInstitucional: 'LogoInstitucional',
   LogoVersion: 'LogoVersion',
-  ConfiguracionSistema: 'ConfiguracionSistema'
+  ConfiguracionSistema: 'ConfiguracionSistema',
+  Traspaso: 'Traspaso',
+  TraspasoDetalle: 'TraspasoDetalle'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -229,6 +231,7 @@ export const IngresoScalarFieldEnum = {
   anuladoPorId: 'anuladoPorId',
   anuladoEn: 'anuladoEn',
   motivoAnulacion: 'motivoAnulacion',
+  traspasoId: 'traspasoId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -262,6 +265,7 @@ export const MovimientoKardexScalarFieldEnum = {
   ingresoDetalleId: 'ingresoDetalleId',
   egresoId: 'egresoId',
   egresoDetalleId: 'egresoDetalleId',
+  traspasoId: 'traspasoId',
   fecha: 'fecha',
   motivo: 'motivo',
   createdAt: 'createdAt'
@@ -350,6 +354,34 @@ export const ConfiguracionSistemaScalarFieldEnum = {
 } as const
 
 export type ConfiguracionSistemaScalarFieldEnum = (typeof ConfiguracionSistemaScalarFieldEnum)[keyof typeof ConfiguracionSistemaScalarFieldEnum]
+
+
+export const TraspasoScalarFieldEnum = {
+  id: 'id',
+  numero: 'numero',
+  gestion: 'gestion',
+  almacenOrigenId: 'almacenOrigenId',
+  almacenDestinoId: 'almacenDestinoId',
+  fecha: 'fecha',
+  observacion: 'observacion',
+  registradoPorId: 'registradoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TraspasoScalarFieldEnum = (typeof TraspasoScalarFieldEnum)[keyof typeof TraspasoScalarFieldEnum]
+
+
+export const TraspasoDetalleScalarFieldEnum = {
+  id: 'id',
+  traspasoId: 'traspasoId',
+  loteOrigenId: 'loteOrigenId',
+  loteDestinoId: 'loteDestinoId',
+  cantidad: 'cantidad',
+  createdAt: 'createdAt'
+} as const
+
+export type TraspasoDetalleScalarFieldEnum = (typeof TraspasoDetalleScalarFieldEnum)[keyof typeof TraspasoDetalleScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -225,6 +225,9 @@ export class IngresosService {
       // El helper compartido cruza el scope del rol con el almacen pedido; no
       // repetir la regla aca (la misma la aplican stock y kardex).
       ...filtroAlmacen(scope, query.almacenId),
+      // Los portadores de lotes traspasados no son compras: su documento es el
+      // traspaso, y contarlos aca duplicaria el total del reporte nacional.
+      traspasoId: null,
       ...(query.estado ? { estado: query.estado } : {}),
       ...(query.gestion ? { gestion: query.gestion } : {}),
       ...(query.proveedorId ? { proveedorId: query.proveedorId } : {}),
@@ -403,6 +406,11 @@ export class IngresosService {
     if (existente.estado !== EstadoIngreso.CONFIRMADO) {
       throw new BadRequestException('Un ingreso anulado no se puede editar');
     }
+    if (existente.traspasoId != null) {
+      throw new BadRequestException(
+        'Estos lotes llegaron por un traspaso: no es un ingreso que se edite',
+      );
+    }
 
     await this.validarReferencias(dto);
     // El responsable se valida SOLO si cambia. Reenviar el que ya tenia se
@@ -520,6 +528,13 @@ export class IngresosService {
         'Solo se puede anular un ingreso confirmado',
       );
     }
+    // Deshacer un traspaso no es anular un ingreso: el material salio de otro
+    // almacen y tendria que volver alla. Los traspasos no se anulan (por ahora).
+    if (ingreso.traspasoId != null) {
+      throw new BadRequestException(
+        'Estos lotes llegaron por un traspaso: no se anulan como un ingreso',
+      );
+    }
     await this.prisma.$transaction(async (tx) => {
       // Lo PRIMERO: pasar a ANULADO solo si sigue confirmado. Dos anulaciones
       // simultaneas (doble clic) duplicaban las REVERSIONES del Kardex; la
@@ -608,7 +623,7 @@ export class IngresosService {
     });
     if (lotes.some((l) => !l.saldoCantidad.equals(l.cantidad))) {
       throw new ConflictException(
-        'No se puede anular: ya salió material de alguno de sus lotes. Anulá primero esos egresos.',
+        'No se puede anular: ya salió material de alguno de sus lotes (por un egreso o un traspaso). Anulá primero esos egresos.',
       );
     }
 
@@ -700,6 +715,7 @@ export class IngresosService {
         // fecha cambio de verdad y si hay que re-estampar el correlativo.
         fechaIngreso: true,
         gestion: true,
+        traspasoId: true,
       },
     });
     if (!ingreso) {

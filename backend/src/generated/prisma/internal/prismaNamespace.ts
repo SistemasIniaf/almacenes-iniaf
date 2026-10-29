@@ -401,7 +401,9 @@ export const ModelName = {
   EgresoHistorial: 'EgresoHistorial',
   LogoInstitucional: 'LogoInstitucional',
   LogoVersion: 'LogoVersion',
-  ConfiguracionSistema: 'ConfiguracionSistema'
+  ConfiguracionSistema: 'ConfiguracionSistema',
+  Traspaso: 'Traspaso',
+  TraspasoDetalle: 'TraspasoDetalle'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion" | "configuracionSistema"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion" | "configuracionSistema" | "traspaso" | "traspasoDetalle"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1753,6 +1755,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Traspaso: {
+      payload: Prisma.$TraspasoPayload<ExtArgs>
+      fields: Prisma.TraspasoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TraspasoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TraspasoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        findFirst: {
+          args: Prisma.TraspasoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TraspasoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        findMany: {
+          args: Prisma.TraspasoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>[]
+        }
+        create: {
+          args: Prisma.TraspasoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        createMany: {
+          args: Prisma.TraspasoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TraspasoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>[]
+        }
+        delete: {
+          args: Prisma.TraspasoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        update: {
+          args: Prisma.TraspasoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        deleteMany: {
+          args: Prisma.TraspasoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TraspasoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TraspasoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>[]
+        }
+        upsert: {
+          args: Prisma.TraspasoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoPayload>
+        }
+        aggregate: {
+          args: Prisma.TraspasoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTraspaso>
+        }
+        groupBy: {
+          args: Prisma.TraspasoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TraspasoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TraspasoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TraspasoCountAggregateOutputType> | number
+        }
+      }
+    }
+    TraspasoDetalle: {
+      payload: Prisma.$TraspasoDetallePayload<ExtArgs>
+      fields: Prisma.TraspasoDetalleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TraspasoDetalleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TraspasoDetalleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        findFirst: {
+          args: Prisma.TraspasoDetalleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TraspasoDetalleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        findMany: {
+          args: Prisma.TraspasoDetalleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>[]
+        }
+        create: {
+          args: Prisma.TraspasoDetalleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        createMany: {
+          args: Prisma.TraspasoDetalleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TraspasoDetalleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>[]
+        }
+        delete: {
+          args: Prisma.TraspasoDetalleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        update: {
+          args: Prisma.TraspasoDetalleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        deleteMany: {
+          args: Prisma.TraspasoDetalleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TraspasoDetalleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TraspasoDetalleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>[]
+        }
+        upsert: {
+          args: Prisma.TraspasoDetalleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TraspasoDetallePayload>
+        }
+        aggregate: {
+          args: Prisma.TraspasoDetalleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTraspasoDetalle>
+        }
+        groupBy: {
+          args: Prisma.TraspasoDetalleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TraspasoDetalleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TraspasoDetalleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TraspasoDetalleCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1934,6 +2084,7 @@ export const IngresoScalarFieldEnum = {
   anuladoPorId: 'anuladoPorId',
   anuladoEn: 'anuladoEn',
   motivoAnulacion: 'motivoAnulacion',
+  traspasoId: 'traspasoId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1967,6 +2118,7 @@ export const MovimientoKardexScalarFieldEnum = {
   ingresoDetalleId: 'ingresoDetalleId',
   egresoId: 'egresoId',
   egresoDetalleId: 'egresoDetalleId',
+  traspasoId: 'traspasoId',
   fecha: 'fecha',
   motivo: 'motivo',
   createdAt: 'createdAt'
@@ -2055,6 +2207,34 @@ export const ConfiguracionSistemaScalarFieldEnum = {
 } as const
 
 export type ConfiguracionSistemaScalarFieldEnum = (typeof ConfiguracionSistemaScalarFieldEnum)[keyof typeof ConfiguracionSistemaScalarFieldEnum]
+
+
+export const TraspasoScalarFieldEnum = {
+  id: 'id',
+  numero: 'numero',
+  gestion: 'gestion',
+  almacenOrigenId: 'almacenOrigenId',
+  almacenDestinoId: 'almacenDestinoId',
+  fecha: 'fecha',
+  observacion: 'observacion',
+  registradoPorId: 'registradoPorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TraspasoScalarFieldEnum = (typeof TraspasoScalarFieldEnum)[keyof typeof TraspasoScalarFieldEnum]
+
+
+export const TraspasoDetalleScalarFieldEnum = {
+  id: 'id',
+  traspasoId: 'traspasoId',
+  loteOrigenId: 'loteOrigenId',
+  loteDestinoId: 'loteDestinoId',
+  cantidad: 'cantidad',
+  createdAt: 'createdAt'
+} as const
+
+export type TraspasoDetalleScalarFieldEnum = (typeof TraspasoDetalleScalarFieldEnum)[keyof typeof TraspasoDetalleScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2361,6 +2541,8 @@ export type GlobalOmitConfig = {
   logoInstitucional?: Prisma.LogoInstitucionalOmit
   logoVersion?: Prisma.LogoVersionOmit
   configuracionSistema?: Prisma.ConfiguracionSistemaOmit
+  traspaso?: Prisma.TraspasoOmit
+  traspasoDetalle?: Prisma.TraspasoDetalleOmit
 }
 
 /* Types for Logging */

@@ -142,6 +142,11 @@ export class KardexService {
       egreso: {
         select: { id: true, numero: true, gestion: true },
       },
+      // El traspaso manda sobre el ingreso: la ENTRADA de un traspaso apunta
+      // al ingreso portador, que no tiene numero propio.
+      traspaso: {
+        select: { id: true, numero: true, gestion: true },
+      },
       ingresoDetalle: {
         select: {
           id: true,
@@ -192,6 +197,7 @@ export class KardexService {
         // esconde la gestion en curso, y eso necesita los dos campos. El
         // reporte si recibe el string, porque en el papel el numero va entero.
         documento:
+          refDocumento(m.traspaso?.numero, m.traspaso?.gestion) ??
           refDocumento(m.ingreso?.numero, m.ingreso?.gestion) ??
           refDocumento(m.egreso?.numero, m.egreso?.gestion),
         ingresoId: m.ingresoId,
@@ -308,6 +314,14 @@ export class KardexService {
           solicitante: { select: { nombre: true } },
         },
       },
+      traspaso: {
+        select: {
+          numero: true,
+          gestion: true,
+          almacenOrigen: { select: { nombre: true } },
+          almacenDestino: { select: { nombre: true } },
+        },
+      },
       ingresoDetalle: {
         select: {
           ingreso: {
@@ -402,28 +416,37 @@ export class KardexService {
             valorSalidas += monto;
           }
 
-          const documento = m.ingreso
-            ? formatearNumero(m.ingreso.numero, m.ingreso.gestion)
-            : formatearNumero(m.egreso?.numero, m.egreso?.gestion);
+          const documento = m.traspaso
+            ? formatearNumero(m.traspaso.numero, m.traspaso.gestion)
+            : m.ingreso
+              ? formatearNumero(m.ingreso.numero, m.ingreso.gestion)
+              : formatearNumero(m.egreso?.numero, m.egreso?.gestion);
 
-          // "I" / "E" como en el reporte anterior, mas "R" para la REVERSION.
-          // Sin ese tercer valor la reversion de un egreso se imprimia como "E"
-          // con la cantidad en la columna ENTRADA, que se lee como un error.
+          // "I" / "E" como en el reporte anterior, mas "R" para la REVERSION
+          // y "T" para el TRASPASO. Sin la "R" la reversion de un egreso se
+          // imprimia como "E" con la cantidad en la columna ENTRADA, que se lee
+          // como un error.
           const origen =
             m.tipo === TipoMovimiento.REVERSION
               ? 'R'
-              : m.ingresoId != null
-                ? 'I'
-                : 'E';
+              : m.traspaso
+                ? 'T'
+                : m.ingresoId != null
+                  ? 'I'
+                  : 'E';
 
           // De quien vino (entrada) o a quien fue (salida). La REVERSION suma
           // ademas su motivo: es lo unico que explica por que el renglon existe,
           // y la pantalla tambien lo muestra.
-          const contraparte = m.ingreso
-            ? (m.ingreso.proveedor?.nombre ?? '—')
-            : m.egreso
-              ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
-              : '—';
+          const contraparte = m.traspaso
+            ? signo > 0
+              ? `DESDE ${m.traspaso.almacenOrigen.nombre}`
+              : `A ${m.traspaso.almacenDestino.nombre}`
+            : m.ingreso
+              ? (m.ingreso.proveedor?.nombre ?? '—')
+              : m.egreso
+                ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
+                : '—';
           const detalle =
             m.tipo === TipoMovimiento.REVERSION
               ? `REVERSIÓN · ${contraparte}${m.motivo ? ` (${m.motivo})` : ''}`

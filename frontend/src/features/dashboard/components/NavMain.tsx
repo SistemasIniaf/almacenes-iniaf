@@ -1,5 +1,6 @@
 import {
   ArrowDownToLine,
+  ArrowLeftRight,
   ArrowUpFromLine,
   BookOpen,
   Boxes,
@@ -146,6 +147,12 @@ const GRUPOS: GrupoMenu[] = [
         icono: ArrowUpFromLine,
         permiso: "egresosLeer",
         badge: "egresosBandeja",
+      },
+      {
+        titulo: "Traspasos",
+        url: "/traspasos",
+        icono: ArrowLeftRight,
+        permiso: "traspasosLeer",
       },
     ],
   },

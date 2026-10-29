@@ -119,7 +119,7 @@ almacenes-institucion/
   - **Las TRES fechas del ingreso** (no confundirlas — cambio del 2026-07-29, migración `20260729190000_ingreso_fecha_propia`): **`fechaIngreso`** es la de EFECTO CONTABLE: de ella salen la gestión (y con ella el correlativo), la fecha del movimiento de Kardex y el orden en que se consumen los lotes. **La estampa el backend con el momento del registro: nadie la tipea.** · **`fechaRemision`** es la del documento del proveedor: se sigue pidiendo e imprimiendo, pero **ya NO gobierna nada**. Antes definía la gestión, así que un error de tipeo en el año mandaba el ingreso a otra gestión y descolocaba el libro. · **`createdAt`** es auditoría pura y nunca se corrige.
   - **Solo `super_admin` puede corregir `fechaIngreso`** (`ForbiddenException` para el resto; el caso previsto es el cierre de gestión: material que entró el 28/12 y se registró el 2/1). La corrección va en UNA transacción porque arrastra tres cosas: mueve la fecha de los movimientos de Kardex, y **si cae en otra gestión re-estampa el correlativo** (el número se había asignado en la secuencia de la gestión anterior y ahí no vale). No se admite fecha futura.
 - **IngresoDetalle** (= el **LOTE**): `ingreso_id`, `item_id`, `cantidad(12,2)`, `precioUnitario(12,5)`, `saldoCantidad(12,2)`, `observacion` (String?, nota libre por línea, ej. "COLOR NEGRO"; se imprime junto a la descripción del ítem entre paréntesis en el reporte: "BOTAS DE AGUA (COLOR NEGRO)" — como el sistema anterior). **NO lleva foto**: la tuvo (`imagenUrl`) y se quitó el 2026-10-20 — ver "Foto por lote: ELIMINADA". El almacén y la fuente del lote los aporta el Ingreso. **El stock de un ítem = suma de los saldos de sus lotes de ingresos CONFIRMADOS.** El saldo se modifica SIEMPRE dentro de la transacción que lo mueve.
-- **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. Hoy solo ENTRADA (confirmar) y REVERSION (anular); SALIDA llega con Egresos.
+- **MovimientoKardex**: libro por ítem + almacén. `tipo` (`ENTRADA`/`SALIDA`/`REVERSION`), cantidad, precioUnitario, `ingreso_id`, `ingreso_detalle_id`, fecha, motivo. Nunca se borra: es la fuente para recalcular saldos. ENTRADA (ingreso), SALIDA (egreso entregado) y REVERSION (anulación). Un **traspaso** deja una SALIDA en el origen y una ENTRADA en el destino, las dos con `traspaso_id` (ver «TRASPASOS»).
 - **Egreso**: `almacen_id` (heredado del solicitante), `unidad_id` (heredado del solicitante), correlativo POR ALMACÉN, estado, solicitante.
 - **EgresoDetalle**: apunta al **LOTE** (`ingreso_detalle_id`, no al ítem), `cantidadSolicitada` y `cantidadEntregada` (null hasta la entrega; la ajusta SOLO el `responsable_almacen`). **NO lleva observación por línea**, a diferencia de `IngresoDetalle`: lo que hay que aclarar de un pedido va en la `justificacion` de la cabecera, que es obligatoria. La columna existió y se quitó el 2026-07-30 (migración `20260730120000_egreso_detalle_sin_observacion`) por decisión del encargado — no volver a agregarla.
 - **EgresoHistorial**: registro de cada decisión (nivel, usuario, decisión, motivo, fecha) — trazabilidad completa, nunca se borra nada.
@@ -1319,6 +1319,43 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   permite anular antes) y conserva la marca de agua ya descrita arriba. Mismo chequeo de estado en
   dos lugares — la ficha del pedido y el listado, que tienen el mismo botón cada uno por su lado.
 
+**TRASPASOS entre almacenes — versión mínima** (2026-10-29, pedido del usuario: hay almacenes que
+se cierran y su material tiene que pasar a otro). Backend `modules/traspasos/`, frontend
+`features/traspasos/` (`/traspasos`, `/traspasos/nuevo`, `/traspasos/:id`) y la «Nota de traspaso»
+en PDF (`lib/nota-traspaso-pdf.ts`). Lo mínimo acordado: **inmediato** (sin aprobación ni
+confirmación de recepción), **solo el `super_admin`** registra (`traspasosEscribir`), **sin
+anulación**, de uno, varios o todos los lotes («Elegir todo el almacén»). Lo leen además admin y el
+responsable/observador de los almacenes que entregan o reciben (el scope mira origen **o** destino).
+
+- **Cómo queda en la base**: por cada línea, el lote de origen baja su saldo (UPDATE condicional,
+  como la entrega) con una SALIDA en su kardex, y en el destino **nace un lote nuevo** con el mismo
+  ítem, precio, fuente y observación, con una ENTRADA. `TraspasoDetalle` liga los dos lotes. Así el
+  valor y la fuente no cambian y el reporte nacional sigue cuadrando.
+- **El lote nuevo cuelga de un INGRESO PORTADOR** (`Ingreso.traspasoId`): uno por cada ingreso de
+  origen, con sus respaldos copiados (proveedor, C31, factura…), **sin número** y fuera del listado y
+  del reporte de ingresos (`armarWhere` filtra `traspasoId: null` — si no, el reporte nacional
+  contaría dos veces lo traspasado). Existe para que stock, egresos, kardex y reportes traten el
+  lote como cualquier otro sin saber nada de traspasos. **No se edita ni se anula** por la vía de
+  ingresos (400). El ingreso de ORIGEN tampoco se puede anular después: su lote ya no tiene el saldo
+  entero, igual que si hubiera salido por un egreso.
+- **Solo se traspasa lo DISPONIBLE** (`saldo − reservado`, la misma `reservadoPorLote` de stock y
+  egresos, leída dentro de la transacción después de bloquear los lotes `FOR UPDATE ORDER BY id`).
+  Un traspaso nunca se lleva material que un pedido ya comprometió: para vaciar un almacén hay que
+  resolver antes sus pedidos en curso. La pantalla lo avisa y muestra la columna Reservado.
+- **Correlativo propio por almacén de ORIGEN + gestión** (`bloquearSerie(tx, 'traspasos', …)`,
+  serie 3). Consecuencia aceptada: dos traspasos de orígenes distintos pueden llegar al mismo destino
+  con el mismo número; las columnas Origen y Destino del listado los distinguen.
+- **El origen puede estar dado de baja** (el caso del cierre); **el destino no**.
+- **El documento de un lote** sale de `documentoDeLote()` (`lib/formato.ts`): `ingreso 001-2026` o
+  `traspaso 001-2026`. Lo usan el selector de lotes del egreso, la ficha del pedido y el stock
+  («Trasp. 001-2026»); `GET /stock` y `GET /egresos/:id` traen `ingreso.traspaso` para eso.
+- **Kardex**: el documento de un movimiento de traspaso es el traspaso (va antes que el ingreso
+  portador, que no tiene número); en el reporte el origen es **«T»** y el detalle «A almacén» /
+  «DESDE almacén».
+- La transacción lleva **timeout de 5 min**: el cierre de un almacén grande son miles de escrituras.
+- Cerrar el almacén en sí (reasignar o dar de baja a sus usuarios, desactivarlo) sigue siendo a
+  mano, después del traspaso.
+
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
 dentro de un `<iframe>`); **no gustó y se eliminó** — no reponerlo. El patrón único vive en
@@ -1408,7 +1445,7 @@ NO construir todavía: `reportes` — falta definir cuáles se necesitan.
 
 ## Alcance NO incluido (por ahora)
 
-- Transferencias de stock entre almacenes.
+- ~~Transferencias de stock entre almacenes~~ — **construido en versión mínima el 2026-10-29** (ver «TRASPASOS» más arriba). Lo que sigue fuera: aprobación, confirmación de recepción y anulación de un traspaso.
 - Módulo de Activos Fijos.
 
 ## Convenciones de código

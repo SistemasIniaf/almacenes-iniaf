@@ -77,6 +77,18 @@ export const PERMISOS = {
     "solicitador",
     "aprobador",
   ],
+  /** Traspasos entre almacenes (2026-10-29, versión mínima): REGISTRAR es solo
+   * del super_admin — es un cambio estructural, como cerrar un almacén. Los
+   * leen además admin, y el responsable y el observador de los almacenes que
+   * entregan o reciben (eso lo acota el backend). */
+  traspasosLeer: [
+    "super_admin",
+    "admin",
+    "responsable_almacen",
+    "observador_almacen",
+  ],
+  traspasosEscribir: ["super_admin"],
+
   kardexLeer: [
     "super_admin",
     "admin",

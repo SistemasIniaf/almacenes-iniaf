@@ -86,8 +86,14 @@ const fecha = (iso: string | null) =>
       })
     : "—"
 
-/** `001-2026`, igual que en la nota de ingreso. */
-const etiquetaIngreso = (lote: LoteStock) => numeroDocumento(lote.ingreso)
+/**
+ * `001-2026`, igual que en la nota de ingreso. Un lote que llegó por un
+ * traspaso no tiene ingreso con número: su documento es el traspaso.
+ */
+const etiquetaIngreso = (lote: LoteStock) =>
+  lote.ingreso.traspaso
+    ? `Trasp. ${numeroDocumento(lote.ingreso.traspaso)}`
+    : numeroDocumento(lote.ingreso)
 
 const valorLote = (lote: LoteStock) =>
   Number(lote.saldoCantidad) * Number(lote.precioUnitario)

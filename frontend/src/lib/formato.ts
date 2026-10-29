@@ -71,3 +71,17 @@ export const numeroDocumento = (documento: {
   documento.numero == null || documento.gestion == null
     ? "—"
     : `${String(documento.numero).padStart(3, "0")}${SEPARADOR_DOCUMENTO}${documento.gestion}`
+
+/**
+ * De qué documento viene un LOTE: `ingreso 001-2026`, o `traspaso 002-2026` si
+ * llegó por un traspaso entre almacenes (2026-10-29). El ingreso que lo porta
+ * en ese caso no tiene número propio — el documento es el traspaso.
+ */
+export const documentoDeLote = (ingreso: {
+  numero: number | null
+  gestion: number | null
+  traspaso?: { numero: number; gestion: number } | null
+}): string =>
+  ingreso.traspaso
+    ? `traspaso ${numeroDocumento(ingreso.traspaso)}`
+    : `ingreso ${numeroDocumento(ingreso)}`

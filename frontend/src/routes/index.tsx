@@ -11,6 +11,8 @@ import { IngresoFormPage } from "@/features/ingresos/pages/IngresoFormPage"
 import { IngresosPage } from "@/features/ingresos/pages/IngresosPage"
 import { ItemsPage } from "@/features/items/ItemsPage"
 import { KardexPage } from "@/features/kardex/KardexPage"
+import { TraspasoFormPage } from "@/features/traspasos/pages/TraspasoFormPage"
+import { TraspasosPage } from "@/features/traspasos/pages/TraspasosPage"
 import { LogosPage } from "@/features/logos/LogosPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
@@ -147,6 +149,30 @@ export const router = createBrowserRouter([
             element: (
               <RutaConPermiso permiso="ingresosLeer">
                 <IngresoFormPage />
+              </RutaConPermiso>
+            ),
+          },
+          {
+            path: "traspasos",
+            element: (
+              <RutaConPermiso permiso="traspasosLeer">
+                <TraspasosPage />
+              </RutaConPermiso>
+            ),
+          },
+          {
+            path: "traspasos/nuevo",
+            element: (
+              <RutaConPermiso permiso="traspasosEscribir">
+                <TraspasoFormPage />
+              </RutaConPermiso>
+            ),
+          },
+          {
+            path: "traspasos/:id",
+            element: (
+              <RutaConPermiso permiso="traspasosLeer">
+                <TraspasoFormPage />
               </RutaConPermiso>
             ),
           },

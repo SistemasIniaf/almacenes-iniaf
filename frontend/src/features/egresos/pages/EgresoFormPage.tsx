@@ -78,7 +78,7 @@ import {
 } from "@/features/egresos/egresos.schema"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
-import { cantidad } from "@/lib/formato"
+import { cantidad, documentoDeLote } from "@/lib/formato"
 import { cn } from "@/lib/utils"
 import {
   describirPaso,
@@ -141,7 +141,7 @@ function MiniaturaLote({ lote }: { lote: LoteDeLinea }) {
           <DialogHeader>
             <DialogTitle>{etiqueta}</DialogTitle>
             <DialogDescription>
-              {lote.item.codigo} · ingreso {etiquetaNumero(lote.ingreso)} ·{" "}
+              {lote.item.codigo} · {documentoDeLote(lote.ingreso)} ·{" "}
               {lote.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente"}
             </DialogDescription>
           </DialogHeader>
@@ -296,7 +296,7 @@ export function EgresoFormPage() {
     imagen: urlArchivo(d.ingresoDetalle.item.imagenUrl),
     fuente:
       d.ingresoDetalle.ingreso.fuenteFinanciamiento?.nombre ?? "Sin fuente",
-    numeroIngreso: etiquetaNumero(d.ingresoDetalle.ingreso),
+    documento: documentoDeLote(d.ingresoDetalle.ingreso),
     // Lo que puede pedir ESTE pedido, calculado por el backend (sin restarse
     // su propia reserva). `null` solo fuera de edición, donde no se usa.
     disponible: d.disponible ?? Number(d.ingresoDetalle.saldoCantidad),
@@ -734,9 +734,26 @@ export function EgresoFormPage() {
                             ?.nombre ?? "—"}
                         </TableCell>
                         <TableCell>
+                          {/* Un lote llegado por traspaso no tiene ingreso
+                              con número: su documento es el traspaso. */}
+                          {detalle.ingresoDetalle.ingreso.traspaso && (
+                            <span className="mr-1 text-xs text-muted-foreground">
+                              Trasp.
+                            </span>
+                          )}
                           <NumeroDocumento
-                            numero={detalle.ingresoDetalle.ingreso.numero}
-                            gestion={detalle.ingresoDetalle.ingreso.gestion}
+                            numero={
+                              (
+                                detalle.ingresoDetalle.ingreso.traspaso ??
+                                detalle.ingresoDetalle.ingreso
+                              ).numero
+                            }
+                            gestion={
+                              (
+                                detalle.ingresoDetalle.ingreso.traspaso ??
+                                detalle.ingresoDetalle.ingreso
+                              ).gestion
+                            }
                           />
                         </TableCell>
                         <TableCell className="text-center whitespace-nowrap text-muted-foreground">
