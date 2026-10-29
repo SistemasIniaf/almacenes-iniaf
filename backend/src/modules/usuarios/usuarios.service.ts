@@ -77,12 +77,7 @@ interface CamposRol {
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateUsuarioDto, actingUser: AuthenticatedUser) {
-    if (actingUser.rol === Rol.admin && this.esRolAdminOSuperAdmin(dto.rol)) {
-      throw new ForbiddenException(
-        'El rol admin no puede crear cuentas admin o super_admin.',
-      );
-    }
+  async create(dto: CreateUsuarioDto) {
     await this.validarUsernameLibre(dto.usuario);
     const activo = dto.activo ?? true;
     await this.validarSuperAdminUnico(dto.rol);
@@ -295,14 +290,6 @@ export class UsuariosService {
     if (!existente) {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
     }
-    if (
-      actingUser.rol === Rol.admin &&
-      this.esRolAdminOSuperAdmin(existente.rol)
-    ) {
-      throw new ForbiddenException(
-        'El rol admin no puede dar de baja cuentas admin o super_admin.',
-      );
-    }
     if (existente.activo) {
       await this.prisma.usuario.update({
         where: { id },
@@ -313,12 +300,11 @@ export class UsuariosService {
   }
 
   /**
-   * Reactiva (inverso de la baja logica). Mismo alcance que `remove`: el
-   * admin puede reactivar usuarios operativos pero no cuentas admin/super_admin
-   * ajenas. A diferencia de `remove`, no hace falta bloquear la propia cuenta
-   * (reactivarse a uno mismo no tiene el riesgo de quedarse afuera).
+   * Reactiva (inverso de la baja logica). A diferencia de `remove`, no hace
+   * falta bloquear la propia cuenta (reactivarse a uno mismo no tiene el
+   * riesgo de quedarse afuera).
    */
-  async activar(id: number, actingUser: AuthenticatedUser) {
+  async activar(id: number) {
     const existente = await this.prisma.usuario.findUnique({
       where: { id },
       select: {
@@ -331,14 +317,6 @@ export class UsuariosService {
     });
     if (!existente) {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
-    }
-    if (
-      actingUser.rol === Rol.admin &&
-      this.esRolAdminOSuperAdmin(existente.rol)
-    ) {
-      throw new ForbiddenException(
-        'El rol admin no puede reactivar cuentas admin o super_admin.',
-      );
     }
     if (!existente.activo) {
       // El cupo de rol unico (aprobador por unidad, responsable por almacen)
@@ -371,11 +349,6 @@ export class UsuariosService {
   // ---------------------------------------------------------------------------
 
   /**
-   * Vuelve la contraseña de un usuario a la INICIAL: es la salida para «me
-   * olvidé la contraseña» sin que nadie tenga que inventar una. Mismo alcance que `remove`: el admin puede, salvo sobre cuentas
-   * admin/super_admin ajenas. La propia no: para eso está «Cambiar contraseña».
-   */
-  /**
    * Datos de acceso para copiar y mandar por WhatsApp o correo (el ícono junto
    * al usuario en la tabla). La contraseña va SOLO si la cuenta todavía tiene
    * la inicial VIGENTE; si no, `null` y la pantalla copia sin ella.
@@ -383,7 +356,8 @@ export class UsuariosService {
    * Se compara contra el hash y no se confía en `conClaveInicial`: la marca
    * no distingue si la inicial cambió después de crear la cuenta (la cuenta
    * conserva la vieja), ni una contraseña puesta por el super_admin al editar.
-   * Revelarla no filtra nada: es la inicial, que quien consulta ya puede ver.
+   * Revelarla no filtra nada: es la inicial, que quien consulta (solo el
+   * super_admin) ya puede ver.
    */
   async credenciales(id: number) {
     const usuario = await this.prisma.usuario.findUnique({
@@ -403,6 +377,11 @@ export class UsuariosService {
     };
   }
 
+  /**
+   * Vuelve la contraseña de un usuario a la INICIAL: es la salida para «me
+   * olvidé la contraseña» sin que nadie tenga que inventar una. La propia no:
+   * para eso está «Cambiar contraseña».
+   */
   async restablecerClave(id: number, actingUser: AuthenticatedUser) {
     if (id === actingUser.id) {
       throw new BadRequestException(
@@ -411,18 +390,10 @@ export class UsuariosService {
     }
     const existente = await this.prisma.usuario.findUnique({
       where: { id },
-      select: { rol: true },
+      select: { id: true },
     });
     if (!existente) {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
-    }
-    if (
-      actingUser.rol === Rol.admin &&
-      this.esRolAdminOSuperAdmin(existente.rol)
-    ) {
-      throw new ForbiddenException(
-        'El rol admin no puede restablecer la contraseña de cuentas admin o super_admin.',
-      );
     }
     await this.prisma.usuario.update({
       where: { id },
@@ -435,8 +406,8 @@ export class UsuariosService {
   }
 
   /**
-   * La contraseña inicial vigente, para mostrarla a quien crea cuentas (tiene
-   * que dársela al usuario nuevo) y con quién la cambió por última vez.
+   * La contraseña inicial vigente, para mostrársela al super_admin (tiene que
+   * dársela al usuario nuevo) y con quién la cambió por última vez.
    */
   async obtenerClaveInicial() {
     return this.prisma.configuracionSistema.findUniqueOrThrow({
@@ -473,10 +444,6 @@ export class UsuariosService {
   // ---------------------------------------------------------------------------
   // Validaciones
   // ---------------------------------------------------------------------------
-
-  private esRolAdminOSuperAdmin(rol: Rol): boolean {
-    return rol === Rol.admin || rol === Rol.super_admin;
-  }
 
   /**
    * Solo puede existir un super_admin en todo el sistema (mismo criterio que

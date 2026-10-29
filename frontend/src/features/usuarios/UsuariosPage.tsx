@@ -53,7 +53,6 @@ import { ClaveInicialDialog } from "@/features/usuarios/ClaveInicialDialog"
 import { CopiarCredenciales } from "@/features/usuarios/CopiarCredenciales"
 import { CredencialesDialog } from "@/features/usuarios/CredencialesDialog"
 import { UsuarioFormDialog } from "@/features/usuarios/UsuarioFormDialog"
-import { puedeGestionarRol } from "@/features/usuarios/usuarios.types"
 import {
   useActivarUsuario,
   useDesactivarUsuario,
@@ -186,7 +185,7 @@ export function UsuariosPage() {
         {puedeEscribir && (
           <div className="flex flex-wrap gap-2">
             {/* Al lado de «Nuevo usuario» porque es lo que hay que darle a cada
-                cuenta nueva. Solo el super_admin la cambia; el admin la ve. */}
+                cuenta nueva. */}
             <Button
               variant="outline"
               onClick={() => setViendoClaveInicial(true)}
@@ -306,13 +305,7 @@ export function UsuariosPage() {
 
             {!isError &&
               usuarios.map((usuario) => {
-                // El admin no da de baja NI reactiva cuentas admin/super_admin
-                // AJENAS: el backend lo rechaza igual, esto solo evita ofrecer
-                // un botón que va a fallar. La desactivación de la fila propia
-                // ya queda cubierta por el `disabled` del botón de más abajo.
                 const esPropia = usuario.id === user?.id
-                const puedeCambiarEstado =
-                  esPropia || !user || puedeGestionarRol(user.rol, usuario.rol)
                 return (
                   <TableRow key={usuario.id}>
                     <TableCell>
@@ -321,7 +314,9 @@ export function UsuariosPage() {
                             que se le manda a la persona. */}
                         <span className="flex items-center gap-1">
                           <span className="font-medium">{usuario.usuario}</span>
-                          <CopiarCredenciales usuario={usuario} />
+                          {puedeEscribir && (
+                            <CopiarCredenciales usuario={usuario} />
+                          )}
                         </span>
                         <Badge
                           variant="outline"
@@ -381,34 +376,33 @@ export function UsuariosPage() {
                             onClick={() => abrirEdicion(usuario)}
                           />
                         )}
-                        {/* Mismo alcance que dar de baja; la propia no: para
-                            eso está «Cambiar contraseña» del menú. */}
-                        {puedeCambiarEstado && !esPropia && (
+                        {/* La propia no: para eso está «Cambiar contraseña»
+                            del menú. */}
+                        {!esPropia && (
                           <IconAction
                             icono={RotateCcwKey}
                             etiqueta="Restablecer contraseña"
                             onClick={() => setUsuarioARestablecer(usuario)}
                           />
                         )}
-                        {puedeCambiarEstado &&
-                          (usuario.activo ? (
-                            <IconAction
-                              icono={PowerOff}
-                              etiqueta="Desactivar"
-                              onClick={() => setUsuarioADesactivar(usuario)}
-                              // Nadie puede desactivarse a si mismo: se
-                              // quedaria sin sesion en el proximo refresh y
-                              // sin poder revertirlo.
-                              disabled={esPropia}
-                              destructiva
-                            />
-                          ) : (
-                            <IconAction
-                              icono={Power}
-                              etiqueta="Activar"
-                              onClick={() => handleActivar(usuario)}
-                            />
-                          ))}
+                        {usuario.activo ? (
+                          <IconAction
+                            icono={PowerOff}
+                            etiqueta="Desactivar"
+                            onClick={() => setUsuarioADesactivar(usuario)}
+                            // Nadie puede desactivarse a si mismo: se
+                            // quedaria sin sesion en el proximo refresh y
+                            // sin poder revertirlo.
+                            disabled={esPropia}
+                            destructiva
+                          />
+                        ) : (
+                          <IconAction
+                            icono={Power}
+                            etiqueta="Activar"
+                            onClick={() => handleActivar(usuario)}
+                          />
+                        )}
                       </TableCell>
                     )}
                   </TableRow>
@@ -445,10 +439,7 @@ export function UsuariosPage() {
       )}
 
       {viendoClaveInicial && (
-        <ClaveInicialDialog
-          puedeCambiar={puedeEditar}
-          onClose={() => setViendoClaveInicial(false)}
-        />
+        <ClaveInicialDialog onClose={() => setViendoClaveInicial(false)} />
       )}
 
       <AlertDialog

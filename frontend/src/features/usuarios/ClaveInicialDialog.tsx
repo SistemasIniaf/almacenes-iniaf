@@ -38,20 +38,16 @@ const fecha = (iso: string) =>
   })
 
 interface ClaveInicialDialogProps {
-  /** Solo el super_admin la cambia; el admin la ve para dársela a los usuarios nuevos. */
-  puedeCambiar: boolean
   onClose: () => void
 }
 
 /**
  * La contraseña con la que nacen las cuentas nuevas (2026-10-29). Se monta solo
  * al abrirse, así el formulario arranca con el valor vigente sin un `reset` en
- * un efecto: se crea recién cuando la consulta ya respondió.
+ * un efecto: se crea recién cuando la consulta ya respondió. Solo la abre el
+ * super_admin (el único que gestiona usuarios desde el 2026-10-29).
  */
-export function ClaveInicialDialog({
-  puedeCambiar,
-  onClose,
-}: ClaveInicialDialogProps) {
+export function ClaveInicialDialog({ onClose }: ClaveInicialDialogProps) {
   const { data, isPending } = useClaveInicial()
 
   return (
@@ -75,20 +71,8 @@ export function ClaveInicialDialog({
 
         {isPending || !data ? (
           <Skeleton className="h-24 w-full" />
-        ) : puedeCambiar ? (
-          <FormularioClave valorActual={data.claveInicial} onClose={onClose} />
         ) : (
-          <p className="rounded-md border bg-muted/30 p-3 text-center font-mono text-lg font-medium">
-            {data.claveInicial}
-          </p>
-        )}
-
-        {!puedeCambiar && (
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
-              Cerrar
-            </Button>
-          </DialogFooter>
+          <FormularioClave valorActual={data.claveInicial} onClose={onClose} />
         )}
       </DialogContent>
     </Dialog>

@@ -105,9 +105,10 @@ export const PERMISOS = {
   ],
 
   usuariosLeer: ["super_admin", "admin"],
-  /** Crear y dar de baja: super_admin y admin (con las salvedades de admin/super_admin ajenas, ver CLAUDE.md). */
-  usuariosEscribir: ["super_admin", "admin"],
-  /** Editar (PATCH) es exclusivo del super_admin desde el 2026-09-29: el admin crea y da de baja, pero no edita. */
+  /** Crear, dar de baja, reactivar, restablecer la contraseña y copiar los
+   * datos de acceso: solo el super_admin (2026-10-29). El admin solo mira. */
+  usuariosEscribir: ["super_admin"],
+  /** Editar (PATCH) es exclusivo del super_admin desde el 2026-09-29. */
   usuariosEditar: ["super_admin"],
 
   /** `GET /usuarios/mi-aprobador`: quién aprueba MIS pedidos. El solicitador

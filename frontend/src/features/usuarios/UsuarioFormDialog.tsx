@@ -25,7 +25,6 @@ import { useUnidadesActivas } from "@/features/unidades/useUnidades"
 import { usuarioSchema } from "@/features/usuarios/usuarios.schema"
 import {
   permiteObservados,
-  puedeGestionarRol,
   requiereAlmacen,
   requiereCargo,
   requiereUnidad,
@@ -88,14 +87,13 @@ export function UsuarioFormDialog({
   // Solo al crear: es la contraseña que hay que darle al usuario nuevo.
   const { data: claveInicial } = useClaveInicial(open && !esEdicion)
 
-  // El admin crea usuarios operativos pero no cuentas admin/super_admin: el
-  // selector directamente no le ofrece esos roles (el backend rechaza igual
-  // si se lo fuerza por API). Editar es exclusivo del super_admin, así que
-  // este diálogo solo se abre en modo edición para ese rol — sin excepciones
-  // de rol que resolver acá.
-  const opcionesRol = ROLES.filter(
-    (rol) => !actor || puedeGestionarRol(actor.rol, rol)
-  ).map((rol) => ({ value: rol, label: ROL_LABEL[rol] }))
+  // Solo el super_admin abre este diálogo (crear y editar son suyos desde el
+  // 2026-10-29), así que ofrece todos los roles; la unicidad de admin y
+  // super_admin la resuelve el backend.
+  const opcionesRol = ROLES.map((rol) => ({
+    value: rol,
+    label: ROL_LABEL[rol],
+  }))
 
   // Nadie puede desactivarse a si mismo: usado para bloquear el checkbox
   // Activo cuando el super_admin edita su propia cuenta.

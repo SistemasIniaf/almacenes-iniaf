@@ -104,7 +104,7 @@ almacenes-institucion/
 - **Roles** (6): `super_admin`, `admin`, `solicitador`, `aprobador`, `responsable_almacen`, `observador_almacen`.
   - `super_admin`: sin unidad ni almacén, sin cargo obligatorio. Acceso total. **Único en todo el sistema** (2026-09-29): no se puede crear un segundo, ni siquiera si el existente está inactivo — mismo criterio que ya usaba el bootstrap del seed (`prisma/seed.ts`, busca cualquier super_admin sin filtrar por `activo`). Se valida en `UsuariosService.validarSuperAdminUnico`. Es lo que hace inofensivo que **nadie pueda desactivar su propia cuenta** (regla general, ver abajo): si se permitiera un segundo super_admin, uno inactivo podría dejar al otro sin forma de reactivarlo salvo acceso directo a la base.
   - `admin`: sin unidad ni almacén, sin cargo obligatorio. Igual que super_admin salvo que **NO gestiona los cuatro catálogos estructurales: Unidades, Almacenes, Partidas ni Fuentes de financiamiento** (cambio del 2026-08-03 para Unidades/Almacenes/Partidas —antes admin sí gestionaba Almacenes—, y del 2026-09-29 para Fuentes —antes admin también las escribía—). Los **lee** —los necesita para poblar los selectores al crear usuarios o registrar un ingreso— pero no los crea, edita ni desactiva. La regla vive en los `@Roles` de cada controlador (escritura `super_admin`, lectura `super_admin` + `admin` + el rol operativo que corresponda) y la espeja `PERMISOS` en el frontend.
-    Sobre USUARIOS en particular, el rol admin quedó bien acotado (2026-09-29): **crea** (`POST /usuarios`) y **da de baja** (`DELETE /usuarios/:id`), pero **NO edita a nadie** — ni siquiera su propia cuenta. Editar (`PATCH /usuarios/:id`) es exclusivo del `super_admin`, forzado con `@Roles(Rol.super_admin)` propio en ese método (más estricto que el `@Roles` de la clase) y espejado en el frontend por el permiso `usuariosEditar` (`permisos.ts`), que oculta el ícono «Editar» de la tabla. Además, ni creando ni dando de baja el admin toca cuentas `admin`/`super_admin`: no puede crear una (el service lo rechaza en `create`), y no puede dar de baja una ajena (rechazado en `remove`) — las dos validaciones viven en `UsuariosService` vía el helper `esRolAdminOSuperAdmin()`, espejado en el frontend por `puedeGestionarRol()` de `usuarios.types.ts`.
+    Sobre USUARIOS en particular, **el admin solo MIRA** (2026-10-29, pedido del usuario): ve el listado y la ficha, pero **no crea, no edita, no da de baja ni reactiva, no restablece contraseñas, no ve la contraseña inicial ni copia datos de acceso** — todo eso es del `super_admin`. La barrera es un `@Roles(Rol.super_admin)` en cada método de escritura de `UsuariosController` (el de la clase, `super_admin` + `admin`, queda como el de LECTURA), espejada en el frontend por `usuariosEscribir` y `usuariosEditar` (`permisos.ts`), que ahora son solo del super_admin. Antes (2026-09-29) el admin creaba y daba de baja usuarios operativos, con la salvedad de no tocar cuentas admin/super_admin (`esRolAdminOSuperAdmin()` en el service, `puedeGestionarRol()` en el front): esas guardas se borraron porque ya no quedaba camino por el que el admin llegara a ellas.
     **`admin` también es único, pero solo mientras está ACTIVO** (2026-10-12, pedido del usuario): a diferencia de `super_admin`, puede haber varias cuentas `admin` dadas de baja en la historia, pero nunca dos activas a la vez — hay que dar de baja la actual antes de crear o reactivar otra. Se valida en `UsuariosService.validarAdminUnico`, llamado en los mismos tres puntos de entrada que `validarSuperAdminUnico` (`create`, `update`, `activar`). Justo faltaba ahí fue donde se coló el bug original: el toggle «Activar» tiene su propio endpoint (no pasa por `create`/`update`) y a `validarSuperAdminUnico` se le había olvidado agregarlo — permitía reactivar un segundo `super_admin`. Corregido en el mismo cambio que agregó la unicidad de `admin`.
   - `solicitador`: unidad y almacén requeridos (fijo, destino de sus egresos). Varios por unidad.
   - `aprobador`: unidad Y almacén requeridos (igual que `solicitador`). Único ACTIVO por unidad; el almacén NO es único (varios aprobadores pueden compartir almacén).
@@ -249,7 +249,7 @@ Un Egreso `APROBADO` se puede anular:
 
 ## Autenticación — sin registro público
 
-**No existe pantalla de registro (`/register`).** Los usuarios se crean exclusivamente desde el módulo `usuarios` (por `super_admin`/`admin`), con username/password asignados ahí. El frontend solo tiene pantalla de **login** — no hay flujo de auto-registro, recuperación de cuenta por "crear cuenta nueva", ni endpoint público de `POST /auth/register`. La creación de usuarios es siempre una acción administrativa autenticada (`POST /usuarios`, protegido por rol), nunca un endpoint público.
+**No existe pantalla de registro (`/register`).** Los usuarios se crean exclusivamente desde el módulo `usuarios` (solo el `super_admin`), con username/password asignados ahí. El frontend solo tiene pantalla de **login** — no hay flujo de auto-registro, recuperación de cuenta por "crear cuenta nueva", ni endpoint público de `POST /auth/register`. La creación de usuarios es siempre una acción administrativa autenticada (`POST /usuarios`, protegido por rol), nunca un endpoint público.
 
 ## Imágenes (subida de archivos)
 
@@ -585,11 +585,11 @@ plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*F
   `id = 1`, la crea la migración `20261029120000_clave_inicial` con `iniaf2026`) y con
   **`conClaveInicial = true`**. El formulario muestra cuál es, para dársela al usuario.
   - **Se gestiona desde Usuarios → «Contraseña inicial»** (`ClaveInicialDialog`,
-    `GET`/`PUT /usuarios/clave-inicial`): la LEEN `super_admin` y `admin` (los dos crean cuentas y
-    tienen que dársela al usuario), la CAMBIA solo el `super_admin`. Cambiarla rige para lo que se
+    `GET`/`PUT /usuarios/clave-inicial`): solo el `super_admin`, que es quien crea las cuentas y
+    tiene que dársela al usuario (hasta el 2026-10-29 el `admin` también la leía). Cambiarla rige para lo que se
     cree o restablezca después; las cuentas pendientes conservan la anterior (está hasheada en
     cada una). **Se guarda en texto plano a propósito**: hay que poder leérsela al usuario nuevo, y
-    ya la conocen todos los que crean cuentas — cifrarla no protegería nada.
+    ya la conoce quien crea las cuentas — cifrarla no protegería nada.
   - **Cambiarla NO es obligatorio** (decisión del usuario, 2026-10-29): el usuario entra con la
     inicial y usa el sistema normal; la cambia si quiere, desde «Cambiar contraseña». Se construyó
     primero obligatoria —`ProtectedRoute` mostraba solo el cambio y el `JwtAuthGuard` respondía 403
@@ -601,8 +601,7 @@ plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*F
     al cambiarla. La columna se llamó `debe_cambiar_clave` mientras el cambio era obligatorio — la
     migración se corrigió antes de salir de la máquina de desarrollo.
   - **«Restablecer contraseña»** (ícono en la fila, `POST /usuarios/:id/restablecer-clave`): la
-    vuelve a la inicial — la salida para «me la olvidé». Mismo alcance que dar de baja (el admin no
-    la usa sobre cuentas admin/super_admin ajenas) y nunca sobre la propia.
+    vuelve a la inicial — la salida para «me la olvidé». Solo el `super_admin`, y nunca sobre la propia.
   - Una contraseña que el `super_admin` pone **al editar** también deja `conClaveInicial`: se la
     dieron. Salvo que se la esté poniendo a sí mismo.
   - **Datos de acceso para copiar** (pedido del usuario): el texto `SISTEMA ALMACENES / ENLACE /
@@ -635,25 +634,16 @@ plantilla de 6 archivos (`*.types.ts`, `*.schema.ts`, `*.api.ts`, `use*.ts`, `*F
   si `id === actingUser.id` y el resultado dejaría la cuenta inactiva) y no solo de la UI: antes el
   botón de la tabla lo evitaba pero el checkbox *Activo* del diálogo de edición no tenía guarda, así
   que un PATCH directo (o abrir "Editar" sobre la fila propia) podía desactivar la cuenta en uso.
-- **Editar (`PATCH`) es exclusivo del `super_admin`** (2026-09-29): el `admin` crea usuarios y los da
-  de baja, pero no edita a NADIE, ni siquiera su propia cuenta. `@Roles(Rol.super_admin)` en el método
-  `update` del controlador (más estricto que el de la clase) es la barrera real; en el frontend el
-  permiso `usuariosEditar` (`permisos.ts`) oculta el ícono *Editar* de la tabla (`puedeEditar` en
-  `UsuariosPage`) para quien no sea super_admin. `UsuarioFormDialog` ya no necesita casos especiales
-  para un admin editándose a sí mismo — ese camino no existe más.
-- **El `admin` tampoco crea ni da de baja/reactiva cuentas `admin`/`super_admin` ajenas** (2026-09-29,
-  ver la entidad `Usuario` más arriba): el selector de Rol del formulario no le ofrece esos dos roles
-  al crear (`opcionesRol` en `UsuarioFormDialog`, filtrado con `puedeGestionarRol()` de
-  `usuarios.types.ts`) y la tabla le oculta *Desactivar*/*Activar* en esas filas (`puedeCambiarEstado`
-  en `UsuariosPage`) — el backend responde 403 igual si se lo fuerza por API
-  (`esRolAdminOSuperAdmin()` en `UsuariosService`).
+- **Gestionar usuarios es SOLO del `super_admin`** (editar desde el 2026-09-29; crear, dar de baja,
+  reactivar, restablecer y copiar datos de acceso desde el 2026-10-29 — ver la entidad `Usuario` más
+  arriba). El `admin` ve la tabla sin columna de acciones, sin botones arriba y sin ícono de
+  copiar. Como el diálogo lo abre solo el super_admin, el selector de Rol ofrece todos los roles; la
+  unicidad de admin y super_admin la resuelve el backend.
 - **El ícono de estado es un TOGGLE** (2026-09-29, mismo patrón que `UnidadNodo`): activo muestra
   `PowerOff`/*Desactivar* (con el diálogo de confirmación de siempre); inactivo muestra
   `Power`/*Activar*, sin confirmación — reactivar no tiene la gravedad de dar de baja, es la misma
   regla que ya seguía `unidades`. Es un endpoint propio, `POST /usuarios/:id/activar`
-  (`UsuariosService.activar`), NO el `PATCH` de edición: mismo alcance que `remove` (el admin puede
-  usarlo, salvo en cuentas admin/super_admin ajenas) en vez de quedar reservado al super_admin como el
-  resto de la edición. Antes de reactivar revalida la unicidad de rol (`validarUnicidadRol`): el cupo
+  (`UsuariosService.activar`), NO el `PATCH` de edición (no hace falta mandar el usuario entero para prenderlo). Antes de reactivar revalida la unicidad de rol (`validarUnicidadRol`): el cupo
   de aprobador de la unidad o responsable del almacén pudo haberse ocupado mientras la cuenta estaba
   inactiva.
 - `useUnidadesActivas()` / `useAlmacenesActivos()` (en los features respectivos) alimentan los
@@ -1290,25 +1280,23 @@ Notas del frontend (`features/egresos/`, con subcarpetas `components/`, `hooks/`
   ⚠️ El ámbar ya significa otras dos cosas —«editar» en `TONO_ACCION`, y «esto espera tu atención» en
   los badges y las tarjetas del inicio—, así que acá está usado como color de MARCA del botón, no como
   aviso. Si algún día hace falta un amarillo que de verdad alerte, este es el que primero le compite.
-- **Entregar es edición INLINE en la misma tabla de la ficha** (2026-10-13, pedido del usuario — antes
-  era un modal aparte, `EntregaDialog`, eliminado). Al tocar «Entregar» la página entra en modo
-  entrega (`entregando`, un booleano de `EgresoFormPage`): la columna «Entregado» pasa de texto a
-  `Input`, aparece el saldo del lote bajo cada ítem, y los botones del encabezado cambian —
-  Aprobar/Rechazar/Anular/Ver PDF/Enviar se ocultan y los reemplazan «Cancelar» / «Confirmar
-  entrega» — igual que antes se ocultaban detrás del modal, pero ahora porque directamente no se
-  renderizan. Se descartó el modal porque duplicaba Ítem/Unidad/Pedido, que ya se ven en la tabla de
-  atrás.
-  - Las cantidades propuestas se calculan al hacer clic en «Entregar» (`iniciarEntrega`), no en un
-    `useState` de montaje condicional como hacía el modal: acá la tabla ya está montada siempre, así
-    que no hay un punto de montaje que aproveche para inicializar sin pasar por un efecto.
-  - **El aviso de validación va PEGADO a la fila que falla** («No puede superar lo pedido (N)», en
-    rojo bajo el input), no como cartel genérico arriba de toda la tabla (2026-10-13, pedido del
-    usuario — probado primero como cartel arriba y se descartó: con varias líneas no decía CUÁL
-    estaba mal). El texto explicativo de arriba («al confirmar se descuenta…») queda siempre fijo,
-    sin swap. La tabla sigue siendo la última sección de la tarjeta (ver `rounded-b-md` más abajo)
-    porque este aviso vive DENTRO de cada celda, no agrega una sección nueva después.
-  - Cancelar no pide confirmación: descarta `cantidadesEntrega` y no tocó nada todavía (recién
-    `confirmarEntrega` llama a la mutación).
+- **Entregar es edición INLINE en la misma tabla de la ficha, y ya viene ABIERTA** (2026-10-13 el
+  inline, en vez del modal `EntregaDialog`; 2026-10-29 lo de abierta, pedido del usuario). Hasta esa
+  fecha había un botón «Entregar» arriba que recién abría el modo entrega, y **se leía como que ese
+  botón ya entregaba**: no se veía que primero se ajustan las cantidades. Ahora, si el usuario puede
+  entregar (`entregando = puedeEntregar`), la tabla llega con la columna **«A entregar»** editable,
+  el saldo del lote bajo cada ítem y un recuadro de dos pasos numerados (1. revisá las cantidades,
+  2. «Confirmar entrega», al pie). No hay botón para entrar ni para cancelar el modo.
+  - **Aprobar, Confirmar entrega y Rechazar van al PIE de la ficha**, debajo de lo que se decide —
+    como Guardar y enviar en el formulario. Arriba quedan Historial, Ver PDF, Anular y Desistir.
+  - `cantidadesEntrega` guarda **solo lo que el responsable cambió**; lo demás vale lo pedido
+    (`aEntregar`). Así no hay que inicializar en un efecto (el lint lo rechaza).
+  - **Confirmar entrega abre un diálogo** antes de mover stock, y si alguna línea sale con menos de lo
+    pedido la nombra («195 de 200»): un número mal tipeado no pasa de largo. Con el botón a la vista
+    y sin paso previo, entregar de un clic era demasiado fácil.
+  - **Los avisos van PEGADOS a la fila** (2026-10-13, probado primero como cartel arriba y
+    descartado: con varias líneas no decía CUÁL): «No puede superar lo pedido (N)» en rojo, que
+    además deshabilita el botón, y «N menos de lo pedido» en ámbar, que solo informa.
 - **Toda mutación invalida `stock` y `kardex`** además de `egresos` (`useInvalidarEgresos`): crear,
   editar, enviar, rechazar y descartar mueven la RESERVA, y entregar/anular mueven el saldo. Sin eso el
   disponible que ve el solicitante queda viejo.

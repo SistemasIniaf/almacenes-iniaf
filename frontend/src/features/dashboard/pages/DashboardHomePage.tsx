@@ -94,7 +94,8 @@ const ACCESOS: AccesoRapido[] = [
     titulo: "Usuarios",
     a: "/usuarios",
     icono: Users,
-    permiso: "usuariosEscribir",
+    // Leer: el admin ya no escribe usuarios, pero sigue entrando a verlos.
+    permiso: "usuariosLeer",
   },
 ]
 

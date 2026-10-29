@@ -22,20 +22,23 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { UsuariosService } from './usuarios.service';
 
 /**
- * Gestion de usuarios. Accion administrativa: solo super_admin y admin.
- * No hay endpoint publico de registro (los usuarios se crean aqui).
+ * Gestion de usuarios. No hay endpoint publico de registro (los usuarios se
+ * crean aqui).
+ *
+ * El `@Roles` de la clase es el de LECTURA (super_admin y admin). Todo lo que
+ * escribe —crear, editar, dar de baja, reactivar, restablecer la contraseña— y
+ * lo que revela la contraseña inicial es SOLO del super_admin (2026-10-29,
+ * pedido del usuario): cada uno de esos metodos lleva su propio `@Roles`.
  */
 @Roles(Rol.super_admin, Rol.admin)
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
+  @Roles(Rol.super_admin)
   @Post()
-  create(
-    @Body() dto: CreateUsuarioDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.usuariosService.create(dto, user);
+  create(@Body() dto: CreateUsuarioDto) {
+    return this.usuariosService.create(dto);
   }
 
   @Get()
@@ -67,11 +70,10 @@ export class UsuariosController {
   }
 
   /**
-   * La contraseña inicial de las cuentas nuevas. La LEEN los dos que crean
-   * cuentas —tienen que dársela al usuario nuevo—; la CAMBIA solo el super_admin,
-   * mismo criterio que los catálogos estructurales. Antes de `:id`, como
-   * `mi-aprobador`.
+   * La contraseña inicial de las cuentas nuevas: solo el super_admin, que es
+   * quien crea y restablece cuentas. Antes de `:id`, como `mi-aprobador`.
    */
+  @Roles(Rol.super_admin)
   @Get('clave-inicial')
   obtenerClaveInicial() {
     return this.usuariosService.obtenerClaveInicial();
@@ -91,7 +93,7 @@ export class UsuariosController {
     return this.usuariosService.findOne(id);
   }
 
-  /** Editar es exclusivo del super_admin (2026-09-29): el admin crea y da de baja, pero no edita. */
+  /** Editar es exclusivo del super_admin (2026-09-29). */
   @Roles(Rol.super_admin)
   @Patch(':id')
   update(
@@ -103,6 +105,7 @@ export class UsuariosController {
   }
 
   /** Baja logica (desactiva). */
+  @Roles(Rol.super_admin)
   @Delete(':id')
   remove(
     @Param('id', ParseIntPipe) id: number,
@@ -111,22 +114,22 @@ export class UsuariosController {
     return this.usuariosService.remove(id, user);
   }
 
-  /** Reactiva (inverso de la baja logica). Mismo alcance que `remove`. */
+  /** Reactiva (inverso de la baja logica). */
+  @Roles(Rol.super_admin)
   @Post(':id/activar')
-  activar(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.usuariosService.activar(id, user);
+  activar(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.activar(id);
   }
 
   /** Usuario + contraseña inicial (si todavía la tiene) para copiar y mandar. */
+  @Roles(Rol.super_admin)
   @Get(':id/credenciales')
   credenciales(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.credenciales(id);
   }
 
-  /** Vuelve la contraseña a la inicial. Mismo alcance que `remove`. */
+  /** Vuelve la contraseña a la inicial. */
+  @Roles(Rol.super_admin)
   @Post(':id/restablecer-clave')
   restablecerClave(
     @Param('id', ParseIntPipe) id: number,
