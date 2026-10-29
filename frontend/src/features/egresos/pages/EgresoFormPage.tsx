@@ -12,6 +12,7 @@ import {
   ImageOff,
   Loader2,
   FileText,
+  PackageCheck,
   Save,
   Send,
   X,
@@ -77,6 +78,8 @@ import {
 } from "@/features/egresos/egresos.schema"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
+import { cantidad } from "@/lib/formato"
+import { cn } from "@/lib/utils"
 import {
   describirPaso,
   descripcionConNota,
@@ -172,13 +175,13 @@ export function EgresoFormPage() {
   const entregar = useEntregarEgreso()
   const { abrirSolicitud, generandoId, puedeImprimir } = useSolicitudPdf()
 
-  // Entregar edita EN LA MISMA tabla de abajo (pedido del usuario, 2026-10-13):
-  // antes era un modal aparte que repetía Ítem/Unidad/Pedido. `entregando`
-  // decide si la columna «Entregado» se ve como texto o como input.
-  const [entregando, setEntregando] = useState(false)
+  // Lo que el responsable CAMBIÓ de la cantidad a entregar; lo que no tocó
+  // vale lo pedido (`aEntregar`). Guardar solo los cambios evita inicializar
+  // en un efecto, que el lint del repo rechaza.
   const [cantidadesEntrega, setCantidadesEntrega] = useState<
     Record<number, string>
   >({})
+  const [confirmandoEntrega, setConfirmandoEntrega] = useState(false)
   // «Guardar y enviar»: los valores ya validados, a la espera de que se
   // confirme el envío (recién ahí se crea o se guarda).
   const [paraEnviar, setParaEnviar] = useState<EgresoFormValues | null>(null)
@@ -219,6 +222,11 @@ export function EgresoFormPage() {
       user?.rol === "admin" ||
       user?.rol === "super_admin")
   const puedeRechazar = puedeAprobar || puedeEntregar
+  // Quien puede entregar ve la tabla YA en modo entrega, con las cantidades
+  // editables (2026-10-29, pedido del usuario). Antes había que tocar
+  // «Entregar» para que aparecieran, y se leía como que ese botón ya
+  // entregaba: nadie se daba cuenta de que primero se ajustaban las cantidades.
+  const entregando = puedeEntregar
   const puedeAnular =
     estado === "ENTREGADO" &&
     (user?.rol === "responsable_almacen" ||
@@ -238,7 +246,9 @@ export function EgresoFormPage() {
   // Separa las acciones de INFORMACIÓN (Historial, Enviar, Ver PDF) de las de
   // DECISIÓN sobre el pedido — para que aprobar/rechazar no se pierdan entre
   // botones secundarios en la misma fila.
-  const hayAccionDecision = puedeRechazar || puedeAnular || puedeDesistir
+  // Aprobar, entregar y rechazar NO están acá: van al pie de la ficha, debajo
+  // de lo que se está decidiendo (como Guardar y enviar en el formulario).
+  const hayAccionDecision = puedeAnular || puedeDesistir
   // El motivo de un desistido vive en su historial (no hay columna aparte,
   // como la del anulado): es el del último paso.
   const motivoDesistido =
@@ -254,12 +264,22 @@ export function EgresoFormPage() {
     desistir.isPending ||
     entregar.isPending
 
-  // Mientras se entrega, no se puede confirmar más de lo pedido — misma
-  // regla que exigía el modal que reemplazó esto.
+  // Arranca en lo pedido, que es el caso normal: bajarla cubre el faltante.
+  const aEntregar = (detalleId: number, cantidadSolicitada: string | number) =>
+    cantidadesEntrega[detalleId] ?? String(Number(cantidadSolicitada))
+
+  // No se puede confirmar más de lo pedido.
   const excedidasEntrega = (egreso?.detalles ?? []).filter((d) => {
-    const valor = Number(cantidadesEntrega[d.id] ?? 0)
+    const valor = Number(aEntregar(d.id, d.cantidadSolicitada))
     return Number.isNaN(valor) || valor > Number(d.cantidadSolicitada)
   })
+  // Las que salen con menos de lo pedido: el diálogo de confirmación las
+  // nombra, para que un número mal tipeado no pase de largo.
+  const reducidasEntrega = (egreso?.detalles ?? []).filter(
+    (d) =>
+      Number(aEntregar(d.id, d.cantidadSolicitada)) <
+      Number(d.cantidadSolicitada)
+  )
 
   /**
    * Lotes que el pedido ya referencia. Van al selector porque su lista es una
@@ -329,23 +349,6 @@ export function EgresoFormPage() {
     }
   }
 
-  // Arranca proponiendo lo pedido, que es el caso normal: bajar una cantidad
-  // cubre el faltante físico. Se inicializa acá (al hacer clic), no en un
-  // efecto — es lo mismo que evitaba el modal con su montaje condicional.
-  function iniciarEntrega() {
-    if (!egreso) return
-    setCantidadesEntrega(
-      Object.fromEntries(
-        egreso.detalles.map((d) => [d.id, String(Number(d.cantidadSolicitada))])
-      )
-    )
-    setEntregando(true)
-  }
-
-  function cancelarEntrega() {
-    setEntregando(false)
-  }
-
   async function confirmarEntrega() {
     if (!egreso) return
     try {
@@ -353,13 +356,15 @@ export function EgresoFormPage() {
         id: egreso.id,
         lineas: egreso.detalles.map((d) => ({
           detalleId: d.id,
-          cantidadEntregada: Number(cantidadesEntrega[d.id] ?? 0),
+          cantidadEntregada: Number(aEntregar(d.id, d.cantidadSolicitada)),
         })),
       })
-      setEntregando(false)
+      setConfirmandoEntrega(false)
+      setCantidadesEntrega({})
     } catch {
       // El toast lo emite la mutación (ej. el lote se quedó sin saldo); se
-      // queda en modo entrega para bajar la cantidad.
+      // cierra el diálogo para que pueda bajar la cantidad.
+      setConfirmandoEntrega(false)
     }
   }
 
@@ -436,8 +441,7 @@ export function EgresoFormPage() {
               mientras está pendiente de aprobación o de entrega no hay nada
               que imprimir todavía, solo lo hay una vez que el material
               efectivamente salió del almacén. */}
-          {!entregando &&
-            egreso &&
+          {egreso &&
             (estado === "ENTREGADO" || estado === "ANULADO") &&
             puedeImprimir && (
               <Button
@@ -456,69 +460,13 @@ export function EgresoFormPage() {
               </Button>
             )}
 
-          {/* De acá para abajo, acciones de DECISIÓN sobre el pedido: separadas
-              de Historial/Enviar/Ver PDF (información), que ya no compiten por
-              la atención con aprobar o rechazar. Entregando cuenta como
-              decisión en curso, aunque Aprobar/Rechazar/Anular estén ocultos
-              mientras tanto. */}
-          {(entregando || hayAccionDecision) && (
+          {/* De acá para abajo, acciones de DECISIÓN sobre un pedido cerrado:
+              separadas de Historial/Ver PDF (información). */}
+          {hayAccionDecision && (
             <Separator orientation="vertical" className="h-6" />
           )}
 
-          {!entregando && puedeAprobar && (
-            <Button
-              disabled={ocupado}
-              onClick={() => void aprobar.mutateAsync(id as number)}
-            >
-              <Check className="size-4" />
-              Aprobar
-            </Button>
-          )}
-          {!entregando && puedeEntregar && (
-            <Button disabled={ocupado} onClick={iniciarEntrega}>
-              <Check className="size-4" />
-              Entregar
-            </Button>
-          )}
-
-          {/* Modo entrega: reemplaza Aprobar/Entregar/Rechazar/Anular por
-              estos dos — la columna «Entregado» de la tabla de abajo pasa a
-              ser editable mientras tanto (pedido del usuario, 2026-10-13:
-              antes esto era un modal aparte). */}
-          {entregando && (
-            <>
-              <Button
-                variant="outline"
-                disabled={entregar.isPending}
-                onClick={cancelarEntrega}
-              >
-                Cancelar
-              </Button>
-              <Button
-                disabled={entregar.isPending || excedidasEntrega.length > 0}
-                onClick={() => void confirmarEntrega()}
-              >
-                {entregar.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Check className="size-4" />
-                )}
-                Confirmar entrega
-              </Button>
-            </>
-          )}
-
-          {!entregando && puedeRechazar && (
-            <Button
-              variant="destructive"
-              disabled={ocupado}
-              onClick={() => setAccionConMotivo("rechazar")}
-            >
-              <X className="size-4" />
-              Rechazar
-            </Button>
-          )}
-          {!entregando && puedeAnular && (
+          {puedeAnular && (
             <Button
               variant="destructive"
               disabled={ocupado}
@@ -573,7 +521,7 @@ export function EgresoFormPage() {
         <AvisoReserva egreso={egreso} cantidadItems={egreso.detalles.length} />
       )}
       {/* Con quién está el pedido y desde cuándo (2026-10-29). */}
-      {egreso && !entregando && <EsperaPedido egreso={egreso} />}
+      {egreso && <EsperaPedido egreso={egreso} />}
 
       {/* TODO el pedido en UNA sola tarjeta — información, justificación e
           ítems son secciones de un mismo documento, no piezas sueltas (pedido
@@ -691,23 +639,49 @@ export function EgresoFormPage() {
                   error de "excede lo pedido" NO va acá (quedaba lejos de la
                   fila que realmente falla, pedido del usuario 2026-10-13) —
                   va pegado a cada input inválido, más abajo. */}
+              {/* Los dos pasos, en orden: primero las cantidades, después el
+                  botón del pie. Es lo que no se entendía cuando la entrega
+                  arrancaba con un botón «Entregar» arriba. */}
               {entregando && (
                 <>
-                  <div className="bg-muted/30 p-4 text-sm text-muted-foreground">
-                    Al confirmar se descuenta el stock de cada lote y queda la
-                    salida en el Kardex. Si de algo hay menos de lo que dice el
-                    sistema, bajá la cantidad.
+                  <div className="flex items-start gap-3 bg-primary/5 p-4 text-sm">
+                    <PackageCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <ol className="flex flex-col gap-1">
+                      <li>
+                        <span className="font-medium">
+                          1. Revisá la cantidad a entregar de cada ítem.
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          Viene con lo pedido; si de algo hay menos en el
+                          estante, bajala.
+                        </span>
+                      </li>
+                      <li>
+                        <span className="font-medium">
+                          2. Tocá «Confirmar entrega», al pie.
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          Recién ahí se descuenta el stock y queda la salida en
+                          el Kardex.
+                        </span>
+                      </li>
+                    </ol>
                   </div>
                   <Separator />
                 </>
               )}
 
-              {/* Redondea solo las esquinas de ABAJO: la tabla no es la
-                  primera sección de la tarjeta, así que sus esquinas de
+              {/* Redondea solo las esquinas de ABAJO, y solo si la tabla es la
+                  última sección: no es la primera, así que sus esquinas de
                   arriba van rectas — `rounded-[inherit]` (lo que usa `Table`
                   por default) tomaría las cuatro del borde exterior y dejaba
                   un par de puntas redondeadas sueltas a mitad de tarjeta. */}
-              <div className="overflow-hidden rounded-b-md">
+              <div
+                className={cn(
+                  "overflow-hidden",
+                  !puedeRechazar && "rounded-b-md"
+                )}
+              >
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -725,7 +699,9 @@ export function EgresoFormPage() {
                         Es la misma disposición que el PDF de la solicitud. */}
                       <TableHead className="text-center">Unidad</TableHead>
                       <TableHead className="text-right">Pedido</TableHead>
-                      <TableHead className="text-right">Entregado</TableHead>
+                      <TableHead className="text-right">
+                        {entregando ? "A entregar" : "Entregado"}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -773,10 +749,13 @@ export function EgresoFormPage() {
                           {entregando ? (
                             (() => {
                               const pedido = Number(detalle.cantidadSolicitada)
-                              const valor = Number(
-                                cantidadesEntrega[detalle.id] ?? 0
+                              const texto = aEntregar(
+                                detalle.id,
+                                detalle.cantidadSolicitada
                               )
+                              const valor = Number(texto)
                               const excedida = valor > pedido
+                              const menos = !excedida && valor < pedido
                               return (
                                 <div className="flex flex-col items-end gap-1">
                                   <Input
@@ -790,7 +769,7 @@ export function EgresoFormPage() {
                                     step="any"
                                     min={0}
                                     max={pedido}
-                                    value={cantidadesEntrega[detalle.id] ?? ""}
+                                    value={texto}
                                     onChange={(event) =>
                                       setCantidadesEntrega((previas) => ({
                                         ...previas,
@@ -818,6 +797,12 @@ export function EgresoFormPage() {
                                       No puede superar lo pedido ({pedido})
                                     </span>
                                   )}
+                                  {menos && (
+                                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                                      {cantidad(pedido - valor)} menos de lo
+                                      pedido
+                                    </span>
+                                  )}
                                 </div>
                               )
                             })()
@@ -834,6 +819,44 @@ export function EgresoFormPage() {
                   </TableBody>
                 </Table>
               </div>
+
+              {/* La decisión al PIE, debajo de lo que se decide (pedido del
+                  usuario, 2026-10-29): igual que Guardar y enviar en el
+                  formulario. El principal a la derecha, Rechazar a su lado. */}
+              {puedeRechazar && (
+                <div className="flex flex-col-reverse justify-end gap-2 border-t p-4 sm:flex-row">
+                  <Button
+                    variant="destructive"
+                    disabled={ocupado}
+                    onClick={() => setAccionConMotivo("rechazar")}
+                  >
+                    <X className="size-4" />
+                    Rechazar
+                  </Button>
+                  {puedeAprobar && (
+                    <Button
+                      disabled={ocupado}
+                      onClick={() => void aprobar.mutateAsync(id as number)}
+                    >
+                      {aprobar.isPending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Check className="size-4" />
+                      )}
+                      Aprobar
+                    </Button>
+                  )}
+                  {puedeEntregar && (
+                    <Button
+                      disabled={ocupado || excedidasEntrega.length > 0}
+                      onClick={() => setConfirmandoEntrega(true)}
+                    >
+                      <PackageCheck className="size-4" />
+                      Confirmar entrega
+                    </Button>
+                  )}
+                </div>
+              )}
             </>
           )
         )}
@@ -873,6 +896,62 @@ export function EgresoFormPage() {
           onClose={() => setParaEnviar(null)}
         />
       )}
+
+      {/* Entregar no tiene vuelta atrás salvo anulando, así que se confirma —
+          y si algo sale con menos de lo pedido, se dice cuál. */}
+      <AlertDialog
+        open={confirmandoEntrega}
+        onOpenChange={(abierto) => !abierto && setConfirmandoEntrega(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Confirmar la entrega?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se descuenta del stock la cantidad «A entregar» de cada ítem y
+              queda la salida en el Kardex. El pedido pasa a entregado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {reducidasEntrega.length > 0 ? (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+              <p className="font-medium">Con menos de lo pedido:</p>
+              <ul className="mt-1 list-disc pl-5">
+                {reducidasEntrega.map((d) => (
+                  <li key={d.id}>
+                    {descripcionConNota(
+                      d.ingresoDetalle.item.descripcion,
+                      d.ingresoDetalle.observacion
+                    )}
+                    : {cantidad(aEntregar(d.id, d.cantidadSolicitada) || 0)} de{" "}
+                    {cantidad(d.cantidadSolicitada)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Se entrega todo lo pedido.
+            </p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={entregar.isPending}>
+              Volver
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={entregar.isPending}
+              onClick={(event) => {
+                // Sin esto el diálogo se cierra antes de que responda el backend.
+                event.preventDefault()
+                void confirmarEntrega()
+              }}
+            >
+              {entregar.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              Entregar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={accionConMotivo !== null}
