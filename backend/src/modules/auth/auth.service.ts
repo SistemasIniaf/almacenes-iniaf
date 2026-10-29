@@ -1,9 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { CambiarClaveDto } from './dto/cambiar-clave.dto';
 import { LoginDto } from './dto/login.dto';
 import {
   AuthenticatedUser,
@@ -106,6 +111,39 @@ export class AuthService {
     // no vale nada.
     if (!usuario) throw new UnauthorizedException('La sesion ya no es valida');
     return usuario;
+  }
+
+  /**
+   * Cada usuario cambia SU contraseña (2026-10-29): antes solo el super_admin
+   * podia, editando al usuario, y terminaba conociendo la clave de todos.
+   *
+   * La actual mal responde 400 y NO 401 a proposito: el interceptor del
+   * frontend toma un 401 como sesion vencida, intenta el refresh y, si no
+   * alcanza, cierra la sesion — un error de tipeo te sacaria del sistema.
+   *
+   * No invalida las otras sesiones abiertas: los refresh tokens son sin estado
+   * y siguen valiendo hasta que vencen (7 dias).
+   */
+  async cambiarClave(usuarioId: number, dto: CambiarClaveDto): Promise<void> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: { password: true },
+    });
+    if (!usuario) throw new UnauthorizedException('La sesion ya no es valida');
+
+    if (!(await bcrypt.compare(dto.actual, usuario.password))) {
+      throw new BadRequestException('La contraseña actual no es correcta');
+    }
+    if (dto.nueva === dto.actual) {
+      throw new BadRequestException(
+        'La contraseña nueva tiene que ser distinta de la actual',
+      );
+    }
+
+    await this.prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { password: await bcrypt.hash(dto.nueva, 10) },
+    });
   }
 
   /** Emite nuevos tokens a partir de un usuario ya validado por el refresh guard. */

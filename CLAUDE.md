@@ -71,6 +71,17 @@ interna de Compose. Variables sensibles en un `.env` en la raíz (copiado de
 - **Sin HTTPS todavía**: la VM de la demo no tiene dominio, solo IP. Queda
   pendiente para cuando la institución confirme IP pública + dominio
   (Let's Encrypt vía Certbot o Caddy, agregado al `frontend/nginx.conf`).
+- **Respaldos — servicio `respaldos`** (2026-10-29): un `pg_dump -Fc` de la base y un `tar.gz`
+  de `uploads/` **por día** (`RESPALDO_HORA`, default 02, hora de Bolivia), conservando
+  `RESPALDO_DIAS` (14) en la carpeta `respaldos/` del servidor (bind mount, ignorada por git; NO
+  es un volumen, así que `down -v` no la borra). Lo hace `tools/respaldos/respaldar.sh` sobre la
+  **misma imagen de postgres** —`pg_dump` tiene que ser de la versión del servidor— y con las
+  fotos montadas en solo lectura. Detalles que no hay que perder: escribe a un temporal y recién
+  renombra al terminar (un respaldo cortado nunca queda con nombre bueno); el bucle revisa cada 10
+  minutos si es la hora y si HOY ya hay respaldo, así reiniciar no duplica; `respaldar.sh ahora`
+  hace uno en el acto. **El `.sh` tiene que ir con fin de línea LF** (`.gitattributes`): con CRLF,
+  `sh` falla en cada línea. Restaurar y copiar fuera del disco: `docs/despliegue-demo.md`.
+  Verificado restaurando un respaldo en una base vacía: mismas cifras que la original.
 
 ## Estructura del repo (monorepo simple, sin Nx/Turborepo)
 
@@ -353,6 +364,16 @@ documento antes de que el documento exista: es lo que usa el formulario de egres
 solicitante, unidad y almacén al crear. El cache de `localStorage` (`auth-storage.ts`) ya no es
 indispensable y quedó solo para pintar la barra lateral sin parpadeo mientras `/auth/me` viaja: al
 rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
+
+**Cada usuario cambia su PROPIA contraseña** (`POST /auth/cambiar-clave`, 2026-10-29): «Cambiar
+contraseña» en el menú de usuario abre `CambiarClaveDialog` (actual + nueva + repetir). Antes solo
+el super_admin podía, editando al usuario, y terminaba sabiendo la clave de todos. **La actual mal
+responde 400, NUNCA 401**: el interceptor de `lib/api.ts` toma un 401 como sesión vencida, intenta
+el refresh y si no alcanza cierra la sesión — un error de tipeo sacaría al usuario del sistema. La
+nueva sigue la regla de `CreateUsuarioDto` (mínimo 6) y tiene que ser distinta de la actual. **No
+cierra las otras sesiones abiertas**: los refresh tokens no tienen estado y valen hasta vencer (7
+días); si eso llegara a importar, haría falta guardar la fecha del cambio y rechazar tokens
+emitidos antes.
 
 **Piezas compartidas ya construidas** (reutilizarlas en cada CRUD nuevo, no reinventarlas):
 - `features/auth/lib/permisos.ts`: mapa `PERMISOS` que **espeja los `@Roles(...)` de cada

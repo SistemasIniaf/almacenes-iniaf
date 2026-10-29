@@ -24,3 +24,6 @@ Thumbs.db
 # docs/analisis-sistema-anterior.md).
 *.sql.gz
 semilla*.sql
+
+# Respaldos de produccion (tools/respaldos/respaldar.sh): base y fotos reales.
+/respaldos/

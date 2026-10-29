@@ -157,3 +157,62 @@ docker compose -f docker-compose.prod.yml down
 ```bash
 docker compose -f docker-compose.prod.yml down -v
 ```
+
+> ⚠️ `down -v` borra la base y las fotos. Los respaldos de `respaldos/` NO se
+> borran (es una carpeta del servidor, no un volumen), pero hacé uno a mano
+> antes por las dudas.
+
+## Respaldos
+
+El servicio `respaldos` hace **un respaldo por día a las 02:00** (hora de
+Bolivia) de la base y de las fotos, y conserva los últimos **14 días**. Quedan en
+la carpeta `respaldos/` del proyecto, en el servidor:
+
+```
+respaldos/db_2026-10-30_0200.dump          ← la base (pg_dump, formato custom)
+respaldos/uploads_2026-10-30_0200.tar.gz   ← fotos de ítems y logos
+```
+
+La hora y los días se cambian con `RESPALDO_HORA` y `RESPALDO_DIAS` en el
+`.env` (y `up -d` para que tome el cambio).
+
+**Hacer un respaldo YA** (antes de actualizar, antes de un `down -v`…):
+```bash
+docker compose -f docker-compose.prod.yml run --rm respaldos ahora
+```
+
+**Ver que esté funcionando:**
+```bash
+docker compose -f docker-compose.prod.yml logs respaldos
+ls -lh respaldos/
+```
+
+> ⚠️ **Un respaldo en el mismo disco no protege de que se rompa el disco.**
+> Copiá la carpeta `respaldos/` a otra máquina con regularidad, por ejemplo
+> desde otra PC de la red:
+> `scp -r usuario@<ip-de-la-vm>:~/almacenes-iniaf/respaldos ./respaldos-almacenes`
+
+### Restaurar
+
+Esto **reemplaza** los datos actuales por los del respaldo. Con el sistema
+levantado:
+
+```bash
+# 1. Frenar el backend para que nadie escriba mientras tanto
+docker compose -f docker-compose.prod.yml stop backend
+
+# 2. La base (cambiar el nombre del archivo por el que se quiera restaurar)
+docker compose -f docker-compose.prod.yml run --rm --entrypoint sh respaldos -c \
+  'pg_restore -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner /respaldos/db_2026-10-30_0200.dump'
+
+# 3. Las fotos (el volumen se monta escribible solo para esto)
+docker compose -f docker-compose.prod.yml run --rm --entrypoint sh \
+  -v almacenes-iniaf_uploads_data:/destino respaldos -c \
+  'rm -rf /destino/* && tar -xzf /respaldos/uploads_2026-10-30_0200.tar.gz -C /destino'
+
+# 4. Volver a levantar el backend
+docker compose -f docker-compose.prod.yml start backend
+```
+
+El nombre del volumen (`almacenes-iniaf_uploads_data`) es el de la carpeta del
+proyecto + `_uploads_data`; se confirma con `docker volume ls`.

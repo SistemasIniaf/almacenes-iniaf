@@ -11,6 +11,7 @@ import {
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
+import { CambiarClaveDto } from './dto/cambiar-clave.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
@@ -48,5 +49,15 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.perfil(user.id);
+  }
+
+  /** Cambia la contraseña del usuario autenticado (cualquier rol). */
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('cambiar-clave')
+  cambiarClave(
+    @Body() dto: CambiarClaveDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.authService.cambiarClave(user.id, dto);
   }
 }

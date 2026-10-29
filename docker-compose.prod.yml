@@ -43,6 +43,28 @@ services:
       postgres:
         condition: service_healthy
 
+  # Respaldo diario de la base y de las fotos en `./respaldos/` del servidor
+  # (ver tools/respaldos/respaldar.sh y docs/despliegue-demo.md). Misma imagen
+  # que `postgres`: pg_dump tiene que ser de la misma version que el servidor.
+  # Las fotos se montan en SOLO LECTURA: el respaldo nunca las toca.
+  respaldos:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    entrypoint: ["sh", "/respaldar.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      RESPALDO_HORA: ${RESPALDO_HORA:-02}
+      RESPALDO_DIAS: ${RESPALDO_DIAS:-14}
+    volumes:
+      - ./tools/respaldos/respaldar.sh:/respaldar.sh:ro
+      - ./respaldos:/respaldos
+      - uploads_data:/uploads:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   frontend:
     build: ./frontend
     restart: unless-stopped

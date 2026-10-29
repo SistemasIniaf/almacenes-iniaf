@@ -16,3 +16,11 @@ export async function me(): Promise<AuthUser> {
   const { data } = await api.get<AuthUser>("/auth/me")
   return data
 }
+
+/** Cambia la contraseña del usuario logueado. La actual mal responde 400. */
+export async function cambiarClave(payload: {
+  actual: string
+  nueva: string
+}): Promise<void> {
+  await api.post("/auth/cambiar-clave", payload)
+}

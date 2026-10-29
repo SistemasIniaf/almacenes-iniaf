@@ -1,0 +1,3 @@
+# Los scripts de shell corren dentro de contenedores Linux: con CRLF (lo que
+# deja autocrlf en Windows) sh falla con «not found» en cada linea.
+*.sh text eol=lf
