@@ -148,6 +148,13 @@ docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml exec backend pnpm prisma migrate deploy
 ```
 
+**Mirar la base con Navicat / pgAdmin** (desde tu PC): Postgres está publicado
+solo en `127.0.0.1:5432` de la VM —NO hacia la red—, así que se entra por
+**túnel SSH**. En la pestaña SSH: IP de la VM, puerto 22 y tu usuario de Linux.
+En General: host `localhost`, puerto `5432`, y base/usuario/contraseña los
+`POSTGRES_*` del `.env`. No abras el 5432 en el firewall: no hace falta. Y
+no edites datos a mano (saldos, movimientos): el kardex deja de cuadrar.
+
 **Apagar todo** (sin perder datos — los volúmenes quedan):
 ```bash
 docker compose -f docker-compose.prod.yml down

@@ -1,13 +1,19 @@
 # Despliegue de produccion/demo. Variables sensibles en `.env` (raiz, NO
 # versionado — copiar de `.env.prod.example`); docker compose lo carga solo.
 #
-# Unico puerto publicado al exterior: 80 (frontend). El backend NO se expone
+# Unico puerto publicado al exterior: 80 (frontend). Postgres se publica solo
+# en 127.0.0.1 (para el tunel SSH), no hacia la red. El backend NO se expone
 # al host, solo nginx le habla por la red interna de Compose (ver
 # `frontend/nginx.conf`). Ver `docs/despliegue-demo.md` para el paso a paso.
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    # Solo en el localhost del servidor, NUNCA hacia la red: para mirar la
+    # base con Navicat/pgAdmin a traves de un tunel SSH (ver
+    # `docs/despliegue-demo.md`). Sin el 127.0.0.1 quedaria abierta a todos.
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
