@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { conDecimalesMinimos } from "@/lib/formato"
+
 import type {
   CreateIngresoPayload,
   Ingreso,
@@ -78,7 +80,8 @@ export const ingresoSchema = z
     // Opcionales, igual que en el backend: hay material que entra sin factura
     // (donaciones, transferencias) — ver docs/decisiones-ingresos.md, punto 4.
     numeroFactura: z.string().trim().max(50),
-    observacion: z.string().trim().max(500),
+    // Obligatoria (2026-10-30): dice de qué fue la compra en el listado y el reporte.
+    observacion: z.string().trim().min(1, "Ingresá la observación").max(500),
     proveedorId: z.string().min(1, "Elegí un proveedor"),
     fuenteFinanciamientoId: z
       .string()
@@ -168,8 +171,9 @@ export function aPayload(
 }
 
 /**
- * Payload de EDICIÓN: la cabecera documental. No manda líneas, almacén, fuente
- * ni fecha de remisión — esos no se editan (se anula y se re-registra).
+ * Payload de EDICIÓN: la cabecera documental. No manda líneas, almacén ni
+ * fuente — esos no se editan (se anula y se re-registra). La fecha de remisión SÍ
+ * viaja: es solo la del documento del proveedor y no toca stock ni correlativo.
  *
  * `fechaIngreso` solo viaja si `incluirFecha` (super_admin): el backend responde
  * 403 si la manda cualquier otro rol, así que mandarla siempre rompería la
@@ -182,6 +186,10 @@ export function aPayloadEdicion(
   return {
     ...(opciones?.incluirFecha && v.fechaIngreso
       ? { fechaIngreso: aIso(v.fechaIngreso) as string }
+      : {}),
+    // Solo si tiene valor: vacía borraría un respaldo obligatorio.
+    ...(v.fechaRemision
+      ? { fechaRemision: aIso(v.fechaRemision) as string }
       : {}),
     notaRemision: v.notaRemision,
     procesoC31: v.procesoC31,
@@ -219,7 +227,8 @@ export function desdeIngreso(ing: Ingreso): IngresoFormValues {
     detalles: ing.detalles.map((d) => ({
       itemId: String(d.itemId),
       cantidad: d.cantidad,
-      precioUnitario: d.precioUnitario,
+      // Llega de un Decimal(12,5) como "100.00000": se muestra como al tipearlo.
+      precioUnitario: conDecimalesMinimos(d.precioUnitario, 2),
       observacion: d.observacion ?? "",
     })),
   }

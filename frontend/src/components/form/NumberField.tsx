@@ -1,5 +1,6 @@
 import { Controller } from "react-hook-form"
 
+import { conDecimalesMinimos } from "@/lib/formato"
 import { cn } from "@/lib/utils"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -20,6 +21,11 @@ interface NumberFieldProps<T extends FieldValues> {
   min?: number
   /** Oculta el label (útil dentro de una tabla de líneas). */
   hideLabel?: boolean
+  /**
+   * Al salir del campo completa hasta esta cantidad de decimales (`100` →
+   * `100.00`), sin recortar los que ya tenga. Para importes y precios.
+   */
+  decimalesMinimos?: number
 }
 
 /**
@@ -39,6 +45,7 @@ export function NumberField<T extends FieldValues>({
   step = "any",
   min,
   hideLabel = false,
+  decimalesMinimos,
 }: NumberFieldProps<T>) {
   return (
     <Controller
@@ -66,6 +73,16 @@ export function NumberField<T extends FieldValues>({
             // Evita que la rueda del mouse suba/baje el número al hacer scroll
             // sobre el campo enfocado: lo desenfoca y deja pasar el scroll.
             onWheel={(e) => e.currentTarget.blur()}
+            onBlur={() => {
+              if (decimalesMinimos != null && typeof field.value === "string") {
+                const completo = conDecimalesMinimos(
+                  field.value,
+                  decimalesMinimos
+                )
+                if (completo !== field.value) field.onChange(completo)
+              }
+              field.onBlur()
+            }}
           />
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>

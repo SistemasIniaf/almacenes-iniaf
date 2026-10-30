@@ -192,6 +192,7 @@ export interface UpdateIngresoPayload {
   /** Corrección de la fecha con efecto contable. El backend la acepta SOLO de
    * `super_admin`; para el resto responde 403. */
   fechaIngreso?: string
+  fechaRemision?: string
   notaRemision?: string
   procesoC31?: string
   certificacion?: string

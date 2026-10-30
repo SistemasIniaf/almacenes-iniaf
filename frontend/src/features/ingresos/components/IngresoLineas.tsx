@@ -343,6 +343,7 @@ export function IngresoLineas({
                     step="0.00001"
                     min={0}
                     placeholder="0.00"
+                    decimalesMinimos={2}
                     disabled={disabled}
                   />
                   {/* Subtotal (derivado). El `pr-7` le deja lugar a la «X» de la

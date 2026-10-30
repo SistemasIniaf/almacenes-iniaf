@@ -219,6 +219,15 @@ export class UsuariosService {
       throw new ForbiddenException('No podés desactivar tu propia cuenta.');
     }
 
+    // El super_admin es unico y el unico que gestiona usuarios: si su cuenta
+    // pasara a otro rol, nadie podria crear otro (2026-10-30, pedido del
+    // usuario). Mismo razonamiento que no poder desactivarse.
+    if (existente.rol === Rol.super_admin && rolFinal !== Rol.super_admin) {
+      throw new ForbiddenException(
+        'El rol del super administrador no se puede cambiar.',
+      );
+    }
+
     if (dto.usuario && dto.usuario !== existente.usuario) {
       await this.validarUsernameLibre(dto.usuario);
     }

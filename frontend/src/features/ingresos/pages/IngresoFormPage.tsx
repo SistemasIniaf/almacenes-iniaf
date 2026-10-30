@@ -117,8 +117,9 @@ export function IngresoFormPage() {
 
   const estado = ingreso?.estado
   const anulado = !esNuevo && estado === "ANULADO"
-  // Los campos que tocan stock / correlativo (líneas, fecha de remisión, fuente,
-  // almacén) se editan SOLO al crear; registrado el ingreso, quedan fijos.
+  // Los campos que tocan stock (líneas, fuente, almacén) se editan SOLO al
+  // crear; registrado el ingreso, quedan fijos. La fecha de remisión no está
+  // acá: es la del documento del proveedor y no gobierna nada.
   const bloqueoStock = !esNuevo
   // La cabecera documental (factura, respaldos, proveedor, solicitante, unidad)
   // se puede editar mientras el ingreso esté vigente (no anulado).
@@ -149,10 +150,10 @@ export function IngresoFormPage() {
     try {
       if (esNuevo) {
         // Registro definitivo: el backend estampa número, crea lotes y Kardex.
-        const creado = await crear.mutateAsync(
-          aPayload(v, { incluirAlmacen: !esResponsable })
-        )
-        navigate(`/ingresos/${creado.id}`)
+        await crear.mutateAsync(aPayload(v, { incluirAlmacen: !esResponsable }))
+        // Al listado, como el egreso: el ingreso nuevo queda arriba de todo y
+        // el toast dice qué número recibió (2026-10-30, pedido del usuario).
+        navigate("/ingresos")
       } else {
         // Edición: solo la cabecera documental (no toca líneas ni stock).
         await actualizar.mutateAsync({
@@ -259,9 +260,9 @@ export function IngresoFormPage() {
       {!esNuevo && estado === "CONFIRMADO" && (
         <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
           Este ingreso ya impactó el stock. Solo se edita la cabecera (factura,
-          respaldos, proveedor, solicitante y unidad). Para corregir ítems,
-          cantidades, precios, fuente o la fecha de remisión, anulá el ingreso y
-          registralo de nuevo.
+          respaldos, fechas, proveedor, solicitante y unidad). Para corregir
+          ítems, cantidades, precios o fuente, anulá el ingreso y registralo de
+          nuevo.
         </div>
       )}
 
@@ -339,7 +340,8 @@ export function IngresoFormPage() {
                 control={control}
                 required
                 placeholder="Elija la fecha"
-                disabled={bloqueoStock}
+                // Editable aun confirmado: no gobierna stock ni correlativo.
+                disabled={bloqueoCabecera}
               />
             </div>
 
@@ -494,7 +496,7 @@ export function IngresoFormPage() {
                 name="observacion"
                 label="Observación"
                 control={control}
-                required={false}
+                required
                 rows={2}
                 disabled={bloqueoCabecera}
               />

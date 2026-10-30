@@ -842,6 +842,9 @@ export class IngresosService {
     if (dto.responsableConformidadId == null)
       faltan.push('responsable / comisión de recepción');
     if (dto.unidadSolicitanteId == null) faltan.push('unidad solicitante');
+    // Obligatoria desde el 2026-10-30 (pedido del usuario): es lo que dice de
+    // qué fue la compra en el listado y en el registro de ingresos.
+    if (!dto.observacion?.trim()) faltan.push('observación');
     if (!dto.detalles || dto.detalles.length === 0)
       faltan.push('al menos un ítem');
     if (faltan.length > 0) {

@@ -98,6 +98,10 @@ export function UsuarioFormDialog({
   // Nadie puede desactivarse a si mismo: usado para bloquear el checkbox
   // Activo cuando el super_admin edita su propia cuenta.
   const editandoPropiaCuenta = usuario !== null && usuario.id === actor?.id
+  // El rol del super_admin no se cambia (el backend lo rechaza): es único y el
+  // único que gestiona usuarios, así que pasarlo a otro rol dejaría al sistema
+  // sin nadie que pueda reponerlo.
+  const rolFijo = usuario?.rol === "super_admin"
 
   const { control, handleSubmit, reset } = useForm<UsuarioFormValues>({
     resolver: zodResolver(usuarioSchema(esEdicion)),
@@ -186,7 +190,12 @@ export function UsuarioFormDialog({
               control={control}
               options={opcionesRol}
               placeholder="Seleccioná un rol"
-              disabled={guardando}
+              disabled={guardando || rolFijo}
+              description={
+                rolFijo
+                  ? "El rol del super administrador no se puede cambiar."
+                  : undefined
+              }
             />
 
             {requiereAlmacen(rol) && (

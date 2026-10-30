@@ -44,6 +44,21 @@ export const precio = (valor: string | number): string =>
   })
 
 /**
+ * El mismo criterio que `precio`, pero para el VALOR de un campo `<input
+ * type="number">` (punto decimal, sin miles): piso de `minimos` decimales y
+ * sin ceros de relleno más allá. `"100"` → `"100.00"` · `"25.50000"` →
+ * `"25.50"` · `"0.00125"` queda igual. Vacío o inválido se devuelve tal cual,
+ * para que lo marque el schema.
+ */
+export const conDecimalesMinimos = (valor: string, minimos: number): string => {
+  const texto = valor.trim()
+  const numero = Number(texto)
+  if (texto === "" || !Number.isFinite(numero)) return valor
+  const decimales = (texto.split(".")[1] ?? "").replace(/0+$/, "").length
+  return numero.toFixed(Math.max(minimos, decimales))
+}
+
+/**
  * Separador entre el correlativo y la gestión: **guion**, no barra
  * (2026-08-07, pedido de la institución).
  *

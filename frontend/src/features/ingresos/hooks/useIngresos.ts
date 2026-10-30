@@ -15,6 +15,7 @@ import {
 } from "@/features/ingresos/ingresos.api"
 import { obtenerAlmacen } from "@/features/almacenes/almacenes.api"
 import { listarSolicitadores } from "@/features/usuarios/usuarios.api"
+import { etiquetaNumero } from "@/features/ingresos/ingresos.types"
 import { getApiErrorMessage } from "@/lib/api"
 
 import type {
@@ -54,9 +55,9 @@ export function useCrearIngreso() {
   const invalidar = useInvalidarIngresos()
   return useMutation({
     mutationFn: (payload: CreateIngresoPayload) => crearIngreso(payload),
-    onSuccess: () => {
+    onSuccess: (creado) => {
       invalidar()
-      toast.success("Ingreso registrado")
+      toast.success(`Ingreso ${etiquetaNumero(creado)} registrado`)
     },
     // El backend lista lo que falta si no se puede registrar.
     onError: (error) => toast.error(getApiErrorMessage(error)),

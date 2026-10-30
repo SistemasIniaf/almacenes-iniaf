@@ -325,13 +325,13 @@ export async function definicionNotaIngreso(
     margin: [0, 6, 0, 0],
   }
 
-  // Antecedentes y firmas en un solo recuadro, como el reporte anterior: el
+  // Observación y firmas en un solo recuadro, como el reporte anterior: el
   // texto arriba, espacio en blanco para firmar y sellar, y los cargos abajo.
-  const antecedentes: Content = {
+  const observacionYFirmas: Content = {
     table: {
       widths: ["*"],
       body: [
-        [{ text: "ANTECEDENTES:", bold: true, fontSize: 7 }],
+        [{ text: "OBSERVACIÓN:", bold: true, fontSize: 7 }],
         [{ text: ingreso.observacion ?? " " }],
         [
           {
@@ -359,36 +359,47 @@ export async function definicionNotaIngreso(
     margin: [0, 8, 0, 0],
   }
 
+  // El motivo va en un recuadro propio, con el mismo rótulo que la
+  // observación y ANTES de ella: en una línea suelta al pie se perdía
+  // (2026-10-30, pedido del usuario). Quién y cuándo va debajo, en chico.
   const avisoAnulacion: Content[] = anulado
     ? [
         {
           table: {
             widths: ["*"],
             body: [
+              [{ text: "MOTIVO DE LA ANULACIÓN:", bold: true, fontSize: 7 }],
+              [
+                {
+                  text: ingreso.motivoAnulacion || "—",
+                  bold: true,
+                  fontSize: 9,
+                },
+              ],
               [
                 {
                   text: [
-                    { text: "ANULADO", bold: true },
+                    "Anulado",
                     ingreso.anuladoPor
                       ? ` por ${ingreso.anuladoPor.nombre}`
                       : "",
                     ingreso.anuladoEn
                       ? ` el ${fechaHora(ingreso.anuladoEn)}`
                       : "",
-                    ingreso.motivoAnulacion
-                      ? `. Motivo: ${ingreso.motivoAnulacion}`
-                      : "",
                   ],
+                  fontSize: 7,
+                  color: "#444444",
                 },
               ],
             ],
           },
           layout: {
-            hLineWidth: () => 0.8,
+            hLineWidth: (fila: number) => (fila === 2 ? 0 : 0.8),
             vLineWidth: () => 0.8,
             hLineColor: () => "#000000",
             vLineColor: () => "#000000",
           },
+          unbreakable: true,
           margin: [0, 8, 0, 0],
         },
       ]
@@ -434,8 +445,8 @@ export async function definicionNotaIngreso(
       datos,
       detalle,
       literal,
-      antecedentes,
       ...avisoAnulacion,
+      observacionYFirmas,
     ],
     footer: (paginaActual, totalPaginas) => ({
       columns: [
