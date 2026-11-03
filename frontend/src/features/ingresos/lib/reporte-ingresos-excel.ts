@@ -4,6 +4,7 @@ import {
   datosCabeceraExcel,
   descargarExcel,
   estiloEncabezado,
+  FORMATO_ANULADO,
   FUENTE_EXCEL,
   membreteExcel,
   prepararImpresion,
@@ -25,7 +26,8 @@ import type { DatosReporteIngresos } from "@/features/ingresos/lib/reporte-ingre
  * - los anulados se marcan en gris y con una columna ESTADO propia. En el papel
  *   se distinguen por el importe entre paréntesis —convención contable—, pero
  *   acá eso convertiría la celda en texto y rompería lo primero. El paréntesis
- *   se consigue igual con el FORMATO de número, que deja el valor intacto.
+ *   se consigue igual con el FORMATO de número, que deja el valor intacto, y el
+ *   total los excluye con un SUMIF sobre la columna ESTADO.
  */
 
 /** `YYYY-MM-DD` a Date local, sin que la zona horaria corra el día. */
@@ -34,7 +36,7 @@ const fechaIso = (iso: string) => {
   return new Date(anio, mes - 1, dia)
 }
 
-/** Formato contable: los negativos/anulados entre paréntesis y en gris. */
+/** Formato de los importes confirmados. */
 const FORMATO_MONEDA = "#,##0.00;[Red]-#,##0.00"
 
 export function nombreArchivoExcelIngresos(
@@ -109,10 +111,9 @@ export async function crearReporteIngresosExcel(datos: DatosReporteIngresos) {
       ...(conAlmacen ? [fila.almacen.nombre] : []),
       fila.observacion ?? "",
       esAnulado ? "ANULADO" : "CONFIRMADO",
-      // El anulado va en NEGATIVO para que el formato lo muestre entre
-      // paréntesis y, sobre todo, para que sumar la columna entera dé el total
-      // real: lo anulado se cancela solo.
-      esAnulado ? -monto : monto,
+      // Positivo también el anulado: lo deja afuera el SUMIF del total, y el
+      // paréntesis lo pone el formato (FORMATO_ANULADO).
+      monto,
     ]
 
     for (let col = 1; col <= columnas.length; col += 1) {
@@ -129,7 +130,9 @@ export async function crearReporteIngresosExcel(datos: DatosReporteIngresos) {
     renglon.getCell(3).alignment = { horizontal: "center" }
     renglon.getCell(3).numFmt = "dd/mm/yyyy"
     renglon.getCell(columnas.length - 1).alignment = { horizontal: "center" }
-    renglon.getCell(columnas.length).numFmt = FORMATO_MONEDA
+    renglon.getCell(columnas.length).numFmt = esAnulado
+      ? FORMATO_ANULADO
+      : FORMATO_MONEDA
   })
 
   // Total general
@@ -143,15 +146,18 @@ export async function crearReporteIngresosExcel(datos: DatosReporteIngresos) {
   etiqueta.border = BORDE_TABLA
 
   const celdaTotal = renglonTotal.getCell(columnas.length)
-  // Fórmula y no el número calculado: si alguien filtra o corrige una fila, el
-  // total la sigue. Se deja el `result` para que se vea sin abrir con Excel.
+  // Fórmula y no el número calculado: si alguien corrige una fila, el total la
+  // sigue. SUMIF y no SUM: los anulados están en la columna pero no suman.
+  // Se deja el `result` para que se vea sin abrir con Excel.
   const primera = filaEncabezado + 1
   const ultima = filaEncabezado + filas.length
+  const importes = hoja.getColumn(columnas.length).letter
+  const estados = hoja.getColumn(columnas.length - 1).letter
   celdaTotal.value =
     filas.length > 0
       ? {
-          formula: `SUM(${hoja.getColumn(columnas.length).letter}${primera}:${hoja.getColumn(columnas.length).letter}${ultima})`,
-          result: total - montoAnulado,
+          formula: `SUMIF(${estados}${primera}:${estados}${ultima},"<>ANULADO",${importes}${primera}:${importes}${ultima})`,
+          result: total,
         }
       : 0
   celdaTotal.numFmt = FORMATO_MONEDA

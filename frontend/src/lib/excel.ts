@@ -201,6 +201,13 @@ export const BORDE_TABLA = {
 
 /** Formatos de número de Excel, espejo de los de `lib/formato.ts`. */
 export const FORMATO_MONEDA = "#,##0.00;[Red]-#,##0.00"
+/**
+ * Importe de un ANULADO: entre paréntesis, como en el PDF, pero con el valor
+ * POSITIVO. Guardarlo en negativo hacía que la suma de la columna lo RESTARA de
+ * los confirmados en vez de dejarlo afuera; el total va con `SUMIF` sobre la
+ * columna Estado.
+ */
+export const FORMATO_ANULADO = '"("#,##0.00")"'
 /** Precio unitario: 2 decimales de piso y hasta 5, sin ceros de relleno. */
 export const FORMATO_PRECIO = "#,##0.00###"
 export const FORMATO_FECHA = "dd/mm/yyyy"

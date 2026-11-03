@@ -3,6 +3,7 @@ import {
   crearTabla,
   datosCabeceraExcel,
   descargarExcel,
+  FORMATO_ANULADO,
   FORMATO_FECHA,
   FORMATO_MONEDA,
   membreteExcel,
@@ -18,9 +19,10 @@ import type { DatosReporteEgresos } from "@/features/egresos/lib/reporte-egresos
  * El «Registro de egresos» del PDF, en Excel. Ver `lib/excel.ts` para lo que
  * cambia entre los dos formatos (números de verdad, autofiltro, panel congelado).
  *
- * Los ANULADOS se guardan en NEGATIVO, igual que en el de ingresos: el formato
- * contable los muestra entre paréntesis y, sobre todo, sumar la columna entera
- * da el total real porque se cancelan solos.
+ * Los ANULADOS van con su importe POSITIVO y entre paréntesis por formato
+ * (`FORMATO_ANULADO`), igual que en el de ingresos, y el total los deja afuera
+ * con un SUMIF sobre la columna Estado. Se guardaban en negativo, y entonces la
+ * suma los RESTABA de los entregados en vez de ignorarlos.
  */
 
 const fechaIso = (iso: string) => {
@@ -106,17 +108,24 @@ export async function crearReporteEgresosExcel(datos: DatosReporteEgresos) {
         fila.solicitante.nombre,
         fila.justificacion,
         ESTADO_LABEL[fila.estado],
-        esAnulado ? -monto : monto,
+        monto,
       ],
       { gris: esAnulado }
     )
+    if (esAnulado) {
+      hoja.getRow(filaEncabezado + 1 + indice).getCell(columnas.length).numFmt =
+        FORMATO_ANULADO
+    }
   })
 
   if (filas.length > 0) {
-    const letra = hoja.getColumn(columnas.length).letter
-    tabla.resumen("TOTAL GENERAL Bs", total - montoAnulado, {
+    const primera = filaEncabezado + 1
+    const ultima = filaEncabezado + filas.length
+    const importes = hoja.getColumn(columnas.length).letter
+    const estados = hoja.getColumn(columnas.length - 1).letter
+    tabla.resumen("TOTAL GENERAL Bs", total, {
       destacado: true,
-      formula: `SUM(${letra}${filaEncabezado + 1}:${letra}${filaEncabezado + filas.length})`,
+      formula: `SUMIF(${estados}${primera}:${estados}${ultima},"<>${ESTADO_LABEL.ANULADO}",${importes}${primera}:${importes}${ultima})`,
     })
   }
 

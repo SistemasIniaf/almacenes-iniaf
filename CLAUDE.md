@@ -1432,8 +1432,10 @@ Tres cosas que **NO son olvidos**:
   manuales** (`rowBreaks`) para que cada bloque arranque en hoja nueva, como el PDF — saltos, no
   pestañas: un libro con cien pestañas sería peor que uno con cien páginas. (`rowBreaks` no está en
   los tipos de exceljs pero sí en su implementación, de ahí el cast.)
-- los **anulados se guardan en NEGATIVO** en los dos registros: el formato contable los muestra entre
-  paréntesis y así sumar la columna entera da el total real.
+- los **anulados van con su importe POSITIVO** en los dos registros, entre paréntesis por formato
+  (`FORMATO_ANULADO`), y el total es un **`SUMIF` sobre la columna Estado** que los deja afuera.
+  Hasta el 2026-11-03 se guardaban en negativo con un `SUM` de la columna entera: eso los RESTABA de
+  los confirmados (2.238,22 − 50 = 2.188,22) en vez de ignorarlos, y el Excel no cuadraba con el PDF.
 
 **En la UI el botón «Reporte» es un `DropdownMenu`** con las dos salidas —*PDF: para imprimir y
 archivar* · *Excel: mismo formato, con filtros y totales calculables*—, y el hook recibe un tercer
