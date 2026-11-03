@@ -452,6 +452,13 @@ emitidos antes.
     pintarlo del color del MODO —negro en oscuro, como la referencia original—: ahí se confunde con
     el fondo de la cabecera y no se ve, que era el problema del switch más viejo.
 
+**Sidebar oscuro en los DOS temas** (2026-11-03, pedido del usuario): en modo claro el sidebar
+era casi del mismo gris que la página y no resaltaba. Ahora los tokens `--sidebar-*` de `:root`
+(`index.css`) son el gris pizarra del modo oscuro, con texto blanco, y el ítem seleccionado sigue
+en el verde INIAF. Por eso `AppSidebar` muestra **siempre** el logo `INIAF_OSCURO` (letras
+blancas). Se probaron y descartaron: tinte menta + más contraste general, verde institucional con
+el seleccionado en blanco, y verde bosque oscuro.
+
 **Sidebar: sombras de scroll** (`components/ui/sidebar.tsx`, `SidebarContent`, 2026-09-29). En
 pantallas chicas el menú (`AppSidebar` → `NavMain`) no entra entero y hay que scrollearlo, pero la
 barra de scroll nativa no siempre se ve —en mobile aparece solo mientras se toca, y en Mac con

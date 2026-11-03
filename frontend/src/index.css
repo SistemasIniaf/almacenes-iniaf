@@ -80,14 +80,18 @@
     --chart-4: oklch(0.508 0.118 165.612);
     --chart-5: oklch(0.432 0.095 166.913);
     --radius: 0.625rem;
-    --sidebar: oklch(0.987 0.002 197.1);
-    --sidebar-foreground: oklch(0.148 0.004 228.8);
+    /* El sidebar es OSCURO también en modo claro (2026-11-03, pedido del
+       usuario): el gris pizarra del modo oscuro, con texto blanco. Claro y del
+       mismo gris que la página no se distinguía del contenido. El ítem
+       seleccionado sigue en el verde INIAF (`CLASE_ACTIVO` de NavMain). */
+    --sidebar: oklch(0.218 0.008 223.9);
+    --sidebar-foreground: oklch(0.987 0.002 197.1);
     --sidebar-primary: oklch(0.596 0.145 163.225);
     --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
-    --sidebar-accent: oklch(0.963 0.002 197.1);
-    --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
-    --sidebar-border: oklch(0.925 0.005 214.3);
-    --sidebar-ring: oklch(0.723 0.014 214.4);
+    --sidebar-accent: oklch(0.275 0.011 216.9);
+    --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
+    --sidebar-border: oklch(0.3 0.01 220);
+    --sidebar-ring: oklch(0.56 0.021 213.5);
 }
 
 .dark {
