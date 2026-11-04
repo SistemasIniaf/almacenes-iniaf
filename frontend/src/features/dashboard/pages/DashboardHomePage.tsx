@@ -109,6 +109,12 @@ export function DashboardHomePage() {
 
   const rol = user?.rol
   const esSolicitador = rol === "solicitador"
+  // Misma regla que el listado de egresos: quien ve varios almacenes necesita
+  // la columna, porque cada almacén numera sus pedidos por separado y sin ella
+  // se ven dos «001» iguales.
+  const veVariosAlmacenes =
+    rol === "super_admin" || rol === "admin" || rol === "observador_almacen"
+  const columnas = 5 + (esSolicitador ? 0 : 1) + (veVariosAlmacenes ? 1 : 0)
   const esAprobador = rol === "aprobador"
   const esResponsable = rol === "responsable_almacen"
   // Los dos roles que deciden algo: su tabla es la bandeja, no el histórico.
@@ -278,6 +284,7 @@ export function DashboardHomePage() {
               <TableRow>
                 <TableHead className="pl-6">Nº</TableHead>
                 <TableHead>Fecha</TableHead>
+                {veVariosAlmacenes && <TableHead>Almacén</TableHead>}
                 {!esSolicitador && <TableHead>Solicitante</TableHead>}
                 <TableHead>Justificación</TableHead>
                 <TableHead className="text-center">Ítems</TableHead>
@@ -288,20 +295,18 @@ export function DashboardHomePage() {
               {isPending &&
                 Array.from({ length: 3 }).map((_, fila) => (
                   <TableRow key={fila}>
-                    {Array.from({ length: esSolicitador ? 5 : 6 }).map(
-                      (__, celda) => (
-                        <TableCell key={celda}>
-                          <Skeleton className="h-5 w-full" />
-                        </TableCell>
-                      )
-                    )}
+                    {Array.from({ length: columnas }).map((__, celda) => (
+                      <TableCell key={celda}>
+                        <Skeleton className="h-5 w-full" />
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))}
 
               {isError && (
                 <TableRow>
                   <TableCell
-                    colSpan={esSolicitador ? 5 : 6}
+                    colSpan={columnas}
                     className="py-8 text-center text-sm text-destructive"
                   >
                     {getApiErrorMessage(
@@ -315,7 +320,7 @@ export function DashboardHomePage() {
               {!isPending && !isError && pedidos.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={esSolicitador ? 5 : 6}
+                    colSpan={columnas}
                     className="py-8 text-center text-sm text-muted-foreground"
                   >
                     {tablaVacia}
@@ -339,6 +344,11 @@ export function DashboardHomePage() {
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       {fecha(pedido.fechaEnvio ?? pedido.createdAt)}
                     </TableCell>
+                    {veVariosAlmacenes && (
+                      <TableCell className="whitespace-nowrap text-muted-foreground">
+                        {pedido.almacen.nombre}
+                      </TableCell>
+                    )}
                     {!esSolicitador && (
                       <TableCell>{pedido.solicitante.nombre}</TableCell>
                     )}

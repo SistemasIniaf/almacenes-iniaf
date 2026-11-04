@@ -6,6 +6,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaClient } from '../src/generated/prisma/client';
+import { FUENTES_INIAF } from './data/fuentes-iniaf';
 import { UNIDADES_INIAF } from './data/unidades-iniaf';
 
 /**
@@ -195,9 +196,29 @@ async function sembrarUnidades() {
   );
 }
 
+/**
+ * Fuentes de financiamiento del INIAF. Idempotente (upsert por nombre) y SIN
+ * pisar nada: una fuente que ya existe queda como está, así no se reactiva una
+ * que la institución dio de baja a propósito.
+ */
+async function sembrarFuentes() {
+  for (const nombre of FUENTES_INIAF) {
+    await prisma.fuenteFinanciamiento.upsert({
+      where: { nombre },
+      create: { nombre },
+      update: {},
+    });
+  }
+
+  console.log(
+    `✅ ${FUENTES_INIAF.length} fuentes de financiamiento sembradas.`,
+  );
+}
+
 async function main() {
   await sembrarSuperAdmin();
   await sembrarUnidades();
+  await sembrarFuentes();
 
   if (!existsSync(CSV_PATH)) {
     throw new Error(

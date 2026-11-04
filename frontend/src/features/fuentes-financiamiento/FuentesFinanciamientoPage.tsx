@@ -100,7 +100,7 @@ export function FuentesFinanciamientoPage() {
   }
 
   const fuentes = data?.data ?? []
-  const columnas = puedeEscribir ? 4 : 3
+  const columnas = puedeEscribir ? 3 : 2
 
   return (
     <div className="flex flex-col gap-4">
@@ -131,7 +131,7 @@ export function FuentesFinanciamientoPage() {
             onChange={(event) =>
               cambiarFiltro(() => setBusqueda(event.target.value))
             }
-            placeholder="Buscar por nombre o código..."
+            placeholder="Buscar por nombre..."
             className="pl-9"
             aria-label="Buscar fuentes de financiamiento"
           />
@@ -159,7 +159,6 @@ export function FuentesFinanciamientoPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Código</TableHead>
               <TableHead>Estado</TableHead>
               {puedeEscribir && (
                 <TableHead className="text-right">Acciones</TableHead>
@@ -209,10 +208,6 @@ export function FuentesFinanciamientoPage() {
               fuentes.map((fuente) => (
                 <TableRow key={fuente.id}>
                   <TableCell className="font-medium">{fuente.nombre}</TableCell>
-                  {/* El codigo es opcional: puede venir null. */}
-                  <TableCell className="text-muted-foreground">
-                    {fuente.codigo ?? "—"}
-                  </TableCell>
                   <TableCell>
                     <BadgeEstado tono={fuente.activo ? "ok" : "alto"}>
                       {fuente.activo ? "Activa" : "Inactiva"}

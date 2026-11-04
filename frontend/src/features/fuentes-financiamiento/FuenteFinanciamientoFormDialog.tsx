@@ -33,18 +33,7 @@ interface FuenteFinanciamientoFormDialogProps {
 
 const VALORES_INICIALES: FuenteFinanciamientoFormValues = {
   nombre: "",
-  codigo: "",
   activo: true,
-}
-
-/**
- * En CREATE el código vacío se OMITE: `CreateFuenteFinanciamientoDto` lo marca
- * con `@IsNotEmpty`, así que mandar "" da 400. En UPDATE, en cambio, "" es
- * justamente lo que limpia el campo (el service lo normaliza a null).
- */
-function soloConValor(texto: string): string | undefined {
-  const limpio = texto.trim()
-  return limpio === "" ? undefined : limpio
 }
 
 export function FuenteFinanciamientoFormDialog({
@@ -69,8 +58,6 @@ export function FuenteFinanciamientoFormDialog({
       fuente
         ? {
             nombre: fuente.nombre,
-            // El null del backend se muestra como campo vacio.
-            codigo: fuente.codigo ?? "",
             activo: fuente.activo,
           }
         : VALORES_INICIALES
@@ -79,18 +66,18 @@ export function FuenteFinanciamientoFormDialog({
 
   async function onSubmit(valores: FuenteFinanciamientoFormValues) {
     try {
+      // Sin código (2026-11-04, pedido del usuario): la fuente se identifica
+      // solo por el nombre. La columna sigue en la BD y el PATCH no la manda,
+      // así que los códigos ya cargados quedan como estaban.
       if (esEdicion) {
-        // Se manda tal cual: "" limpia el codigo.
         await actualizar.mutateAsync({
           id: fuente.id,
           nombre: valores.nombre,
-          codigo: valores.codigo,
           activo: valores.activo,
         })
       } else {
         await crear.mutateAsync({
           nombre: valores.nombre,
-          codigo: soloConValor(valores.codigo),
           activo: valores.activo,
         })
       }
@@ -123,16 +110,6 @@ export function FuenteFinanciamientoFormDialog({
               control={control}
               placeholder="Banco Mundial"
               description="No puede repetirse entre fuentes."
-              disabled={guardando}
-            />
-
-            <InputField
-              name="codigo"
-              label="Código"
-              control={control}
-              required={false}
-              placeholder="BM-2026"
-              description="Opcional. El que use el área financiera, si maneja uno."
               disabled={guardando}
             />
 
