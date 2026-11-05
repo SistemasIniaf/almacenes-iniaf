@@ -685,6 +685,10 @@ Notas propias de `items`:
 - `ImageField` **no es un campo de react-hook-form** como el resto de los `*Field`: la imagen usa
   endpoints propios y se aplica al instante, sin esperar al submit. Por eso recibe la URL actual
   y dos callbacks en vez de `control`/`name`.
+  Acepta clic, arrastrar y **pegar con Ctrl+V** (2026-11-05: un recorte de pantalla entra sin
+  guardarlo como archivo). El `paste` se escucha en el documento —nadie le da foco al recuadro
+  antes de pegar— y solo se lo apropia si trae una imagen. No hay botón «Pegar»:
+  `navigator.clipboard.read()` no existe en `http://<ip>`.
 - **Al crear se puede elegir la imagen**, aunque el endpoint necesite un id que todavía no existe:
   el archivo se guarda dentro del formulario (campo `archivo` del schema, así `reset()` lo limpia
   solo y no hace falta `useState`) y se sube en un segundo request después del POST. El

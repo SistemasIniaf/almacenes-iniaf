@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
 import { ImagePlus, Loader2, Trash2, ZoomIn } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,10 @@ interface ImageFieldProps {
  * (2026-10-20, pedido del usuario): era un cuadrado de 96 px recortado, y en un
  * ítem alargado —un bolígrafo— no se distinguía nada. Clic sobre la imagen la
  * amplía; sin imagen, el recuadro es la zona para elegirla o ARRASTRARLA.
+ *
+ * También se PEGA con Ctrl+V (2026-11-05, pedido del usuario): un recorte de
+ * pantalla (Win+Shift+S) o una imagen copiada del navegador entran directo, sin
+ * guardarlos antes como archivo. Ver `alPegar`.
  *
  * OJO: no es un campo de react-hook-form como el resto de los `*Field` — no
  * recibe `control`/`name`, sino el valor actual y dos callbacks.
@@ -115,6 +119,33 @@ export function ImageField({
 
   const abrirSelector = () => inputRef.current?.click()
 
+  /**
+   * Pegar con Ctrl+V. Se escucha en el DOCUMENTO y no en el recuadro: para que
+   * un elemento reciba `paste` tiene que tener el foco, y nadie hace clic en la
+   * imagen antes de pegar. Es seguro porque hay un solo ImageField por diálogo.
+   *
+   * Solo se apropia del pegado si el portapapeles trae una IMAGEN: pegar texto
+   * en la descripción sigue llegando al campo como siempre.
+   *
+   * Es el evento `paste` y NO `navigator.clipboard.read()` (que permitiría un
+   * botón «Pegar»): esa API no existe fuera de HTTPS, y la VM es http://<ip> —
+   * lo mismo que obligó a `lib/portapapeles.ts`.
+   */
+  const alPegar = useEffectEvent((evento: ClipboardEvent) => {
+    if (bloqueado) return
+    const archivo = Array.from(evento.clipboardData?.files ?? []).find((f) =>
+      f.type.startsWith("image/")
+    )
+    if (!archivo) return
+    evento.preventDefault()
+    elegir(archivo)
+  })
+
+  useEffect(() => {
+    document.addEventListener("paste", alPegar)
+    return () => document.removeEventListener("paste", alPegar)
+  }, [])
+
   return (
     <Field className="gap-2">
       <FieldLabel>{label}</FieldLabel>
@@ -170,7 +201,7 @@ export function ImageField({
               "Soltá la imagen acá"
             ) : (
               <>
-                Hacé clic o arrastrá una imagen acá
+                Hacé clic, arrastrá o pegá (Ctrl+V) una imagen acá
                 <span className="text-xs">JPG, PNG o WebP. Máx. 5 MB.</span>
               </>
             )}
@@ -205,7 +236,7 @@ export function ImageField({
             Quitar
           </Button>
           <span className="text-xs text-muted-foreground">
-            JPG, PNG o WebP. Máx. 5 MB.
+            También podés pegar con Ctrl+V. JPG, PNG o WebP. Máx. 5 MB.
           </span>
         </div>
       )}
