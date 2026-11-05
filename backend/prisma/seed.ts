@@ -6,6 +6,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaClient } from '../src/generated/prisma/client';
+import { opcionesConexion } from '../src/prisma/opciones-conexion';
 import { FUENTES_INIAF } from './data/fuentes-iniaf';
 import { UNIDADES_INIAF } from './data/unidades-iniaf';
 
@@ -35,9 +36,7 @@ interface FilaClasificador {
   denominacion: string;
 }
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL as string,
-});
+const adapter = new PrismaPg(opcionesConexion());
 const prisma = new PrismaClient({ adapter });
 
 /** nivel = 5 - ceros finales. 20000 -> 1, 21000 -> 2, 21100 -> 3, 21110 -> 4, 21111 -> 5. */

@@ -948,6 +948,19 @@ correlativo 001. El desfase va **fijo (UTC-4)** y no vía `TZ`, para que dev (Wi
 verano. **No volver a usar `getFullYear()` ni `Date.UTC` para fechas de negocio.** El frontend ya
 mandaba los días en hora local (`aIsoLocal`), así que ahora los dos lados coinciden.
 
+**Las columnas de fecha son `timestamptz` y la base está en `America/La_Paz`** (2026-11-05,
+migración `20261105160153_fechas_con_zona_horaria`, pedido del usuario por auditoría): antes eran
+`timestamp` sin zona y, al mirar la base con pgAdmin o psql, todo salía 4 horas adelantado. La
+migración es **a mano** (`USING col AT TIME ZONE 'UTC'` en cada columna: los valores ya eran UTC) y
+los instantes no cambiaron. Todo `DateTime` nuevo del schema lleva **`@db.Timestamptz(3)`**.
+⚠️ **La sesión de la APP sigue en UTC, y tiene que seguir así**: `@prisma/adapter-pg` lee un
+`timestamptz` tirando el desfase y poniéndole `+00:00` (`normalize_timestamptz`), así que en una
+sesión en hora de Bolivia todas las fechas volvían corridas 4 horas (se vio al probar). Lo fija
+`opcionesConexion()` (`src/prisma/opciones-conexion.ts`, `-c TimeZone=UTC`), que usan la app y los
+dos seeds: **un `new PrismaPg(...)` en otro lado tiene que usarla**. La zona de la base es solo para
+quien la mira a mano. `pg_dump` no la guarda: restaurando en un servidor nuevo, ver
+`docs/despliegue-demo.md`.
+
 **El ítem sigue siendo obligatorio en la PANTALLA** (confirmado con el usuario el 2026-08-04): el
 saldo corriente no significa nada mezclando ítems. El reporte es el que sale de todos — esa es la
 división de trabajo entre los dos, no un olvido.

@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaClient } from '../src/generated/prisma/client';
+import { opcionesConexion } from '../src/prisma/opciones-conexion';
 import { Rol } from '../src/generated/prisma/enums';
 
 /**
@@ -188,9 +189,7 @@ const usuarios: UsuarioDev[] = [
   },
 ];
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL as string,
-});
+const adapter = new PrismaPg(opcionesConexion());
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

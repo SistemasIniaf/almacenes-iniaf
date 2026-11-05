@@ -223,3 +223,13 @@ docker compose -f docker-compose.prod.yml start backend
 
 El nombre del volumen (`almacenes-iniaf_uploads_data`) es el de la carpeta del
 proyecto + `_uploads_data`; se confirma con `docker volume ls`.
+
+**Restaurando en un servidor NUEVO** (base recién creada, no la misma de
+siempre): el respaldo no lleva la zona horaria de la base —es configuración de
+la base, no un dato, y `pg_dump` no la guarda—, así que las fechas se verían en
+UTC al mirarla con psql. Al sistema no le afecta, pero para dejarla igual:
+
+```bash
+docker compose -f docker-compose.prod.yml exec postgres sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "ALTER DATABASE \"$POSTGRES_DB\" SET timezone TO '\''America/La_Paz'\''"'
+```

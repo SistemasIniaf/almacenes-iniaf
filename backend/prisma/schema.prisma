@@ -108,8 +108,8 @@ model Unidad {
   ingresosSolicitados Ingreso[]
   egresos             Egreso[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([padreId])
   @@index([grupo])
@@ -132,8 +132,8 @@ model Almacen {
   traspasosSalientes Traspaso[] @relation("TraspasoOrigen")
   traspasosEntrantes Traspaso[] @relation("TraspasoDestino")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("almacenes")
 }
@@ -207,8 +207,8 @@ model Usuario {
 
   traspasosRegistrados Traspaso[] @relation("TraspasoRegistradoPor")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([unidadId])
   @@index([almacenId])
@@ -224,7 +224,7 @@ model UsuarioAlmacenObservado {
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   almacen Almacen @relation(fields: [almacenId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@unique([usuarioId, almacenId])
   @@index([almacenId])
@@ -250,8 +250,8 @@ model Partida {
 
   items Item[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([padreId])
   @@map("partidas")
@@ -273,8 +273,8 @@ model Proveedor {
 
   ingresos Ingreso[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("proveedores")
 }
@@ -294,8 +294,8 @@ model FuenteFinanciamiento {
 
   ingresos Ingreso[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("fuentes_financiamiento")
 }
@@ -319,8 +319,8 @@ model Item {
   ingresoDetalles IngresoDetalle[]
   movimientos     MovimientoKardex[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([partidaId])
   @@map("items")
@@ -353,15 +353,15 @@ model Ingreso {
   ///     NO gobierna nada — antes de esta fecha definia la gestion y el kardex,
   ///     y un error de tipeo mandaba el ingreso a otra gestion.
   ///   - `createdAt`: cuando se registro. Auditoria, nunca se corrige.
-  fechaIngreso DateTime @map("fecha_ingreso")
+  fechaIngreso DateTime @map("fecha_ingreso") @db.Timestamptz(3)
 
   // Respaldos del documento (obligatorios; los valida el service al crear).
-  fechaRemision           DateTime? @map("fecha_remision")
+  fechaRemision           DateTime? @map("fecha_remision") @db.Timestamptz(3)
   notaRemision            String?   @map("nota_remision")
   procesoC31              String?   @map("proceso_c31")
   certificacion           String?
   informeConformidad      String?   @map("informe_conformidad")
-  fechaInformeConformidad DateTime? @map("fecha_informe_conformidad")
+  fechaInformeConformidad DateTime? @map("fecha_informe_conformidad") @db.Timestamptz(3)
   numeroFactura           String?   @map("numero_factura")
   observacion             String?
 
@@ -381,7 +381,7 @@ model Ingreso {
   // Anulacion (null salvo cuando se anula).
   anuladoPorId    Int?      @map("anulado_por_id")
   anuladoPor      Usuario?  @relation("IngresoAnuladoPor", fields: [anuladoPorId], references: [id])
-  anuladoEn       DateTime? @map("anulado_en")
+  anuladoEn       DateTime? @map("anulado_en") @db.Timestamptz(3)
   motivoAnulacion String?   @map("motivo_anulacion")
 
   detalles    IngresoDetalle[]
@@ -397,8 +397,8 @@ model Ingreso {
   traspasoId Int?      @map("traspaso_id")
   traspaso   Traspaso? @relation(fields: [traspasoId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   // Unico por almacen + gestion + numero (el correlativo no se repite).
   @@unique([almacenId, gestion, numero])
@@ -444,8 +444,8 @@ model IngresoDetalle {
   /// lote de origen: misma compra, mismo precio, misma fuente).
   traspasoEntrada TraspasoDetalle?  @relation("TraspasoLoteDestino")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([ingresoId])
   @@index([itemId])
@@ -487,10 +487,10 @@ model MovimientoKardex {
   traspaso   Traspaso? @relation(fields: [traspasoId], references: [id])
 
   /// Fecha del movimiento (la del documento; para el ingreso, su fechaRemision).
-  fecha  DateTime
+  fecha  DateTime @db.Timestamptz(3)
   motivo String?
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@index([itemId, almacenId])
   @@index([ingresoId])
@@ -540,9 +540,9 @@ model Egreso {
   /// anterior; su "categoria"/«Programa» se elimino. Obligatoria (300).
   justificacion String
 
-  reservaDesde DateTime  @default(now()) @map("reserva_desde")
-  fechaEnvio   DateTime? @map("fecha_envio")
-  fechaEntrega DateTime? @map("fecha_entrega")
+  reservaDesde DateTime  @default(now()) @map("reserva_desde") @db.Timestamptz(3)
+  fechaEnvio   DateTime? @map("fecha_envio") @db.Timestamptz(3)
+  fechaEntrega DateTime? @map("fecha_entrega") @db.Timestamptz(3)
 
   /// Quien entrego (responsable del almacen).
   entregadoPorId Int?     @map("entregado_por_id")
@@ -551,15 +551,15 @@ model Egreso {
   // Anulacion: mismas reglas que el Ingreso (motivo obligatorio, sin plazo).
   anuladoPorId    Int?      @map("anulado_por_id")
   anuladoPor      Usuario?  @relation("EgresoAnuladoPor", fields: [anuladoPorId], references: [id])
-  anuladoEn       DateTime? @map("anulado_en")
+  anuladoEn       DateTime? @map("anulado_en") @db.Timestamptz(3)
   motivoAnulacion String?   @map("motivo_anulacion")
 
   detalles    EgresoDetalle[]
   historial   EgresoHistorial[]
   movimientos MovimientoKardex[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@unique([almacenId, gestion, numero])
   @@index([almacenId])
@@ -596,8 +596,8 @@ model EgresoDetalle {
 
   movimientos MovimientoKardex[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([egresoId])
   // Lo consulta el calculo de stock reservado (cuanto hay pedido de este lote).
@@ -627,7 +627,7 @@ model EgresoHistorial {
   /// Obligatorio al rechazar y al anular (lo exige el service).
   motivo String?
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@index([egresoId])
   @@map("egreso_historial")
@@ -649,8 +649,8 @@ model LogoInstitucional {
   actualizadoPorId Int?     @map("actualizado_por_id")
   actualizadoPor   Usuario? @relation("LogoActualizadoPor", fields: [actualizadoPorId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("logos_institucionales")
 }
@@ -671,7 +671,7 @@ model LogoVersion {
 
   vigenteEn LogoInstitucional?
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@index([clave])
   @@map("logo_versiones")
@@ -691,8 +691,8 @@ model ConfiguracionSistema {
   actualizadoPorId Int?     @map("actualizado_por_id")
   actualizadoPor   Usuario? @relation("ConfiguracionActualizadaPor", fields: [actualizadoPorId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("configuracion_sistema")
 }
@@ -721,7 +721,7 @@ model Traspaso {
 
   /// Momento del registro: la fecha de los dos movimientos de kardex y la
   /// fecha de ingreso de los lotes nuevos. La estampa el backend.
-  fecha       DateTime
+  fecha       DateTime @db.Timestamptz(3)
   /// Por que se traspasa (ej. «CIERRE DEL ALMACEN ORURO»). Obligatoria.
   observacion String
 
@@ -733,8 +733,8 @@ model Traspaso {
   ingresos    Ingreso[]
   movimientos MovimientoKardex[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@unique([almacenOrigenId, gestion, numero])
   @@index([almacenDestinoId])
@@ -755,7 +755,7 @@ model TraspasoDetalle {
 
   cantidad Decimal @db.Decimal(12, 2)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@index([traspasoId])
   @@index([loteOrigenId])
