@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 import { AuthContext } from "@/features/auth/context/auth-context"
 import { login as loginRequest, me } from "@/features/auth/api/auth.api"
@@ -9,6 +10,12 @@ import {
   setStoredUser,
 } from "@/features/auth/lib/auth-storage"
 import { setSesionExpiradaHandler } from "@/lib/api"
+import {
+  MINUTOS_INACTIVIDAD,
+  marcarActividad,
+  olvidarActividad,
+  restanteInactividad,
+} from "@/lib/inactividad"
 import { clearTokens, getAccessToken, setTokens } from "@/lib/token-storage"
 
 import type { AuthContextValue } from "@/features/auth/context/auth-context"
@@ -23,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const limpiarSesion = useCallback(() => {
     clearTokens()
     clearStoredUser()
+    olvidarActividad()
     setUser(null)
     queryClient.clear()
   }, [queryClient])
@@ -34,6 +42,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function rehidratar() {
       if (!getAccessToken()) {
         setCargando(false)
+        return
+      }
+
+      // La pestaña quedó abierta (o se restauró) después del límite de
+      // inactividad: se cierra sin llegar a mostrar el sistema.
+      if (restanteInactividad() <= 0) {
+        limpiarSesion()
+        setCargando(false)
+        toast.info(
+          `Se cerró la sesión tras ${MINUTOS_INACTIVIDAD} minutos sin actividad.`
+        )
         return
       }
 
@@ -76,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user: usuario,
       } = await loginRequest(credenciales)
       setTokens({ accessToken, refreshToken })
+      // Acá y no en `setTokens`: el refresh automático también los guarda, y un
+      // refetch en segundo plano no es actividad del usuario.
+      marcarActividad()
       setStoredUser(usuario)
       setUser(usuario)
       return usuario

@@ -365,6 +365,17 @@ solicitante, unidad y almacén al crear. El cache de `localStorage` (`auth-stora
 indispensable y quedó solo para pintar la barra lateral sin parpadeo mientras `/auth/me` viaja: al
 rehidratar se pisa el objeto ENTERO con la respuesta del servidor.
 
+**La sesión se cierra a los 30 minutos sin actividad** (2026-11-05, pedido del usuario).
+`lib/inactividad.ts` guarda la última actividad en localStorage (compartida entre pestañas, y
+sobrevive a cerrar el navegador) y `CierreInactividad` —montado en `DashboardLayout`— la renueva con
+mouse/teclado/scroll (como mucho cada 15 s), avisa un minuto antes con «¿Seguís ahí?» y cierra al
+llegar a cero. Tres detalles: la actividad se marca en el **login**, NO en `setTokens`, porque el
+refresh automático también llama a esa función y un refetch en segundo plano no es actividad · una
+pestaña restaurada después del límite la cierra `AuthProvider` al rehidratar, sin llegar a mostrar
+el sistema · si otra pestaña cerró la sesión, esta lo detecta porque ya no hay token. **Es una regla
+del frontend**: el refresh token sigue valiendo 7 días. Para probarla sin esperar, en la consola:
+`localStorage.setItem("almacenes.ultimaActividad", Date.now() - 29 * 60 * 1000)`.
+
 **Cada usuario cambia su PROPIA contraseña** (`POST /auth/cambiar-clave`, 2026-10-29): «Cambiar
 contraseña» en el menú de usuario abre `CambiarClaveDialog` (actual + nueva + repetir). Antes solo
 el super_admin podía, editando al usuario, y terminaba sabiendo la clave de todos. **La actual mal

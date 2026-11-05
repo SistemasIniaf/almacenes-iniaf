@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from "react-router-dom"
 import { AppSidebar } from "@/features/dashboard/components/AppSidebar"
 import { UserMenu } from "@/features/dashboard/components/UserMenu"
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { CierreInactividad } from "@/features/auth/components/CierreInactividad"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -41,6 +42,7 @@ export const DashboardLayout = () => {
 
   return (
     <SidebarProvider>
+      <CierreInactividad />
       <AppSidebar />
       {/* `min-w-0` es lo que hace que las tablas anchas scrolleen DENTRO de su
           caja en vez de estirar la página entera. El inset es un item flex y,
