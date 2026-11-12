@@ -285,8 +285,36 @@ tercio de los ingresos de la base son aperturas.
 duplicar: el lote simplemente sigue vivo en la gestión siguiente. Así no se
 infla la tabla ni se repiten facturas.
 
-**⏳ Abierto** (del cuestionario): quién ejecuta el cierre y cuándo, y si la
-gestión cerrada queda bloqueada para registrar movimientos con fecha anterior.
+**Lo que el código del sistema anterior muestra** (`ClsFuncionesGenerales.php`,
+`cierreAlmacenesUnidadNuevo`, leído el 2026-11-11): se corre a mano, almacén por
+almacén; el saldo lo calcula restando TODAS las salidas del lote sin mirar el
+estado del egreso (la versión anterior de la consulta filtraba aprobados y ese
+filtro se perdió); numera las aperturas desde 1 salteando el `MAX+1`; no es
+transaccional (si se corta, no se puede repetir: el único control es «¿ya hay
+ingresos de saldos este año?»); y la marca de cerrado (`idabierto = 36`) no la
+consulta ninguna pantalla, así que no bloquea nada.
+
+**✅ Decidido (2026-11-12, con el usuario):**
+
+- **Se cierra almacén por almacén**, con un **botón** en una pantalla de
+  Administración, no automático por fecha: en enero hace falta margen para
+  corregir lo que entró a fin de año y se registró después.
+- **Solo el `super_admin`** ejecuta el cierre.
+- **Ventana: las dos primeras semanas de enero.** El botón se habilita recién el
+  1/1 (no se cierra un año que todavía corre).
+- **Una gestión cerrada NO se reabre.** Desde el cierre, el backend rechaza todo
+  movimiento fechado en esa gestión y ese almacén. Hoy el único camino para
+  fechar en el pasado es la corrección de `fechaIngreso` del `super_admin`; todo
+  lo demás (entregas, anulaciones, traspasos) se fecha «ahora» y cae en el año
+  nuevo sin tocar el cerrado.
+- **Hay recuento físico** al cierre → hace falta un movimiento de **ajuste de
+  inventario** (faltantes y sobrantes), que tiene que cargarse **antes** de
+  cerrar: cerrada la gestión ya no se puede fechar al 31/12.
+- Al cerrar se guarda una **foto de los saldos al 31/12** por lote (de ahí salen
+  los Cuadros 5 y 6 de la DGCF) y se emite el **acta de cierre** en PDF.
+
+**No hace falta «abrir» la gestión nueva**: los lotes siguen vivos, el saldo de
+apertura del kardex se calcula y los correlativos arrancan solos en 001.
 
 ---
 
@@ -339,6 +367,21 @@ del sistema anterior: crearon un proveedor ficticio llamado literalmente
 **«SALDOS 2014»** para poder cargar los saldos, usado 232 veces.
 
 Se resuelve junto con la definición del corte de gestión.
+
+**✅ Decidido (2026-11-12): vía híbrida script → planilla → importación.** El
+catálogo de ítems del sistema nuevo se arma **desde cero**, así que ningún script
+puede saber solo a qué ítem nuevo corresponde cada viejo. Un script
+(`tools/migracion-saldos/`) extrae del volcado los lotes con saldo ya llenos y la
+persona solo completa la correspondencia de almacén, fuente e ítem. Después una
+pantalla de `super_admin` la importa. A mano (~3.100 lotes) o por Excel en blanco
+se descartaron: es volver a tipear lo que ya está en la base.
+
+Cifras del volcado al 6/11/2026: **3.097 lotes con saldo, 1.907 ítems** (de
+23.071), 23 almacenes viejos, 26 fuentes (todas con correspondencia por nombre en
+las del seed), 79 lotes con más salidas que ingreso. **Valor Bs 45,4 millones,
+de los cuales 42,3 son del almacén OLEÍFERAS**, casi todo semilla de palma
+aceitera arrastrada de gestiones anteriores — a confirmar con el encargado antes
+de migrarla.
 
 ---
 

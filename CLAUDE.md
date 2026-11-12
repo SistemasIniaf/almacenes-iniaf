@@ -1589,6 +1589,7 @@ guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una 
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
 
 **Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
+**Definido el 2026-11-12** (falta construirlo): cierre **por almacén**, con botón, **solo `super_admin`**, en las **dos primeras semanas de enero**, **sin reapertura**, con foto de saldos al 31/12 y acta; **hay recuento físico** (falta el ajuste de inventario, que va antes del cierre). Carga inicial: **script → planilla → importación**, porque el catálogo de ítems se arma desde cero — la extracción ya está en `tools/migracion-saldos/`.
 
 **Egresos** — **el encargado respondió el 2026-07-29 y ya NADA bloquea el schema.** Todo lo decidido
 está en `docs/decisiones-egresos.md` (niveles, quién ajusta cantidades, quién elige el lote, reserva,

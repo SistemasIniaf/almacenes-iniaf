@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Migración de saldos iniciales desde el sistema anterior (ver README.md)",
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  }
+}
