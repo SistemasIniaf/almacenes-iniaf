@@ -263,9 +263,11 @@ export function AlmacenesPage() {
               ¿Desactivar «{almacenADesactivar?.nombre}»?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              El almacén no se elimina: queda inactivo y deja de poder asignarse
-              a usuarios. Su stock y su historial se conservan. Podés volver a
-              activarlo editándolo.
+              El almacén no se elimina: queda inactivo y su historial se
+              conserva. Para darlo de baja tiene que estar vacío: sin pedidos
+              sin cerrar, sin saldo (traspasalo a otro almacén) y sin usuarios
+              activos asignados. Si falta algo, el sistema te dice qué. Podés
+              volver a activarlo editándolo.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

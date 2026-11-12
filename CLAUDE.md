@@ -1389,7 +1389,13 @@ responsable/observador de los almacenes que entregan o reciben (el scope mira or
   «DESDE almacén».
 - La transacción lleva **timeout de 5 min**: el cierre de un almacén grande son miles de escrituras.
 - Cerrar el almacén en sí (reasignar o dar de baja a sus usuarios, desactivarlo) sigue siendo a
-  mano, después del traspaso.
+  mano, después del traspaso. **Pero desde el 2026-11-11 un almacén solo se da de baja VACÍO**
+  (`AlmacenesService.validarCierre`, 409): sin pedidos sin cerrar —incluidos los sin enviar, que
+  reservan—, sin lotes con saldo y sin usuarios activos con ese almacén. Los observadores NO
+  bloquean (mirar un almacén cerrado sirve para auditarlo). Responde todo lo pendiente de una vez.
+  Corre en las DOS vías de baja: `remove` (el botón) y `update` con `activo: false` (el checkbox
+  del formulario) — es fácil olvidarse de la segunda, como pasó con `activar` en usuarios. El
+  orden importa: primero los pedidos, porque el traspaso solo mueve lo disponible.
 
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
