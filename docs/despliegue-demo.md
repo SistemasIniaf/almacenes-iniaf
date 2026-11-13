@@ -148,6 +148,24 @@ docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml exec backend pnpm prisma migrate deploy
 ```
 
+**Si el build falla con `i/o timeout` contra `registry-1.docker.io`** (pasó el
+2026-11-13: la red de la institución bloquea Docker Hub). La VM ya quedó
+configurada para descargar las imágenes desde el espejo de Google:
+```bash
+# una sola vez por servidor (ya hecho en la VM de la demo)
+echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' | sudo tee /etc/docker/daemon.json
+sudo systemctl restart docker
+docker pull node:24-bookworm-slim && docker pull node:24-alpine && docker pull nginx:1.27-alpine
+```
+Si aun así el build vuelve a consultar Docker Hub, construir con el builder
+clásico, que usa las imágenes locales sin preguntar al registro:
+```bash
+COMPOSE_BAKE=false DOCKER_BUILDKIT=0 docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+```
+Si la VM no sale ni al espejo: `docker save` de las tres imágenes en otra
+PC, `scp` del `.tar` y `docker load -i` en el servidor.
+
 **Mirar la base con Navicat / pgAdmin** (desde tu PC): Postgres está publicado
 solo en `127.0.0.1:5432` de la VM —NO hacia la red—, así que se entra por
 **túnel SSH**. En la pestaña SSH: IP de la VM, puerto 22 y tu usuario de Linux.
