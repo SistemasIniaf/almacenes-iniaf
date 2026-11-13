@@ -58,12 +58,27 @@ iniciales). Falta el trabajo de datos:
 - Ancho del correlativo del código de ítem (se asumió 6 dígitos: `39500-000001`).
 - Posición final del campo Certificación en el formulario de ingreso.
 
-## 4. Infraestructura / servidor
+## 4. Seed (en curso, 2026-11-13)
+
+El usuario quiere ajustar lo que carga `pnpm seed` (super_admin → 54 unidades → 40 fuentes →
+505 partidas). Falta que diga qué cambiar. Puntos detectados:
+- Re-correr el seed **reactiva unidades** dadas de baja (las fuentes no).
+- Sin `SEED_ADMIN_PASSWORD` en el `.env`, el super_admin nace con `admin123`.
+- Las partidas entran los 9 grupos activos; al almacén solo le sirven 20000 y 30000.
+- No siembra almacenes reales ni la relación almacén ↔ unidades.
+
+Clasificador 2027 comparado contra el 2026 (2026-11-13): mismos 505 códigos y nombres; solo
+6 correcciones de redacción en descripciones, que el sistema no guarda. No hay que tocar el CSV.
+
+Base de la virtual: se decidió **vaciar el movimiento** (ítems, ingresos, egresos, traspasos,
+kardex) conservando almacenes, usuarios, unidades, fuentes, partidas y proveedores. Sin hacer.
+
+## 5. Infraestructura / servidor
 
 - **HTTPS**: pendiente hasta tener IP pública + dominio (Let's Encrypt).
 - **Copia de respaldos fuera del servidor**: hoy quedan en el mismo disco de la VM.
 
-## 5. Riesgos aceptados (no son pendientes, pero conviene tenerlos a la vista)
+## 6. Riesgos aceptados (no son pendientes, pero conviene tenerlos a la vista)
 
 - La contraseña inicial no obliga a cambiarse: una cuenta que nunca la cambió la puede usar
   quien conozca la inicial.
