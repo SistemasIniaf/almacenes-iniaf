@@ -135,7 +135,7 @@ export class KardexService {
       motivo: true,
       ingresoId: true,
       ingreso: {
-        select: { id: true, numero: true, gestion: true },
+        select: { id: true, numero: true, gestion: true, saldoInicial: true },
       },
       // El numero del EGRESO tambien: una salida sin documento en la columna
       // deja el renglon sin rastro de a que pedido pertenece.
@@ -303,6 +303,7 @@ export class KardexService {
         select: {
           numero: true,
           gestion: true,
+          saldoInicial: true,
           proveedor: { select: { nombre: true } },
         },
       },
@@ -442,11 +443,13 @@ export class KardexService {
             ? signo > 0
               ? `DESDE ${m.traspaso.almacenOrigen.nombre}`
               : `A ${m.traspaso.almacenDestino.nombre}`
-            : m.ingreso
-              ? (m.ingreso.proveedor?.nombre ?? '—')
-              : m.egreso
-                ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
-                : '—';
+            : m.ingreso?.saldoInicial
+              ? 'SALDO INICIAL (SISTEMA ANTERIOR)'
+              : m.ingreso
+                ? (m.ingreso.proveedor?.nombre ?? '—')
+                : m.egreso
+                  ? `${m.egreso.unidad.sigla} / ${m.egreso.solicitante.nombre}`
+                  : '—';
           const detalle =
             m.tipo === TipoMovimiento.REVERSION
               ? `REVERSIÓN · ${contraparte}${m.motivo ? ` (${m.motivo})` : ''}`

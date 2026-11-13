@@ -104,7 +104,7 @@ async function armar() {
     TABLAS.ingresosalmacenes.map((v) => [
       num(v[0]),
       {
-        unidad: num(v[1]), proveedor: num(v[2]), fondo: num(v[3]), numero: num(v[4]),
+        id: num(v[0]), unidad: num(v[1]), proveedor: num(v[2]), fondo: num(v[3]), numero: num(v[4]),
         fecha: txt(v[5]).slice(0, 10), observacion: txt(v[6]), factura: txt(v[8]),
         certificacion: txt(v[9]), proceso: txt(v[10]), notaRemision: txt(v[11]), tipo: num(v[14]),
       },
@@ -153,6 +153,7 @@ async function armar() {
     if (pend) alertas.push(`${pend.pedidos} PEDIDO(S) PENDIENTE(S) POR ${redondear(pend.cantidad)}`)
     const fila = {
       loteId: id, almacenId: ing.unidad, almacen: nombreAlmacen(ing.unidad),
+      ingresoId: ing.id,
       tipo: ing.tipo === TIPO_SALDOS ? "SALDO GESTIÓN ANTERIOR" : "COMPRA",
       numero: ing.numero, fecha: ing.fecha,
       itemId: item?.id ?? num(v[2]), descripcion: item?.descripcion ?? "", unidadMedida: item?.unidad ?? "",
@@ -319,6 +320,7 @@ async function escribir({ lotes, revisar, almacenes, fuentes, itemsConSaldo }) {
     { titulo: "Id lote viejo", clave: "loteId", ancho: 10 },
     { titulo: "Id almacén", clave: "almacenId", ancho: 8 },
     { titulo: "Almacén", clave: "almacen", ancho: 30 },
+    { titulo: "Id ingreso viejo", clave: "ingresoId", ancho: 9 },
     { titulo: "Origen", clave: "tipo", ancho: 14 },
     { titulo: "Nº ingreso", clave: "numero", ancho: 9 },
     { titulo: "Fecha ingreso", clave: "fecha", ancho: 11 },

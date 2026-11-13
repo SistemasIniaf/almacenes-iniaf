@@ -150,6 +150,10 @@ export const PERMISOS = {
   // estructurales (salen impresos en todos los documentos). Leerlos no necesita
   // permiso: `GET /logos` es público porque los dibuja el login.
   logosEscribir: ["super_admin"],
+
+  // Carga inicial de saldos del sistema anterior (2026-11-12): crea stock en
+  // cualquier almacén, como un traspaso. Espeja el @Roles de SaldosInicialesController.
+  saldosInicialesImportar: ["super_admin"],
 } satisfies Record<string, readonly Rol[]>
 
 export type Permiso = keyof typeof PERMISOS

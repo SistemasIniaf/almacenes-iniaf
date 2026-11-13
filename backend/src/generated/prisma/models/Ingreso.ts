@@ -84,6 +84,7 @@ export type IngresoMinAggregateOutputType = {
   anuladoEn: Date | null
   motivoAnulacion: string | null
   traspasoId: number | null
+  saldoInicial: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -112,6 +113,7 @@ export type IngresoMaxAggregateOutputType = {
   anuladoEn: Date | null
   motivoAnulacion: string | null
   traspasoId: number | null
+  saldoInicial: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -140,6 +142,7 @@ export type IngresoCountAggregateOutputType = {
   anuladoEn: number
   motivoAnulacion: number
   traspasoId: number
+  saldoInicial: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -198,6 +201,7 @@ export type IngresoMinAggregateInputType = {
   anuladoEn?: true
   motivoAnulacion?: true
   traspasoId?: true
+  saldoInicial?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -226,6 +230,7 @@ export type IngresoMaxAggregateInputType = {
   anuladoEn?: true
   motivoAnulacion?: true
   traspasoId?: true
+  saldoInicial?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -254,6 +259,7 @@ export type IngresoCountAggregateInputType = {
   anuladoEn?: true
   motivoAnulacion?: true
   traspasoId?: true
+  saldoInicial?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -369,6 +375,7 @@ export type IngresoGroupByOutputType = {
   anuladoEn: Date | null
   motivoAnulacion: string | null
   traspasoId: number | null
+  saldoInicial: boolean
   createdAt: Date
   updatedAt: Date
   _count: IngresoCountAggregateOutputType | null
@@ -420,6 +427,7 @@ export type IngresoWhereInput = {
   anuladoEn?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   motivoAnulacion?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   traspasoId?: Prisma.IntNullableFilter<"Ingreso"> | number | null
+  saldoInicial?: Prisma.BoolFilter<"Ingreso"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   almacen?: Prisma.XOR<Prisma.AlmacenScalarRelationFilter, Prisma.AlmacenWhereInput>
@@ -458,6 +466,7 @@ export type IngresoOrderByWithRelationInput = {
   anuladoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   motivoAnulacion?: Prisma.SortOrderInput | Prisma.SortOrder
   traspasoId?: Prisma.SortOrderInput | Prisma.SortOrder
+  saldoInicial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   almacen?: Prisma.AlmacenOrderByWithRelationInput
@@ -500,6 +509,7 @@ export type IngresoWhereUniqueInput = Prisma.AtLeast<{
   anuladoEn?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   motivoAnulacion?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   traspasoId?: Prisma.IntNullableFilter<"Ingreso"> | number | null
+  saldoInicial?: Prisma.BoolFilter<"Ingreso"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   almacen?: Prisma.XOR<Prisma.AlmacenScalarRelationFilter, Prisma.AlmacenWhereInput>
@@ -538,6 +548,7 @@ export type IngresoOrderByWithAggregationInput = {
   anuladoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   motivoAnulacion?: Prisma.SortOrderInput | Prisma.SortOrder
   traspasoId?: Prisma.SortOrderInput | Prisma.SortOrder
+  saldoInicial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.IngresoCountOrderByAggregateInput
@@ -574,6 +585,7 @@ export type IngresoScalarWhereWithAggregatesInput = {
   anuladoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"Ingreso"> | Date | string | null
   motivoAnulacion?: Prisma.StringNullableWithAggregatesFilter<"Ingreso"> | string | null
   traspasoId?: Prisma.IntNullableWithAggregatesFilter<"Ingreso"> | number | null
+  saldoInicial?: Prisma.BoolWithAggregatesFilter<"Ingreso"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Ingreso"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Ingreso"> | Date | string
 }
@@ -593,6 +605,7 @@ export type IngresoCreateInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -631,6 +644,7 @@ export type IngresoUncheckedCreateInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -652,6 +666,7 @@ export type IngresoUpdateInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -690,6 +705,7 @@ export type IngresoUncheckedUpdateInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -720,6 +736,7 @@ export type IngresoCreateManyInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -739,6 +756,7 @@ export type IngresoUpdateManyMutationInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -767,6 +785,7 @@ export type IngresoUncheckedUpdateManyInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -811,6 +830,7 @@ export type IngresoCountOrderByAggregateInput = {
   anuladoEn?: Prisma.SortOrder
   motivoAnulacion?: Prisma.SortOrder
   traspasoId?: Prisma.SortOrder
+  saldoInicial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -853,6 +873,7 @@ export type IngresoMaxOrderByAggregateInput = {
   anuladoEn?: Prisma.SortOrder
   motivoAnulacion?: Prisma.SortOrder
   traspasoId?: Prisma.SortOrder
+  saldoInicial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -881,6 +902,7 @@ export type IngresoMinOrderByAggregateInput = {
   anuladoEn?: Prisma.SortOrder
   motivoAnulacion?: Prisma.SortOrder
   traspasoId?: Prisma.SortOrder
+  saldoInicial?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1298,6 +1320,7 @@ export type IngresoCreateWithoutUnidadSolicitanteInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1334,6 +1357,7 @@ export type IngresoUncheckedCreateWithoutUnidadSolicitanteInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1393,6 +1417,7 @@ export type IngresoScalarWhereInput = {
   anuladoEn?: Prisma.DateTimeNullableFilter<"Ingreso"> | Date | string | null
   motivoAnulacion?: Prisma.StringNullableFilter<"Ingreso"> | string | null
   traspasoId?: Prisma.IntNullableFilter<"Ingreso"> | number | null
+  saldoInicial?: Prisma.BoolFilter<"Ingreso"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Ingreso"> | Date | string
 }
@@ -1412,6 +1437,7 @@ export type IngresoCreateWithoutAlmacenInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   proveedor?: Prisma.ProveedorCreateNestedOneWithoutIngresosInput
@@ -1448,6 +1474,7 @@ export type IngresoUncheckedCreateWithoutAlmacenInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1495,6 +1522,7 @@ export type IngresoCreateWithoutRegistradoPorInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1531,6 +1559,7 @@ export type IngresoUncheckedCreateWithoutRegistradoPorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1562,6 +1591,7 @@ export type IngresoCreateWithoutResponsableConformidadInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1598,6 +1628,7 @@ export type IngresoUncheckedCreateWithoutResponsableConformidadInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1629,6 +1660,7 @@ export type IngresoCreateWithoutAnuladoPorInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1665,6 +1697,7 @@ export type IngresoUncheckedCreateWithoutAnuladoPorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1744,6 +1777,7 @@ export type IngresoCreateWithoutProveedorInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1780,6 +1814,7 @@ export type IngresoUncheckedCreateWithoutProveedorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1827,6 +1862,7 @@ export type IngresoCreateWithoutFuenteFinanciamientoInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1863,6 +1899,7 @@ export type IngresoUncheckedCreateWithoutFuenteFinanciamientoInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -1910,6 +1947,7 @@ export type IngresoCreateWithoutDetallesInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -1947,6 +1985,7 @@ export type IngresoUncheckedCreateWithoutDetallesInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutIngresoInput
@@ -1983,6 +2022,7 @@ export type IngresoUpdateWithoutDetallesInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2020,6 +2060,7 @@ export type IngresoUncheckedUpdateWithoutDetallesInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2040,6 +2081,7 @@ export type IngresoCreateWithoutMovimientosInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -2077,6 +2119,7 @@ export type IngresoUncheckedCreateWithoutMovimientosInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -2113,6 +2156,7 @@ export type IngresoUpdateWithoutMovimientosInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2150,6 +2194,7 @@ export type IngresoUncheckedUpdateWithoutMovimientosInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2170,6 +2215,7 @@ export type IngresoCreateWithoutTraspasoInput = {
   observacion?: string | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   almacen: Prisma.AlmacenCreateNestedOneWithoutIngresosInput
@@ -2206,6 +2252,7 @@ export type IngresoUncheckedCreateWithoutTraspasoInput = {
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   detalles?: Prisma.IngresoDetalleUncheckedCreateNestedManyWithoutIngresoInput
@@ -2261,6 +2308,7 @@ export type IngresoCreateManyUnidadSolicitanteInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2280,6 +2328,7 @@ export type IngresoUpdateWithoutUnidadSolicitanteInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2316,6 +2365,7 @@ export type IngresoUncheckedUpdateWithoutUnidadSolicitanteInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2345,6 +2395,7 @@ export type IngresoUncheckedUpdateManyWithoutUnidadSolicitanteInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2372,6 +2423,7 @@ export type IngresoCreateManyAlmacenInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2391,6 +2443,7 @@ export type IngresoUpdateWithoutAlmacenInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   proveedor?: Prisma.ProveedorUpdateOneWithoutIngresosNestedInput
@@ -2427,6 +2480,7 @@ export type IngresoUncheckedUpdateWithoutAlmacenInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2456,6 +2510,7 @@ export type IngresoUncheckedUpdateManyWithoutAlmacenInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2483,6 +2538,7 @@ export type IngresoCreateManyRegistradoPorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2510,6 +2566,7 @@ export type IngresoCreateManyResponsableConformidadInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2537,6 +2594,7 @@ export type IngresoCreateManyAnuladoPorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2556,6 +2614,7 @@ export type IngresoUpdateWithoutRegistradoPorInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2592,6 +2651,7 @@ export type IngresoUncheckedUpdateWithoutRegistradoPorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2621,6 +2681,7 @@ export type IngresoUncheckedUpdateManyWithoutRegistradoPorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2640,6 +2701,7 @@ export type IngresoUpdateWithoutResponsableConformidadInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2676,6 +2738,7 @@ export type IngresoUncheckedUpdateWithoutResponsableConformidadInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2705,6 +2768,7 @@ export type IngresoUncheckedUpdateManyWithoutResponsableConformidadInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2724,6 +2788,7 @@ export type IngresoUpdateWithoutAnuladoPorInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2760,6 +2825,7 @@ export type IngresoUncheckedUpdateWithoutAnuladoPorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2789,6 +2855,7 @@ export type IngresoUncheckedUpdateManyWithoutAnuladoPorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2816,6 +2883,7 @@ export type IngresoCreateManyProveedorInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2835,6 +2903,7 @@ export type IngresoUpdateWithoutProveedorInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2871,6 +2940,7 @@ export type IngresoUncheckedUpdateWithoutProveedorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -2900,6 +2970,7 @@ export type IngresoUncheckedUpdateManyWithoutProveedorInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2927,6 +2998,7 @@ export type IngresoCreateManyFuenteFinanciamientoInput = {
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
   traspasoId?: number | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2946,6 +3018,7 @@ export type IngresoUpdateWithoutFuenteFinanciamientoInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -2982,6 +3055,7 @@ export type IngresoUncheckedUpdateWithoutFuenteFinanciamientoInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -3011,6 +3085,7 @@ export type IngresoUncheckedUpdateManyWithoutFuenteFinanciamientoInput = {
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   traspasoId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3038,6 +3113,7 @@ export type IngresoCreateManyTraspasoInput = {
   anuladoPorId?: number | null
   anuladoEn?: Date | string | null
   motivoAnulacion?: string | null
+  saldoInicial?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -3057,6 +3133,7 @@ export type IngresoUpdateWithoutTraspasoInput = {
   observacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   almacen?: Prisma.AlmacenUpdateOneRequiredWithoutIngresosNestedInput
@@ -3093,6 +3170,7 @@ export type IngresoUncheckedUpdateWithoutTraspasoInput = {
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   detalles?: Prisma.IngresoDetalleUncheckedUpdateManyWithoutIngresoNestedInput
@@ -3122,6 +3200,7 @@ export type IngresoUncheckedUpdateManyWithoutTraspasoInput = {
   anuladoPorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   anuladoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   motivoAnulacion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  saldoInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -3190,6 +3269,7 @@ export type IngresoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   anuladoEn?: boolean
   motivoAnulacion?: boolean
   traspasoId?: boolean
+  saldoInicial?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
@@ -3229,6 +3309,7 @@ export type IngresoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   anuladoEn?: boolean
   motivoAnulacion?: boolean
   traspasoId?: boolean
+  saldoInicial?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
@@ -3265,6 +3346,7 @@ export type IngresoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   anuladoEn?: boolean
   motivoAnulacion?: boolean
   traspasoId?: boolean
+  saldoInicial?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
@@ -3301,11 +3383,12 @@ export type IngresoSelectScalar = {
   anuladoEn?: boolean
   motivoAnulacion?: boolean
   traspasoId?: boolean
+  saldoInicial?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type IngresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "fechaIngreso" | "fechaRemision" | "notaRemision" | "procesoC31" | "certificacion" | "informeConformidad" | "fechaInformeConformidad" | "numeroFactura" | "observacion" | "proveedorId" | "fuenteFinanciamientoId" | "responsableConformidadId" | "unidadSolicitanteId" | "registradoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "traspasoId" | "createdAt" | "updatedAt", ExtArgs["result"]["ingreso"]>
+export type IngresoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "estado" | "numero" | "gestion" | "almacenId" | "fechaIngreso" | "fechaRemision" | "notaRemision" | "procesoC31" | "certificacion" | "informeConformidad" | "fechaInformeConformidad" | "numeroFactura" | "observacion" | "proveedorId" | "fuenteFinanciamientoId" | "responsableConformidadId" | "unidadSolicitanteId" | "registradoPorId" | "anuladoPorId" | "anuladoEn" | "motivoAnulacion" | "traspasoId" | "saldoInicial" | "createdAt" | "updatedAt", ExtArgs["result"]["ingreso"]>
 export type IngresoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   almacen?: boolean | Prisma.AlmacenDefaultArgs<ExtArgs>
   proveedor?: boolean | Prisma.Ingreso$proveedorArgs<ExtArgs>
@@ -3399,6 +3482,14 @@ export type $IngresoPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * traspasos. Ver TraspasosService.
      */
     traspasoId: number | null
+    /**
+     * true = NO es una compra: es la CARGA INICIAL de saldos traidos del sistema
+     * anterior (2026-11-12), uno por cada ingreso de alla con lotes vivos y sus
+     * respaldos copiados. Igual que el portador de un traspaso: sin numero, fuera
+     * del listado y del registro de ingresos (no es una compra del año), y no se
+     * edita ni se anula por la via de ingresos. Ver SaldosInicialesService.
+     */
+    saldoInicial: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["ingreso"]>
@@ -3857,6 +3948,7 @@ export interface IngresoFieldRefs {
   readonly anuladoEn: Prisma.FieldRef<"Ingreso", 'DateTime'>
   readonly motivoAnulacion: Prisma.FieldRef<"Ingreso", 'String'>
   readonly traspasoId: Prisma.FieldRef<"Ingreso", 'Int'>
+  readonly saldoInicial: Prisma.FieldRef<"Ingreso", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Ingreso", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Ingreso", 'DateTime'>
 }

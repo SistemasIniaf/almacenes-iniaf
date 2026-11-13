@@ -228,6 +228,9 @@ export class IngresosService {
       // Los portadores de lotes traspasados no son compras: su documento es el
       // traspaso, y contarlos aca duplicaria el total del reporte nacional.
       traspasoId: null,
+      // La carga inicial de saldos tampoco es una compra del año: sumaria al
+      // registro de ingresos material que ya estaba en el almacen.
+      saldoInicial: false,
       ...(query.estado ? { estado: query.estado } : {}),
       ...(query.gestion ? { gestion: query.gestion } : {}),
       ...(query.proveedorId ? { proveedorId: query.proveedorId } : {}),
@@ -409,6 +412,15 @@ export class IngresosService {
     if (existente.traspasoId != null) {
       throw new BadRequestException(
         'Estos lotes llegaron por un traspaso: no es un ingreso que se edite',
+      );
+    }
+    // Sus respaldos son copia de los del sistema anterior. SI se puede anular
+    // (sin salidas ni reservas, como cualquiera): es la salida para un lote
+    // migrado con el ítem equivocado — anulado, el lote se puede volver a
+    // importar con la correspondencia corregida.
+    if (existente.saldoInicial) {
+      throw new BadRequestException(
+        'Es la carga inicial de saldos del sistema anterior: no se edita. Si está mal, anulalo y volvé a importar ese lote.',
       );
     }
 
@@ -716,6 +728,7 @@ export class IngresosService {
         fechaIngreso: true,
         gestion: true,
         traspasoId: true,
+        saldoInicial: true,
       },
     });
     if (!ingreso) {

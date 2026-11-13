@@ -10,8 +10,11 @@ nuevo corresponde cada ítem viejo. El camino acordado (2026-11-12) es híbrido:
 2. **Corresponder** — en la planilla solo se completan las columnas en
    amarillo: almacén nuevo, fuente nueva (vienen sugeridas por nombre) y código
    de ítem nuevo. Son ~1.900 ítems, no los 23.000 del catálogo viejo.
-3. **Importar** — pantalla de `super_admin` en el sistema (pendiente de
-   construir) que valida fila por fila y crea los saldos iniciales.
+3. **Importar** — Administración → **Saldos iniciales** (`super_admin`): se
+   sube la planilla, se elige la fecha de corte, el sistema muestra qué
+   almacenes están listos y qué lotes tienen errores, y se importa almacén por
+   almacén. Un lote ya importado se saltea, así que se puede volver a subir la
+   misma planilla a medida que se completa.
 
 ```bash
 npm install

@@ -18,6 +18,7 @@ import { LogosModule } from './modules/logos/logos.module';
 import { PartidasModule } from './modules/partidas/partidas.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { StockModule } from './modules/stock/stock.module';
+import { SaldosInicialesModule } from './modules/saldos-iniciales/saldos-iniciales.module';
 import { TraspasosModule } from './modules/traspasos/traspasos.module';
 import { UnidadesModule } from './modules/unidades/unidades.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
@@ -42,6 +43,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     StockModule,
     KardexModule,
     TraspasosModule,
+    SaldosInicialesModule,
     LogosModule,
   ],
   controllers: [AppController],

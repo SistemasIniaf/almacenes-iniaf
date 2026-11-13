@@ -397,6 +397,13 @@ model Ingreso {
   traspasoId Int?      @map("traspaso_id")
   traspaso   Traspaso? @relation(fields: [traspasoId], references: [id])
 
+  /// true = NO es una compra: es la CARGA INICIAL de saldos traidos del sistema
+  /// anterior (2026-11-12), uno por cada ingreso de alla con lotes vivos y sus
+  /// respaldos copiados. Igual que el portador de un traspaso: sin numero, fuera
+  /// del listado y del registro de ingresos (no es una compra del año), y no se
+  /// edita ni se anula por la via de ingresos. Ver SaldosInicialesService.
+  saldoInicial Boolean @default(false) @map("saldo_inicial")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -444,11 +451,17 @@ model IngresoDetalle {
   /// lote de origen: misma compra, mismo precio, misma fuente).
   traspasoEntrada TraspasoDetalle?  @relation("TraspasoLoteDestino")
 
+  /// Solo en la carga inicial: el id del lote en el sistema anterior
+  /// (`ingresositems.IDINGRESOITEM`). Es lo que impide importar dos veces el
+  /// mismo lote, y la trazabilidad hacia la base vieja.
+  loteAnteriorId Int? @map("lote_anterior_id")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([ingresoId])
   @@index([itemId])
+  @@index([loteAnteriorId])
   @@map("ingreso_detalles")
 }
 

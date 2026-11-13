@@ -134,6 +134,8 @@ export class StockService {
             // Lote llegado por traspaso: su documento es el traspaso (el
             // ingreso portador no tiene numero).
             traspaso: { select: { id: true, numero: true, gestion: true } },
+            // Lote de la carga inicial: tampoco tiene numero.
+            saldoInicial: true,
           },
         },
       },

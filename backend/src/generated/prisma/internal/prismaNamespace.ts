@@ -2085,6 +2085,7 @@ export const IngresoScalarFieldEnum = {
   anuladoEn: 'anuladoEn',
   motivoAnulacion: 'motivoAnulacion',
   traspasoId: 'traspasoId',
+  saldoInicial: 'saldoInicial',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2100,6 +2101,7 @@ export const IngresoDetalleScalarFieldEnum = {
   precioUnitario: 'precioUnitario',
   saldoCantidad: 'saldoCantidad',
   observacion: 'observacion',
+  loteAnteriorId: 'loteAnteriorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -13,6 +13,11 @@ async function main() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
+  // El limite por defecto del JSON es 100 KB, y la importacion de saldos
+  // iniciales manda la planilla entera (~3.000 lotes, ~1 MB). En produccion
+  // nginx tiene su propio limite (`client_max_body_size` en frontend/nginx.conf).
+  app.useBodyParser('json', { limit: '20mb' });
+
   // Habilitar CORS
   app.enableCors();
 

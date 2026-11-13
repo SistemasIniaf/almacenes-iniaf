@@ -90,13 +90,17 @@ export const numeroDocumento = (documento: {
 /**
  * De qué documento viene un LOTE: `ingreso 001-2026`, o `traspaso 002-2026` si
  * llegó por un traspaso entre almacenes (2026-10-29). El ingreso que lo porta
- * en ese caso no tiene número propio — el documento es el traspaso.
+ * en ese caso no tiene número propio — el documento es el traspaso. Los lotes
+ * de la carga inicial (2026-11-12) tampoco tienen número: son «saldo inicial».
  */
 export const documentoDeLote = (ingreso: {
   numero: number | null
   gestion: number | null
   traspaso?: { numero: number; gestion: number } | null
+  saldoInicial?: boolean
 }): string =>
   ingreso.traspaso
     ? `traspaso ${numeroDocumento(ingreso.traspaso)}`
-    : `ingreso ${numeroDocumento(ingreso)}`
+    : ingreso.saldoInicial
+      ? "saldo inicial"
+      : `ingreso ${numeroDocumento(ingreso)}`

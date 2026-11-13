@@ -150,6 +150,7 @@ const loteSelect = {
       fechaIngreso: true,
       fuenteFinanciamiento: { select: { id: true, nombre: true } },
       traspaso: { select: { id: true, numero: true, gestion: true } },
+      saldoInicial: true,
     },
   },
 } as const;

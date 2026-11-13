@@ -93,7 +93,9 @@ const fecha = (iso: string | null) =>
 const etiquetaIngreso = (lote: LoteStock) =>
   lote.ingreso.traspaso
     ? `Trasp. ${numeroDocumento(lote.ingreso.traspaso)}`
-    : numeroDocumento(lote.ingreso)
+    : lote.ingreso.saldoInicial
+      ? "Saldo inicial"
+      : numeroDocumento(lote.ingreso)
 
 const valorLote = (lote: LoteStock) =>
   Number(lote.saldoCantidad) * Number(lote.precioUnitario)
