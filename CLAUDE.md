@@ -1397,6 +1397,38 @@ responsable/observador de los almacenes que entregan o reciben (el scope mira or
   del formulario) — es fácil olvidarse de la segunda, como pasó con `activar` en usuarios. El
   orden importa: primero los pedidos, porque el traspaso solo mueve lo disponible.
 
+**SALDOS INICIALES — carga del sistema anterior** (2026-11-12). El catálogo de ítems se arma desde
+cero, así que la vía es **script → planilla → importación**: `tools/migracion-saldos/extrae-saldos.js`
+saca del volcado los lotes con saldo (recalculado con salidas aprobadas) a una planilla donde una
+persona completa a qué almacén, fuente e ítem NUEVOS va cada uno; la pantalla `/saldos-iniciales`
+(Administración, solo `super_admin`, permiso `saldosInicialesImportar`) la lee en el navegador y la
+importa. Backend `modules/saldos-iniciales/` (`POST /validar` sin grabar, `POST /` importa).
+
+- **Cómo queda en la base**: un Ingreso por cada ingreso del sistema anterior con lotes vivos, con
+  **`saldoInicial = true`** — igual que el portador de un traspaso: **sin número**, fuera del listado
+  y del registro de ingresos (`armarWhere`), y **no se edita**. Copia factura, C31, certificación y
+  nota de remisión; lo que no tiene columna (número, fecha y almacén viejos, proveedor) va en la
+  observación — el proveedor viejo NO se migra al catálogo. Lotes con su precio y saldo, y una ENTRADA
+  de kardex con motivo «SALDO INICIAL (SISTEMA ANTERIOR)». En stock y egresos el documento del lote
+  dice «saldo inicial» (`documentoDeLote`).
+- **Fecha de corte**: los saldos son AL CIERRE de ese día (último instante, hora de Bolivia), así la
+  gestión siguiente los ve como **saldo de apertura** del kardex. No puede ser futura.
+- **`IngresoDetalle.loteAnteriorId`** (el `IDINGRESOITEM` viejo) impide importar dos veces: un lote
+  en un ingreso CONFIRMADO cuenta como «ya importado» y la pantalla lo saltea. Por eso se importa
+  **almacén por almacén** a medida que se completa la correspondencia, subiendo la misma planilla.
+- **Todo o nada**: si una fila enviada tiene error o ya está importada, no se graba ninguna. Las
+  importaciones se serializan con `bloquearSerie(tx, 'saldosIniciales', 0)` y el «ya importado» se
+  relee DENTRO de la transacción.
+- **Corregir un lote mal asignado = anularlo y reimportar**: la anulación de ingresos sí vale para
+  estos (sin salidas ni reservas, como cualquiera), y anulado deja de contar como importado.
+- **El lector de la planilla busca las columnas por TÍTULO** y toma la correspondencia de las hojas
+  ALMACENES/FUENTES/ÍTEMS, no de las columnas «→» de LOTES (son fórmulas: sin cachear si Excel no
+  guardó el archivo).
+- El JSON de la planilla ronda 1 MB: `main.ts` sube el límite del body a 20 MB y
+  `frontend/nginx.conf` agrega `client_max_body_size 20m` + `proxy_read_timeout 300s`. **Ese límite
+  de nginx faltaba desde siempre**: el default de 1 MB rechazaba en producción las fotos de ítem de
+  más de 1 MB, aunque el backend acepta 5.
+
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
 dentro de un `<iframe>`); **no gustó y se eliminó** — no reponerlo. El patrón único vive en
@@ -1580,6 +1612,7 @@ guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una 
 
 | Archivo | Qué contiene |
 |---|---|
+| `docs/pendientes.md` | **Lista viva de todo lo que falta** (ajuste de inventario → cierre de gestión → Cuadros DGCF, migración, preguntas abiertas). Actualizarla al cerrar o sumar un pendiente. |
 | `docs/decisiones-ingresos.md` | **Lo decidido y lo pendiente de ingresos.** Fuente de verdad del módulo. |
 | `docs/decisiones-egresos.md` | **Lo decidido y lo pendiente de egresos.** Cuáles preguntas bloquean el schema y cuáles no. |
 | `docs/analisis-sistema-anterior.md` | Cómo opera hoy el INIAF: relevamiento del sistema viejo con cifras verificadas sobre su base (11 gestiones). |
@@ -1589,7 +1622,7 @@ guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una 
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
 
 **Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
-**Definido el 2026-11-12** (falta construirlo): cierre **por almacén**, con botón, **solo `super_admin`**, en las **dos primeras semanas de enero**, **sin reapertura**, con foto de saldos al 31/12 y acta; **hay recuento físico** (falta el ajuste de inventario, que va antes del cierre). Carga inicial: **script → planilla → importación**, porque el catálogo de ítems se arma desde cero — la extracción ya está en `tools/migracion-saldos/`.
+**Definido el 2026-11-12** (falta construirlo): cierre **por almacén**, con botón, **solo `super_admin`**, en las **dos primeras semanas de enero**, **sin reapertura**, con foto de saldos al 31/12 y acta; **hay recuento físico** (falta el ajuste de inventario, que va antes del cierre). Carga inicial: **script → planilla → importación**, porque el catálogo de ítems se arma desde cero — la extracción (`tools/migracion-saldos/`) y la importación (`/saldos-iniciales`) ya están (ver «SALDOS INICIALES»).
 
 **Egresos** — **el encargado respondió el 2026-07-29 y ya NADA bloquea el schema.** Todo lo decidido
 está en `docs/decisiones-egresos.md` (niveles, quién ajusta cantidades, quién elige el lote, reserva,
