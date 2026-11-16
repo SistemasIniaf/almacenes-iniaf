@@ -19,15 +19,46 @@ Las tres etapas HECHAS el 2026-11-16 (backend, pantalla `/cierres` + acta PDF, C
 ## 2. Migración del sistema anterior (saldos iniciales)
 
 La herramienta y la pantalla ya están (`tools/migracion-saldos/` + Administración → Saldos
-iniciales). Falta el trabajo de datos:
-- [ ] **Confirmar la fecha de corte**: si el sistema viejo sigue en uso hasta el 31/12, los saldos
-      se migran al 31/12 con un volcado de fin de año (volver a correr `extrae-saldos.js`).
-- [ ] **Armar el catálogo de ítems nuevo** (se rehace desde cero): sin códigos nuevos no hay
-      correspondencia posible.
-- [ ] Completar la planilla: almacén nuevo, fuente nueva y código de ítem nuevo de cada uno.
-- [ ] Revisar la hoja **PARA REVISAR** (lotes con saldo negativo en el sistema viejo).
-- [ ] **Confirmar con el encargado el saldo de semilla de palma OLEÍFERAS (Bs 42,3 M)**: parece
-      un error de carga.
+iniciales). Falta el trabajo de datos.
+
+**Foto al 16/11/2026** (volcado `semilla9_al.sql`, planilla `saldos-2026-al-16-11.xlsx`, fuera del
+repo): **3.040 lotes · 1.874 ítems · 23 almacenes viejos · 26 fuentes · 414 proveedores ·
+Bs 45.279.867,81**. El 2026-11-16 se le mandó al encargado un Word con todo el detalle y 9
+decisiones para responder (`Migracion-saldos-almacenes-INIAF.docx`, también fuera del repo;
+lo genera un script de un solo uso, no versionado).
+
+Esperando respuesta del encargado:
+- [ ] **Lista de almacenes nuevos** y qué viejos se juntan (CNPSH SEMILLAS / CNPSH, las dos
+      OLEÍFERAS, CHACO / GRAN CHACO; WARNES, PANDO y BOSQUES tienen 1–10 lotes). La base nueva
+      no tiene almacenes: hay que crearlos antes de importar.
+- [ ] **Quién arma el catálogo de ítems** (se rehace desde cero; sin códigos nuevos no hay
+      correspondencia posible).
+- [ ] **Lista de unidades de medida**: el viejo tiene 124 escrituras (PIEZA/Pieza/PZA./…); se
+      propuso unificarlas por grupo.
+- [ ] **10 ítems en la partida 34100**, que en el clasificador es GRUPO (no seleccionable): elegir
+      hoja, normalmente 34110.
+- [ ] **Proveedores**: ¿se confirma que NO se migran al catálogo (quedan en la observación)?
+- [ ] **OLEÍFERAS = 93,5 % del valor** (tierra vegetal 13 M, semilla de palma 9,7 M, gallinaza
+      6,1 M, bolsas 3,1 M): confirmar el saldo real; parece material ya usado o error de carga.
+- [ ] **28 lotes con precio 0** (semillas): precio real o confirmar que van en cero.
+- [ ] **Fecha de corte** y desde cuándo se deja de registrar en el sistema viejo.
+- [ ] Fuentes genéricas «TGN» y «REC.PROPIOS»: ¿quedan así? (las 26 ya se relacionaron solas).
+
+Antes del corte (en el sistema viejo):
+- [ ] Entregar o anular los pedidos pendientes: **139 lotes** (53 de CENTRAL, 33 CNPSH SEMILLAS,
+      27 CNPSH, 14 La Paz, 11 Toralapa, 1 Oruro). No se migran: el saldo saldría inflado.
+- [ ] Corregir la hoja **PARA REVISAR**: 79 lotes con salidas mayores al ingreso (Bs −668.406,77),
+      que no se migran.
+
+Al crear los ítems nuevos:
+- 177 descripciones vienen con acentos rotos por la codificación (`CAÃAHUA` = CAÑAHUA): escribirlas
+  bien.
+- 158 ítems en 76 grupos de «posible duplicado»: mismo código si es la misma unidad.
+- Partida y unidad no se pueden corregir una vez que el ítem tiene movimientos: revisarlas ANTES
+  de importar.
+
+Después del corte:
+- [ ] Nuevo volcado + volver a correr `extrae-saldos.js` y copiar la correspondencia ya trabajada.
 - [ ] Importar almacén por almacén en el servidor y cotejar los saldos con el encargado.
 
 ## 3. Por confirmar con el encargado de almacenes
@@ -44,7 +75,8 @@ El usuario quiere ajustar lo que carga `pnpm seed` (super_admin → 54 unidades 
 505 partidas). Falta que diga qué cambiar. Puntos detectados:
 - Re-correr el seed **reactiva unidades** dadas de baja (las fuentes no).
 - Sin `SEED_ADMIN_PASSWORD` en el `.env`, el super_admin nace con `admin123`.
-- Las partidas entran los 9 grupos activos; al almacén solo le sirven 20000 y 30000.
+- ~~Las partidas entran los 9 grupos activos~~ — hecho 2026-11-16: solo 20000 y 30000 nacen
+  activos; el super_admin pasó a llamarse `superadmin`.
 - No siembra almacenes reales ni la relación almacén ↔ unidades.
 
 Clasificador 2027 comparado contra el 2026 (2026-11-13): mismos 505 códigos y nombres; solo
