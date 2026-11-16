@@ -47,7 +47,7 @@ cd backend  && pnpm dev         # http://localhost:3000
 cd frontend && pnpm dev         # http://localhost:5173
 ```
 
-Login: usuario `admin`, contraseña `admin123` (definidos en `SEED_ADMIN_USER` /
+Login: usuario `superadmin`, contraseña `admin123` (definidos en `SEED_ADMIN_USER` /
 `SEED_ADMIN_PASSWORD` del `.env`).
 
 ## ¿Y si quisiera cargar datos de prueba?

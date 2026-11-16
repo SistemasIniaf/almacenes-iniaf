@@ -25,11 +25,16 @@ import { UNIDADES_INIAF } from './data/unidades-iniaf';
  * (para no perder la numeracion de Items ya generados).
  *
  * Alcance: los 9 grupos del Clasificador por Objeto del Gasto (10000 a 90000).
- * Los grupos que la institucion no usa se dejan desactivados desde la UI.
+ * Solo nacen ACTIVOS los grupos que usa el almacen (GRUPOS_ACTIVOS: 20000
+ * Servicios No Personales y 30000 Materiales y Suministros, 2026-11-16); el
+ * resto se crea desactivado y el super_admin lo habilita desde la UI si hace
+ * falta. Al re-ejecutar NO se toca `activo`: lo que se cambio a mano se respeta.
  */
 
 const CSV_PATH = join(__dirname, 'data', 'clasificador.csv');
 const GRUPOS_PERMITIDOS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+/** Grupos que nacen activos: los unicos que el almacen asigna a items. */
+const GRUPOS_ACTIVOS = ['2', '3'];
 
 interface FilaClasificador {
   codigo: string;
@@ -150,9 +155,9 @@ async function sembrarSuperAdmin() {
     return;
   }
 
-  const username = process.env.SEED_ADMIN_USER ?? 'admin';
+  const username = process.env.SEED_ADMIN_USER ?? 'superadmin';
   const passwordPlano = process.env.SEED_ADMIN_PASSWORD ?? 'admin123';
-  const nombre = process.env.SEED_ADMIN_NOMBRE ?? 'Administrador del Sistema';
+  const nombre = process.env.SEED_ADMIN_NOMBRE ?? 'SUPERADMIN SISTEMA';
 
   const password = await bcrypt.hash(passwordPlano, 10);
   await prisma.usuario.create({
@@ -252,13 +257,20 @@ async function main() {
     );
   }
 
-  // Paso 1: upsert de todas las partidas (sin padreId). No se toca ultimoCorrelativo al actualizar.
+  // Paso 1: upsert de todas las partidas (sin padreId). Al actualizar no se
+  // tocan ultimoCorrelativo ni activo (la numeracion y lo decidido en la UI).
   for (const { codigo, denominacion } of filas) {
     const nivel = nivelDe(codigo);
     const seleccionable = !tieneHijos.has(codigo);
     await prisma.partida.upsert({
       where: { codigo },
-      create: { codigo, denominacion, nivel, seleccionable, activo: true },
+      create: {
+        codigo,
+        denominacion,
+        nivel,
+        seleccionable,
+        activo: GRUPOS_ACTIVOS.includes(codigo[0]),
+      },
       update: { denominacion, nivel, seleccionable },
     });
   }
@@ -287,6 +299,9 @@ async function main() {
   console.log(`   - ${total} partidas cargadas/actualizadas`);
   console.log(`   - ${enlazadas} enlaces padre-hijo`);
   console.log(`   - ${hojas} nodos hoja (seleccionable = true)`);
+  console.log(
+    `   - nacen activos solo los grupos ${GRUPOS_ACTIVOS.map((g) => `${g}0000`).join(' y ')}`,
+  );
 }
 
 main()

@@ -102,7 +102,7 @@ docker compose -f docker-compose.prod.yml exec backend pnpm prisma migrate deplo
 docker compose -f docker-compose.prod.yml exec backend pnpm seed
 ```
 
-`pnpm seed` deja el catálogo de Partidas y el usuario `admin` inicial
+`pnpm seed` deja el catálogo de Partidas y el usuario `superadmin` inicial (rol super_admin)
 (contraseña: la que pusiste en `SEED_ADMIN_PASSWORD`). Para que el encargado
 tenga algo más que mirar que un sistema vacío — unidades, almacenes, usuarios
 de todos los roles —, correr además:
