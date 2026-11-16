@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { tienePermiso } from "@/features/auth/lib/permisos"
 import { CerrarGestionDialog } from "@/features/cierres/CerrarGestionDialog"
+import { CuadrosDgcf } from "@/features/cierres/CuadrosDgcf"
 import { useActaCierre } from "@/features/cierres/useActaCierre"
 import { useCierres, useEstadoCierres } from "@/features/cierres/useCierres"
 import { ESTADO_LABEL } from "@/features/egresos/egresos.types"
@@ -205,6 +206,11 @@ export function CierresPage() {
             </TableBody>
           </Table>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-base font-semibold">Cuadros 5 y 6 (DGCF)</h2>
+        <CuadrosDgcf />
       </section>
 
       <section className="flex flex-col gap-2">

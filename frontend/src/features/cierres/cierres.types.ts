@@ -85,3 +85,50 @@ export interface CerrarGestionPayload {
   gestion: number
   confirmarAnticipado?: boolean
 }
+
+/** Espejo de `GET /cierres/gestiones`: las que tienen algún cierre. */
+export interface GestionCerrada {
+  gestion: number
+  almacenesCerrados: number
+}
+
+export interface QueryCuadros {
+  gestion: number
+  /** Sin almacén: el cuadro INSTITUCIONAL (todos los que cerraron). */
+  almacenId?: number
+}
+
+/** Una fila del Cuadro 6: un ítem a un precio (lotes y fuentes sumados). */
+export interface FilaCuadro {
+  itemId: number
+  codigo: string
+  descripcion: string
+  unidadMedida: string
+  partidaCodigo: string
+  partidaDenominacion: string
+  precio: string
+  cantInicial: string
+  cantEntradas: string
+  cantSalidas: string
+  cantFinal: string
+  valInicial: string
+  valEntradas: string
+  valSalidas: string
+  valFinal: string
+}
+
+/** Espejo de `GET /cierres/cuadros`. */
+export interface DatosCuadros {
+  gestion: number
+  /** null = institucional. */
+  almacen: { id: number; nombre: string } | null
+  /** Institucional con algún almacén que todavía no cerró la gestión. */
+  provisional: boolean
+  pendientes: { id: number; nombre: string }[]
+  cierres: {
+    almacen: { id: number; nombre: string }
+    anticipado: boolean
+    cerradoEn: string
+  }[]
+  filas: FilaCuadro[]
+}

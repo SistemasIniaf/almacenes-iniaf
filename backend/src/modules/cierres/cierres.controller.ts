@@ -15,6 +15,7 @@ import { Rol } from '../../generated/prisma/enums';
 import { CierresService } from './cierres.service';
 import { CerrarGestionDto } from './dto/cerrar-gestion.dto';
 import { QueryCierresDto } from './dto/query-cierres.dto';
+import { QueryCuadrosDto } from './dto/query-cuadros.dto';
 
 /**
  * Cierre de gestion por almacen (2026-11-16). CERRAR es solo del super_admin;
@@ -38,6 +39,21 @@ export class CierresController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.cierresService.cerrar(dto, user);
+  }
+
+  /** Gestiones con al menos un cierre: el selector de los Cuadros 5 y 6. */
+  @Get('gestiones')
+  gestiones() {
+    return this.cierresService.gestiones();
+  }
+
+  /**
+   * Datos de los Cuadros 5 y 6 (DGCF R1.05/R1.06). Van declarados ANTES de
+   * `:id`, o Nest los tomaria por un id y reventaria el ParseIntPipe.
+   */
+  @Get('cuadros')
+  cuadros(@Query() query: QueryCuadrosDto) {
+    return this.cierresService.cuadros(query);
   }
 
   @Get()

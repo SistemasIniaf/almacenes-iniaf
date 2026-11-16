@@ -1429,7 +1429,7 @@ importa. Backend `modules/saldos-iniciales/` (`POST /validar` sin grabar, `POST 
   de nginx faltaba desde siempre**: el default de 1 MB rechazaba en producción las fotos de ítem de
   más de 1 MB, aunque el backend acepta 5.
 
-**CIERRE DE GESTIÓN — backend, pantalla y acta YA HECHOS** (2026-11-16; faltan los Cuadros 5/6).
+**CIERRE DE GESTIÓN — YA HECHO** (2026-11-16: backend, pantalla, acta y Cuadros 5/6).
 Decisiones en `docs/decisiones-ingresos.md` §9. Backend `modules/cierres/`: `GET /cierres/estado` (qué
 gestión le toca a cada almacén y qué pedidos lo traban), `POST /cierres` (solo `super_admin`), `GET
 /cierres` y `GET /cierres/:id` (la foto + conteo de documentos, para el acta); lectura también para `admin`.
@@ -1473,6 +1473,16 @@ gestión le toca a cada almacén y qué pedidos lo traban), `POST /cierres` (sol
 - **Pedidos de gestión terminada en la UI**: `esDeGestionTerminada()` (`egresos.types.ts`) esconde
   Aprobar, Confirmar entrega y la edición/reenvío (ficha y listado), deja Rechazar y Desistir, y la
   ficha lo explica con un aviso.
+- **Cuadros 5 y 6 DGCF (R1.05/R1.06)** — sección de la misma pantalla (`CuadrosDgcf`): gestión +
+  almacén o «Institucional», en PDF y Excel (`lib/cuadros*.ts`). Son el MODELO para llenar la planilla
+  del Ministerio, así que replican sus columnas tal cual. Datos: `GET /cierres/cuadros?gestion=&almacenId=`
+  (filas del Cuadro 6: una por ítem + precio, valores redondeados en SQL por fila) y
+  `GET /cierres/gestiones`. **El Cuadro 5 lo arma el frontend sumando las filas del 6 en centavos**
+  (`agruparCuadro5`): los dos cuadran por construcción. El institucional **descuenta los traspasos**
+  de entradas y salidas y es **PROVISIONAL** (aviso + marca de agua) mientras algún almacén deba la
+  gestión (`almacenesSinCerrar`, misma regla que `gestionPendiente`); provisional, una fila puede no
+  cerrar (el traspaso a un almacén sin cerrar falta del lado del destino). Por almacén, el traspaso
+  cuenta como entrada/salida. Un cierre anticipado se avisa en el cuadro. Sin firmas.
 
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL

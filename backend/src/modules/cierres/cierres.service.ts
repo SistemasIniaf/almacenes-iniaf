@@ -18,6 +18,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { CerrarGestionDto } from './dto/cerrar-gestion.dto';
 import { QueryCierresDto } from './dto/query-cierres.dto';
+import { QueryCuadrosDto } from './dto/query-cuadros.dto';
 
 /**
  * Pedidos que traban el cierre: los de la gestion que todavia esperan algo.
@@ -43,6 +44,25 @@ const TIMEOUT_TRANSACCION_MS = 5 * 60 * 1000;
 const SIGNO = Prisma.sql`(CASE WHEN m.tipo = 'ENTRADA' THEN 1 WHEN m.tipo = 'SALIDA' THEN -1 WHEN m.ingreso_id IS NOT NULL THEN -1 ELSE 1 END)`;
 
 type Db = Prisma.TransactionClient | PrismaService;
+
+/** Una fila del Cuadro 6: un ITEM a un PRECIO (se suman sus lotes y fuentes). */
+export interface FilaCuadro {
+  itemId: number;
+  codigo: string;
+  descripcion: string;
+  unidadMedida: string;
+  partidaCodigo: string;
+  partidaDenominacion: string;
+  precio: string;
+  cantInicial: string;
+  cantEntradas: string;
+  cantSalidas: string;
+  cantFinal: string;
+  valInicial: string;
+  valEntradas: string;
+  valSalidas: string;
+  valFinal: string;
+}
 
 interface FilaFoto {
   lote: number;
@@ -357,6 +377,154 @@ export class CierresService {
       JOIN items it ON it.id = d.item_id
       WHERE l.inicial <> 0 OR l.entradas <> 0 OR l.salidas <> 0 OR l.final <> 0
       ORDER BY l.lote`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cuadros 5 y 6 (DGCF R1.05 / R1.06)
+  // ---------------------------------------------------------------------------
+
+  /** Gestiones con algun cierre, de la mas reciente a la mas vieja. */
+  async gestiones() {
+    const filas = await this.prisma.cierreGestion.groupBy({
+      by: ['gestion'],
+      _count: { _all: true },
+      orderBy: { gestion: 'desc' },
+    });
+    return filas.map((f) => ({
+      gestion: f.gestion,
+      almacenesCerrados: f._count._all,
+    }));
+  }
+
+  /**
+   * Los datos de los Cuadros 5 y 6 de una gestion. Salen de la FOTO de los
+   * cierres, nunca del stock del dia: asi el cuadro se reimprime igual.
+   *
+   * - Con `almacenId`: el cuadro de ese almacen (tiene que haberla cerrado).
+   *   Los traspasos cuentan como entradas y salidas, porque para ESE almacen lo
+   *   son.
+   * - Sin `almacenId`: el INSTITUCIONAL, la suma de todos los almacenes que
+   *   cerraron. Los traspasos se DESCUENTAN de entradas y salidas: el material
+   *   no entro ni salio de la institucion, solo cambio de almacen. Es
+   *   PROVISIONAL mientras algun almacen tenga esa gestion sin cerrar (se
+   *   devuelven en `pendientes`).
+   *
+   * Una fila por ITEM + PRECIO (decision 2026-11-16): las fuentes y los lotes
+   * del mismo item al mismo precio se suman. El Cuadro 5 es el mismo dato
+   * agrupado por partida, asi que lo arma el frontend sumando estas filas: los
+   * dos cuadros cuadran por construccion.
+   *
+   * Los valores se calculan en la base (aritmetica exacta) y se redondean a
+   * centavos por fila.
+   */
+  async cuadros(query: QueryCuadrosDto) {
+    const { gestion, almacenId } = query;
+
+    const cierres = await this.prisma.cierreGestion.findMany({
+      where: { gestion, ...(almacenId ? { almacenId } : {}) },
+      select: {
+        id: true,
+        anticipado: true,
+        cerradoEn: true,
+        almacen: { select: { id: true, nombre: true } },
+      },
+      orderBy: { almacen: { nombre: 'asc' } },
+    });
+
+    if (cierres.length === 0) {
+      if (almacenId) {
+        const almacen = await this.prisma.almacen.findUnique({
+          where: { id: almacenId },
+          select: { nombre: true },
+        });
+        if (!almacen) throw new NotFoundException('No existe el almacén');
+        throw new NotFoundException(
+          `El almacén ${almacen.nombre} todavía no cerró la gestión ${gestion}`,
+        );
+      }
+      throw new NotFoundException(
+        `Ningún almacén cerró todavía la gestión ${gestion}`,
+      );
+    }
+
+    // Solo el institucional puede quedar provisional: el de un almacen sale
+    // de SU cierre, que ya esta hecho.
+    const pendientes = almacenId ? [] : await this.almacenesSinCerrar(gestion);
+    const neto = !almacenId;
+    const ids = cierres.map((c) => c.id);
+
+    const entradas = neto
+      ? Prisma.sql`s.cantidad_entradas - s.cantidad_entradas_traspaso`
+      : Prisma.sql`s.cantidad_entradas`;
+    const salidas = neto
+      ? Prisma.sql`s.cantidad_salidas - s.cantidad_salidas_traspaso`
+      : Prisma.sql`s.cantidad_salidas`;
+
+    const filas = await this.prisma.$queryRaw<FilaCuadro[]>`
+      WITH f AS (
+        SELECT
+          s.item_id, s.partida_id, s.precio_unitario,
+          SUM(s.cantidad_inicial) AS inicial,
+          SUM(${entradas}) AS entradas,
+          SUM(${salidas}) AS salidas,
+          SUM(s.cantidad_final) AS final
+        FROM cierre_saldos s
+        WHERE s.cierre_id IN (${Prisma.join(ids)})
+        GROUP BY s.item_id, s.partida_id, s.precio_unitario
+      )
+      SELECT
+        it.id AS "itemId",
+        it.codigo,
+        it.descripcion,
+        it.unidad_medida AS "unidadMedida",
+        p.codigo AS "partidaCodigo",
+        p.denominacion AS "partidaDenominacion",
+        f.precio_unitario::text AS precio,
+        f.inicial::text AS "cantInicial",
+        f.entradas::text AS "cantEntradas",
+        f.salidas::text AS "cantSalidas",
+        f.final::text AS "cantFinal",
+        ROUND(f.inicial * f.precio_unitario, 2)::text AS "valInicial",
+        ROUND(f.entradas * f.precio_unitario, 2)::text AS "valEntradas",
+        ROUND(f.salidas * f.precio_unitario, 2)::text AS "valSalidas",
+        ROUND(f.final * f.precio_unitario, 2)::text AS "valFinal"
+      FROM f
+      JOIN items it ON it.id = f.item_id
+      JOIN partidas p ON p.id = f.partida_id
+      WHERE f.inicial <> 0 OR f.entradas <> 0 OR f.salidas <> 0 OR f.final <> 0
+      ORDER BY p.codigo, it.descripcion, it.id, f.precio_unitario`;
+
+    return {
+      gestion,
+      almacen: almacenId ? cierres[0].almacen : null,
+      provisional: pendientes.length > 0,
+      pendientes,
+      cierres: cierres.map((c) => ({
+        almacen: c.almacen,
+        anticipado: c.anticipado,
+        cerradoEn: c.cerradoEn,
+      })),
+      filas,
+    };
+  }
+
+  /**
+   * Almacenes que todavia deben la gestion: su pendiente es esa o una
+   * anterior. Uno sin movimientos, o dado de baja y vacio, no debe nada.
+   */
+  private async almacenesSinCerrar(gestion: number) {
+    const almacenes = await this.prisma.almacen.findMany({
+      select: { id: true, nombre: true, activo: true },
+      orderBy: { nombre: 'asc' },
+    });
+    const resultado: { id: number; nombre: string }[] = [];
+    for (const almacen of almacenes) {
+      const pendiente = await this.gestionPendiente(this.prisma, almacen);
+      if (pendiente != null && pendiente <= gestion) {
+        resultado.push({ id: almacen.id, nombre: almacen.nombre });
+      }
+    }
+    return resultado;
   }
 
   // ---------------------------------------------------------------------------

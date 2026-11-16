@@ -5,8 +5,11 @@ import type {
   CerrarGestionPayload,
   Cierre,
   CierreListItem,
+  DatosCuadros,
   EstadoCierres,
+  GestionCerrada,
   QueryCierres,
+  QueryCuadros,
 } from "@/features/cierres/cierres.types"
 
 export async function obtenerEstadoCierres(): Promise<EstadoCierres> {
@@ -33,5 +36,21 @@ export async function cerrarGestion(
   payload: CerrarGestionPayload
 ): Promise<Cierre> {
   const { data } = await api.post<Cierre>("/cierres", payload)
+  return data
+}
+
+/** Gestiones con algún cierre (para elegir de cuál sacar los cuadros). */
+export async function obtenerGestionesCerradas(): Promise<GestionCerrada[]> {
+  const { data } = await api.get<GestionCerrada[]>("/cierres/gestiones")
+  return data
+}
+
+/** Datos de los Cuadros 5 y 6: de un almacén, o institucionales. */
+export async function obtenerCuadros(
+  query: QueryCuadros
+): Promise<DatosCuadros> {
+  const { data } = await api.get<DatosCuadros>("/cierres/cuadros", {
+    params: query,
+  })
   return data
 }

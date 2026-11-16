@@ -6,9 +6,9 @@ falta y qué lo bloquea**.
 
 ## 1. Por construir (en este orden)
 
-### 1.1 Cierre de gestión + Cuadros 5 y 6 — SIGUIENTE
+### 1.1 Cierre de gestión + Cuadros 5 y 6 — HECHO (2026-11-16)
 Todo decidido (2026-11-12 y 2026-11-16, detalle en `docs/decisiones-ingresos.md` §9).
-**Etapas 1 (backend) y 2 (pantalla `/cierres` + acta PDF) HECHAS el 2026-11-16**; falta la etapa 3 (Cuadros 5 y 6):
+Las tres etapas HECHAS el 2026-11-16 (backend, pantalla `/cierres` + acta PDF, Cuadros 5 y 6 en PDF/Excel). Lo que queda abierto está al final:
 - Por almacén, botón, solo `super_admin`, **sin plazo**, en orden, sin reapertura, sin recuento.
 - Traba: pedidos con número de la gestión sin entregar ni desistir.
 - Pedidos de la gestión anterior: desde el 1/1 solo devolver o desistir.
