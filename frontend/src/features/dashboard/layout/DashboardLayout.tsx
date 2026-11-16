@@ -30,6 +30,7 @@ const SECCIONES: Record<string, string> = {
   "fuentes-financiamiento": "Fuentes de financiamiento",
   logos: "Logos",
   "saldos-iniciales": "Saldos iniciales",
+  cierres: "Cierre de gestión",
   stock: "Stock",
   kardex: "Kardex",
   ingresos: "Ingresos",

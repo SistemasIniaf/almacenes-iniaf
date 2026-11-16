@@ -8,13 +8,13 @@ falta y qué lo bloquea**.
 
 ### 1.1 Cierre de gestión + Cuadros 5 y 6 — SIGUIENTE
 Todo decidido (2026-11-12 y 2026-11-16, detalle en `docs/decisiones-ingresos.md` §9).
-**Etapa 1 (backend) HECHA el 2026-11-16**; faltan la pantalla + acta (etapa 2) y los Cuadros (etapa 3):
+**Etapas 1 (backend) y 2 (pantalla `/cierres` + acta PDF) HECHAS el 2026-11-16**; falta la etapa 3 (Cuadros 5 y 6):
 - Por almacén, botón, solo `super_admin`, **sin plazo**, en orden, sin reapertura, sin recuento.
 - Traba: pedidos con número de la gestión sin entregar ni desistir.
 - Pedidos de la gestión anterior: desde el 1/1 solo devolver o desistir.
 - Gestión cerrada congelada (sin anular ni editar nada de ella).
 - Foto al 31/12 + acta (PDF) + Cuadros 5 y 6 del almacén y el institucional (PDF y Excel).
-- **Pendiente**: las firmas de los cuadros (las define el Ministerio).
+- **Pendiente**: las firmas del acta y de los cuadros (las define la institución / el Ministerio).
 
 ## 2. Migración del sistema anterior (saldos iniciales)
 

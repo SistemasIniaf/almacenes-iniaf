@@ -14,6 +14,7 @@ import { KardexPage } from "@/features/kardex/KardexPage"
 import { TraspasoFormPage } from "@/features/traspasos/pages/TraspasoFormPage"
 import { TraspasosPage } from "@/features/traspasos/pages/TraspasosPage"
 import { LogosPage } from "@/features/logos/LogosPage"
+import { CierresPage } from "@/features/cierres/CierresPage"
 import { SaldosInicialesPage } from "@/features/saldos-iniciales/SaldosInicialesPage"
 import { PartidasPage } from "@/features/partidas/PartidasPage"
 import { ProveedoresPage } from "@/features/proveedores/ProveedoresPage"
@@ -118,6 +119,14 @@ export const router = createBrowserRouter([
             element: (
               <RutaConPermiso permiso="saldosInicialesImportar">
                 <SaldosInicialesPage />
+              </RutaConPermiso>
+            ),
+          },
+          {
+            path: "cierres",
+            element: (
+              <RutaConPermiso permiso="cierresLeer">
+                <CierresPage />
               </RutaConPermiso>
             ),
           },

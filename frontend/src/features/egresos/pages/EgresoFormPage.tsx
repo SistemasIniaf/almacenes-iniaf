@@ -87,6 +87,7 @@ import {
   ESTADO_LABEL,
   ESTADO_PUNTO,
   ESTADOS_DEL_SOLICITANTE,
+  esDeGestionTerminada,
   etiquetaNumero,
 } from "@/features/egresos/egresos.types"
 
@@ -203,25 +204,32 @@ export function EgresoFormPage() {
 
   const estado = egreso?.estado
   const esPropio = egreso?.solicitante.id === user?.id
+  // De una gestión terminada: solo se devuelve o se desiste.
+  const deGestionTerminada = egreso != null && esDeGestionTerminada(egreso)
   // Lo editable es lo que está en manos del solicitante (sin enviar o
   // devuelto), y solo por su dueño. Enviado, el pedido ya es problema de otro.
   const editable =
     esNuevo ||
     (estado !== undefined &&
       ESTADOS_DEL_SOLICITANTE.includes(estado) &&
-      esPropio)
+      esPropio &&
+      !deGestionTerminada)
 
-  const puedeAprobar =
+  const decideAprobacion =
     estado === "PENDIENTE_APROBADOR" &&
     (user?.rol === "aprobador" ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
-  const puedeEntregar =
+  const decideEntrega =
     estado === "PENDIENTE_RESPONSABLE_ALMACEN" &&
     (user?.rol === "responsable_almacen" ||
       user?.rol === "admin" ||
       user?.rol === "super_admin")
-  const puedeRechazar = puedeAprobar || puedeEntregar
+  // Rechazar (devolver) sigue valiendo en una gestión terminada; aprobar y
+  // entregar no.
+  const puedeAprobar = decideAprobacion && !deGestionTerminada
+  const puedeEntregar = decideEntrega && !deGestionTerminada
+  const puedeRechazar = decideAprobacion || decideEntrega
   // Quien puede entregar ve la tabla YA en modo entrega, con las cantidades
   // editables (2026-10-29, pedido del usuario). Antes había que tocar
   // «Entregar» para que aparecieran, y se leía como que ese botón ya
@@ -494,6 +502,18 @@ export function EgresoFormPage() {
           <span className="font-medium">Anulado:</span> {egreso.motivoAnulacion}
         </div>
       )}
+      {deGestionTerminada &&
+        estado !== undefined &&
+        !["ENTREGADO", "ANULADO", "DESISTIDO"].includes(estado) && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+            <span className="font-medium">
+              Pedido de la gestión {egreso?.gestion}, que ya terminó.
+            </span>{" "}
+            Ya no se puede aprobar, entregar, modificar ni reenviar: solo
+            devolverlo o desistirlo. Si el material hace falta, hay que hacer un
+            pedido nuevo.
+          </div>
+        )}
       {rechazo && (
         <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
           <span className="font-medium">

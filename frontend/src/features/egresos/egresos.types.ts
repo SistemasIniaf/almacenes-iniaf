@@ -32,6 +32,17 @@ export const ESTADOS_DEL_SOLICITANTE: EstadoEgreso[] = ["BORRADOR", "DEVUELTO"]
  * dos palabras: en una celda de tabla, «Esperando al aprobador de unidad»
  * empujaba el ancho de toda la columna.
  */
+/**
+ * Un pedido con número de una gestión que ya terminó (2026-11-16, cierre de
+ * gestión): desde el 1/1 solo se devuelve o se desiste. Aprobar, entregar,
+ * modificar o reenviar lo rechaza el backend (`exigirPedidoDeLaGestion`); acá
+ * solo se esconden esos botones. Un pedido sin número todavía no es de ninguna
+ * gestión.
+ */
+export function esDeGestionTerminada(egreso: { gestion: number | null }) {
+  return egreso.gestion != null && egreso.gestion < new Date().getFullYear()
+}
+
 export const ESTADO_LABEL: Record<EstadoEgreso, string> = {
   // Los tres estados en curso forman UNA serie —PENDIENTE DE ENVÍO → DE
   // APROBACIÓN → DE ENTREGA→ ENTREGADO—: cada uno nombra el paso que falta, en el

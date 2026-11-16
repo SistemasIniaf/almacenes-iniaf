@@ -1429,7 +1429,7 @@ importa. Backend `modules/saldos-iniciales/` (`POST /validar` sin grabar, `POST 
   de nginx faltaba desde siempre**: el default de 1 MB rechazaba en producción las fotos de ítem de
   más de 1 MB, aunque el backend acepta 5.
 
-**CIERRE DE GESTIÓN — backend YA HECHO** (2026-11-16; falta la pantalla, el acta y los Cuadros 5/6).
+**CIERRE DE GESTIÓN — backend, pantalla y acta YA HECHOS** (2026-11-16; faltan los Cuadros 5/6).
 Decisiones en `docs/decisiones-ingresos.md` §9. Backend `modules/cierres/`: `GET /cierres/estado` (qué
 gestión le toca a cada almacén y qué pedidos lo traban), `POST /cierres` (solo `super_admin`), `GET
 /cierres` y `GET /cierres/:id` (la foto + conteo de documentos, para el acta); lectura también para `admin`.
@@ -1457,6 +1457,22 @@ gestión le toca a cada almacén y qué pedidos lo traban), `POST /cierres` (sol
   desiste (super_admin y admin ya podían en los dos niveles).
 - Verificado sobre una copia de la base: bloqueos, orden, cierre anticipado, el borde 31/12 23:59:59
   (entra) / 1/1 00:00 (no entra) y que el valor final del cierre anticipado cuadra con el stock.
+- **Pantalla `/cierres`** (Administración → «Cierre de gestión», `features/cierres/`, permisos
+  `cierresLeer` = super_admin + admin y `cierresEjecutar` = super_admin). Arriba, por almacén: última
+  cerrada, la que le toca y la situación (al día / sin movimientos / gestión en curso / lista / N
+  pedidos sin resolver, nombrados con enlace a la ficha); el botón «Cerrar AAAA» se deshabilita con
+  pedidos abiertos. El diálogo dice qué se congela y, si es anticipado, exige marcar «Entiendo que
+  el almacén queda congelado» (manda `confirmarAnticipado`). Abajo, el historial con el acta.
+- **El acta se ofrece en el TOAST** de éxito («Ver acta»), no se abre sola: la pestaña del PDF
+  necesita el gesto de un clic (ver «TODOS los PDF se abren en una PESTAÑA nueva»).
+- **Acta** (`features/cierres/lib/acta-cierre-pdf.ts`): texto del acta (quién, cuándo, «sin recuento
+  físico»), resumen valorado (con lo de traspasos aparte), documentos de la gestión, resumen por
+  partida, observaciones y en hoja nueva el detalle por lote (ítem + fuente + precio). Sale de lo
+  GUARDADO. **Sin firmas** hasta que la institución defina quién firma. Ojo: Helvetica estándar no
+  tiene «−» (U+2212): sale roto — usar el guion ASCII.
+- **Pedidos de gestión terminada en la UI**: `esDeGestionTerminada()` (`egresos.types.ts`) esconde
+  Aprobar, Confirmar entrega y la edición/reenvío (ficha y listado), deja Rechazar y Desistir, y la
+  ficha lo explica con un aviso.
 
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL

@@ -75,6 +75,7 @@ import {
   ESTADO_DETALLE,
   ESTADOS_CON_MOVIMIENTO,
   ESTADOS_DEL_SOLICITANTE,
+  esDeGestionTerminada,
   ESTADO_LABEL,
   ESTADO_PUNTO,
 } from "@/features/egresos/egresos.types"
@@ -221,7 +222,8 @@ export function EgresosPage() {
    */
   const puedeGestionar = (egreso: EgresoListItem) =>
     ESTADOS_DEL_SOLICITANTE.includes(egreso.estado) &&
-    egreso.solicitante.id === user?.id
+    egreso.solicitante.id === user?.id &&
+    !esDeGestionTerminada(egreso)
 
   /**
    * Cerrar un pedido en manos del solicitante tiene dos caminos según si ya es

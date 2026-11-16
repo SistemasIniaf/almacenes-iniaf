@@ -154,6 +154,12 @@ export const PERMISOS = {
   // Carga inicial de saldos del sistema anterior (2026-11-12): crea stock en
   // cualquier almacén, como un traspaso. Espeja el @Roles de SaldosInicialesController.
   saldosInicialesImportar: ["super_admin"],
+
+  // Cierre de gestión por almacén (2026-11-16). Espeja CierresController: el
+  // admin ve el estado, el historial y las actas; CERRAR es solo del
+  // super_admin (no tiene vuelta atrás).
+  cierresLeer: ["super_admin", "admin"],
+  cierresEjecutar: ["super_admin"],
 } satisfies Record<string, readonly Rol[]>
 
 export type Permiso = keyof typeof PERMISOS
