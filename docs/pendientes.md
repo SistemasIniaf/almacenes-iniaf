@@ -1,39 +1,20 @@
 # Pendientes del sistema
 
-Lista viva de lo que falta, en el orden en que conviene hacerlo. Actualizada al 2026-11-13.
+Lista viva de lo que falta, en el orden en que conviene hacerlo. Actualizada al 2026-11-16.
 El detalle de cada decisión está en `CLAUDE.md` y en `docs/decisiones-*.md`; acá va solo **qué
 falta y qué lo bloquea**.
 
 ## 1. Por construir (en este orden)
 
-### 1.1 Ajuste de inventario (recuento físico) — SIGUIENTE
-Va **antes** del cierre: el recuento físico de fin de año tiene que poder corregir el saldo de
-los lotes antes de sacar la foto al 31/12.
-- Documento propio por almacén, con número, motivo y quién lo hizo.
-- Por lote: saldo del sistema → cantidad contada → diferencia (sobrante / faltante).
-- Movimiento de kardex propio (no un egreso ni un ingreso), valorizado al precio del lote.
-- **Por definir con el encargado**: quién lo registra (¿super_admin? ¿responsable de almacén
-  con aprobación?), si un sobrante crea lote nuevo o suma al existente, si se puede anular, y
-  qué acta / PDF se firma.
-
-### 1.2 Cierre de gestión
-Decidido el 2026-11-12, falta construirlo:
-- **Por almacén**, con un botón, **solo `super_admin`**.
-- Se hace en las **dos primeras semanas de enero** (sobre la gestión que terminó).
-- **Sin reapertura**: una gestión cerrada no se vuelve a abrir.
-- Foto de saldos por lote al 31/12 (la apertura de la gestión siguiente) + **acta en PDF**.
-- Requisitos previos que el botón tiene que verificar: sin pedidos sin cerrar, recuento hecho.
-- Después del cierre: **bloquear todo movimiento con fecha de la gestión cerrada** (ingresos,
-  entregas, anulaciones, corrección de `fechaIngreso`, traspasos, ajustes).
-- Para probarlo antes de enero: un modo de prueba solo en desarrollo que permita cerrar la
-  gestión en curso.
-
-### 1.3 Cuadros 5 y 6 DGCF (anexos de Estados Financieros)
-Dependen del cierre y de los saldos iniciales. Tres puntos a definir con contabilidad antes de
-construirlos:
-- «Precio unitario» del Cuadro 6: ¿una fila por ítem+precio, promedio ponderado o último precio?
-- ¿A qué nivel del clasificador agrupa la «Partida» del Cuadro 5?
-- Salen en PDF y Excel (contabilidad los pega en la plantilla oficial).
+### 1.1 Cierre de gestión + Cuadros 5 y 6 — SIGUIENTE
+Todo decidido (2026-11-12 y 2026-11-16, detalle en `docs/decisiones-ingresos.md` §9).
+**Etapa 1 (backend) HECHA el 2026-11-16**; faltan la pantalla + acta (etapa 2) y los Cuadros (etapa 3):
+- Por almacén, botón, solo `super_admin`, **sin plazo**, en orden, sin reapertura, sin recuento.
+- Traba: pedidos con número de la gestión sin entregar ni desistir.
+- Pedidos de la gestión anterior: desde el 1/1 solo devolver o desistir.
+- Gestión cerrada congelada (sin anular ni editar nada de ella).
+- Foto al 31/12 + acta (PDF) + Cuadros 5 y 6 del almacén y el institucional (PDF y Excel).
+- **Pendiente**: las firmas de los cuadros (las define el Ministerio).
 
 ## 2. Migración del sistema anterior (saldos iniciales)
 
@@ -47,11 +28,10 @@ iniciales). Falta el trabajo de datos:
 - [ ] Revisar la hoja **PARA REVISAR** (lotes con saldo negativo en el sistema viejo).
 - [ ] **Confirmar con el encargado el saldo de semilla de palma OLEÍFERAS (Bs 42,3 M)**: parece
       un error de carga.
-- [ ] Importar almacén por almacén en el servidor y cotejar contra el recuento físico.
+- [ ] Importar almacén por almacén en el servidor y cotejar los saldos con el encargado.
 
 ## 3. Por confirmar con el encargado de almacenes
 
-- Ajuste de inventario: las preguntas del punto 1.1.
 - Devoluciones de material ya retirado: ¿alcanza con anular el egreso o hace falta un documento
   propio? (el sistema viejo tenía «Ingreso devolución», sin uso desde 2021).
 - Plazos por nivel de aprobación (si se quieren alertas por demora).

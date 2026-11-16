@@ -274,6 +274,7 @@ export type PartidaWhereInput = {
   padre?: Prisma.XOR<Prisma.PartidaNullableScalarRelationFilter, Prisma.PartidaWhereInput> | null
   hijos?: Prisma.PartidaListRelationFilter
   items?: Prisma.ItemListRelationFilter
+  cierreSaldos?: Prisma.CierreSaldoListRelationFilter
 }
 
 export type PartidaOrderByWithRelationInput = {
@@ -290,6 +291,7 @@ export type PartidaOrderByWithRelationInput = {
   padre?: Prisma.PartidaOrderByWithRelationInput
   hijos?: Prisma.PartidaOrderByRelationAggregateInput
   items?: Prisma.ItemOrderByRelationAggregateInput
+  cierreSaldos?: Prisma.CierreSaldoOrderByRelationAggregateInput
 }
 
 export type PartidaWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +311,7 @@ export type PartidaWhereUniqueInput = Prisma.AtLeast<{
   padre?: Prisma.XOR<Prisma.PartidaNullableScalarRelationFilter, Prisma.PartidaWhereInput> | null
   hijos?: Prisma.PartidaListRelationFilter
   items?: Prisma.ItemListRelationFilter
+  cierreSaldos?: Prisma.CierreSaldoListRelationFilter
 }, "id" | "codigo">
 
 export type PartidaOrderByWithAggregationInput = {
@@ -357,6 +360,7 @@ export type PartidaCreateInput = {
   padre?: Prisma.PartidaCreateNestedOneWithoutHijosInput
   hijos?: Prisma.PartidaCreateNestedManyWithoutPadreInput
   items?: Prisma.ItemCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaUncheckedCreateInput = {
@@ -372,6 +376,7 @@ export type PartidaUncheckedCreateInput = {
   updatedAt?: Date | string
   hijos?: Prisma.PartidaUncheckedCreateNestedManyWithoutPadreInput
   items?: Prisma.ItemUncheckedCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaUpdateInput = {
@@ -386,6 +391,7 @@ export type PartidaUpdateInput = {
   padre?: Prisma.PartidaUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.PartidaUpdateManyWithoutPadreNestedInput
   items?: Prisma.ItemUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUncheckedUpdateInput = {
@@ -401,6 +407,7 @@ export type PartidaUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.PartidaUncheckedUpdateManyWithoutPadreNestedInput
   items?: Prisma.ItemUncheckedUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaCreateManyInput = {
@@ -585,6 +592,20 @@ export type PartidaUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PartidaUpdateToOneWithWhereWithoutItemsInput, Prisma.PartidaUpdateWithoutItemsInput>, Prisma.PartidaUncheckedUpdateWithoutItemsInput>
 }
 
+export type PartidaCreateNestedOneWithoutCierreSaldosInput = {
+  create?: Prisma.XOR<Prisma.PartidaCreateWithoutCierreSaldosInput, Prisma.PartidaUncheckedCreateWithoutCierreSaldosInput>
+  connectOrCreate?: Prisma.PartidaCreateOrConnectWithoutCierreSaldosInput
+  connect?: Prisma.PartidaWhereUniqueInput
+}
+
+export type PartidaUpdateOneRequiredWithoutCierreSaldosNestedInput = {
+  create?: Prisma.XOR<Prisma.PartidaCreateWithoutCierreSaldosInput, Prisma.PartidaUncheckedCreateWithoutCierreSaldosInput>
+  connectOrCreate?: Prisma.PartidaCreateOrConnectWithoutCierreSaldosInput
+  upsert?: Prisma.PartidaUpsertWithoutCierreSaldosInput
+  connect?: Prisma.PartidaWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PartidaUpdateToOneWithWhereWithoutCierreSaldosInput, Prisma.PartidaUpdateWithoutCierreSaldosInput>, Prisma.PartidaUncheckedUpdateWithoutCierreSaldosInput>
+}
+
 export type PartidaCreateWithoutHijosInput = {
   codigo: string
   denominacion: string
@@ -596,6 +617,7 @@ export type PartidaCreateWithoutHijosInput = {
   updatedAt?: Date | string
   padre?: Prisma.PartidaCreateNestedOneWithoutHijosInput
   items?: Prisma.ItemCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaUncheckedCreateWithoutHijosInput = {
@@ -610,6 +632,7 @@ export type PartidaUncheckedCreateWithoutHijosInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.ItemUncheckedCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaCreateOrConnectWithoutHijosInput = {
@@ -628,6 +651,7 @@ export type PartidaCreateWithoutPadreInput = {
   updatedAt?: Date | string
   hijos?: Prisma.PartidaCreateNestedManyWithoutPadreInput
   items?: Prisma.ItemCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaUncheckedCreateWithoutPadreInput = {
@@ -642,6 +666,7 @@ export type PartidaUncheckedCreateWithoutPadreInput = {
   updatedAt?: Date | string
   hijos?: Prisma.PartidaUncheckedCreateNestedManyWithoutPadreInput
   items?: Prisma.ItemUncheckedCreateNestedManyWithoutPartidaInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaCreateOrConnectWithoutPadreInput = {
@@ -676,6 +701,7 @@ export type PartidaUpdateWithoutHijosInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   padre?: Prisma.PartidaUpdateOneWithoutHijosNestedInput
   items?: Prisma.ItemUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUncheckedUpdateWithoutHijosInput = {
@@ -690,6 +716,7 @@ export type PartidaUncheckedUpdateWithoutHijosInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.ItemUncheckedUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUpsertWithWhereUniqueWithoutPadreInput = {
@@ -735,6 +762,7 @@ export type PartidaCreateWithoutItemsInput = {
   updatedAt?: Date | string
   padre?: Prisma.PartidaCreateNestedOneWithoutHijosInput
   hijos?: Prisma.PartidaCreateNestedManyWithoutPadreInput
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaUncheckedCreateWithoutItemsInput = {
@@ -749,6 +777,7 @@ export type PartidaUncheckedCreateWithoutItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   hijos?: Prisma.PartidaUncheckedCreateNestedManyWithoutPadreInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutPartidaInput
 }
 
 export type PartidaCreateOrConnectWithoutItemsInput = {
@@ -778,6 +807,7 @@ export type PartidaUpdateWithoutItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   padre?: Prisma.PartidaUpdateOneWithoutHijosNestedInput
   hijos?: Prisma.PartidaUpdateManyWithoutPadreNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUncheckedUpdateWithoutItemsInput = {
@@ -792,6 +822,81 @@ export type PartidaUncheckedUpdateWithoutItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.PartidaUncheckedUpdateManyWithoutPadreNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutPartidaNestedInput
+}
+
+export type PartidaCreateWithoutCierreSaldosInput = {
+  codigo: string
+  denominacion: string
+  nivel: number
+  seleccionable?: boolean
+  activo?: boolean
+  ultimoCorrelativo?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  padre?: Prisma.PartidaCreateNestedOneWithoutHijosInput
+  hijos?: Prisma.PartidaCreateNestedManyWithoutPadreInput
+  items?: Prisma.ItemCreateNestedManyWithoutPartidaInput
+}
+
+export type PartidaUncheckedCreateWithoutCierreSaldosInput = {
+  id?: number
+  codigo: string
+  denominacion: string
+  nivel: number
+  seleccionable?: boolean
+  activo?: boolean
+  ultimoCorrelativo?: number
+  padreId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hijos?: Prisma.PartidaUncheckedCreateNestedManyWithoutPadreInput
+  items?: Prisma.ItemUncheckedCreateNestedManyWithoutPartidaInput
+}
+
+export type PartidaCreateOrConnectWithoutCierreSaldosInput = {
+  where: Prisma.PartidaWhereUniqueInput
+  create: Prisma.XOR<Prisma.PartidaCreateWithoutCierreSaldosInput, Prisma.PartidaUncheckedCreateWithoutCierreSaldosInput>
+}
+
+export type PartidaUpsertWithoutCierreSaldosInput = {
+  update: Prisma.XOR<Prisma.PartidaUpdateWithoutCierreSaldosInput, Prisma.PartidaUncheckedUpdateWithoutCierreSaldosInput>
+  create: Prisma.XOR<Prisma.PartidaCreateWithoutCierreSaldosInput, Prisma.PartidaUncheckedCreateWithoutCierreSaldosInput>
+  where?: Prisma.PartidaWhereInput
+}
+
+export type PartidaUpdateToOneWithWhereWithoutCierreSaldosInput = {
+  where?: Prisma.PartidaWhereInput
+  data: Prisma.XOR<Prisma.PartidaUpdateWithoutCierreSaldosInput, Prisma.PartidaUncheckedUpdateWithoutCierreSaldosInput>
+}
+
+export type PartidaUpdateWithoutCierreSaldosInput = {
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  denominacion?: Prisma.StringFieldUpdateOperationsInput | string
+  nivel?: Prisma.IntFieldUpdateOperationsInput | number
+  seleccionable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimoCorrelativo?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  padre?: Prisma.PartidaUpdateOneWithoutHijosNestedInput
+  hijos?: Prisma.PartidaUpdateManyWithoutPadreNestedInput
+  items?: Prisma.ItemUpdateManyWithoutPartidaNestedInput
+}
+
+export type PartidaUncheckedUpdateWithoutCierreSaldosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  codigo?: Prisma.StringFieldUpdateOperationsInput | string
+  denominacion?: Prisma.StringFieldUpdateOperationsInput | string
+  nivel?: Prisma.IntFieldUpdateOperationsInput | number
+  seleccionable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ultimoCorrelativo?: Prisma.IntFieldUpdateOperationsInput | number
+  padreId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hijos?: Prisma.PartidaUncheckedUpdateManyWithoutPadreNestedInput
+  items?: Prisma.ItemUncheckedUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaCreateManyPadreInput = {
@@ -817,6 +922,7 @@ export type PartidaUpdateWithoutPadreInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.PartidaUpdateManyWithoutPadreNestedInput
   items?: Prisma.ItemUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUncheckedUpdateWithoutPadreInput = {
@@ -831,6 +937,7 @@ export type PartidaUncheckedUpdateWithoutPadreInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hijos?: Prisma.PartidaUncheckedUpdateManyWithoutPadreNestedInput
   items?: Prisma.ItemUncheckedUpdateManyWithoutPartidaNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutPartidaNestedInput
 }
 
 export type PartidaUncheckedUpdateManyWithoutPadreInput = {
@@ -853,11 +960,13 @@ export type PartidaUncheckedUpdateManyWithoutPadreInput = {
 export type PartidaCountOutputType = {
   hijos: number
   items: number
+  cierreSaldos: number
 }
 
 export type PartidaCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   hijos?: boolean | PartidaCountOutputTypeCountHijosArgs
   items?: boolean | PartidaCountOutputTypeCountItemsArgs
+  cierreSaldos?: boolean | PartidaCountOutputTypeCountCierreSaldosArgs
 }
 
 /**
@@ -884,6 +993,13 @@ export type PartidaCountOutputTypeCountItemsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.ItemWhereInput
 }
 
+/**
+ * PartidaCountOutputType without action
+ */
+export type PartidaCountOutputTypeCountCierreSaldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CierreSaldoWhereInput
+}
+
 
 export type PartidaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -899,6 +1015,7 @@ export type PartidaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   padre?: boolean | Prisma.Partida$padreArgs<ExtArgs>
   hijos?: boolean | Prisma.Partida$hijosArgs<ExtArgs>
   items?: boolean | Prisma.Partida$itemsArgs<ExtArgs>
+  cierreSaldos?: boolean | Prisma.Partida$cierreSaldosArgs<ExtArgs>
   _count?: boolean | Prisma.PartidaCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["partida"]>
 
@@ -948,6 +1065,7 @@ export type PartidaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   padre?: boolean | Prisma.Partida$padreArgs<ExtArgs>
   hijos?: boolean | Prisma.Partida$hijosArgs<ExtArgs>
   items?: boolean | Prisma.Partida$itemsArgs<ExtArgs>
+  cierreSaldos?: boolean | Prisma.Partida$cierreSaldosArgs<ExtArgs>
   _count?: boolean | Prisma.PartidaCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PartidaIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -963,6 +1081,7 @@ export type $PartidaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     padre: Prisma.$PartidaPayload<ExtArgs> | null
     hijos: Prisma.$PartidaPayload<ExtArgs>[]
     items: Prisma.$ItemPayload<ExtArgs>[]
+    cierreSaldos: Prisma.$CierreSaldoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1372,6 +1491,7 @@ export interface Prisma__PartidaClient<T, Null = never, ExtArgs extends runtime.
   padre<T extends Prisma.Partida$padreArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partida$padreArgs<ExtArgs>>): Prisma.Prisma__PartidaClient<runtime.Types.Result.GetResult<Prisma.$PartidaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   hijos<T extends Prisma.Partida$hijosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partida$hijosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PartidaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   items<T extends Prisma.Partida$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partida$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cierreSaldos<T extends Prisma.Partida$cierreSaldosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Partida$cierreSaldosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CierreSaldoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1876,6 +1996,30 @@ export type Partida$itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ItemScalarFieldEnum | Prisma.ItemScalarFieldEnum[]
+}
+
+/**
+ * Partida.cierreSaldos
+ */
+export type Partida$cierreSaldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CierreSaldo
+   */
+  select?: Prisma.CierreSaldoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CierreSaldo
+   */
+  omit?: Prisma.CierreSaldoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CierreSaldoInclude<ExtArgs> | null
+  where?: Prisma.CierreSaldoWhereInput
+  orderBy?: Prisma.CierreSaldoOrderByWithRelationInput | Prisma.CierreSaldoOrderByWithRelationInput[]
+  cursor?: Prisma.CierreSaldoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CierreSaldoScalarFieldEnum | Prisma.CierreSaldoScalarFieldEnum[]
 }
 
 /**

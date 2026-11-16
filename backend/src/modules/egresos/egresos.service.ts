@@ -11,6 +11,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { paginated } from '../../common/dto/paginated-result';
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
+import { formatearNumero } from '../../common/formato/numero-documento';
 import { gestionDe, inicioDelDia } from '../../common/fechas/zona-horaria';
 import type { Prisma } from '../../generated/prisma/client';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
@@ -617,6 +619,7 @@ export class EgresosService implements OnModuleInit {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, ESTADOS_CON_RELOJ);
     this.exigirSolicitante(egreso.solicitanteId, user);
+    this.exigirPedidoDeLaGestion(egreso, 'modificar');
     await this.exigirReservaVigente(id);
 
     // Volver a elegir items despues de un vencimiento abre una reserva NUEVA de
@@ -703,10 +706,15 @@ export class EgresosService implements OnModuleInit {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, ESTADOS_CON_RELOJ);
     this.exigirSolicitante(egreso.solicitanteId, user);
+    this.exigirPedidoDeLaGestion(egreso, 'reenviar');
     // Vencidas las 48 h no se envia: se vacia y hay que volver a elegir.
     await this.exigirReservaVigente(id);
 
     await this.prisma.$transaction(async (tx) => {
+      // El numero sale de la gestion en curso: si ya se cerro (cierre
+      // anticipado), el pedido nunca se podria entregar.
+      await exigirGestionAbierta(tx, egreso.almacenId, [gestionDe(new Date())]);
+
       // REENVIAR un devuelto conserva su numero, su gestion y su fecha de envio:
       // es el mismo documento, corregido. Hasta el 2026-10-28 el reenvio volvia
       // a tomar MAX + 1, asi que el pedido cambiaba de numero y dejaba el
@@ -780,6 +788,7 @@ export class EgresosService implements OnModuleInit {
   async aprobar(id: number, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.PENDIENTE_APROBADOR);
+    this.exigirPedidoDeLaGestion(egreso, 'aprobar');
 
     if (user.rol === Rol.aprobador && user.unidadId !== egreso.unidadId) {
       throw new ForbiddenException(
@@ -888,6 +897,7 @@ export class EgresosService implements OnModuleInit {
       egreso.estado,
       EstadoEgreso.PENDIENTE_RESPONSABLE_ALMACEN,
     );
+    this.exigirPedidoDeLaGestion(egreso, 'entregar');
 
     if (
       user.rol === Rol.responsable_almacen &&
@@ -947,6 +957,8 @@ export class EgresosService implements OnModuleInit {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      // La SALIDA se fecha hoy: no puede caer en una gestion cerrada.
+      await exigirGestionAbierta(tx, egreso.almacenId, [gestionDe(new Date())]);
       // Lo PRIMERO: pasar a ENTREGADO solo si sigue pendiente. Una segunda
       // entrega del mismo pedido (doble clic, reintento) espera el bloqueo de
       // esta fila y, al tomarlo, ya no lo encuentra pendiente: aborta sin
@@ -1025,6 +1037,10 @@ export class EgresosService implements OnModuleInit {
   async anular(id: number, dto: MotivoDto, user: AuthenticatedUser) {
     const egreso = await this.cargarParaEscritura(id, user);
     this.exigirEstado(egreso.estado, EstadoEgreso.ENTREGADO);
+    const { fechaEntrega } = await this.prisma.egreso.findUniqueOrThrow({
+      where: { id },
+      select: { fechaEntrega: true },
+    });
 
     const detalles = await this.prisma.egresoDetalle.findMany({
       where: { egresoId: id },
@@ -1037,6 +1053,12 @@ export class EgresosService implements OnModuleInit {
     });
 
     await this.prisma.$transaction(async (tx) => {
+      // Una entrega de una gestion cerrada no se anula (la gestion queda
+      // congelada), y la REVERSION se fecha hoy.
+      await exigirGestionAbierta(tx, egreso.almacenId, [
+        gestionDe(fechaEntrega ?? new Date()),
+        gestionDe(new Date()),
+      ]);
       // Igual que en la entrega: una segunda anulacion simultanea ya no lo
       // encuentra ENTREGADO y aborta. Antes devolvia el material dos veces y el
       // lote podia quedar con mas saldo del que entro.
@@ -1325,6 +1347,25 @@ export class EgresosService implements OnModuleInit {
         'El pedido cambió de estado mientras tanto: actualizá la página para ver cómo quedó',
       );
     }
+  }
+
+  /**
+   * Un pedido se entrega en SU gestion o no se entrega (2026-11-16, regla del
+   * encargado): desde el 1/1, uno con numero de la gestion anterior que siga
+   * abierto solo se puede devolver o desistir. Asi nunca hay una entrega de
+   * 2027 sobre un pedido 2026, y el cierre de 2026 exige que no quede ninguno.
+   */
+  private exigirPedidoDeLaGestion(
+    egreso: { numero: number | null; gestion: number | null },
+    accion: string,
+  ) {
+    if (egreso.gestion == null || egreso.gestion >= gestionDe(new Date())) {
+      return;
+    }
+    throw new BadRequestException(
+      `El pedido ${formatearNumero(egreso.numero, egreso.gestion)} es de la gestión ${egreso.gestion}, que ya terminó: ` +
+        `no se puede ${accion}. Solo se puede devolver o desistir.`,
+    );
   }
 
   private exigirSolicitante(solicitanteId: number, user: AuthenticatedUser) {

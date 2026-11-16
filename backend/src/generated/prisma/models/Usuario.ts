@@ -303,6 +303,7 @@ export type UsuarioWhereInput = {
   logosSubidos?: Prisma.LogoVersionListRelationFilter
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaListRelationFilter
   traspasosRegistrados?: Prisma.TraspasoListRelationFilter
+  cierresEjecutados?: Prisma.CierreGestionListRelationFilter
 }
 
 export type UsuarioOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type UsuarioOrderByWithRelationInput = {
   logosSubidos?: Prisma.LogoVersionOrderByRelationAggregateInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaOrderByRelationAggregateInput
   traspasosRegistrados?: Prisma.TraspasoOrderByRelationAggregateInput
+  cierresEjecutados?: Prisma.CierreGestionOrderByRelationAggregateInput
 }
 
 export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
@@ -364,6 +366,7 @@ export type UsuarioWhereUniqueInput = Prisma.AtLeast<{
   logosSubidos?: Prisma.LogoVersionListRelationFilter
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaListRelationFilter
   traspasosRegistrados?: Prisma.TraspasoListRelationFilter
+  cierresEjecutados?: Prisma.CierreGestionListRelationFilter
 }, "id" | "usuario">
 
 export type UsuarioOrderByWithAggregationInput = {
@@ -428,6 +431,7 @@ export type UsuarioCreateInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateInput = {
@@ -455,6 +459,7 @@ export type UsuarioUncheckedCreateInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUpdateInput = {
@@ -481,6 +486,7 @@ export type UsuarioUpdateInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateInput = {
@@ -508,6 +514,7 @@ export type UsuarioUncheckedUpdateInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateManyInput = {
@@ -901,6 +908,20 @@ export type UsuarioUpdateOneRequiredWithoutTraspasosRegistradosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutTraspasosRegistradosInput, Prisma.UsuarioUpdateWithoutTraspasosRegistradosInput>, Prisma.UsuarioUncheckedUpdateWithoutTraspasosRegistradosInput>
 }
 
+export type UsuarioCreateNestedOneWithoutCierresEjecutadosInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedCreateWithoutCierresEjecutadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutCierresEjecutadosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+}
+
+export type UsuarioUpdateOneRequiredWithoutCierresEjecutadosNestedInput = {
+  create?: Prisma.XOR<Prisma.UsuarioCreateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedCreateWithoutCierresEjecutadosInput>
+  connectOrCreate?: Prisma.UsuarioCreateOrConnectWithoutCierresEjecutadosInput
+  upsert?: Prisma.UsuarioUpsertWithoutCierresEjecutadosInput
+  connect?: Prisma.UsuarioWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UsuarioUpdateToOneWithWhereWithoutCierresEjecutadosInput, Prisma.UsuarioUpdateWithoutCierresEjecutadosInput>, Prisma.UsuarioUncheckedUpdateWithoutCierresEjecutadosInput>
+}
+
 export type UsuarioCreateWithoutUnidadInput = {
   nombre: string
   cargo?: string | null
@@ -924,6 +945,7 @@ export type UsuarioCreateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutUnidadInput = {
@@ -950,6 +972,7 @@ export type UsuarioUncheckedCreateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutUnidadInput = {
@@ -1019,6 +1042,7 @@ export type UsuarioCreateWithoutAlmacenInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenInput = {
@@ -1045,6 +1069,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenInput = {
@@ -1096,6 +1121,7 @@ export type UsuarioCreateWithoutAlmacenesObservadosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
@@ -1122,6 +1148,7 @@ export type UsuarioUncheckedCreateWithoutAlmacenesObservadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutAlmacenesObservadosInput = {
@@ -1163,6 +1190,7 @@ export type UsuarioUpdateWithoutAlmacenesObservadosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
@@ -1189,6 +1217,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenesObservadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutIngresosConformidadInput = {
@@ -1214,6 +1243,7 @@ export type UsuarioCreateWithoutIngresosConformidadInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
@@ -1240,6 +1270,7 @@ export type UsuarioUncheckedCreateWithoutIngresosConformidadInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosConformidadInput = {
@@ -1270,6 +1301,7 @@ export type UsuarioCreateWithoutIngresosRegistradosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
@@ -1296,6 +1328,7 @@ export type UsuarioUncheckedCreateWithoutIngresosRegistradosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosRegistradosInput = {
@@ -1326,6 +1359,7 @@ export type UsuarioCreateWithoutIngresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
@@ -1352,6 +1386,7 @@ export type UsuarioUncheckedCreateWithoutIngresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutIngresosAnuladosInput = {
@@ -1393,6 +1428,7 @@ export type UsuarioUpdateWithoutIngresosConformidadInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
@@ -1419,6 +1455,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosConformidadInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosRegistradosInput = {
@@ -1455,6 +1492,7 @@ export type UsuarioUpdateWithoutIngresosRegistradosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
@@ -1481,6 +1519,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosRegistradosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutIngresosAnuladosInput = {
@@ -1517,6 +1556,7 @@ export type UsuarioUpdateWithoutIngresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
@@ -1543,6 +1583,7 @@ export type UsuarioUncheckedUpdateWithoutIngresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutEgresosSolicitadosInput = {
@@ -1568,6 +1609,7 @@ export type UsuarioCreateWithoutEgresosSolicitadosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
@@ -1594,6 +1636,7 @@ export type UsuarioUncheckedCreateWithoutEgresosSolicitadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosSolicitadosInput = {
@@ -1624,6 +1667,7 @@ export type UsuarioCreateWithoutEgresosEntregadosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
@@ -1650,6 +1694,7 @@ export type UsuarioUncheckedCreateWithoutEgresosEntregadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosEntregadosInput = {
@@ -1680,6 +1725,7 @@ export type UsuarioCreateWithoutEgresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
@@ -1706,6 +1752,7 @@ export type UsuarioUncheckedCreateWithoutEgresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutEgresosAnuladosInput = {
@@ -1747,6 +1794,7 @@ export type UsuarioUpdateWithoutEgresosSolicitadosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
@@ -1773,6 +1821,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosSolicitadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutEgresosEntregadosInput = {
@@ -1809,6 +1858,7 @@ export type UsuarioUpdateWithoutEgresosEntregadosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
@@ -1835,6 +1885,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosEntregadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUpsertWithoutEgresosAnuladosInput = {
@@ -1871,6 +1922,7 @@ export type UsuarioUpdateWithoutEgresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
@@ -1897,6 +1949,7 @@ export type UsuarioUncheckedUpdateWithoutEgresosAnuladosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutDecisionesEgresoInput = {
@@ -1922,6 +1975,7 @@ export type UsuarioCreateWithoutDecisionesEgresoInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
@@ -1948,6 +2002,7 @@ export type UsuarioUncheckedCreateWithoutDecisionesEgresoInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutDecisionesEgresoInput = {
@@ -1989,6 +2044,7 @@ export type UsuarioUpdateWithoutDecisionesEgresoInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
@@ -2015,6 +2071,7 @@ export type UsuarioUncheckedUpdateWithoutDecisionesEgresoInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutLogosActualizadosInput = {
@@ -2040,6 +2097,7 @@ export type UsuarioCreateWithoutLogosActualizadosInput = {
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutLogosActualizadosInput = {
@@ -2066,6 +2124,7 @@ export type UsuarioUncheckedCreateWithoutLogosActualizadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutLogosActualizadosInput = {
@@ -2107,6 +2166,7 @@ export type UsuarioUpdateWithoutLogosActualizadosInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutLogosActualizadosInput = {
@@ -2133,6 +2193,7 @@ export type UsuarioUncheckedUpdateWithoutLogosActualizadosInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutLogosSubidosInput = {
@@ -2158,6 +2219,7 @@ export type UsuarioCreateWithoutLogosSubidosInput = {
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutLogosSubidosInput = {
@@ -2184,6 +2246,7 @@ export type UsuarioUncheckedCreateWithoutLogosSubidosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutLogosSubidosInput = {
@@ -2225,6 +2288,7 @@ export type UsuarioUpdateWithoutLogosSubidosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutLogosSubidosInput = {
@@ -2251,6 +2315,7 @@ export type UsuarioUncheckedUpdateWithoutLogosSubidosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutConfiguracionesActualizadasInput = {
@@ -2276,6 +2341,7 @@ export type UsuarioCreateWithoutConfiguracionesActualizadasInput = {
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput = {
@@ -2302,6 +2368,7 @@ export type UsuarioUncheckedCreateWithoutConfiguracionesActualizadasInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutConfiguracionesActualizadasInput = {
@@ -2343,6 +2410,7 @@ export type UsuarioUpdateWithoutConfiguracionesActualizadasInput = {
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput = {
@@ -2369,6 +2437,7 @@ export type UsuarioUncheckedUpdateWithoutConfiguracionesActualizadasInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioCreateWithoutTraspasosRegistradosInput = {
@@ -2394,6 +2463,7 @@ export type UsuarioCreateWithoutTraspasosRegistradosInput = {
   logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
+  cierresEjecutados?: Prisma.CierreGestionCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioUncheckedCreateWithoutTraspasosRegistradosInput = {
@@ -2420,6 +2490,7 @@ export type UsuarioUncheckedCreateWithoutTraspasosRegistradosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
   logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutCerradoPorInput
 }
 
 export type UsuarioCreateOrConnectWithoutTraspasosRegistradosInput = {
@@ -2461,6 +2532,7 @@ export type UsuarioUpdateWithoutTraspasosRegistradosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutTraspasosRegistradosInput = {
@@ -2487,6 +2559,129 @@ export type UsuarioUncheckedUpdateWithoutTraspasosRegistradosInput = {
   logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
+}
+
+export type UsuarioCreateWithoutCierresEjecutadosInput = {
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  conClaveInicial?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  unidad?: Prisma.UnidadCreateNestedOneWithoutUsuariosInput
+  almacen?: Prisma.AlmacenCreateNestedOneWithoutUsuariosInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialCreateNestedManyWithoutUsuarioInput
+  logosActualizados?: Prisma.LogoInstitucionalCreateNestedManyWithoutActualizadoPorInput
+  logosSubidos?: Prisma.LogoVersionCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaCreateNestedManyWithoutActualizadoPorInput
+  traspasosRegistrados?: Prisma.TraspasoCreateNestedManyWithoutRegistradoPorInput
+}
+
+export type UsuarioUncheckedCreateWithoutCierresEjecutadosInput = {
+  id?: number
+  nombre: string
+  cargo?: string | null
+  usuario: string
+  password: string
+  rol: $Enums.Rol
+  activo?: boolean
+  conClaveInicial?: boolean
+  unidadId?: number | null
+  almacenId?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutUsuarioInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedCreateNestedManyWithoutRegistradoPorInput
+  ingresosConformidad?: Prisma.IngresoUncheckedCreateNestedManyWithoutResponsableConformidadInput
+  ingresosAnulados?: Prisma.IngresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  egresosSolicitados?: Prisma.EgresoUncheckedCreateNestedManyWithoutSolicitanteInput
+  egresosEntregados?: Prisma.EgresoUncheckedCreateNestedManyWithoutEntregadoPorInput
+  egresosAnulados?: Prisma.EgresoUncheckedCreateNestedManyWithoutAnuladoPorInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedCreateNestedManyWithoutUsuarioInput
+  logosActualizados?: Prisma.LogoInstitucionalUncheckedCreateNestedManyWithoutActualizadoPorInput
+  logosSubidos?: Prisma.LogoVersionUncheckedCreateNestedManyWithoutSubidoPorInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedCreateNestedManyWithoutActualizadoPorInput
+  traspasosRegistrados?: Prisma.TraspasoUncheckedCreateNestedManyWithoutRegistradoPorInput
+}
+
+export type UsuarioCreateOrConnectWithoutCierresEjecutadosInput = {
+  where: Prisma.UsuarioWhereUniqueInput
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedCreateWithoutCierresEjecutadosInput>
+}
+
+export type UsuarioUpsertWithoutCierresEjecutadosInput = {
+  update: Prisma.XOR<Prisma.UsuarioUpdateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedUpdateWithoutCierresEjecutadosInput>
+  create: Prisma.XOR<Prisma.UsuarioCreateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedCreateWithoutCierresEjecutadosInput>
+  where?: Prisma.UsuarioWhereInput
+}
+
+export type UsuarioUpdateToOneWithWhereWithoutCierresEjecutadosInput = {
+  where?: Prisma.UsuarioWhereInput
+  data: Prisma.XOR<Prisma.UsuarioUpdateWithoutCierresEjecutadosInput, Prisma.UsuarioUncheckedUpdateWithoutCierresEjecutadosInput>
+}
+
+export type UsuarioUpdateWithoutCierresEjecutadosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  unidad?: Prisma.UnidadUpdateOneWithoutUsuariosNestedInput
+  almacen?: Prisma.AlmacenUpdateOneWithoutUsuariosNestedInput
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUpdateManyWithoutUsuarioNestedInput
+  logosActualizados?: Prisma.LogoInstitucionalUpdateManyWithoutActualizadoPorNestedInput
+  logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
+  traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+}
+
+export type UsuarioUncheckedUpdateWithoutCierresEjecutadosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  cargo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usuario?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  conClaveInicial?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  unidadId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  almacenId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  almacenesObservados?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutUsuarioNestedInput
+  ingresosRegistrados?: Prisma.IngresoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  ingresosConformidad?: Prisma.IngresoUncheckedUpdateManyWithoutResponsableConformidadNestedInput
+  ingresosAnulados?: Prisma.IngresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  egresosSolicitados?: Prisma.EgresoUncheckedUpdateManyWithoutSolicitanteNestedInput
+  egresosEntregados?: Prisma.EgresoUncheckedUpdateManyWithoutEntregadoPorNestedInput
+  egresosAnulados?: Prisma.EgresoUncheckedUpdateManyWithoutAnuladoPorNestedInput
+  decisionesEgreso?: Prisma.EgresoHistorialUncheckedUpdateManyWithoutUsuarioNestedInput
+  logosActualizados?: Prisma.LogoInstitucionalUncheckedUpdateManyWithoutActualizadoPorNestedInput
+  logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
+  configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
+  traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
 }
 
 export type UsuarioCreateManyUnidadInput = {
@@ -2526,6 +2721,7 @@ export type UsuarioUpdateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutUnidadInput = {
@@ -2552,6 +2748,7 @@ export type UsuarioUncheckedUpdateWithoutUnidadInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateManyWithoutUnidadInput = {
@@ -2605,6 +2802,7 @@ export type UsuarioUpdateWithoutAlmacenInput = {
   logosSubidos?: Prisma.LogoVersionUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
@@ -2631,6 +2829,7 @@ export type UsuarioUncheckedUpdateWithoutAlmacenInput = {
   logosSubidos?: Prisma.LogoVersionUncheckedUpdateManyWithoutSubidoPorNestedInput
   configuracionesActualizadas?: Prisma.ConfiguracionSistemaUncheckedUpdateManyWithoutActualizadoPorNestedInput
   traspasosRegistrados?: Prisma.TraspasoUncheckedUpdateManyWithoutRegistradoPorNestedInput
+  cierresEjecutados?: Prisma.CierreGestionUncheckedUpdateManyWithoutCerradoPorNestedInput
 }
 
 export type UsuarioUncheckedUpdateManyWithoutAlmacenInput = {
@@ -2665,6 +2864,7 @@ export type UsuarioCountOutputType = {
   logosSubidos: number
   configuracionesActualizadas: number
   traspasosRegistrados: number
+  cierresEjecutados: number
 }
 
 export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2680,6 +2880,7 @@ export type UsuarioCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   logosSubidos?: boolean | UsuarioCountOutputTypeCountLogosSubidosArgs
   configuracionesActualizadas?: boolean | UsuarioCountOutputTypeCountConfiguracionesActualizadasArgs
   traspasosRegistrados?: boolean | UsuarioCountOutputTypeCountTraspasosRegistradosArgs
+  cierresEjecutados?: boolean | UsuarioCountOutputTypeCountCierresEjecutadosArgs
 }
 
 /**
@@ -2776,6 +2977,13 @@ export type UsuarioCountOutputTypeCountTraspasosRegistradosArgs<ExtArgs extends 
   where?: Prisma.TraspasoWhereInput
 }
 
+/**
+ * UsuarioCountOutputType without action
+ */
+export type UsuarioCountOutputTypeCountCierresEjecutadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CierreGestionWhereInput
+}
+
 
 export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2804,6 +3012,7 @@ export type UsuarioSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   logosSubidos?: boolean | Prisma.Usuario$logosSubidosArgs<ExtArgs>
   configuracionesActualizadas?: boolean | Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>
   traspasosRegistrados?: boolean | Prisma.Usuario$traspasosRegistradosArgs<ExtArgs>
+  cierresEjecutados?: boolean | Prisma.Usuario$cierresEjecutadosArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["usuario"]>
 
@@ -2872,6 +3081,7 @@ export type UsuarioInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   logosSubidos?: boolean | Prisma.Usuario$logosSubidosArgs<ExtArgs>
   configuracionesActualizadas?: boolean | Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>
   traspasosRegistrados?: boolean | Prisma.Usuario$traspasosRegistradosArgs<ExtArgs>
+  cierresEjecutados?: boolean | Prisma.Usuario$cierresEjecutadosArgs<ExtArgs>
   _count?: boolean | Prisma.UsuarioCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UsuarioIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2900,6 +3110,7 @@ export type $UsuarioPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     logosSubidos: Prisma.$LogoVersionPayload<ExtArgs>[]
     configuracionesActualizadas: Prisma.$ConfiguracionSistemaPayload<ExtArgs>[]
     traspasosRegistrados: Prisma.$TraspasoPayload<ExtArgs>[]
+    cierresEjecutados: Prisma.$CierreGestionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -3329,6 +3540,7 @@ export interface Prisma__UsuarioClient<T, Null = never, ExtArgs extends runtime.
   logosSubidos<T extends Prisma.Usuario$logosSubidosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$logosSubidosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LogoVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   configuracionesActualizadas<T extends Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$configuracionesActualizadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConfiguracionSistemaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   traspasosRegistrados<T extends Prisma.Usuario$traspasosRegistradosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$traspasosRegistradosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TraspasoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cierresEjecutados<T extends Prisma.Usuario$cierresEjecutadosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Usuario$cierresEjecutadosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CierreGestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4094,6 +4306,30 @@ export type Usuario$traspasosRegistradosArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.TraspasoScalarFieldEnum | Prisma.TraspasoScalarFieldEnum[]
+}
+
+/**
+ * Usuario.cierresEjecutados
+ */
+export type Usuario$cierresEjecutadosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CierreGestion
+   */
+  select?: Prisma.CierreGestionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CierreGestion
+   */
+  omit?: Prisma.CierreGestionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CierreGestionInclude<ExtArgs> | null
+  where?: Prisma.CierreGestionWhereInput
+  orderBy?: Prisma.CierreGestionOrderByWithRelationInput | Prisma.CierreGestionOrderByWithRelationInput[]
+  cursor?: Prisma.CierreGestionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CierreGestionScalarFieldEnum | Prisma.CierreGestionScalarFieldEnum[]
 }
 
 /**

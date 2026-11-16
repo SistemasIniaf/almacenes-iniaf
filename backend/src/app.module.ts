@@ -9,6 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AlmacenesModule } from './modules/almacenes/almacenes.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CierresModule } from './modules/cierres/cierres.module';
 import { EgresosModule } from './modules/egresos/egresos.module';
 import { FuentesFinanciamientoModule } from './modules/fuentes-financiamiento/fuentes-financiamiento.module';
 import { IngresosModule } from './modules/ingresos/ingresos.module';
@@ -44,6 +45,7 @@ import { UsuariosModule } from './modules/usuarios/usuarios.module';
     KardexModule,
     TraspasosModule,
     SaldosInicialesModule,
+    CierresModule,
     LogosModule,
   ],
   controllers: [AppController],

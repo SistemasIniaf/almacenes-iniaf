@@ -195,3 +195,31 @@ export type Traspaso = Prisma.TraspasoModel
  * destino. El item, el precio y la fuente se derivan del lote de origen.
  */
 export type TraspasoDetalle = Prisma.TraspasoDetalleModel
+/**
+ * Model CierreGestion
+ * CIERRE DE GESTION de un almacen (2026-11-16, ver docs/decisiones-ingresos.md
+ * §9). Lo ejecuta solo el super_admin, cuando quiera y EN ORDEN (no se cierra
+ * 2027 con 2026 abierta). No se reabre: desde el cierre, nada fechado en esa
+ * gestion (ni antes) se registra, anula ni edita en ese almacen — lo hace
+ * cumplir `exigirGestionAbierta` (common/cierre/) en cada operacion.
+ * 
+ * Guarda la FOTO de los saldos al 31/12 (`CierreSaldo`), calculada desde el
+ * kardex: de ahi salen el acta y los Cuadros 5 y 6 de la DGCF, siempre iguales
+ * aunque el stock siga moviendose en la gestion siguiente.
+ */
+export type CierreGestion = Prisma.CierreGestionModel
+/**
+ * Model CierreSaldo
+ * Una fila de la FOTO del cierre: un lote del almacen con lo que tuvo en la
+ * gestion. Item, partida, fuente y precio se COPIAN del lote para que la foto
+ * no dependa de nada que pueda cambiar despues.
+ * 
+ * Las cantidades (las de un traspaso estan DENTRO de entradas/salidas; se
+ * guardan aparte para descontarlas en el cuadro institucional, donde son
+ * movimientos internos):
+ * inicial  = saldo al 01/01 (incluye la carga de saldos iniciales)
+ * entradas = ingresos + traspasos recibidos - ingresos anulados
+ * salidas  = entregas + traspasos enviados - egresos anulados
+ * final    = inicial + entradas - salidas (saldo al 31/12)
+ */
+export type CierreSaldo = Prisma.CierreSaldoModel

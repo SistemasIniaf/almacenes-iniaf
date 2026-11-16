@@ -132,6 +132,8 @@ model Almacen {
   traspasosSalientes Traspaso[] @relation("TraspasoOrigen")
   traspasosEntrantes Traspaso[] @relation("TraspasoDestino")
 
+  cierres CierreGestion[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -207,6 +209,8 @@ model Usuario {
 
   traspasosRegistrados Traspaso[] @relation("TraspasoRegistradoPor")
 
+  cierresEjecutados CierreGestion[] @relation("CierreGestionCerradoPor")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -249,6 +253,8 @@ model Partida {
   hijos   Partida[] @relation("PartidaJerarquia")
 
   items Item[]
+
+  cierreSaldos CierreSaldo[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -294,6 +300,8 @@ model FuenteFinanciamiento {
 
   ingresos Ingreso[]
 
+  cierreSaldos CierreSaldo[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -318,6 +326,7 @@ model Item {
 
   ingresoDetalles IngresoDetalle[]
   movimientos     MovimientoKardex[]
+  cierreSaldos    CierreSaldo[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -456,6 +465,9 @@ model IngresoDetalle {
   /// mismo lote, y la trazabilidad hacia la base vieja.
   loteAnteriorId Int? @map("lote_anterior_id")
 
+  /// Las fotos de cierre de gestion en las que figura este lote.
+  cierreSaldos CierreSaldo[]
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -511,6 +523,8 @@ model MovimientoKardex {
   @@index([egresoId])
   @@index([egresoDetalleId])
   @@index([traspasoId])
+  // La foto del cierre de gestion recorre el kardex de un almacen hasta una fecha.
+  @@index([almacenId, fecha])
   @@map("movimientos_kardex")
 }
 
@@ -773,4 +787,83 @@ model TraspasoDetalle {
   @@index([traspasoId])
   @@index([loteOrigenId])
   @@map("traspaso_detalles")
+}
+
+/// CIERRE DE GESTION de un almacen (2026-11-16, ver docs/decisiones-ingresos.md
+/// §9). Lo ejecuta solo el super_admin, cuando quiera y EN ORDEN (no se cierra
+/// 2027 con 2026 abierta). No se reabre: desde el cierre, nada fechado en esa
+/// gestion (ni antes) se registra, anula ni edita en ese almacen — lo hace
+/// cumplir `exigirGestionAbierta` (common/cierre/) en cada operacion.
+///
+/// Guarda la FOTO de los saldos al 31/12 (`CierreSaldo`), calculada desde el
+/// kardex: de ahi salen el acta y los Cuadros 5 y 6 de la DGCF, siempre iguales
+/// aunque el stock siga moviendose en la gestion siguiente.
+model CierreGestion {
+  id      Int @id @default(autoincrement())
+  gestion Int
+
+  almacenId Int     @map("almacen_id")
+  almacen   Almacen @relation(fields: [almacenId], references: [id])
+
+  /// true = se cerro la gestion EN CURSO (antes del 31/12): el almacen quedo
+  /// congelado hasta el 1/1. Pensado para pruebas.
+  anticipado Boolean @default(false)
+
+  cerradoPorId Int      @map("cerrado_por_id")
+  cerradoPor   Usuario  @relation("CierreGestionCerradoPor", fields: [cerradoPorId], references: [id])
+  cerradoEn    DateTime @default(now()) @map("cerrado_en") @db.Timestamptz(3)
+
+  // Totales valorizados de la foto (suma de cantidad x precio de cada lote).
+  // Son redundantes con `saldos`, a proposito: el listado y el acta no tienen
+  // que recorrer miles de lotes para mostrar cuatro numeros.
+  valorInicial  Decimal @map("valor_inicial") @db.Decimal(18, 2)
+  valorEntradas Decimal @map("valor_entradas") @db.Decimal(18, 2)
+  valorSalidas  Decimal @map("valor_salidas") @db.Decimal(18, 2)
+  valorFinal    Decimal @map("valor_final") @db.Decimal(18, 2)
+
+  saldos CierreSaldo[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([almacenId, gestion])
+  @@map("cierres_gestion")
+}
+
+/// Una fila de la FOTO del cierre: un lote del almacen con lo que tuvo en la
+/// gestion. Item, partida, fuente y precio se COPIAN del lote para que la foto
+/// no dependa de nada que pueda cambiar despues.
+///
+/// Las cantidades (las de un traspaso estan DENTRO de entradas/salidas; se
+/// guardan aparte para descontarlas en el cuadro institucional, donde son
+/// movimientos internos):
+///   inicial  = saldo al 01/01 (incluye la carga de saldos iniciales)
+///   entradas = ingresos + traspasos recibidos - ingresos anulados
+///   salidas  = entregas + traspasos enviados - egresos anulados
+///   final    = inicial + entradas - salidas (saldo al 31/12)
+model CierreSaldo {
+  id       Int           @id @default(autoincrement())
+  cierreId Int           @map("cierre_id")
+  cierre   CierreGestion @relation(fields: [cierreId], references: [id])
+
+  ingresoDetalleId Int            @map("ingreso_detalle_id")
+  ingresoDetalle   IngresoDetalle @relation(fields: [ingresoDetalleId], references: [id])
+
+  itemId                 Int                   @map("item_id")
+  item                   Item                  @relation(fields: [itemId], references: [id])
+  partidaId              Int                   @map("partida_id")
+  partida                Partida               @relation(fields: [partidaId], references: [id])
+  fuenteFinanciamientoId Int?                  @map("fuente_financiamiento_id")
+  fuenteFinanciamiento   FuenteFinanciamiento? @relation(fields: [fuenteFinanciamientoId], references: [id])
+  precioUnitario         Decimal               @map("precio_unitario") @db.Decimal(12, 5)
+
+  cantidadInicial          Decimal @map("cantidad_inicial") @db.Decimal(12, 2)
+  cantidadEntradas         Decimal @map("cantidad_entradas") @db.Decimal(12, 2)
+  cantidadEntradasTraspaso Decimal @map("cantidad_entradas_traspaso") @db.Decimal(12, 2)
+  cantidadSalidas          Decimal @map("cantidad_salidas") @db.Decimal(12, 2)
+  cantidadSalidasTraspaso  Decimal @map("cantidad_salidas_traspaso") @db.Decimal(12, 2)
+  cantidadFinal            Decimal @map("cantidad_final") @db.Decimal(12, 2)
+
+  @@unique([cierreId, ingresoDetalleId])
+  @@index([itemId])
+  @@map("cierre_saldos")
 }

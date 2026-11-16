@@ -12,6 +12,8 @@ const SERIES = {
   // No es un correlativo: serializa las importaciones de saldos iniciales
   // (clave de almacen 0), para que dos a la vez no metan el mismo lote.
   saldosIniciales: 4,
+  // 5 lo usa common/cierre/gestion-cerrada.ts (lock COMPARTIDO de las operaciones
+  // contra el EXCLUSIVO del cierre de gestion). No reutilizar.
 } as const;
 
 /**

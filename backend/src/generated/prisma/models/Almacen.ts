@@ -224,6 +224,7 @@ export type AlmacenWhereInput = {
   movimientos?: Prisma.MovimientoKardexListRelationFilter
   traspasosSalientes?: Prisma.TraspasoListRelationFilter
   traspasosEntrantes?: Prisma.TraspasoListRelationFilter
+  cierres?: Prisma.CierreGestionListRelationFilter
 }
 
 export type AlmacenOrderByWithRelationInput = {
@@ -240,6 +241,7 @@ export type AlmacenOrderByWithRelationInput = {
   movimientos?: Prisma.MovimientoKardexOrderByRelationAggregateInput
   traspasosSalientes?: Prisma.TraspasoOrderByRelationAggregateInput
   traspasosEntrantes?: Prisma.TraspasoOrderByRelationAggregateInput
+  cierres?: Prisma.CierreGestionOrderByRelationAggregateInput
 }
 
 export type AlmacenWhereUniqueInput = Prisma.AtLeast<{
@@ -259,6 +261,7 @@ export type AlmacenWhereUniqueInput = Prisma.AtLeast<{
   movimientos?: Prisma.MovimientoKardexListRelationFilter
   traspasosSalientes?: Prisma.TraspasoListRelationFilter
   traspasosEntrantes?: Prisma.TraspasoListRelationFilter
+  cierres?: Prisma.CierreGestionListRelationFilter
 }, "id" | "nombre">
 
 export type AlmacenOrderByWithAggregationInput = {
@@ -298,6 +301,7 @@ export type AlmacenCreateInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateInput = {
@@ -314,6 +318,7 @@ export type AlmacenUncheckedCreateInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUpdateInput = {
@@ -329,6 +334,7 @@ export type AlmacenUpdateInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateInput = {
@@ -345,6 +351,7 @@ export type AlmacenUncheckedUpdateInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateManyInput = {
@@ -526,6 +533,20 @@ export type AlmacenUpdateOneRequiredWithoutTraspasosEntrantesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutTraspasosEntrantesInput, Prisma.AlmacenUpdateWithoutTraspasosEntrantesInput>, Prisma.AlmacenUncheckedUpdateWithoutTraspasosEntrantesInput>
 }
 
+export type AlmacenCreateNestedOneWithoutCierresInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutCierresInput, Prisma.AlmacenUncheckedCreateWithoutCierresInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutCierresInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+}
+
+export type AlmacenUpdateOneRequiredWithoutCierresNestedInput = {
+  create?: Prisma.XOR<Prisma.AlmacenCreateWithoutCierresInput, Prisma.AlmacenUncheckedCreateWithoutCierresInput>
+  connectOrCreate?: Prisma.AlmacenCreateOrConnectWithoutCierresInput
+  upsert?: Prisma.AlmacenUpsertWithoutCierresInput
+  connect?: Prisma.AlmacenWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AlmacenUpdateToOneWithWhereWithoutCierresInput, Prisma.AlmacenUpdateWithoutCierresInput>, Prisma.AlmacenUncheckedUpdateWithoutCierresInput>
+}
+
 export type AlmacenCreateWithoutUnidadesInput = {
   nombre: string
   activo?: boolean
@@ -538,6 +559,7 @@ export type AlmacenCreateWithoutUnidadesInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutUnidadesInput = {
@@ -553,6 +575,7 @@ export type AlmacenUncheckedCreateWithoutUnidadesInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutUnidadesInput = {
@@ -583,6 +606,7 @@ export type AlmacenUpdateWithoutUnidadesInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutUnidadesInput = {
@@ -598,6 +622,7 @@ export type AlmacenUncheckedUpdateWithoutUnidadesInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutUsuariosInput = {
@@ -612,6 +637,7 @@ export type AlmacenCreateWithoutUsuariosInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutUsuariosInput = {
@@ -627,6 +653,7 @@ export type AlmacenUncheckedCreateWithoutUsuariosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutUsuariosInput = {
@@ -657,6 +684,7 @@ export type AlmacenUpdateWithoutUsuariosInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutUsuariosInput = {
@@ -672,6 +700,7 @@ export type AlmacenUncheckedUpdateWithoutUsuariosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutObservadoresInput = {
@@ -686,6 +715,7 @@ export type AlmacenCreateWithoutObservadoresInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutObservadoresInput = {
@@ -701,6 +731,7 @@ export type AlmacenUncheckedCreateWithoutObservadoresInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutObservadoresInput = {
@@ -731,6 +762,7 @@ export type AlmacenUpdateWithoutObservadoresInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
@@ -746,6 +778,7 @@ export type AlmacenUncheckedUpdateWithoutObservadoresInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutIngresosInput = {
@@ -760,6 +793,7 @@ export type AlmacenCreateWithoutIngresosInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutIngresosInput = {
@@ -775,6 +809,7 @@ export type AlmacenUncheckedCreateWithoutIngresosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutIngresosInput = {
@@ -805,6 +840,7 @@ export type AlmacenUpdateWithoutIngresosInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutIngresosInput = {
@@ -820,6 +856,7 @@ export type AlmacenUncheckedUpdateWithoutIngresosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutMovimientosInput = {
@@ -834,6 +871,7 @@ export type AlmacenCreateWithoutMovimientosInput = {
   egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutMovimientosInput = {
@@ -849,6 +887,7 @@ export type AlmacenUncheckedCreateWithoutMovimientosInput = {
   egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutMovimientosInput = {
@@ -879,6 +918,7 @@ export type AlmacenUpdateWithoutMovimientosInput = {
   egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutMovimientosInput = {
@@ -894,6 +934,7 @@ export type AlmacenUncheckedUpdateWithoutMovimientosInput = {
   egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutEgresosInput = {
@@ -908,6 +949,7 @@ export type AlmacenCreateWithoutEgresosInput = {
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutEgresosInput = {
@@ -923,6 +965,7 @@ export type AlmacenUncheckedCreateWithoutEgresosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutEgresosInput = {
@@ -953,6 +996,7 @@ export type AlmacenUpdateWithoutEgresosInput = {
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutEgresosInput = {
@@ -968,6 +1012,7 @@ export type AlmacenUncheckedUpdateWithoutEgresosInput = {
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenCreateWithoutTraspasosSalientesInput = {
@@ -982,6 +1027,7 @@ export type AlmacenCreateWithoutTraspasosSalientesInput = {
   egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutTraspasosSalientesInput = {
@@ -997,6 +1043,7 @@ export type AlmacenUncheckedCreateWithoutTraspasosSalientesInput = {
   egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutTraspasosSalientesInput = {
@@ -1016,6 +1063,7 @@ export type AlmacenCreateWithoutTraspasosEntrantesInput = {
   egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
+  cierres?: Prisma.CierreGestionCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenUncheckedCreateWithoutTraspasosEntrantesInput = {
@@ -1031,6 +1079,7 @@ export type AlmacenUncheckedCreateWithoutTraspasosEntrantesInput = {
   egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
   movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
   traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
+  cierres?: Prisma.CierreGestionUncheckedCreateNestedManyWithoutAlmacenInput
 }
 
 export type AlmacenCreateOrConnectWithoutTraspasosEntrantesInput = {
@@ -1061,6 +1110,7 @@ export type AlmacenUpdateWithoutTraspasosSalientesInput = {
   egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutTraspasosSalientesInput = {
@@ -1076,6 +1126,7 @@ export type AlmacenUncheckedUpdateWithoutTraspasosSalientesInput = {
   egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUpsertWithoutTraspasosEntrantesInput = {
@@ -1101,6 +1152,7 @@ export type AlmacenUpdateWithoutTraspasosEntrantesInput = {
   egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
+  cierres?: Prisma.CierreGestionUpdateManyWithoutAlmacenNestedInput
 }
 
 export type AlmacenUncheckedUpdateWithoutTraspasosEntrantesInput = {
@@ -1116,6 +1168,85 @@ export type AlmacenUncheckedUpdateWithoutTraspasosEntrantesInput = {
   egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
   movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
   traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
+  cierres?: Prisma.CierreGestionUncheckedUpdateManyWithoutAlmacenNestedInput
+}
+
+export type AlmacenCreateWithoutCierresInput = {
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadCreateNestedManyWithoutAlmacenInput
+  ingresos?: Prisma.IngresoCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoCreateNestedManyWithoutAlmacenInput
+  movimientos?: Prisma.MovimientoKardexCreateNestedManyWithoutAlmacenInput
+  traspasosSalientes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenOrigenInput
+  traspasosEntrantes?: Prisma.TraspasoCreateNestedManyWithoutAlmacenDestinoInput
+}
+
+export type AlmacenUncheckedCreateWithoutCierresInput = {
+  id?: number
+  nombre: string
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  usuarios?: Prisma.UsuarioUncheckedCreateNestedManyWithoutAlmacenInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedCreateNestedManyWithoutAlmacenInput
+  unidades?: Prisma.AlmacenUnidadUncheckedCreateNestedManyWithoutAlmacenInput
+  ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutAlmacenInput
+  egresos?: Prisma.EgresoUncheckedCreateNestedManyWithoutAlmacenInput
+  movimientos?: Prisma.MovimientoKardexUncheckedCreateNestedManyWithoutAlmacenInput
+  traspasosSalientes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenOrigenInput
+  traspasosEntrantes?: Prisma.TraspasoUncheckedCreateNestedManyWithoutAlmacenDestinoInput
+}
+
+export type AlmacenCreateOrConnectWithoutCierresInput = {
+  where: Prisma.AlmacenWhereUniqueInput
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutCierresInput, Prisma.AlmacenUncheckedCreateWithoutCierresInput>
+}
+
+export type AlmacenUpsertWithoutCierresInput = {
+  update: Prisma.XOR<Prisma.AlmacenUpdateWithoutCierresInput, Prisma.AlmacenUncheckedUpdateWithoutCierresInput>
+  create: Prisma.XOR<Prisma.AlmacenCreateWithoutCierresInput, Prisma.AlmacenUncheckedCreateWithoutCierresInput>
+  where?: Prisma.AlmacenWhereInput
+}
+
+export type AlmacenUpdateToOneWithWhereWithoutCierresInput = {
+  where?: Prisma.AlmacenWhereInput
+  data: Prisma.XOR<Prisma.AlmacenUpdateWithoutCierresInput, Prisma.AlmacenUncheckedUpdateWithoutCierresInput>
+}
+
+export type AlmacenUpdateWithoutCierresInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUpdateManyWithoutAlmacenNestedInput
+  ingresos?: Prisma.IngresoUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUpdateManyWithoutAlmacenNestedInput
+  movimientos?: Prisma.MovimientoKardexUpdateManyWithoutAlmacenNestedInput
+  traspasosSalientes?: Prisma.TraspasoUpdateManyWithoutAlmacenOrigenNestedInput
+  traspasosEntrantes?: Prisma.TraspasoUpdateManyWithoutAlmacenDestinoNestedInput
+}
+
+export type AlmacenUncheckedUpdateWithoutCierresInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  usuarios?: Prisma.UsuarioUncheckedUpdateManyWithoutAlmacenNestedInput
+  observadores?: Prisma.UsuarioAlmacenObservadoUncheckedUpdateManyWithoutAlmacenNestedInput
+  unidades?: Prisma.AlmacenUnidadUncheckedUpdateManyWithoutAlmacenNestedInput
+  ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  egresos?: Prisma.EgresoUncheckedUpdateManyWithoutAlmacenNestedInput
+  movimientos?: Prisma.MovimientoKardexUncheckedUpdateManyWithoutAlmacenNestedInput
+  traspasosSalientes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenOrigenNestedInput
+  traspasosEntrantes?: Prisma.TraspasoUncheckedUpdateManyWithoutAlmacenDestinoNestedInput
 }
 
 
@@ -1132,6 +1263,7 @@ export type AlmacenCountOutputType = {
   movimientos: number
   traspasosSalientes: number
   traspasosEntrantes: number
+  cierres: number
 }
 
 export type AlmacenCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1143,6 +1275,7 @@ export type AlmacenCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   movimientos?: boolean | AlmacenCountOutputTypeCountMovimientosArgs
   traspasosSalientes?: boolean | AlmacenCountOutputTypeCountTraspasosSalientesArgs
   traspasosEntrantes?: boolean | AlmacenCountOutputTypeCountTraspasosEntrantesArgs
+  cierres?: boolean | AlmacenCountOutputTypeCountCierresArgs
 }
 
 /**
@@ -1211,6 +1344,13 @@ export type AlmacenCountOutputTypeCountTraspasosEntrantesArgs<ExtArgs extends ru
   where?: Prisma.TraspasoWhereInput
 }
 
+/**
+ * AlmacenCountOutputType without action
+ */
+export type AlmacenCountOutputTypeCountCierresArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CierreGestionWhereInput
+}
+
 
 export type AlmacenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1226,6 +1366,7 @@ export type AlmacenSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   movimientos?: boolean | Prisma.Almacen$movimientosArgs<ExtArgs>
   traspasosSalientes?: boolean | Prisma.Almacen$traspasosSalientesArgs<ExtArgs>
   traspasosEntrantes?: boolean | Prisma.Almacen$traspasosEntrantesArgs<ExtArgs>
+  cierres?: boolean | Prisma.Almacen$cierresArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["almacen"]>
 
@@ -1263,6 +1404,7 @@ export type AlmacenInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   movimientos?: boolean | Prisma.Almacen$movimientosArgs<ExtArgs>
   traspasosSalientes?: boolean | Prisma.Almacen$traspasosSalientesArgs<ExtArgs>
   traspasosEntrantes?: boolean | Prisma.Almacen$traspasosEntrantesArgs<ExtArgs>
+  cierres?: boolean | Prisma.Almacen$cierresArgs<ExtArgs>
   _count?: boolean | Prisma.AlmacenCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AlmacenIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1279,6 +1421,7 @@ export type $AlmacenPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     movimientos: Prisma.$MovimientoKardexPayload<ExtArgs>[]
     traspasosSalientes: Prisma.$TraspasoPayload<ExtArgs>[]
     traspasosEntrantes: Prisma.$TraspasoPayload<ExtArgs>[]
+    cierres: Prisma.$CierreGestionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1688,6 +1831,7 @@ export interface Prisma__AlmacenClient<T, Null = never, ExtArgs extends runtime.
   movimientos<T extends Prisma.Almacen$movimientosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$movimientosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MovimientoKardexPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   traspasosSalientes<T extends Prisma.Almacen$traspasosSalientesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$traspasosSalientesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TraspasoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   traspasosEntrantes<T extends Prisma.Almacen$traspasosEntrantesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$traspasosEntrantesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TraspasoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cierres<T extends Prisma.Almacen$cierresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Almacen$cierresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CierreGestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2304,6 +2448,30 @@ export type Almacen$traspasosEntrantesArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.TraspasoScalarFieldEnum | Prisma.TraspasoScalarFieldEnum[]
+}
+
+/**
+ * Almacen.cierres
+ */
+export type Almacen$cierresArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CierreGestion
+   */
+  select?: Prisma.CierreGestionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CierreGestion
+   */
+  omit?: Prisma.CierreGestionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CierreGestionInclude<ExtArgs> | null
+  where?: Prisma.CierreGestionWhereInput
+  orderBy?: Prisma.CierreGestionOrderByWithRelationInput | Prisma.CierreGestionOrderByWithRelationInput[]
+  cursor?: Prisma.CierreGestionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CierreGestionScalarFieldEnum | Prisma.CierreGestionScalarFieldEnum[]
 }
 
 /**

@@ -300,18 +300,47 @@ consulta ninguna pantalla, así que no bloquea nada.
   Administración, no automático por fecha: en enero hace falta margen para
   corregir lo que entró a fin de año y se registró después.
 - **Solo el `super_admin`** ejecuta el cierre.
-- **Ventana: las dos primeras semanas de enero.** El botón se habilita recién el
-  1/1 (no se cierra un año que todavía corre).
-- **Una gestión cerrada NO se reabre.** Desde el cierre, el backend rechaza todo
-  movimiento fechado en esa gestión y ese almacén. Hoy el único camino para
-  fechar en el pasado es la corrección de `fechaIngreso` del `super_admin`; todo
-  lo demás (entregas, anulaciones, traspasos) se fecha «ahora» y cae en el año
-  nuevo sin tocar el cerrado.
-- **Hay recuento físico** al cierre → hace falta un movimiento de **ajuste de
-  inventario** (faltantes y sobrantes), que tiene que cargarse **antes** de
-  cerrar: cerrada la gestión ya no se puede fechar al 31/12.
-- Al cerrar se guarda una **foto de los saldos al 31/12** por lote (de ahí salen
-  los Cuadros 5 y 6 de la DGCF) y se emite el **acta de cierre** en PDF.
+- **Sin plazo** (2026-11-16, reemplaza la ventana de «las dos primeras semanas
+  de enero»): el sistema detecta solo qué gestión le falta cerrar a cada almacén
+  (la más antigua abierta, nunca una futura) y se cierra cuando se quiera — en
+  enero, en marzo o años después. **En orden**: no se cierra 2027 con 2026
+  abierta. Cerrar tarde no molesta: mientras la gestión anterior siga abierta,
+  la nueva funciona normal, y la foto se reconstruye del kardex al 31/12.
+  Se puede cerrar también la **gestión en curso** (pensado para pruebas): el
+  almacén queda congelado hasta el 1/1, porque todo lo que se hiciera quedaría
+  fechado en la gestión cerrada. Se acepta el riesgo porque solo lo hace el
+  `super_admin`.
+- **No se cierra con pedidos de esa gestión abiertos** (2026-11-16): todo pedido
+  con número de la gestión tiene que estar ENTREGADO o DESISTIDO. No traban los
+  pedidos de la gestión siguiente ni los «Pendiente de envío» (no tienen número
+  y su reserva vence sola; no tocan el kardex). Si el aprobador o el solicitante
+  no están, el `super_admin` ya puede devolver y desistir.
+- **Un pedido se entrega en su gestión o no se entrega** (2026-11-16): desde el
+  1/1, un pedido con número de la gestión anterior que siga abierto solo se puede
+  devolver y desistir — ni aprobar, ni reenviar, ni entregar.
+- **Una gestión cerrada NO se reabre y queda CONGELADA** (2026-11-16): nada de
+  esa gestión en ese almacén se anula ni se edita — ingresos (anulación, edición
+  de cabecera, corrección de `fechaIngreso` desde o hacia ella), egresos
+  entregados (anulación) y saldos iniciales (anulación o importación con fecha de
+  corte en ella). Se descartó permitir anular con reversión fechada en la gestión
+  nueva. Los LOTES siguen usándose normalmente: lo congelado son los documentos.
+- **NO hay recuento físico** al cierre (decidido con el encargado el
+  2026-11-16; el 2026-11-12 se había dicho que sí). Por eso **no se construye
+  el ajuste de inventario** y el cierre no exige ningún recuento previo: la foto
+  al 31/12 es la del sistema tal como quedó.
+- Al cerrar se guarda una **foto de los saldos al 31/12** por lote, calculada
+  desde el kardex, y quedan descargables (siempre desde la foto, no del stock del
+  día): **acta de cierre** (PDF) y los **Cuadros 5 y 6 de la DGCF** del almacén
+  (PDF y Excel). Además un **Cuadro 5/6 institucional** que suma las fotos de
+  todos los almacenes, marcado «PROVISIONAL» mientras falte cerrar alguno, y
+  donde los traspasos entre almacenes se descuentan (son internos).
+- **Cuadros 5 y 6** (2026-11-16): son un **modelo** para que almacenes llene el
+  formulario que le manda el Ministerio, no el documento oficial. Cuadro 6: **una
+  fila por ítem + precio** (cuadra exacto con los lotes). Cuadro 5: por la
+  **partida del ítem** (la hoja, ej. 32100). Entradas = ingresos y traspasos
+  recibidos menos ingresos anulados en la gestión; salidas = entregas y traspasos
+  enviados menos egresos anulados. **Firmas: pendientes** (las define el
+  Ministerio).
 
 **No hace falta «abrir» la gestión nueva**: los lotes siguen vivos, el saldo de
 apertura del kardex se calcula y los correlativos arrancan solos en 001.

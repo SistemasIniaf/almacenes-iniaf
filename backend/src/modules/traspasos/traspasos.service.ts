@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import { paginated } from '../../common/dto/paginated-result';
 import { gestionDe } from '../../common/fechas/zona-horaria';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
@@ -250,6 +251,10 @@ export class TraspasosService {
 
     const id = await this.prisma.$transaction(
       async (tx) => {
+        // Los dos movimientos se fechan hoy: ni el que entrega ni el que recibe
+        // pueden tener la gestion en curso cerrada (cierre anticipado).
+        await exigirGestionAbierta(tx, dto.almacenOrigenId, [gestion]);
+        await exigirGestionAbierta(tx, dto.almacenDestinoId, [gestion]);
         // Mismo bloqueo y mismo orden que los egresos (`bloquearLotes`): un
         // pedido que reserva este lote en este instante, o entra antes y se ve
         // en la reserva, o espera y encuentra el saldo ya descontado.

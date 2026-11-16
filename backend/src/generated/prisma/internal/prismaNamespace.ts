@@ -403,7 +403,9 @@ export const ModelName = {
   LogoVersion: 'LogoVersion',
   ConfiguracionSistema: 'ConfiguracionSistema',
   Traspaso: 'Traspaso',
-  TraspasoDetalle: 'TraspasoDetalle'
+  TraspasoDetalle: 'TraspasoDetalle',
+  CierreGestion: 'CierreGestion',
+  CierreSaldo: 'CierreSaldo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion" | "configuracionSistema" | "traspaso" | "traspasoDetalle"
+    modelProps: "unidad" | "almacen" | "almacenUnidad" | "usuario" | "usuarioAlmacenObservado" | "partida" | "proveedor" | "fuenteFinanciamiento" | "item" | "ingreso" | "ingresoDetalle" | "movimientoKardex" | "egreso" | "egresoDetalle" | "egresoHistorial" | "logoInstitucional" | "logoVersion" | "configuracionSistema" | "traspaso" | "traspasoDetalle" | "cierreGestion" | "cierreSaldo"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1903,6 +1905,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CierreGestion: {
+      payload: Prisma.$CierreGestionPayload<ExtArgs>
+      fields: Prisma.CierreGestionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CierreGestionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CierreGestionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        findFirst: {
+          args: Prisma.CierreGestionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CierreGestionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        findMany: {
+          args: Prisma.CierreGestionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>[]
+        }
+        create: {
+          args: Prisma.CierreGestionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        createMany: {
+          args: Prisma.CierreGestionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CierreGestionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>[]
+        }
+        delete: {
+          args: Prisma.CierreGestionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        update: {
+          args: Prisma.CierreGestionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CierreGestionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CierreGestionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CierreGestionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CierreGestionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreGestionPayload>
+        }
+        aggregate: {
+          args: Prisma.CierreGestionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCierreGestion>
+        }
+        groupBy: {
+          args: Prisma.CierreGestionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CierreGestionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CierreGestionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CierreGestionCountAggregateOutputType> | number
+        }
+      }
+    }
+    CierreSaldo: {
+      payload: Prisma.$CierreSaldoPayload<ExtArgs>
+      fields: Prisma.CierreSaldoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CierreSaldoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CierreSaldoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        findFirst: {
+          args: Prisma.CierreSaldoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CierreSaldoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        findMany: {
+          args: Prisma.CierreSaldoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>[]
+        }
+        create: {
+          args: Prisma.CierreSaldoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        createMany: {
+          args: Prisma.CierreSaldoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CierreSaldoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>[]
+        }
+        delete: {
+          args: Prisma.CierreSaldoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        update: {
+          args: Prisma.CierreSaldoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        deleteMany: {
+          args: Prisma.CierreSaldoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CierreSaldoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CierreSaldoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>[]
+        }
+        upsert: {
+          args: Prisma.CierreSaldoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CierreSaldoPayload>
+        }
+        aggregate: {
+          args: Prisma.CierreSaldoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCierreSaldo>
+        }
+        groupBy: {
+          args: Prisma.CierreSaldoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CierreSaldoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CierreSaldoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CierreSaldoCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2239,6 +2389,42 @@ export const TraspasoDetalleScalarFieldEnum = {
 export type TraspasoDetalleScalarFieldEnum = (typeof TraspasoDetalleScalarFieldEnum)[keyof typeof TraspasoDetalleScalarFieldEnum]
 
 
+export const CierreGestionScalarFieldEnum = {
+  id: 'id',
+  gestion: 'gestion',
+  almacenId: 'almacenId',
+  anticipado: 'anticipado',
+  cerradoPorId: 'cerradoPorId',
+  cerradoEn: 'cerradoEn',
+  valorInicial: 'valorInicial',
+  valorEntradas: 'valorEntradas',
+  valorSalidas: 'valorSalidas',
+  valorFinal: 'valorFinal',
+  createdAt: 'createdAt'
+} as const
+
+export type CierreGestionScalarFieldEnum = (typeof CierreGestionScalarFieldEnum)[keyof typeof CierreGestionScalarFieldEnum]
+
+
+export const CierreSaldoScalarFieldEnum = {
+  id: 'id',
+  cierreId: 'cierreId',
+  ingresoDetalleId: 'ingresoDetalleId',
+  itemId: 'itemId',
+  partidaId: 'partidaId',
+  fuenteFinanciamientoId: 'fuenteFinanciamientoId',
+  precioUnitario: 'precioUnitario',
+  cantidadInicial: 'cantidadInicial',
+  cantidadEntradas: 'cantidadEntradas',
+  cantidadEntradasTraspaso: 'cantidadEntradasTraspaso',
+  cantidadSalidas: 'cantidadSalidas',
+  cantidadSalidasTraspaso: 'cantidadSalidasTraspaso',
+  cantidadFinal: 'cantidadFinal'
+} as const
+
+export type CierreSaldoScalarFieldEnum = (typeof CierreSaldoScalarFieldEnum)[keyof typeof CierreSaldoScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2545,6 +2731,8 @@ export type GlobalOmitConfig = {
   configuracionSistema?: Prisma.ConfiguracionSistemaOmit
   traspaso?: Prisma.TraspasoOmit
   traspasoDetalle?: Prisma.TraspasoDetalleOmit
+  cierreGestion?: Prisma.CierreGestionOmit
+  cierreSaldo?: Prisma.CierreSaldoOmit
 }
 
 /* Types for Logging */

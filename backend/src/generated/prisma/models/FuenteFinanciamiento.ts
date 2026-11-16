@@ -230,6 +230,7 @@ export type FuenteFinanciamientoWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   ingresos?: Prisma.IngresoListRelationFilter
+  cierreSaldos?: Prisma.CierreSaldoListRelationFilter
 }
 
 export type FuenteFinanciamientoOrderByWithRelationInput = {
@@ -240,6 +241,7 @@ export type FuenteFinanciamientoOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   ingresos?: Prisma.IngresoOrderByRelationAggregateInput
+  cierreSaldos?: Prisma.CierreSaldoOrderByRelationAggregateInput
 }
 
 export type FuenteFinanciamientoWhereUniqueInput = Prisma.AtLeast<{
@@ -253,6 +255,7 @@ export type FuenteFinanciamientoWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FuenteFinanciamiento"> | Date | string
   ingresos?: Prisma.IngresoListRelationFilter
+  cierreSaldos?: Prisma.CierreSaldoListRelationFilter
 }, "id" | "nombre">
 
 export type FuenteFinanciamientoOrderByWithAggregationInput = {
@@ -288,6 +291,7 @@ export type FuenteFinanciamientoCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ingresos?: Prisma.IngresoCreateNestedManyWithoutFuenteFinanciamientoInput
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoUncheckedCreateInput = {
@@ -298,6 +302,7 @@ export type FuenteFinanciamientoUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutFuenteFinanciamientoInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoUpdateInput = {
@@ -307,6 +312,7 @@ export type FuenteFinanciamientoUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingresos?: Prisma.IngresoUpdateManyWithoutFuenteFinanciamientoNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 export type FuenteFinanciamientoUncheckedUpdateInput = {
@@ -317,6 +323,7 @@ export type FuenteFinanciamientoUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutFuenteFinanciamientoNestedInput
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 export type FuenteFinanciamientoCreateManyInput = {
@@ -401,12 +408,29 @@ export type FuenteFinanciamientoUpdateOneWithoutIngresosNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.FuenteFinanciamientoUpdateToOneWithWhereWithoutIngresosInput, Prisma.FuenteFinanciamientoUpdateWithoutIngresosInput>, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput>
 }
 
+export type FuenteFinanciamientoCreateNestedOneWithoutCierreSaldosInput = {
+  create?: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutCierreSaldosInput>
+  connectOrCreate?: Prisma.FuenteFinanciamientoCreateOrConnectWithoutCierreSaldosInput
+  connect?: Prisma.FuenteFinanciamientoWhereUniqueInput
+}
+
+export type FuenteFinanciamientoUpdateOneWithoutCierreSaldosNestedInput = {
+  create?: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutCierreSaldosInput>
+  connectOrCreate?: Prisma.FuenteFinanciamientoCreateOrConnectWithoutCierreSaldosInput
+  upsert?: Prisma.FuenteFinanciamientoUpsertWithoutCierreSaldosInput
+  disconnect?: Prisma.FuenteFinanciamientoWhereInput | boolean
+  delete?: Prisma.FuenteFinanciamientoWhereInput | boolean
+  connect?: Prisma.FuenteFinanciamientoWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FuenteFinanciamientoUpdateToOneWithWhereWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUpdateWithoutCierreSaldosInput>, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutCierreSaldosInput>
+}
+
 export type FuenteFinanciamientoCreateWithoutIngresosInput = {
   nombre: string
   codigo?: string | null
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  cierreSaldos?: Prisma.CierreSaldoCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoUncheckedCreateWithoutIngresosInput = {
@@ -416,6 +440,7 @@ export type FuenteFinanciamientoUncheckedCreateWithoutIngresosInput = {
   activo?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  cierreSaldos?: Prisma.CierreSaldoUncheckedCreateNestedManyWithoutFuenteFinanciamientoInput
 }
 
 export type FuenteFinanciamientoCreateOrConnectWithoutIngresosInput = {
@@ -440,6 +465,7 @@ export type FuenteFinanciamientoUpdateWithoutIngresosInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cierreSaldos?: Prisma.CierreSaldoUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 export type FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput = {
@@ -449,6 +475,61 @@ export type FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput = {
   activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  cierreSaldos?: Prisma.CierreSaldoUncheckedUpdateManyWithoutFuenteFinanciamientoNestedInput
+}
+
+export type FuenteFinanciamientoCreateWithoutCierreSaldosInput = {
+  nombre: string
+  codigo?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ingresos?: Prisma.IngresoCreateNestedManyWithoutFuenteFinanciamientoInput
+}
+
+export type FuenteFinanciamientoUncheckedCreateWithoutCierreSaldosInput = {
+  id?: number
+  nombre: string
+  codigo?: string | null
+  activo?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ingresos?: Prisma.IngresoUncheckedCreateNestedManyWithoutFuenteFinanciamientoInput
+}
+
+export type FuenteFinanciamientoCreateOrConnectWithoutCierreSaldosInput = {
+  where: Prisma.FuenteFinanciamientoWhereUniqueInput
+  create: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutCierreSaldosInput>
+}
+
+export type FuenteFinanciamientoUpsertWithoutCierreSaldosInput = {
+  update: Prisma.XOR<Prisma.FuenteFinanciamientoUpdateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutCierreSaldosInput>
+  create: Prisma.XOR<Prisma.FuenteFinanciamientoCreateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedCreateWithoutCierreSaldosInput>
+  where?: Prisma.FuenteFinanciamientoWhereInput
+}
+
+export type FuenteFinanciamientoUpdateToOneWithWhereWithoutCierreSaldosInput = {
+  where?: Prisma.FuenteFinanciamientoWhereInput
+  data: Prisma.XOR<Prisma.FuenteFinanciamientoUpdateWithoutCierreSaldosInput, Prisma.FuenteFinanciamientoUncheckedUpdateWithoutCierreSaldosInput>
+}
+
+export type FuenteFinanciamientoUpdateWithoutCierreSaldosInput = {
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUpdateManyWithoutFuenteFinanciamientoNestedInput
+}
+
+export type FuenteFinanciamientoUncheckedUpdateWithoutCierreSaldosInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  nombre?: Prisma.StringFieldUpdateOperationsInput | string
+  codigo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  activo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ingresos?: Prisma.IngresoUncheckedUpdateManyWithoutFuenteFinanciamientoNestedInput
 }
 
 
@@ -458,10 +539,12 @@ export type FuenteFinanciamientoUncheckedUpdateWithoutIngresosInput = {
 
 export type FuenteFinanciamientoCountOutputType = {
   ingresos: number
+  cierreSaldos: number
 }
 
 export type FuenteFinanciamientoCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ingresos?: boolean | FuenteFinanciamientoCountOutputTypeCountIngresosArgs
+  cierreSaldos?: boolean | FuenteFinanciamientoCountOutputTypeCountCierreSaldosArgs
 }
 
 /**
@@ -481,6 +564,13 @@ export type FuenteFinanciamientoCountOutputTypeCountIngresosArgs<ExtArgs extends
   where?: Prisma.IngresoWhereInput
 }
 
+/**
+ * FuenteFinanciamientoCountOutputType without action
+ */
+export type FuenteFinanciamientoCountOutputTypeCountCierreSaldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CierreSaldoWhereInput
+}
+
 
 export type FuenteFinanciamientoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -490,6 +580,7 @@ export type FuenteFinanciamientoSelect<ExtArgs extends runtime.Types.Extensions.
   createdAt?: boolean
   updatedAt?: boolean
   ingresos?: boolean | Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>
+  cierreSaldos?: boolean | Prisma.FuenteFinanciamiento$cierreSaldosArgs<ExtArgs>
   _count?: boolean | Prisma.FuenteFinanciamientoCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["fuenteFinanciamiento"]>
 
@@ -523,6 +614,7 @@ export type FuenteFinanciamientoSelectScalar = {
 export type FuenteFinanciamientoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nombre" | "codigo" | "activo" | "createdAt" | "updatedAt", ExtArgs["result"]["fuenteFinanciamiento"]>
 export type FuenteFinanciamientoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ingresos?: boolean | Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>
+  cierreSaldos?: boolean | Prisma.FuenteFinanciamiento$cierreSaldosArgs<ExtArgs>
   _count?: boolean | Prisma.FuenteFinanciamientoCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FuenteFinanciamientoIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -532,6 +624,7 @@ export type $FuenteFinanciamientoPayload<ExtArgs extends runtime.Types.Extension
   name: "FuenteFinanciamiento"
   objects: {
     ingresos: Prisma.$IngresoPayload<ExtArgs>[]
+    cierreSaldos: Prisma.$CierreSaldoPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -938,6 +1031,7 @@ readonly fields: FuenteFinanciamientoFieldRefs;
 export interface Prisma__FuenteFinanciamientoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   ingresos<T extends Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FuenteFinanciamiento$ingresosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IngresoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  cierreSaldos<T extends Prisma.FuenteFinanciamiento$cierreSaldosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FuenteFinanciamiento$cierreSaldosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CierreSaldoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1387,6 +1481,30 @@ export type FuenteFinanciamiento$ingresosArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.IngresoScalarFieldEnum | Prisma.IngresoScalarFieldEnum[]
+}
+
+/**
+ * FuenteFinanciamiento.cierreSaldos
+ */
+export type FuenteFinanciamiento$cierreSaldosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CierreSaldo
+   */
+  select?: Prisma.CierreSaldoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CierreSaldo
+   */
+  omit?: Prisma.CierreSaldoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CierreSaldoInclude<ExtArgs> | null
+  where?: Prisma.CierreSaldoWhereInput
+  orderBy?: Prisma.CierreSaldoOrderByWithRelationInput | Prisma.CierreSaldoOrderByWithRelationInput[]
+  cursor?: Prisma.CierreSaldoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CierreSaldoScalarFieldEnum | Prisma.CierreSaldoScalarFieldEnum[]
 }
 
 /**

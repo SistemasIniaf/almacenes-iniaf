@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import { gestionDe, inicioDelDia } from '../../common/fechas/zona-horaria';
 import { EstadoIngreso, TipoMovimiento } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -145,6 +146,15 @@ export class SaldosInicialesService {
         for (const r of resueltas.values()) {
           const clave = `${r.almacenId}|${r.fuenteId}|${r.fila.ingresoAnteriorId}`;
           grupos.set(clave, [...(grupos.get(clave) ?? []), r]);
+        }
+
+        // La carga se fecha al dia de corte: no puede caer en una gestion que el
+        // almacen ya cerro (cambiaria una foto ya emitida).
+        const almacenesDestino = new Set(
+          [...grupos.values()].map((g) => g[0].almacenId),
+        );
+        for (const almacenId of almacenesDestino) {
+          await exigirGestionAbierta(tx, almacenId, [gestion]);
         }
 
         let lotes = 0;

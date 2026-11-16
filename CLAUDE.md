@@ -1429,6 +1429,35 @@ importa. Backend `modules/saldos-iniciales/` (`POST /validar` sin grabar, `POST 
   de nginx faltaba desde siempre**: el default de 1 MB rechazaba en producción las fotos de ítem de
   más de 1 MB, aunque el backend acepta 5.
 
+**CIERRE DE GESTIÓN — backend YA HECHO** (2026-11-16; falta la pantalla, el acta y los Cuadros 5/6).
+Decisiones en `docs/decisiones-ingresos.md` §9. Backend `modules/cierres/`: `GET /cierres/estado` (qué
+gestión le toca a cada almacén y qué pedidos lo traban), `POST /cierres` (solo `super_admin`), `GET
+/cierres` y `GET /cierres/:id` (la foto + conteo de documentos, para el acta); lectura también para `admin`.
+
+- **Tablas**: `CierreGestion` (`@@unique([almacenId, gestion])`, totales valorizados) y `CierreSaldo`
+  (la FOTO: una fila por lote con inicial / entradas / salidas / final, y aparte lo que fue traspaso).
+  Ítem, partida, fuente y precio se COPIAN del lote.
+- **La foto sale del KARDEX, no de `saldoCantidad`** (`calcularFoto`, SQL crudo): se puede cerrar meses
+  después, cuando la gestión siguiente ya movió los lotes. La carga de saldos iniciales va al saldo
+  inicial, no a entradas; las anulaciones se netean contra su columna. El signo es
+  `KardexService.signo` traducido a SQL (`SIGNO`): **si cambia allá, cambia acá**.
+- **Gestión pendiente** = la siguiente a la última cerrada, o la del primer movimiento; nunca futura.
+  La en curso se puede cerrar (`anticipado`, exige `confirmarAnticipado: true`). El DTO trae la
+  `gestion` que se cree cerrar y tiene que coincidir: una pantalla vieja no cierra la siguiente.
+  Un almacén **dado de baja y vacío** no tiene nada que cerrar.
+- **`exigirGestionAbierta(tx, almacenId, gestiones)`** (`common/cierre/gestion-cerrada.ts`) va dentro
+  de la transacción de TODA operación que escribe kardex, edita un documento o estampa número:
+  crear/editar/anular ingreso (y corregir `fechaIngreso`, desde y hacia), enviar/entregar/anular
+  egreso, traspaso (los dos almacenes) e importación de saldos iniciales. Recibe la gestión del
+  DOCUMENTO y la de HOY si el movimiento se fecha ahora. «Cerrada» = `<=` la última cerrada. **Si
+  agregás una operación que mueve stock, llamalo.** Toma un advisory lock COMPARTIDO (clave 5) contra
+  el EXCLUSIVO de `bloquearCierre`: así la foto no se pierde un movimiento grabado «justo antes».
+- **Pedidos de la gestión anterior**: `exigirPedidoDeLaGestion` en `EgresosService` rechaza
+  aprobar, entregar, modificar y reenviar un pedido con `gestion` < la actual; solo se devuelve o
+  desiste (super_admin y admin ya podían en los dos niveles).
+- Verificado sobre una copia de la base: bloqueos, orden, cierre anticipado, el borde 31/12 23:59:59
+  (entra) / 1/1 00:00 (no entra) y que el valor final del cierre anticipado cuadra con el stock.
+
 **TODOS los PDF se abren en una PESTAÑA nueva** (unificado el 2026-08-03, por pedido del usuario). Se
 había probado un visor embebido en un diálogo (`PdfDialog` + `useVisorPdf`, con el PDF como object URL
 dentro de un `<iframe>`); **no gustó y se eliminó** — no reponerlo. El patrón único vive en
@@ -1612,7 +1641,7 @@ guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una 
 
 | Archivo | Qué contiene |
 |---|---|
-| `docs/pendientes.md` | **Lista viva de todo lo que falta** (ajuste de inventario → cierre de gestión → Cuadros DGCF, migración, preguntas abiertas). Actualizarla al cerrar o sumar un pendiente. |
+| `docs/pendientes.md` | **Lista viva de todo lo que falta** (cierre de gestión → Cuadros DGCF, migración, preguntas abiertas). Actualizarla al cerrar o sumar un pendiente. |
 | `docs/decisiones-ingresos.md` | **Lo decidido y lo pendiente de ingresos.** Fuente de verdad del módulo. |
 | `docs/decisiones-egresos.md` | **Lo decidido y lo pendiente de egresos.** Cuáles preguntas bloquean el schema y cuáles no. |
 | `docs/analisis-sistema-anterior.md` | Cómo opera hoy el INIAF: relevamiento del sistema viejo con cifras verificadas sobre su base (11 gestiones). |
@@ -1622,7 +1651,7 @@ guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una 
 ## Pendiente de definición (esperar validación del encargado de almacenes antes de implementar)
 
 **Ingresos** — ya implementado; lo que queda abierto es la **vía de carga inicial del arranque**: los saldos que se traigan del sistema anterior no tienen proveedor/C31/certificación reales, así que necesitan un camino aparte (de administrador). Va junto con la definición del **cierre de gestión** (quién lo ejecuta, cuándo, y si la gestión cerrada se bloquea para movimientos con fecha anterior). Ver `docs/decisiones-ingresos.md` puntos 9 y 13.
-**Definido el 2026-11-12** (falta construirlo): cierre **por almacén**, con botón, **solo `super_admin`**, en las **dos primeras semanas de enero**, **sin reapertura**, con foto de saldos al 31/12 y acta; **hay recuento físico** (falta el ajuste de inventario, que va antes del cierre). Carga inicial: **script → planilla → importación**, porque el catálogo de ítems se arma desde cero — la extracción (`tools/migracion-saldos/`) y la importación (`/saldos-iniciales`) ya están (ver «SALDOS INICIALES»).
+**Definido el 2026-11-12** (falta construirlo): cierre **por almacén**, con botón, **solo `super_admin`**, **sin plazo y en orden** (2026-11-16: el sistema detecta qué gestión falta cerrar), **sin reapertura** y con la gestión cerrada congelada, con foto de saldos al 31/12, acta y Cuadros 5/6 DGCF (detalle en `docs/decisiones-ingresos.md` §9); **sin recuento físico** (decidido con el encargado el 2026-11-16: no se construye ajuste de inventario). Carga inicial: **script → planilla → importación**, porque el catálogo de ítems se arma desde cero — la extracción (`tools/migracion-saldos/`) y la importación (`/saldos-iniciales`) ya están (ver «SALDOS INICIALES»).
 
 **Egresos** — **el encargado respondió el 2026-07-29 y ya NADA bloquea el schema.** Todo lo decidido
 está en `docs/decisiones-egresos.md` (niveles, quién ajusta cantidades, quién elige el lote, reserva,

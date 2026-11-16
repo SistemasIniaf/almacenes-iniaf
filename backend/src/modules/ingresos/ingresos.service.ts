@@ -8,6 +8,7 @@ import {
 
 import { paginated } from '../../common/dto/paginated-result';
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
+import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import {
   fechaHoraBolivia,
   gestionDe,
@@ -346,6 +347,9 @@ export class IngresosService {
     const gestion = gestionDe(fechaIngreso);
 
     const id = await this.prisma.$transaction(async (tx) => {
+      // Si la gestion en curso ya se cerro (cierre anticipado), el almacen no
+      // registra nada hasta el 1/1.
+      await exigirGestionAbierta(tx, almacenId, [gestion]);
       // Correlativo por almacen + gestion. El bloqueo hace que dos registros
       // simultaneos del mismo almacen no lean el mismo MAX.
       await bloquearSerie(tx, 'ingresos', almacenId);
@@ -446,6 +450,12 @@ export class IngresosService {
     const nuevaFecha = this.resolverCorreccionDeFecha(dto, existente, user);
 
     await this.prisma.$transaction(async (tx) => {
+      // Una gestion cerrada queda congelada: ni la cabecera se edita. Y la
+      // fecha corregida no puede caer en una gestion cerrada, ni salir de una.
+      await exigirGestionAbierta(tx, existente.almacenId, [
+        gestionDe(existente.fechaIngreso),
+        ...(nuevaFecha ? [gestionDe(nuevaFecha)] : []),
+      ]);
       await tx.ingreso.update({
         where: { id },
         data: {
@@ -548,6 +558,12 @@ export class IngresosService {
       );
     }
     await this.prisma.$transaction(async (tx) => {
+      // Ni el ingreso de una gestion cerrada se anula, ni la REVERSION (fechada
+      // hoy) puede caer en una gestion ya cerrada.
+      await exigirGestionAbierta(tx, ingreso.almacenId, [
+        gestionDe(ingreso.fechaIngreso),
+        gestionDe(new Date()),
+      ]);
       // Lo PRIMERO: pasar a ANULADO solo si sigue confirmado. Dos anulaciones
       // simultaneas (doble clic) duplicaban las REVERSIONES del Kardex; la
       // segunda espera esta fila y, al tomarla, ya no lo encuentra confirmado.

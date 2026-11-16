@@ -70,7 +70,9 @@ export const ModelName = {
   LogoVersion: 'LogoVersion',
   ConfiguracionSistema: 'ConfiguracionSistema',
   Traspaso: 'Traspaso',
-  TraspasoDetalle: 'TraspasoDetalle'
+  TraspasoDetalle: 'TraspasoDetalle',
+  CierreGestion: 'CierreGestion',
+  CierreSaldo: 'CierreSaldo'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -384,6 +386,42 @@ export const TraspasoDetalleScalarFieldEnum = {
 } as const
 
 export type TraspasoDetalleScalarFieldEnum = (typeof TraspasoDetalleScalarFieldEnum)[keyof typeof TraspasoDetalleScalarFieldEnum]
+
+
+export const CierreGestionScalarFieldEnum = {
+  id: 'id',
+  gestion: 'gestion',
+  almacenId: 'almacenId',
+  anticipado: 'anticipado',
+  cerradoPorId: 'cerradoPorId',
+  cerradoEn: 'cerradoEn',
+  valorInicial: 'valorInicial',
+  valorEntradas: 'valorEntradas',
+  valorSalidas: 'valorSalidas',
+  valorFinal: 'valorFinal',
+  createdAt: 'createdAt'
+} as const
+
+export type CierreGestionScalarFieldEnum = (typeof CierreGestionScalarFieldEnum)[keyof typeof CierreGestionScalarFieldEnum]
+
+
+export const CierreSaldoScalarFieldEnum = {
+  id: 'id',
+  cierreId: 'cierreId',
+  ingresoDetalleId: 'ingresoDetalleId',
+  itemId: 'itemId',
+  partidaId: 'partidaId',
+  fuenteFinanciamientoId: 'fuenteFinanciamientoId',
+  precioUnitario: 'precioUnitario',
+  cantidadInicial: 'cantidadInicial',
+  cantidadEntradas: 'cantidadEntradas',
+  cantidadEntradasTraspaso: 'cantidadEntradasTraspaso',
+  cantidadSalidas: 'cantidadSalidas',
+  cantidadSalidasTraspaso: 'cantidadSalidasTraspaso',
+  cantidadFinal: 'cantidadFinal'
+} as const
+
+export type CierreSaldoScalarFieldEnum = (typeof CierreSaldoScalarFieldEnum)[keyof typeof CierreSaldoScalarFieldEnum]
 
 
 export const SortOrder = {
