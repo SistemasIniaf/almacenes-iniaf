@@ -67,9 +67,19 @@ export const conDecimalesMinimos = (valor: string, minimos: number): string => {
 export const numeroAPantalla = (valor: unknown) =>
   String(valor ?? "").replace(".", ",")
 
-/** Deja solo dígitos y UN separador (coma o punto) y lo devuelve con punto. */
+/**
+ * Deja solo dígitos y UN separador decimal, y lo devuelve con punto.
+ *
+ * Con coma, la coma es el decimal y los puntos son de miles (`1.234,56`, como lo
+ * copia Excel en es-BO). Sin coma, un solo punto es el decimal (lo da el teclado
+ * numérico) y varios son de miles (`1.234.567`).
+ */
 export const numeroAInterno = (texto: string) => {
-  const limpio = texto.replace(/\./g, ",").replace(/[^\d,]/g, "")
+  const conComa = texto.includes(",")
+  const puntos = (texto.match(/\./g) ?? []).length
+  const normalizado =
+    conComa || puntos > 1 ? texto.replace(/\./g, "") : texto.replace(".", ",")
+  const limpio = normalizado.replace(/[^\d,]/g, "")
   const [entero, ...resto] = limpio.split(",")
   return resto.length ? `${entero}.${resto.join("")}` : entero
 }

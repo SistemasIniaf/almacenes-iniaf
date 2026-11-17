@@ -53,7 +53,15 @@ import {
   etiquetaNumero,
 } from "@/features/traspasos/traspasos.types"
 import { getApiErrorMessage } from "@/lib/api"
-import { cantidad, moneda, precio } from "@/lib/formato"
+import {
+  cantidad,
+  conDecimalesMinimos,
+  decimalesEscritos,
+  moneda,
+  numeroAInterno,
+  numeroAPantalla,
+  precio,
+} from "@/lib/formato"
 import { cn } from "@/lib/utils"
 
 import type {
@@ -131,12 +139,15 @@ function NuevoTraspaso() {
   const crear = useCrearTraspaso()
 
   const aTraspasar = (lote: LoteDisponible) =>
-    cantidades[lote.id] ?? String(lote.disponible)
+    cantidades[lote.id] ?? conDecimalesMinimos(String(lote.disponible), 2)
 
   /** Error de la fila elegida, o null. */
   const errorDe = (lote: LoteDisponible): string | null => {
-    const valor = Number(aTraspasar(lote))
+    const texto = aTraspasar(lote)
+    const valor = Number(texto)
     if (!Number.isFinite(valor) || valor <= 0) return "Tiene que ser mayor a 0"
+    // Mismo límite que el backend (CreateTraspasoDto).
+    if (decimalesEscritos(texto) > 2) return "Máximo 2 decimales"
     if (valor > lote.disponible)
       return `No puede superar el disponible (${cantidad(lote.disponible)})`
     return null
@@ -432,17 +443,27 @@ function NuevoTraspaso() {
                         {marcado ? (
                           <div className="flex flex-col items-end gap-1">
                             <Input
-                              type="number"
-                              min={0}
-                              max={lote.disponible}
-                              step="any"
-                              value={aTraspasar(lote)}
+                              // Con coma decimal, como NumberField: el estado
+                              // guarda el valor con punto.
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              value={numeroAPantalla(aTraspasar(lote))}
                               onChange={(e) =>
                                 setCantidades((c) => ({
                                   ...c,
-                                  [lote.id]: e.target.value,
+                                  [lote.id]: numeroAInterno(e.target.value),
                                 }))
                               }
+                              onBlur={() => {
+                                const texto = aTraspasar(lote)
+                                const completo = conDecimalesMinimos(texto, 2)
+                                if (completo !== texto)
+                                  setCantidades((c) => ({
+                                    ...c,
+                                    [lote.id]: completo,
+                                  }))
+                              }}
                               aria-invalid={error != null}
                               className="h-8 w-28 text-right"
                             />
