@@ -17,6 +17,15 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
+      // Fijo a esta carpeta: si no, typescript-eslint la adivina y falla cuando el
+      // editor ve otra copia del frontend (p. ej. un worktree en .claude/worktrees).
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
     },
+  },
+  {
+    // Componentes generados por shadcn: exportan sus variantes (buttonVariants,
+    // useSidebar…) junto al componente. Solo afecta al hot-reload de desarrollo.
+    files: ['src/components/ui/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 ])

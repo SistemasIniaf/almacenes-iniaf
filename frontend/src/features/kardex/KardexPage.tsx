@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { ChevronDown, FileText, Loader2, Printer, Sheet } from "lucide-react"
 
 import { NumeroDocumento } from "@/components/data/NumeroDocumento"
@@ -91,11 +91,11 @@ export function KardexPage() {
   // El ítem y el almacén pueden venir de la pantalla de stock.
   const [params] = useSearchParams()
 
-  const { control, watch } = useForm<FormKardex>({
+  const { control } = useForm<FormKardex>({
     defaultValues: { itemId: params.get("item") ?? "", fuenteId: TODAS },
   })
-  const itemId = watch("itemId")
-  const fuenteId = watch("fuenteId")
+  const itemId = useWatch({ control, name: "itemId" })
+  const fuenteId = useWatch({ control, name: "fuenteId" })
 
   const [almacenId, setAlmacenId] = useState(params.get("almacen") ?? "")
   const [gestion, setGestion] = useState(String(new Date().getFullYear()))

@@ -22,7 +22,7 @@ type OpcionesPg = Extract<
 
 export function opcionesConexion(): OpcionesPg {
   return {
-    connectionString: process.env.DATABASE_URL as string,
+    connectionString: process.env.DATABASE_URL,
     options: '-c TimeZone=UTC',
   };
 }

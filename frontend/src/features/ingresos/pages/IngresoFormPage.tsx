@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Ban, FileText, Loader2, Save } from "lucide-react"
@@ -97,7 +97,7 @@ export function IngresoFormPage() {
   const [motivo, setMotivo] = useState("")
   const { abrirNota, generandoId } = useNotaIngreso()
 
-  const { control, handleSubmit, reset, watch } = useForm<IngresoFormValues>({
+  const { control, handleSubmit, reset } = useForm<IngresoFormValues>({
     resolver: zodResolver(ingresoSchema),
     defaultValues: VALORES_INICIALES,
   })
@@ -129,7 +129,7 @@ export function IngresoFormPage() {
   const puedeCorregirFecha = !esNuevo && esSuperAdmin && !anulado
   const guardando = crear.isPending || actualizar.isPending
 
-  const almacenIdSel = watch("almacenId")
+  const almacenIdSel = useWatch({ control, name: "almacenId" })
   const almacenNum = almacenIdSel ? Number(almacenIdSel) : undefined
 
   const { data: almacenes = [] } = useAlmacenesActivos()

@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 
@@ -64,14 +64,14 @@ export function UnidadFormDialog({
     useUnidadesParaSelector()
   const { data: grupos = [] } = useGruposUnidades()
 
-  const { control, handleSubmit, reset, watch, setValue } =
+  const { control, handleSubmit, reset, setValue } =
     useForm<UnidadFormValues>({
       resolver: zodResolver(unidadSchema(esEdicion)),
       defaultValues: VALORES_INICIALES,
     })
 
-  const padreIdSeleccionado = watch("padreId")
-  const grupoSeleccionado = watch("grupo")
+  const padreIdSeleccionado = useWatch({ control, name: "padreId" })
+  const grupoSeleccionado = useWatch({ control, name: "grupo" })
   const esRaiz = padreIdSeleccionado === ""
 
   // Opciones del select de grupo: los existentes + "crear uno nuevo".

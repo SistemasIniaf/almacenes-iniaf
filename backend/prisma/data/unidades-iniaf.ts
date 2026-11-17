@@ -60,7 +60,11 @@ export const UNIDADES_INIAF: UnidadSeed[] = [
     sigla: 'DNI/UIV/CIT-VI/',
     padre: 'DNI/UIV/',
   },
-  { nombre: 'CIT CACAO - BAURES', sigla: 'DNI/UIV/CIT-CAB/', padre: 'DNI/UIV/' },
+  {
+    nombre: 'CIT CACAO - BAURES',
+    sigla: 'DNI/UIV/CIT-CAB/',
+    padre: 'DNI/UIV/',
+  },
   {
     nombre: 'CIT TUBÉRCULOS - TARATA',
     sigla: 'DNI/UIV/CIT-TU/',
@@ -81,7 +85,11 @@ export const UNIDADES_INIAF: UnidadSeed[] = [
     sigla: 'DNI/UIV/CIT-GA/',
     padre: 'DNI/UIV/',
   },
-  { nombre: 'CIT FRUTAS VALLE - TARATA', sigla: 'DNI/UIV/FVT/', padre: 'DNI/UIV/' },
+  {
+    nombre: 'CIT FRUTAS VALLE - TARATA',
+    sigla: 'DNI/UIV/FVT/',
+    padre: 'DNI/UIV/',
+  },
   {
     nombre: 'CIT OLEÍFERAS - SAN BUENAVENTURA',
     sigla: 'DNI/UIV/CIT-OIL/',

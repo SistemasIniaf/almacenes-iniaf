@@ -60,7 +60,7 @@ function codigoPadre(codigo: string, nivel: number): string | null {
 
 /** Parser CSV minimo: detecta delimitador (`,` o `;`), soporta comillas y BOM. */
 function parseCsv(contenido: string): FilaClasificador[] {
-  const texto = contenido.replace(/^﻿/, '');
+  const texto = contenido.replace(/^\uFEFF/, '');
   const lineas = texto.split(/\r?\n/).filter((l) => l.trim() !== '');
   if (lineas.length === 0) return [];
 
