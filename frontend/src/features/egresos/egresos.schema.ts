@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { conDecimalesMinimos, decimalesEscritos } from "@/lib/formato"
+
 import type {
   CreateEgresoPayload,
   Egreso,
@@ -22,7 +24,9 @@ const lineaSchema = z.object({
     .refine(
       (v) => v.trim() !== "" && Number(v) > 0,
       "La cantidad debe ser mayor a 0"
-    ),
+    )
+    // Mismo límite que el backend (CreateEgresoDto): Decimal(12,2).
+    .refine((v) => decimalesEscritos(v) <= 2, "Máximo 2 decimales"),
 })
 
 export const egresoSchema = z
@@ -101,7 +105,7 @@ export function desdeEgreso(egreso: Egreso): EgresoFormValues {
     justificacion: egreso.justificacion,
     detalles: egreso.detalles.map((d) => ({
       ingresoDetalleId: String(d.ingresoDetalleId),
-      cantidadSolicitada: String(Number(d.cantidadSolicitada)),
+      cantidadSolicitada: conDecimalesMinimos(String(d.cantidadSolicitada), 2),
     })),
   }
 }

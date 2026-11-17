@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { conDecimalesMinimos } from "@/lib/formato"
+import { conDecimalesMinimos, decimalesEscritos } from "@/lib/formato"
 
 import type {
   CreateIngresoPayload,
@@ -24,13 +24,16 @@ const lineaSchema = z.object({
     .refine(
       (v) => v.trim() !== "" && Number(v) > 0,
       "La cantidad debe ser mayor a 0"
-    ),
+    )
+    // Mismo límite que el backend (IngresoDetalleDto): la columna es Decimal(12,2).
+    .refine((v) => decimalesEscritos(v) <= 2, "Máximo 2 decimales"),
   precioUnitario: z
     .string()
     .refine(
       (v) => v.trim() !== "" && Number(v) >= 0,
       "Ingresá un precio válido (0 o más)"
-    ),
+    )
+    .refine((v) => decimalesEscritos(v) <= 5, "Máximo 5 decimales"),
   // Nota libre opcional (ej. "COLOR NEGRO"); en el reporte va junto al ítem.
   observacion: z.string().trim().max(200, "Máximo 200 caracteres"),
 })
@@ -226,7 +229,7 @@ export function desdeIngreso(ing: Ingreso): IngresoFormValues {
     unidadSolicitanteId: str(ing.unidadSolicitanteId),
     detalles: ing.detalles.map((d) => ({
       itemId: String(d.itemId),
-      cantidad: d.cantidad,
+      cantidad: conDecimalesMinimos(d.cantidad, 2),
       // Llega de un Decimal(12,5) como "100.00000": se muestra como al tipearlo.
       precioUnitario: conDecimalesMinimos(d.precioUnitario, 2),
       observacion: d.observacion ?? "",

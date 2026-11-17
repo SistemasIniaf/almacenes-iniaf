@@ -78,7 +78,13 @@ import {
 } from "@/features/egresos/egresos.schema"
 import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
-import { cantidad, documentoDeLote } from "@/lib/formato"
+import {
+  cantidad,
+  conDecimalesMinimos,
+  documentoDeLote,
+  numeroAInterno,
+  numeroAPantalla,
+} from "@/lib/formato"
 import { cn } from "@/lib/utils"
 import {
   describirPaso,
@@ -274,7 +280,8 @@ export function EgresoFormPage() {
 
   // Arranca en lo pedido, que es el caso normal: bajarla cubre el faltante.
   const aEntregar = (detalleId: number, cantidadSolicitada: string | number) =>
-    cantidadesEntrega[detalleId] ?? String(Number(cantidadSolicitada))
+    cantidadesEntrega[detalleId] ??
+    conDecimalesMinimos(String(cantidadSolicitada), 2)
 
   // No se puede confirmar más de lo pedido.
   const excedidasEntrega = (egreso?.detalles ?? []).filter((d) => {
@@ -796,33 +803,34 @@ export function EgresoFormPage() {
                               return (
                                 <div className="flex flex-col items-end gap-1">
                                   <Input
-                                    type="number"
-                                    // `any` y no "0.01": con un paso decimal
-                                    // las flechas mueven de a un centésimo,
-                                    // que no es como se entrega material. Así
-                                    // se mueven de a 1 y los decimales se
-                                    // siguen pudiendo escribir (hay ítems en
-                                    // kilos y litros).
-                                    step="any"
-                                    min={0}
-                                    max={pedido}
-                                    value={texto}
+                                    // Con coma decimal, como NumberField: el
+                                    // estado guarda el valor con punto.
+                                    type="text"
+                                    inputMode="decimal"
+                                    autoComplete="off"
+                                    value={numeroAPantalla(texto)}
                                     onChange={(event) =>
                                       setCantidadesEntrega((previas) => ({
                                         ...previas,
-                                        [detalle.id]: event.target.value,
+                                        [detalle.id]: numeroAInterno(
+                                          event.target.value
+                                        ),
                                       }))
                                     }
+                                    onBlur={() => {
+                                      const completo = conDecimalesMinimos(
+                                        texto,
+                                        2
+                                      )
+                                      if (completo !== texto)
+                                        setCantidadesEntrega((previas) => ({
+                                          ...previas,
+                                          [detalle.id]: completo,
+                                        }))
+                                    }}
                                     aria-invalid={excedida}
                                     className="w-24 text-right"
                                     aria-label={`Cantidad a entregar de ${detalle.ingresoDetalle.item.descripcion}`}
-                                    // Misma guarda que `NumberField`: sin
-                                    // esto, scrollear la página con el
-                                    // puntero sobre el campo le cambia el
-                                    // valor.
-                                    onWheel={(event) =>
-                                      event.currentTarget.blur()
-                                    }
                                   />
                                   {/* Pegado a la fila que falla, no en un
                                       cartel arriba de toda la tabla (pedido

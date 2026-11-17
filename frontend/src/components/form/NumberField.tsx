@@ -1,6 +1,10 @@
 import { Controller } from "react-hook-form"
 
-import { conDecimalesMinimos } from "@/lib/formato"
+import {
+  conDecimalesMinimos,
+  numeroAInterno,
+  numeroAPantalla,
+} from "@/lib/formato"
 import { cn } from "@/lib/utils"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -16,14 +20,11 @@ interface NumberFieldProps<T extends FieldValues> {
   disabled?: boolean
   required?: boolean
   className?: string
-  /** Paso del input (ej. "0.01" para 2 decimales). */
-  step?: string
-  min?: number
   /** Oculta el label (útil dentro de una tabla de líneas). */
   hideLabel?: boolean
   /**
    * Al salir del campo completa hasta esta cantidad de decimales (`100` →
-   * `100.00`), sin recortar los que ya tenga. Para importes y precios.
+   * `100,00`), sin recortar los que ya tenga. Para importes y precios.
    */
   decimalesMinimos?: number
 }
@@ -32,6 +33,13 @@ interface NumberFieldProps<T extends FieldValues> {
  * Campo numérico. El valor se maneja como STRING en el formulario (lo que
  * entrega un `<input>`); el schema Zod lo valida y la conversión a number ocurre
  * al armar el payload. Así se evita el lío de NaN al vaciar el campo.
+ *
+ * **Se escribe con COMA decimal** (2026-11-17), como se muestran el subtotal, el
+ * total y los reportes: con `type="number"` el navegador obligaba al punto y la
+ * misma fila mostraba `25.00` al lado de `25,00`. Por eso es `type="text"`:
+ * en pantalla va la coma, pero el valor del formulario sigue con PUNTO
+ * (`numeroAInterno` de `lib/formato`), así el schema y el payload no cambian.
+ * Tipear un punto también vale (el teclado numérico lo da): se convierte en coma.
  */
 export function NumberField<T extends FieldValues>({
   name,
@@ -42,8 +50,6 @@ export function NumberField<T extends FieldValues>({
   disabled = false,
   required = true,
   className,
-  step = "any",
-  min,
   hideLabel = false,
   decimalesMinimos,
 }: NumberFieldProps<T>) {
@@ -61,18 +67,15 @@ export function NumberField<T extends FieldValues>({
           )}
           <Input
             {...field}
-            value={field.value ?? ""}
-            type="number"
+            value={numeroAPantalla(field.value)}
+            onChange={(e) => field.onChange(numeroAInterno(e.target.value))}
+            type="text"
             inputMode="decimal"
-            step={step}
-            min={min}
+            autoComplete="off"
             placeholder={placeholder}
             disabled={disabled}
             aria-invalid={fieldState.invalid}
             aria-label={hideLabel ? label : undefined}
-            // Evita que la rueda del mouse suba/baje el número al hacer scroll
-            // sobre el campo enfocado: lo desenfoca y deja pasar el scroll.
-            onWheel={(e) => e.currentTarget.blur()}
             onBlur={() => {
               if (decimalesMinimos != null && typeof field.value === "string") {
                 const completo = conDecimalesMinimos(

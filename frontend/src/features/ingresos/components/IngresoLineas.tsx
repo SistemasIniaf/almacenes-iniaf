@@ -328,9 +328,8 @@ export function IngresoLineas({
                     }
                     label="Cantidad"
                     control={control}
-                    step="0.01"
-                    min={0}
-                    placeholder="0"
+                    placeholder="0,00"
+                    decimalesMinimos={2}
                     disabled={disabled}
                   />
 
@@ -340,9 +339,7 @@ export function IngresoLineas({
                     }
                     label="Prec.unit."
                     control={control}
-                    step="0.00001"
-                    min={0}
-                    placeholder="0.00"
+                    placeholder="0,00"
                     decimalesMinimos={2}
                     disabled={disabled}
                   />

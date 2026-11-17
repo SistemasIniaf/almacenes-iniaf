@@ -315,9 +315,8 @@ export function EgresoLineas({
                     label="Cantidad"
                     control={control}
                     disabled={disabled}
-                    // Las flechas mueven de a 1; los decimales se escriben igual.
-                    step="any"
-                    min={0}
+                    placeholder="0,00"
+                    decimalesMinimos={2}
                   />
                   <p
                     className={cn(

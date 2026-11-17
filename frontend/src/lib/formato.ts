@@ -59,6 +59,26 @@ export const conDecimalesMinimos = (valor: string, minimos: number): string => {
 }
 
 /**
+ * Campos numéricos con COMA decimal (2026-11-17): en pantalla va la coma, como
+ * en subtotales y reportes; el valor del formulario sigue con PUNTO, así los
+ * schemas y los payloads no cambian. Los usan `NumberField` y el «A entregar»
+ * del egreso.
+ */
+export const numeroAPantalla = (valor: unknown) =>
+  String(valor ?? "").replace(".", ",")
+
+/** Deja solo dígitos y UN separador (coma o punto) y lo devuelve con punto. */
+export const numeroAInterno = (texto: string) => {
+  const limpio = texto.replace(/\./g, ",").replace(/[^\d,]/g, "")
+  const [entero, ...resto] = limpio.split(",")
+  return resto.length ? `${entero}.${resto.join("")}` : entero
+}
+
+/** Decimales escritos en un valor interno (con punto). */
+export const decimalesEscritos = (valor: string) =>
+  (valor.split(".")[1] ?? "").length
+
+/**
  * Separador entre el correlativo y la gestión: **guion**, no barra
  * (2026-08-07, pedido de la institución).
  *
