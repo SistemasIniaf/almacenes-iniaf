@@ -1,5 +1,6 @@
+import { EsDia } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Min } from 'class-validator';
 
 /**
  * El kardex es el libro de UN item en UN almacen: el saldo corriente no tiene
@@ -44,10 +45,10 @@ export class QueryKardexDto {
    * es la gestion entera.
    */
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  @EsDia('La fecha "desde" no es valida')
   desde?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  @EsDia('La fecha "hasta" no es valida')
   hasta?: string;
 }

@@ -1,3 +1,4 @@
+import { aIsoLocal, diaLocal } from "@/lib/fechas"
 import {
   ALTO_MEMBRETE,
   ANCHO_UTIL_APAISADO,
@@ -42,9 +43,7 @@ export interface DatosReporteKardex extends DatosReporte {
 }
 
 export function nombreArchivoReporteKardex(datos: DatosReporteKardex): string {
-  return `kardex-${datos.reporte.gestion}-${datos.emitidoEn
-    .toISOString()
-    .slice(0, 10)}.pdf`
+  return `kardex-${datos.reporte.gestion}-${aIsoLocal(datos.emitidoEn)}.pdf`
 }
 
 export async function crearReporteKardexPdf(datos: DatosReporteKardex) {
@@ -66,7 +65,7 @@ const SIN_VALOR = "—"
  * conversión a hora local correría el día en un huso negativo.
  */
 const fechaIso = (iso: string) => {
-  const [anio, mes, dia] = iso.slice(0, 10).split("-")
+  const [anio, mes, dia] = diaLocal(iso).split("-")
   return `${dia}/${mes}/${anio}`
 }
 

@@ -156,6 +156,29 @@ export class UnidadesService {
         : undefined;
     await this.validarUnicidad(nombre, sigla, id);
 
+    // Si cambia de padre, hereda el grupo del nuevo (con todo su subarbol): la
+    // regla es que el subarbol entero comparte grupo, y antes una unidad
+    // movida de MOF a OTROS seguia figurando en MOF (2026-11-18).
+    let grupoHeredado: string | null = null;
+
+    // Reactivar bajo un padre inactivo dejaria una unidad activa colgando de
+    // una rama dada de baja.
+    if (dto.activo === true && !existente.activo) {
+      const padreFinal =
+        dto.padreId !== undefined ? dto.padreId : existente.padreId;
+      if (padreFinal != null) {
+        const padre = await this.prisma.unidad.findUnique({
+          where: { id: padreFinal },
+          select: { activo: true, nombre: true },
+        });
+        if (padre && !padre.activo) {
+          throw new BadRequestException(
+            `Reactivá primero la unidad superior («${padre.nombre}»)`,
+          );
+        }
+      }
+    }
+
     // Validar cambio de padre.
     if (dto.padreId !== undefined) {
       // null = mover a raiz.
@@ -163,13 +186,14 @@ export class UnidadesService {
         // Verificar que el padre existe.
         const padre = await this.prisma.unidad.findUnique({
           where: { id: dto.padreId },
-          select: { id: true },
+          select: { id: true, grupo: true },
         });
         if (!padre) {
           throw new BadRequestException(
             `No existe la unidad padre con id ${dto.padreId}`,
           );
         }
+        grupoHeredado = padre.grupo;
 
         // Prevenir ciclos: no puedo ser mi propio ancestro.
         if (dto.padreId === id) {
@@ -188,15 +212,36 @@ export class UnidadesService {
       }
     }
 
-    return this.prisma.unidad.update({
-      where: { id },
-      data: {
-        ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
-        ...(dto.sigla !== undefined ? { sigla: dto.sigla } : {}),
-        ...(dto.activo !== undefined ? { activo: dto.activo } : {}),
-        ...(dto.padreId !== undefined ? { padreId: dto.padreId } : {}),
-      },
-      include: { padre: true },
+    // La baja por el checkbox del formulario hace lo MISMO que el boton: baja
+    // en cascada. Antes desactivaba solo el nodo y dejaba hijas activas bajo
+    // un padre inactivo.
+    const darDeBaja = dto.activo === false && existente.activo;
+    const cambiaGrupo =
+      grupoHeredado != null && grupoHeredado !== existente.grupo;
+    const descendientes =
+      darDeBaja || cambiaGrupo ? await this.obtenerDescendientes(id) : [];
+
+    return this.prisma.$transaction(async (tx) => {
+      if (descendientes.length > 0) {
+        await tx.unidad.updateMany({
+          where: { id: { in: descendientes } },
+          data: {
+            ...(darDeBaja ? { activo: false } : {}),
+            ...(cambiaGrupo ? { grupo: grupoHeredado } : {}),
+          },
+        });
+      }
+      return tx.unidad.update({
+        where: { id },
+        data: {
+          ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
+          ...(dto.sigla !== undefined ? { sigla: dto.sigla } : {}),
+          ...(dto.activo !== undefined ? { activo: dto.activo } : {}),
+          ...(dto.padreId !== undefined ? { padreId: dto.padreId } : {}),
+          ...(cambiaGrupo ? { grupo: grupoHeredado } : {}),
+        },
+        include: { padre: true },
+      });
     });
   }
 

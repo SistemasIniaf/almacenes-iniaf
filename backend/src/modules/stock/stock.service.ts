@@ -6,7 +6,7 @@ import {
   filtroAlmacen,
 } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
-import { reservadoPorLote } from '../../common/stock/reserva';
+import { disponibleDe, reservadoPorLote } from '../../common/stock/reserva';
 import { EstadoIngreso } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
@@ -57,9 +57,13 @@ export class StockService {
           : {}),
       },
       ...(conSaldo ? { saldoCantidad: { gt: 0 } } : {}),
-      ...(query.itemId ? { itemId: query.itemId } : {}),
       ...(query.partidaId ? { item: { partidaId: query.partidaId } } : {}),
-      ...(idsBusqueda ? { itemId: { in: idsBusqueda } } : {}),
+      // `q` e `itemId` filtran la misma columna: van en un AND para que uno
+      // no pise al otro (antes el buscador anulaba al `itemId`).
+      AND: [
+        ...(query.itemId ? [{ itemId: query.itemId }] : []),
+        ...(idsBusqueda ? [{ itemId: { in: idsBusqueda } }] : []),
+      ],
     };
   }
 
@@ -160,7 +164,7 @@ export class StockService {
       return {
         ...lote,
         reservado: enReserva,
-        disponible: Number(lote.saldoCantidad) - enReserva,
+        disponible: disponibleDe(lote.saldoCantidad, enReserva),
       };
     });
 

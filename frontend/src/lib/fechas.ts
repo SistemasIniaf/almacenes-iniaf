@@ -18,3 +18,13 @@ export function aIsoLocal(fecha: Date): string {
   const dia = String(fecha.getDate()).padStart(2, "0")
   return `${fecha.getFullYear()}-${mes}-${dia}`
 }
+
+/**
+ * El DÍA (`YYYY-MM-DD`, hora local) de un valor que puede ser un día suelto o
+ * un instante ISO completo. Para los reportes: cortar el ISO con
+ * `slice(0, 10)` da el día en UTC, y todo lo registrado entre las 20:00 y la
+ * medianoche de Bolivia salía impreso con el día siguiente (2026-11-18).
+ */
+export function diaLocal(iso: string): string {
+  return iso.length <= 10 ? iso : aIsoLocal(new Date(iso))
+}

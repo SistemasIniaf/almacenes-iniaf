@@ -1,9 +1,9 @@
+import { EsDecimal, MAX_CANTIDAD } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
   IsInt,
-  IsNumber,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -18,10 +18,10 @@ export class EntregaLineaDto {
    * (el 6,1% de las lineas del sistema anterior se entregaron en cero). No puede
    * superar lo solicitado — el jefe de unidad aprobo esa cantidad.
    */
-  @IsNumber(
-    { maxDecimalPlaces: 2 },
-    { message: 'La cantidad admite hasta 2 decimales' },
-  )
+  @EsDecimal(2, {
+    max: MAX_CANTIDAD,
+    message: 'La cantidad admite hasta 2 decimales (maximo 9.999.999.999,99)',
+  })
   @Min(0, { message: 'La cantidad no puede ser negativa' })
   cantidadEntregada!: number;
 }

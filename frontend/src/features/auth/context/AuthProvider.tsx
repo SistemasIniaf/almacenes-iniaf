@@ -9,7 +9,7 @@ import {
   getStoredUser,
   setStoredUser,
 } from "@/features/auth/lib/auth-storage"
-import { setSesionExpiradaHandler } from "@/lib/api"
+import { esFalloTransitorio, setSesionExpiradaHandler } from "@/lib/api"
 import {
   MINUTOS_INACTIVIDAD,
   marcarActividad,
@@ -67,9 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cancelado) return
         setUser(perfil)
         setStoredUser(perfil)
-      } catch {
+      } catch (error) {
         // 401 con refresh fallido: el interceptor ya limpio los tokens.
-        if (!cancelado) limpiarSesion()
+        // Si en cambio fue un corte de red o el backend reiniciandose, la
+        // sesion se CONSERVA con el perfil del cache: cada pantalla mostrara
+        // su propio error y se recupera sola cuando vuelva la conexion.
+        const seConserva = esFalloTransitorio(error) && cache != null
+        if (!cancelado && !seConserva) limpiarSesion()
       } finally {
         if (!cancelado) setCargando(false)
       }

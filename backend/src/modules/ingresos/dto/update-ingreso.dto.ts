@@ -1,10 +1,5 @@
-import {
-  IsDateString,
-  IsInt,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { EsDia } from '../../../common/dto/validadores';
+import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /**
  * Edita SOLO la cabecera documental de un ingreso ya registrado. A propósito NO
@@ -24,11 +19,11 @@ export class UpdateIngresoDto {
    * cae en otra gestion, el service re-estampa el correlativo.
    */
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha de ingreso no es valida' })
+  @EsDia('La fecha de ingreso no es valida')
   fechaIngreso?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha de remision no es valida' })
+  @EsDia('La fecha de remision no es valida')
   fechaRemision?: string;
 
   @IsOptional()
@@ -52,7 +47,7 @@ export class UpdateIngresoDto {
   informeConformidad?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha del informe/acta no es valida' })
+  @EsDia('La fecha del informe/acta no es valida')
   fechaInformeConformidad?: string;
 
   @IsOptional()

@@ -123,7 +123,11 @@ export function StockPage() {
   const [expandidos, setExpandidos] = useState<Set<number>>(() => new Set())
   const busquedaDiferida = useDebouncedValue(busqueda)
 
-  const { data: almacenes = [] } = useAlmacenesActivos()
+  // El catálogo de almacenes solo se pide si el selector se va a mostrar: el
+  // solicitador y el aprobador no pueden leerlo (era un 403 en cada visita).
+  const { data: almacenes = [] } = useAlmacenesActivos({
+    enabled: veVariosAlmacenes,
+  })
   const { data: fuentes = [] } = useFuentesActivas()
 
   const filtrosComunes = {

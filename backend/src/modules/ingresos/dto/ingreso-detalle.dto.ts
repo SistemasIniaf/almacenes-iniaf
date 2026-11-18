@@ -1,6 +1,10 @@
 import {
+  EsDecimal,
+  MAX_CANTIDAD,
+  MAX_PRECIO,
+} from '../../../common/dto/validadores';
+import {
   IsInt,
-  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
@@ -13,17 +17,18 @@ export class IngresoDetalleDto {
   @IsInt({ message: 'itemId debe ser un entero' })
   itemId!: number;
 
-  @IsNumber(
-    { maxDecimalPlaces: 2 },
-    { message: 'La cantidad admite hasta 2 decimales' },
-  )
+  @EsDecimal(2, {
+    max: MAX_CANTIDAD,
+    message: 'La cantidad admite hasta 2 decimales (maximo 9.999.999.999,99)',
+  })
   @IsPositive({ message: 'La cantidad debe ser mayor a 0' })
   cantidad!: number;
 
-  @IsNumber(
-    { maxDecimalPlaces: 5 },
-    { message: 'El precio unitario admite hasta 5 decimales' },
-  )
+  @EsDecimal(5, {
+    max: MAX_PRECIO,
+    message:
+      'El precio unitario admite hasta 5 decimales (maximo 9.999.999,99999)',
+  })
   @Min(0, { message: 'El precio unitario no puede ser negativo' })
   precioUnitario!: number;
 

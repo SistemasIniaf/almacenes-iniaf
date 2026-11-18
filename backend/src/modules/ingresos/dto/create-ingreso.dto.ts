@@ -1,7 +1,7 @@
+import { EsDia } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsDateString,
   IsInt,
   IsOptional,
   IsString,
@@ -26,7 +26,7 @@ export class CreateIngresoDto {
   almacenId?: number;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha de remision no es valida' })
+  @EsDia('La fecha de remision no es valida')
   fechaRemision?: string;
 
   @IsOptional()
@@ -50,7 +50,7 @@ export class CreateIngresoDto {
   informeConformidad?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha del informe/acta no es valida' })
+  @EsDia('La fecha del informe/acta no es valida')
   fechaInformeConformidad?: string;
 
   @IsOptional()

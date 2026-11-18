@@ -68,20 +68,75 @@ export const numeroAPantalla = (valor: unknown) =>
   String(valor ?? "").replace(".", ",")
 
 /**
+ * El mismo relleno, pero para lo que el usuario ACABA DE ESCRIBIR (el blur de
+ * un campo): solo AGREGA ceros hasta `minimos`, nunca quita dígitos.
+ * `conDecimalesMinimos` recorta los ceros de más, que está bien para un valor
+ * que viene del backend (`25.50000`), pero en lo tecleado escondía un error:
+ * `2.000` en una cantidad —¿dos, o dos mil?— quedaba en `2,00` sin avisar.
+ * Así se queda como `2,000` y lo frena «Máximo 2 decimales» (2026-11-18).
+ */
+export const completarDecimales = (valor: string, minimos: number): string => {
+  const texto = valor.trim()
+  if (texto === "" || !Number.isFinite(Number(texto))) return valor
+  const [entero, decimales = ""] = texto.split(".")
+  return decimales.length >= minimos
+    ? texto
+    : `${entero}.${decimales.padEnd(minimos, "0")}`
+}
+
+/**
+ * Grupos de miles (ya partidos): `1` + `234` + `567`. El primero puede tener
+ * más de tres dígitos: al teclear, los miles anteriores ya se juntaron.
+ */
+const sonMiles = (grupos: string[]) =>
+  grupos.length > 1 &&
+  /^\d+$/.test(grupos[0]) &&
+  grupos.slice(1).every((g) => /^\d{3}$/.test(g))
+
+/**
  * Deja solo dígitos y UN separador decimal, y lo devuelve con punto.
  *
- * Con coma, la coma es el decimal y los puntos son de miles (`1.234,56`, como lo
- * copia Excel en es-BO). Sin coma, un solo punto es el decimal (lo da el teclado
- * numérico) y varios son de miles (`1.234.567`).
+ * Se aplica en cada tecla sobre lo que se VE en el campo (donde el decimal ya
+ * se muestra como coma), así que tiene que dar bien tanto para un pegado entero
+ * como para cada paso intermedio del tecleo:
+ *
+ * - Un solo separador (coma o punto) es el decimal: `12,5` y `12.5` valen lo
+ *   mismo. El punto es lo que da el teclado numérico.
+ * - Con varios, el ÚLTIMO es el decimal y los anteriores son de miles —siempre
+ *   que de verdad formen grupos de tres—: `1.234,56` (como lo copia Excel en
+ *   es-BO), `1,234.56` y también `10.000,00` TECLEADO, que llega acá como
+ *   `10,000,` porque el primer punto ya se mostró como coma. Hasta el
+ *   2026-11-18 esa segunda coma se descartaba y diez mil quedaban en diez.
+ * - Varios puntos sin coma son todos de miles: `1.234.567`. Tecleado llega
+ *   como `1,234.` —una coma que era punto y un punto recién escrito al final—:
+ *   quien pone un segundo punto está separando miles, así que ahí TODOS lo
+ *   son, y el decimal, si viene, será la coma de después.
+ * - Si lo anterior al último separador NO son grupos de miles (`1,5,`), el
+ *   separador de más se descarta: es una tecla repetida, no un número nuevo.
  */
 export const numeroAInterno = (texto: string) => {
-  const conComa = texto.includes(",")
-  const puntos = (texto.match(/\./g) ?? []).length
-  const normalizado =
-    conComa || puntos > 1 ? texto.replace(/\./g, "") : texto.replace(".", ",")
-  const limpio = normalizado.replace(/[^\d,]/g, "")
-  const [entero, ...resto] = limpio.split(",")
-  return resto.length ? `${entero}.${resto.join("")}` : entero
+  const limpio = texto.replace(/[^\d.,]/g, "")
+  const separadores = limpio.match(/[.,]/g) ?? []
+  if (separadores.length === 0) return limpio
+
+  const partes = limpio.split(/[.,]/)
+  if (separadores.length === 1) return `${partes[0]}.${partes[1]}`
+
+  // Solo puntos: miles.
+  if (!limpio.includes(",") && sonMiles(partes)) return partes.join("")
+
+  const enteros = partes.slice(0, -1)
+  // Miles en curso: termina en un punto recién tecleado.
+  if (
+    limpio.endsWith(".") &&
+    !limpio.slice(0, -1).includes(".") &&
+    sonMiles(enteros)
+  )
+    return enteros.join("")
+  if (sonMiles(enteros)) return `${enteros.join("")}.${partes.at(-1)}`
+
+  // No son miles: el primer separador es el decimal y el resto sobra.
+  return `${partes[0]}.${partes.slice(1).join("")}`
 }
 
 /** Decimales escritos en un valor interno (con punto). */

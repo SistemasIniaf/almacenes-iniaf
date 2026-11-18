@@ -1,3 +1,4 @@
+import { aIsoLocal } from "@/lib/fechas"
 import {
   ALTO_MEMBRETE,
   datosCabecera,
@@ -42,7 +43,7 @@ export interface DatosConsolidado extends DatosReporte {
 
 export function nombreArchivoConsolidado(datos: DatosConsolidado): string {
   const alcance = esNacional(datos.almacen) ? "nacional-" : ""
-  return `estado-almacenes-por-partida-${alcance}${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
+  return `estado-almacenes-por-partida-${alcance}${aIsoLocal(datos.emitidoEn)}.pdf`
 }
 
 export async function crearEstadoConsolidadoPdf(datos: DatosConsolidado) {

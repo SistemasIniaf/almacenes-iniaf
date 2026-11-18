@@ -1,11 +1,6 @@
+import { EsDia } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
 import { EstadoIngreso } from '../../../generated/prisma/enums';
@@ -48,10 +43,10 @@ export class QueryIngresosDto extends PaginationQueryDto {
    * extremos son INCLUSIVOS y se interpretan en UTC, igual que el kardex.
    */
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  @EsDia('La fecha "desde" no es valida')
   desde?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  @EsDia('La fecha "hasta" no es valida')
   hasta?: string;
 }

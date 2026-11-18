@@ -55,3 +55,41 @@ export function fechaHoraBolivia(fecha: Date): string {
 export function inicioDeGestion(gestion: number): Date {
   return new Date(Date.UTC(gestion, 0, 1, DESFASE_HORAS));
 }
+
+/** El ultimo instante de una gestion (31/12 23:59:59.999 en Bolivia). */
+export function finDeGestion(gestion: number): Date {
+  return new Date(inicioDeGestion(gestion + 1).getTime() - 1);
+}
+
+/** El dia calendario de Bolivia en que cae un instante, como `AAAA-MM-DD`. */
+export function diaDe(fecha: Date): string {
+  return new Date(fecha.getTime() - DESFASE_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * Lleva un instante a OTRO dia de Bolivia conservando la hora del dia: es lo
+ * que significa «corregir la fecha» cuando del formulario llega solo el dia.
+ * Conservar la hora mantiene el orden relativo de los movimientos de ese dia.
+ */
+export function moverAlDia(fecha: Date, dia: string): Date {
+  const horaDelDia = fecha.getTime() - inicioDelDia(diaDe(fecha)).getTime();
+  return new Date(inicioDelDia(dia).getTime() + horaDelDia);
+}
+
+/**
+ * Con que fecha se asienta la REVERSION de un movimiento (2026-11-18).
+ *
+ * Normalmente AHORA. Pero si el movimiento original es de una gestion anterior
+ * que todavia no se cerro —anular en enero un documento de diciembre—, la
+ * reversion va al ULTIMO instante de esa gestion: fechada hoy, la gestion
+ * vieja cerraba contando el documento entero y la nueva mostraba una entrada
+ * (o salida) negativa. Cuando se anulo de verdad queda en `anuladoEn` y en el
+ * `createdAt` del movimiento.
+ */
+export function fechaDeReversion(
+  fechaOriginal: Date,
+  ahora = new Date(),
+): Date {
+  const gestion = gestionDe(fechaOriginal);
+  return gestionDe(ahora) > gestion ? finDeGestion(gestion) : ahora;
+}

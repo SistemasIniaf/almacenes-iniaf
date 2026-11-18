@@ -1,3 +1,4 @@
+import { aIsoLocal } from "@/lib/fechas"
 import {
   ALTO_MEMBRETE,
   cantidad,
@@ -40,7 +41,7 @@ export interface DatosReporteStock extends DatosReporte {
 }
 
 export function nombreArchivoReporte(datos: DatosReporteStock): string {
-  return `estado-almacenes-por-item-${datos.emitidoEn.toISOString().slice(0, 10)}.pdf`
+  return `estado-almacenes-por-item-${aIsoLocal(datos.emitidoEn)}.pdf`
 }
 
 export async function crearEstadoAlmacenesPdf(datos: DatosReporteStock) {

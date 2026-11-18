@@ -24,7 +24,17 @@ import { FuentesFinanciamientoService } from './fuentes-financiamiento.service';
  * para admin y responsable_almacen: necesitan el selector de fuente en la
  * cabecera al registrar un Ingreso (una sola fuente por ingreso).
  */
-@Roles(Rol.super_admin, Rol.admin, Rol.responsable_almacen)
+// Las LEEN todos los roles desde el 2026-11-18: sin eso el filtro «Fuente» de
+// stock (y de kardex, para el observador) quedaba vacio. No abre nada nuevo:
+// la fuente de cada lote ya viaja en el stock que esos roles consultan.
+@Roles(
+  Rol.super_admin,
+  Rol.admin,
+  Rol.responsable_almacen,
+  Rol.observador_almacen,
+  Rol.solicitador,
+  Rol.aprobador,
+)
 @Controller('fuentes-financiamiento')
 export class FuentesFinanciamientoController {
   constructor(private readonly fuentesService: FuentesFinanciamientoService) {}

@@ -1,3 +1,4 @@
+import { aIsoLocal } from "@/lib/fechas"
 import {
   cargarExcelJs,
   crearTabla,
@@ -57,7 +58,7 @@ function agrupar(filas: FilaReporteStock[]): GrupoConsolidado[] {
 export function nombreArchivoExcelConsolidado(
   datos: DatosReporteStock
 ): string {
-  return `estado-almacenes-por-partida-${datos.emitidoEn.toISOString().slice(0, 10)}.xlsx`
+  return `estado-almacenes-por-partida-${aIsoLocal(datos.emitidoEn)}.xlsx`
 }
 
 export async function crearEstadoConsolidadoExcel(datos: DatosReporteStock) {

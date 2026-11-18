@@ -107,13 +107,30 @@ api.interceptors.response.use(
       config.headers = headers
 
       return api(config)
-    } catch {
-      clearTokens()
-      onSesionExpirada?.()
+    } catch (fallo) {
+      // Solo se cierra la sesión si el servidor RECHAZÓ el refresh. Un corte
+      // de red o un backend reiniciándose no dicen nada del token: antes
+      // cualquier fallo borraba la sesión, y un F5 en mal momento dejaba al
+      // usuario en el login con un refresh token todavía válido.
+      if (!esFalloTransitorio(fallo)) {
+        clearTokens()
+        onSesionExpirada?.()
+      }
       return Promise.reject(error)
     }
   }
 )
+
+/**
+ * Sin respuesta (red caída, backend apagado) o un 5xx: el problema es del
+ * camino, no de las credenciales. Vale reintentar; no vale cerrar la sesión.
+ */
+export function esFalloTransitorio(error: unknown): boolean {
+  return (
+    axios.isAxiosError(error) &&
+    (!error.response || error.response.status >= 500)
+  )
+}
 
 /** Forma del error que devuelve NestJS (`message` puede ser array de class-validator). */
 interface ApiErrorBody {

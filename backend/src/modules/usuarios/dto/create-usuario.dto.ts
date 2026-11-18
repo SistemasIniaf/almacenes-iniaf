@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import {
   ArrayUnique,
   IsArray,
@@ -19,6 +20,7 @@ import { Rol } from '../../../generated/prisma/enums';
  */
 export class CreateUsuarioDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre es requerido' })
   nombre!: string;
 
@@ -29,7 +31,9 @@ export class CreateUsuarioDto {
   cargo?: string | null;
 
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El usuario (username) es requerido' })
+  @Recortar()
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
   usuario!: string;
 

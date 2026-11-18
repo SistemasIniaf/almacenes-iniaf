@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import {
   IsBoolean,
   IsInt,
@@ -9,11 +10,13 @@ import {
 
 export class CreateUnidadDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre es requerido' })
   @MaxLength(150)
   nombre!: string;
 
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La sigla es requerida' })
   @MaxLength(20)
   sigla!: string;

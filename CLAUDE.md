@@ -1663,6 +1663,62 @@ la fuente de verdad. Los demás campos hoy dependen solo de la UI — un POST di
 guardar minúsculas. Si eso importa, hay que normalizar en cada DTO, que es una decisión por campo
 (usuario y códigos NO se tocan).
 
+## Revisión general del 2026-11-18 — lo que cambió y no hay que deshacer
+
+Revisión de todo el sistema (lectura de código + ~300 pruebas por la API sobre una copia de la
+base). Lo que sigue son las reglas que salieron de ahí; cada una tiene su comentario en el código.
+
+- **Fechas de SOLO DÍA** (`fechaRemision`, `fechaInformeConformidad`): el backend las guarda como
+  el inicio de ese día en Bolivia (`aFecha` → `inicioDelDia`). Con `new Date('AAAA-MM-DD')` quedaba
+  la medianoche UTC —las 20:00 del día anterior— y el listado y la nota impresa mostraban un día
+  menos, que además retrocedía con cada guardado.
+- **Corregir `fechaIngreso`**: del formulario llega solo el día. Si es el mismo día (de Bolivia)
+  que ya tiene, **no hay corrección**; si cambia, se conserva la hora (`moverAlDia`). Antes cada
+  guardado del super_admin corría la fecha contable y el kardex un día. Y **no puede quedar
+  después de la primera salida** de sus lotes (409).
+- **La REVERSIÓN de una anulación** se fecha con `fechaDeReversion()` (`zona-horaria.ts`): hoy,
+  salvo que el documento sea de una gestión anterior todavía sin cerrar — ahí va al último
+  instante de ESA gestión. Fechada hoy, la gestión vieja cerraba contando el documento entero y la
+  nueva mostraba entradas negativas en los Cuadros. El momento real queda en `anuladoEn`.
+- **`disponible` se calcula SOLO con `disponibleDe()`** (`common/stock/reserva.ts`, redondea a 2
+  decimales): con floats, 0,30 − 0,10 daba 0,1999… y se rechazaba pedir 0,20.
+- **Validadores compartidos** en `common/dto/validadores.ts`: `EsDecimal(n, { max })` (reemplaza a
+  `@IsNumber({ maxDecimalPlaces })`, que revienta con `1e-7`, y pone el tope de la columna),
+  `EsDia` (rechaza `"2026"`, que `@IsDateString` acepta), `OpcionalNoNulo` (como `@IsOptional`
+  pero un `null` no pasa) y `Recortar` (un texto de solo espacios no pasa `@IsNotEmpty`).
+  **En DTOs nuevos usar estos.**
+- **`PrismaExceptionFilter`** (global, `common/filters/`): índice único, clave foránea y deadlock
+  salen como 409 con mensaje, no como 500.
+- **Entrega**: todo en cero se rechaza (eso es rechazar el pedido); los lotes se tocan siempre en
+  orden de id (entrega y anulación) para evitar deadlocks; descartar un borrador revalida el estado
+  dentro de la transacción.
+- **Al editar un ingreso no se puede VACIAR un respaldo obligatorio** (`validarNoVaciarObligatorios`).
+- **Unidades**: mover una unidad le hace heredar el grupo del nuevo padre (con su subárbol); la
+  baja por `PATCH activo:false` cascadea igual que el botón; no se reactiva bajo un padre inactivo.
+- **Usuarios**: `activar` valida que su unidad y almacén sigan activos; al editar, las referencias
+  se validan solo si cambian (una unidad dada de baja ya no bloquea corregir el nombre).
+- **Login**: 10 contraseñas equivocadas seguidas bloquean ese usuario 15 minutos (429, en memoria:
+  reiniciar el backend lo limpia).
+- **Arranque** (`main.ts`): JSON de 2 MB para todo y 20 MB solo para `/saldos-iniciales`; CORS
+  apagado en producción salvo `CORS_ORIGIN`; WARN si los secretos JWT son los de ejemplo. `express`
+  pasó a ser dependencia directa (se importa `json`).
+- **Fuentes de financiamiento: las LEEN todos los roles** (el filtro de stock/kardex quedaba vacío).
+- **Seed**: las unidades que ya existen NO se tocan (antes las reactivaba y renombraba); una
+  variable `SEED_ADMIN_*` vacía cae en el valor por defecto.
+- **Respaldos**: cada paso de `respaldar.sh` corta con `|| return 1` (dentro del bucle, `set -e`
+  no rige): un `pg_dump` fallido ya no queda con nombre de respaldo bueno.
+- **Campos numéricos** (`lib/formato.ts`): `numeroAInterno` entiende miles tecleados
+  (`10.000,00`) y al salir del campo se usa `completarDecimales`, que solo agrega ceros
+  (`conDecimalesMinimos` queda para valores que vienen del backend). `2.000` en una cantidad se
+  queda como `2,000` y lo frena «Máximo 2 decimales»: es ambiguo y no se adivina.
+- **Reportes**: la fecha de una fila sale con `diaLocal()` (`lib/fechas.ts`), no cortando el ISO.
+- **Sesión**: un corte de red o un 5xx durante el refresh NO cierra la sesión (`esFalloTransitorio`).
+- **Ingresos (frontend)**: sus mutaciones invalidan también `stock`, `kardex` e `items`; quien solo
+  lee (observador) ve la ficha sin «Guardar» ni «Anular».
+
+Quedó sin hacer a propósito: `USER` no root en el Dockerfile (el volumen de uploads existente es
+de root), quitar `actualizadoPor` del `GET /logos` público y el oráculo de tiempos del login.
+
 ## Documentos de análisis y decisiones (leer antes de tocar ingresos/egresos/stock)
 
 | Archivo | Qué contiene |

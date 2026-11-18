@@ -1,3 +1,4 @@
+import { aIsoLocal, diaLocal } from "@/lib/fechas"
 import {
   cargarExcelJs,
   crearTabla,
@@ -26,12 +27,12 @@ import type { DatosReporteEgresos } from "@/features/egresos/lib/reporte-egresos
  */
 
 const fechaIso = (iso: string) => {
-  const [anio, mes, dia] = iso.slice(0, 10).split("-").map(Number)
+  const [anio, mes, dia] = diaLocal(iso).split("-").map(Number)
   return new Date(anio, mes - 1, dia)
 }
 
 export function nombreArchivoExcelEgresos(datos: DatosReporteEgresos): string {
-  const periodo = datos.desde ?? datos.emitidoEn.toISOString().slice(0, 10)
+  const periodo = datos.desde ?? aIsoLocal(datos.emitidoEn)
   return `registro-egresos-${periodo}.xlsx`
 }
 

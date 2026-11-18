@@ -13,7 +13,11 @@ import { paginated } from '../../common/dto/paginated-result';
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
 import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import { formatearNumero } from '../../common/formato/numero-documento';
-import { gestionDe, inicioDelDia } from '../../common/fechas/zona-horaria';
+import {
+  fechaDeReversion,
+  gestionDe,
+  inicioDelDia,
+} from '../../common/fechas/zona-horaria';
 import type { Prisma } from '../../generated/prisma/client';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
 import { buscarIdsPorTexto } from '../../common/search/busqueda-texto';
@@ -23,6 +27,7 @@ import {
   MINUTOS_RESERVA_POR_DEFECTO,
   minutosReserva,
   reservadoPorLote,
+  disponibleDe,
   textoDuracionReserva,
   vencimientoReserva,
 } from '../../common/stock/reserva';
@@ -548,8 +553,10 @@ export class EgresosService implements OnModuleInit {
       detalles: egreso.detalles.map((d) => ({
         ...d,
         disponible: reservado
-          ? Number(d.ingresoDetalle.saldoCantidad) -
-            (reservado.get(d.ingresoDetalleId) ?? 0)
+          ? disponibleDe(
+              d.ingresoDetalle.saldoCantidad,
+              reservado.get(d.ingresoDetalleId) ?? 0,
+            )
           : null,
       })),
     };
@@ -682,6 +689,11 @@ export class EgresosService implements OnModuleInit {
     this.exigirSolicitante(egreso.solicitanteId, user);
 
     await this.prisma.$transaction(async (tx) => {
+      // Solo si SIGUE en borrador: un «enviar» simultaneo (otra pestaña) lo
+      // habria numerado, y borrarlo dejaria un hueco en la serie.
+      await this.transicionar(tx, id, EstadoEgreso.BORRADOR, {
+        estado: EstadoEgreso.BORRADOR,
+      });
       await tx.egresoHistorial.deleteMany({ where: { egresoId: id } });
       await tx.egresoDetalle.deleteMany({ where: { egresoId: id } });
       await tx.egreso.delete({ where: { id } });
@@ -956,6 +968,21 @@ export class EgresosService implements OnModuleInit {
       }
     }
 
+    // Entregar TODO en cero dejaba el pedido como «entregado» sin que saliera
+    // nada (2026-11-18). Una linea en cero sigue valiendo: es negar ese item.
+    if (dto.lineas.every((l) => l.cantidadEntregada === 0)) {
+      throw new BadRequestException(
+        'No se puede confirmar una entrega con todo en cero: si no se entrega nada, rechazá el pedido',
+      );
+    }
+    // Los lotes se tocan SIEMPRE en el mismo orden (por id): dos operaciones
+    // simultaneas que comparten lotes en orden inverso terminaban en deadlock.
+    const lineasOrdenadas = [...dto.lineas].sort(
+      (a, b) =>
+        (porId.get(a.detalleId)?.ingresoDetalleId ?? 0) -
+        (porId.get(b.detalleId)?.ingresoDetalleId ?? 0),
+    );
+
     await this.prisma.$transaction(async (tx) => {
       // La SALIDA se fecha hoy: no puede caer en una gestion cerrada.
       await exigirGestionAbierta(tx, egreso.almacenId, [gestionDe(new Date())]);
@@ -974,7 +1001,7 @@ export class EgresosService implements OnModuleInit {
         },
       );
 
-      for (const linea of dto.lineas) {
+      for (const linea of lineasOrdenadas) {
         const detalle = porId.get(linea.detalleId) as (typeof detalles)[number];
 
         await tx.egresoDetalle.update({
@@ -1050,14 +1077,19 @@ export class EgresosService implements OnModuleInit {
         cantidadEntregada: true,
         ingresoDetalle: { select: { itemId: true, precioUnitario: true } },
       },
+      // Mismo orden de lotes que la entrega: evita deadlocks.
+      orderBy: { ingresoDetalleId: 'asc' },
     });
+    // Hoy, salvo que la entrega sea de una gestion anterior sin cerrar: ver
+    // `fechaDeReversion`.
+    const fechaReversion = fechaDeReversion(fechaEntrega ?? new Date());
 
     await this.prisma.$transaction(async (tx) => {
       // Una entrega de una gestion cerrada no se anula (la gestion queda
-      // congelada), y la REVERSION se fecha hoy.
+      // congelada), ni la REVERSION puede caer en una gestion cerrada.
       await exigirGestionAbierta(tx, egreso.almacenId, [
         gestionDe(fechaEntrega ?? new Date()),
-        gestionDe(new Date()),
+        gestionDe(fechaReversion),
       ]);
       // Igual que en la entrega: una segunda anulacion simultanea ya no lo
       // encuentra ENTREGADO y aborta. Antes devolvia el material dos veces y el
@@ -1087,7 +1119,7 @@ export class EgresosService implements OnModuleInit {
             egresoId: id,
             egresoDetalleId: d.id,
             ingresoDetalleId: d.ingresoDetalleId,
-            fecha: new Date(),
+            fecha: fechaReversion,
             motivo: dto.motivo.trim(),
           },
         });
@@ -1429,8 +1461,10 @@ export class EgresosService implements OnModuleInit {
         );
       }
 
-      const disponible =
-        Number(lote.saldoCantidad) - (reservado.get(lote.id) ?? 0);
+      const disponible = disponibleDe(
+        lote.saldoCantidad,
+        reservado.get(lote.id) ?? 0,
+      );
       if (d.cantidadSolicitada > disponible) {
         throw new ConflictException(
           `No hay disponible suficiente de "${lote.item.descripcion}": ` +

@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 /**
@@ -7,6 +8,7 @@ import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
  */
 export class MotivoDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El motivo es requerido' })
   @MaxLength(300)
   motivo!: string;

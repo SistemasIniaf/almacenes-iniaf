@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -80,7 +80,9 @@ import { useSolicitudPdf } from "@/features/egresos/hooks/useSolicitudPdf"
 import { urlArchivo } from "@/lib/files"
 import {
   cantidad,
+  completarDecimales,
   conDecimalesMinimos,
+  decimalesEscritos,
   documentoDeLote,
   numeroAInterno,
   numeroAPantalla,
@@ -203,8 +205,17 @@ export function EgresoFormPage() {
     defaultValues: VALORES_INICIALES,
   })
 
+  // El formulario se recarga cuando cambia el PEDIDO guardado, no cada vez que
+  // llega una respuesta nueva: tras un guardado fallido la ficha se vuelve a
+  // pedir (por si la reserva venció y el pedido quedó vacío) y, si lo único
+  // distinto era el disponible de un lote, el reset borraba lo que el usuario
+  // estaba corrigiendo (2026-11-18).
+  const firmaCargada = useRef<string | null>(null)
   useEffect(() => {
     if (esNuevo || !egreso) return
+    const firma = `${egreso.id}|${egreso.updatedAt}|${egreso.detalles.length}`
+    if (firmaCargada.current === firma) return
+    firmaCargada.current = firma
     reset(desdeEgreso(egreso))
   }, [esNuevo, egreso, reset])
 
@@ -283,11 +294,32 @@ export function EgresoFormPage() {
     cantidadesEntrega[detalleId] ??
     conDecimalesMinimos(String(cantidadSolicitada), 2)
 
-  // No se puede confirmar más de lo pedido.
-  const excedidasEntrega = (egreso?.detalles ?? []).filter((d) => {
-    const valor = Number(aEntregar(d.id, d.cantidadSolicitada))
-    return Number.isNaN(valor) || valor > Number(d.cantidadSolicitada)
-  })
+  /**
+   * Qué tiene de malo lo escrito en «A entregar», o null. Antes solo se miraba
+   * que no superara lo pedido: un campo vacío contaba como cero, tres decimales
+   * rebotaban recién en el backend y algo que no era un número deshabilitaba
+   * el botón sin decir por qué (2026-11-18).
+   */
+  const errorEntrega = (texto: string, pedido: number): string | null => {
+    if (texto.trim() === "") return "Escribí la cantidad (0 si no se entrega)"
+    const valor = Number(texto)
+    if (!Number.isFinite(valor)) return "No es un número"
+    if (decimalesEscritos(texto) > 2) return "Máximo 2 decimales"
+    if (valor > pedido) return `No puede superar lo pedido (${pedido})`
+    return null
+  }
+  const excedidasEntrega = (egreso?.detalles ?? []).filter(
+    (d) =>
+      errorEntrega(
+        aEntregar(d.id, d.cantidadSolicitada),
+        Number(d.cantidadSolicitada)
+      ) != null
+  )
+  // Con todo en cero no hay entrega: eso es rechazar el pedido (el backend
+  // también lo exige).
+  const nadaParaEntregar = (egreso?.detalles ?? []).every(
+    (d) => Number(aEntregar(d.id, d.cantidadSolicitada)) === 0
+  )
   // Las que salen con menos de lo pedido: el diálogo de confirmación las
   // nombra, para que un número mal tipeado no pase de largo.
   const reducidasEntrega = (egreso?.detalles ?? []).filter(
@@ -798,8 +830,8 @@ export function EgresoFormPage() {
                                 detalle.cantidadSolicitada
                               )
                               const valor = Number(texto)
-                              const excedida = valor > pedido
-                              const menos = !excedida && valor < pedido
+                              const error = errorEntrega(texto, pedido)
+                              const menos = !error && valor < pedido
                               return (
                                 <div className="flex flex-col items-end gap-1">
                                   <Input
@@ -818,7 +850,7 @@ export function EgresoFormPage() {
                                       }))
                                     }
                                     onBlur={() => {
-                                      const completo = conDecimalesMinimos(
+                                      const completo = completarDecimales(
                                         texto,
                                         2
                                       )
@@ -828,7 +860,7 @@ export function EgresoFormPage() {
                                           [detalle.id]: completo,
                                         }))
                                     }}
-                                    aria-invalid={excedida}
+                                    aria-invalid={error != null}
                                     className="w-24 text-right"
                                     aria-label={`Cantidad a entregar de ${detalle.ingresoDetalle.item.descripcion}`}
                                   />
@@ -837,9 +869,9 @@ export function EgresoFormPage() {
                                       del usuario, 2026-10-13): con varias
                                       líneas, un aviso genérico arriba no dice
                                       CUÁL está mal. */}
-                                  {excedida && (
+                                  {error && (
                                     <span className="text-xs text-destructive">
-                                      No puede superar lo pedido ({pedido})
+                                      {error}
                                     </span>
                                   )}
                                   {menos && (
@@ -893,7 +925,16 @@ export function EgresoFormPage() {
                   )}
                   {puedeEntregar && (
                     <Button
-                      disabled={ocupado || excedidasEntrega.length > 0}
+                      disabled={
+                        ocupado ||
+                        excedidasEntrega.length > 0 ||
+                        nadaParaEntregar
+                      }
+                      title={
+                        nadaParaEntregar
+                          ? "Con todo en cero no hay entrega: si no se entrega nada, rechazá el pedido"
+                          : undefined
+                      }
                       onClick={() => setConfirmandoEntrega(true)}
                     >
                       <PackageCheck className="size-4" />

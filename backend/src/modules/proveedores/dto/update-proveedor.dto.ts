@@ -1,3 +1,4 @@
+import { OpcionalNoNulo, Recortar } from '../../../common/dto/validadores';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -8,8 +9,9 @@ import {
 
 /** Campos opcionales (definido explicito, no con PartialType — ver CLAUDE.md). */
 export class UpdateProveedorDto {
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre no puede estar vacio' })
   @MaxLength(200)
   nombre?: string;
@@ -35,7 +37,7 @@ export class UpdateProveedorDto {
   @MaxLength(250)
   direccion?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsBoolean()
   activo?: boolean;
 }

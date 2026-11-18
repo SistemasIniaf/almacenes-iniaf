@@ -30,11 +30,20 @@ respaldar() {
   # Primero a un archivo temporal y recien al terminar se renombra: un
   # respaldo cortado a la mitad (disco lleno, contenedor detenido) nunca queda
   # con nombre de respaldo bueno.
-  pg_dump -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc -f "$DIR/.db.tmp"
-  mv "$DIR/.db.tmp" "$DIR/db_$sello.dump"
+  #
+  # Cada paso lleva su `|| return 1` A PROPOSITO (2026-11-18): el bucle llama
+  # a esta funcion como `respaldar || echo ERROR`, y en sh eso APAGA `set -e`
+  # adentro de la funcion. Sin el corte explicito, un pg_dump que fallaba a la
+  # mitad igual se renombraba a respaldo bueno, el dia quedaba «respaldado» y
+  # la limpieza de abajo seguia borrando los respaldos viejos que si servian.
+  rm -f "$DIR/.db.tmp" "$DIR/.uploads.tmp"
+  pg_dump -h postgres -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc -f "$DIR/.db.tmp" || return 1
+  mv "$DIR/.db.tmp" "$DIR/db_$sello.dump" || return 1
 
-  tar -czf "$DIR/.uploads.tmp" -C /uploads .
-  mv "$DIR/.uploads.tmp" "$DIR/uploads_$sello.tar.gz"
+  tar -czf "$DIR/.uploads.tmp" -C /uploads . || return 1
+  mv "$DIR/.uploads.tmp" "$DIR/uploads_$sello.tar.gz" || return 1
+
+  # La limpieza corre SOLO si el respaldo de hoy salio entero.
 
   find "$DIR" -maxdepth 1 \( -name 'db_*.dump' -o -name 'uploads_*.tar.gz' \) \
     -mtime +"$DIAS" -print -delete

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -48,8 +50,58 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
+  /**
+   * Freno a la fuerza bruta (2026-11-18): tras `MAX_FALLOS` contraseñas
+   * equivocadas seguidas para un mismo usuario, esa cuenta no acepta mas
+   * intentos por `BLOQUEO_MS`. Importa mas de lo comun aca porque las cuentas
+   * nuevas comparten la contraseña inicial.
+   *
+   * Vive en MEMORIA: se pierde al reiniciar y no se comparte entre procesos,
+   * que para un solo backend alcanza. Cuenta tambien los usuarios que no
+   * existen, para no revelar cuales si.
+   */
+  private readonly fallos = new Map<string, { n: number; hasta: number }>();
+  private static readonly MAX_FALLOS = 10;
+  private static readonly BLOQUEO_MS = 15 * 60 * 1000;
+
+  private exigirSinBloqueo(clave: string) {
+    const f = this.fallos.get(clave);
+    if (!f) return;
+    if (f.hasta <= Date.now()) {
+      this.fallos.delete(clave);
+      return;
+    }
+    if (f.n >= AuthService.MAX_FALLOS) {
+      const minutos = Math.ceil((f.hasta - Date.now()) / 60000);
+      throw new HttpException(
+        `Demasiados intentos fallidos. Probá de nuevo en ${minutos} minuto(s).`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
+
+  private anotarFallo(clave: string) {
+    // Tope de memoria: si alguien prueba miles de usuarios distintos, se
+    // descartan los registros ya vencidos (y, si no alcanza, todos).
+    if (this.fallos.size > 5000) {
+      const ahora = Date.now();
+      for (const [k, v] of this.fallos) {
+        if (v.hasta <= ahora) this.fallos.delete(k);
+      }
+      if (this.fallos.size > 5000) this.fallos.clear();
+    }
+    const f = this.fallos.get(clave);
+    this.fallos.set(clave, {
+      n: (f?.n ?? 0) + 1,
+      hasta: Date.now() + AuthService.BLOQUEO_MS,
+    });
+  }
+
   /** Valida credenciales y emite access + refresh token. */
   async login(dto: LoginDto): Promise<LoginRespuesta> {
+    const clave = dto.usuario.trim().toLowerCase();
+    this.exigirSinBloqueo(clave);
+
     const usuario = await this.prisma.usuario.findUnique({
       where: { usuario: dto.usuario },
     });
@@ -59,10 +111,17 @@ export class AuthService {
       'Usuario o contrasena incorrectos',
     );
 
-    if (!usuario) throw credencialesInvalidas;
+    if (!usuario) {
+      this.anotarFallo(clave);
+      throw credencialesInvalidas;
+    }
 
     const passwordOk = await bcrypt.compare(dto.password, usuario.password);
-    if (!passwordOk) throw credencialesInvalidas;
+    if (!passwordOk) {
+      this.anotarFallo(clave);
+      throw credencialesInvalidas;
+    }
+    this.fallos.delete(clave);
 
     // Recien ACA se distingue la baja (con un mensaje que SI dice algo del
     // usuario): la contrasena ya se valido, asi que a esta altura quien

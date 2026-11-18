@@ -1,3 +1,4 @@
+import { OpcionalNoNulo, Recortar } from '../../../common/dto/validadores';
 import {
   ArrayUnique,
   IsArray,
@@ -20,8 +21,9 @@ import { Rol } from '../../../generated/prisma/enums';
  * duplicada de class-validator bajo pnpm, que dejaba el DTO sin propiedades.
  */
 export class UpdateUsuarioDto {
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre no puede estar vacio' })
   nombre?: string;
 
@@ -29,21 +31,22 @@ export class UpdateUsuarioDto {
   @IsString()
   cargo?: string | null;
 
-  @IsOptional()
+  @OpcionalNoNulo()
+  @Recortar()
   @IsString()
   @MinLength(3, { message: 'El usuario debe tener al menos 3 caracteres' })
   usuario?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
   @MinLength(6, { message: 'La contrasena debe tener al menos 6 caracteres' })
   password?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsEnum(Rol, { message: 'El rol no es valido' })
   rol?: Rol;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsBoolean()
   activo?: boolean;
 
@@ -55,7 +58,7 @@ export class UpdateUsuarioDto {
   @IsInt({ message: 'almacenId debe ser un entero' })
   almacenId?: number | null;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsArray()
   @ArrayUnique()
   @IsInt({ each: true, message: 'Cada almacen observado debe ser un entero' })

@@ -1,9 +1,9 @@
+import { OpcionalNoNulo, Recortar } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsInt,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
   Min,
@@ -16,25 +16,27 @@ import {
  * cambiar la partida le asigna un codigo nuevo en la partida destino.
  */
 export class UpdateItemDto {
-  @IsOptional()
+  @OpcionalNoNulo()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   partidaId?: number;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La descripcion no puede estar vacia' })
   @MaxLength(300)
   descripcion?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La unidad de medida no puede estar vacia' })
   @MaxLength(50)
   unidadMedida?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsBoolean()
   activo?: boolean;
 }

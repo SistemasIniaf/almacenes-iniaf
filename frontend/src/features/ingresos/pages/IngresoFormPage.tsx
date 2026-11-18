@@ -26,6 +26,7 @@ import { TextareaField } from "@/components/form/TextareaField"
 import { ComboboxField } from "@/components/form/ComboboxField"
 import { useAlmacenesActivos } from "@/features/almacenes/useAlmacenes"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { tienePermiso } from "@/features/auth/lib/permisos"
 import { useFuentesActivas } from "@/features/fuentes-financiamiento/useFuentesFinanciamiento"
 import { useProveedoresActivos } from "@/features/proveedores/useProveedores"
 import { IngresoLineas } from "@/features/ingresos/components/IngresoLineas"
@@ -123,7 +124,11 @@ export function IngresoFormPage() {
   const bloqueoStock = !esNuevo
   // La cabecera documental (factura, respaldos, proveedor, solicitante, unidad)
   // se puede editar mientras el ingreso esté vigente (no anulado).
-  const bloqueoCabecera = anulado
+  // Quien solo LEE ingresos (el observador) ve la ficha entera en solo
+  // lectura: antes le aparecían «Guardar cambios» y «Anular», que terminaban
+  // en 403 (2026-11-18).
+  const puedeEscribir = tienePermiso(user, "ingresosEscribir")
+  const bloqueoCabecera = anulado || !puedeEscribir
   // La fecha de ingreso arrastra gestión, correlativo y Kardex: la corrige solo
   // el super_admin (el backend responde 403 a cualquier otro rol).
   const puedeCorregirFecha = !esNuevo && esSuperAdmin && !anulado
@@ -133,9 +138,15 @@ export function IngresoFormPage() {
   const almacenNum = almacenIdSel ? Number(almacenIdSel) : undefined
 
   const { data: almacenes = [] } = useAlmacenesActivos()
-  const { data: proveedores = [] } = useProveedoresActivos()
+  // Estos dos catálogos no los puede leer quien solo mira: no se piden, y el
+  // selector muestra igual lo que el ingreso ya referencia.
+  const { data: proveedores = [] } = useProveedoresActivos({
+    enabled: puedeEscribir,
+  })
   const { data: fuentes = [] } = useFuentesActivas()
-  const { data: solicitadores = [] } = useSolicitadores()
+  const { data: solicitadores = [] } = useSolicitadores({
+    enabled: puedeEscribir,
+  })
   const { data: unidades = [] } = useUnidadesDeAlmacen(almacenNum)
 
   // El responsable no elige almacén (usa el suyo); admin sí, solo al crear.
@@ -237,7 +248,7 @@ export function IngresoFormPage() {
               Ver PDF
             </Button>
           )}
-          {estado === "CONFIRMADO" && (
+          {estado === "CONFIRMADO" && puedeEscribir && (
             <Button
               type="button"
               variant="destructive"
@@ -480,10 +491,15 @@ export function IngresoFormPage() {
                 label="Fuente de financiamiento"
                 control={control}
                 required
-                options={fuentes.map((f) => ({
-                  value: String(f.id),
-                  label: f.nombre,
-                }))}
+                // Con la fuente del propio ingreso aunque hoy esté dada
+                // de baja: si no, el campo quedaba en blanco.
+                options={conReferenciaActual(
+                  fuentes.map((f) => ({
+                    value: String(f.id),
+                    label: f.nombre,
+                  })),
+                  ingreso?.fuenteFinanciamiento
+                )}
                 placeholder="Elegí una fuente"
                 vacio="Ninguna fuente coincide."
                 disabled={bloqueoStock}
@@ -520,7 +536,7 @@ export function IngresoFormPage() {
 
           {/* Acción principal al pie del formulario, dentro del card. Un ingreso
               anulado ya no se edita, así que no lleva botón. */}
-          {!anulado && (
+          {!anulado && puedeEscribir && (
             <div className="mt-6 flex justify-end">
               <Button type="submit" disabled={guardando}>
                 {guardando ? (

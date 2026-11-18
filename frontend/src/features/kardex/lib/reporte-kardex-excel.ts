@@ -1,3 +1,4 @@
+import { aIsoLocal, diaLocal } from "@/lib/fechas"
 import {
   BORDE_TABLA,
   cargarExcelJs,
@@ -32,12 +33,12 @@ import type { BloqueReporteKardex } from "@/features/kardex/kardex.types"
  */
 
 const fechaIso = (iso: string) => {
-  const [anio, mes, dia] = iso.slice(0, 10).split("-").map(Number)
+  const [anio, mes, dia] = diaLocal(iso).split("-").map(Number)
   return new Date(anio, mes - 1, dia)
 }
 
 export function nombreArchivoExcelKardex(datos: DatosReporteKardex): string {
-  return `kardex-${datos.reporte.gestion}-${datos.emitidoEn.toISOString().slice(0, 10)}.xlsx`
+  return `kardex-${datos.reporte.gestion}-${aIsoLocal(datos.emitidoEn)}.xlsx`
 }
 
 export async function crearReporteKardexExcel(datos: DatosReporteKardex) {

@@ -1,9 +1,9 @@
+import { OpcionalNoNulo, Recortar } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
   ValidateNested,
@@ -17,13 +17,14 @@ import { EgresoDetalleDto } from './create-egreso.dto';
  * REEMPLAZA la lista completa (es como se comporta el formulario).
  */
 export class UpdateEgresoDto {
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La justificacion no puede estar vacia' })
   @MaxLength(300)
   justificacion?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsArray()
   @ArrayMinSize(1, { message: 'Agregá al menos un ítem' })
   @ValidateNested({ each: true })

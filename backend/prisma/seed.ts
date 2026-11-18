@@ -155,9 +155,12 @@ async function sembrarSuperAdmin() {
     return;
   }
 
-  const username = process.env.SEED_ADMIN_USER ?? 'superadmin';
-  const passwordPlano = process.env.SEED_ADMIN_PASSWORD ?? 'admin123';
-  const nombre = process.env.SEED_ADMIN_NOMBRE ?? 'SUPERADMIN SISTEMA';
+  // `||` y no `??`: Docker Compose pasa una variable que falta como cadena
+  // VACIA, y el super_admin nacia con contraseña "" — que el login rechaza, y
+  // como es unico no habia forma de entrar (2026-11-18).
+  const username = process.env.SEED_ADMIN_USER || 'superadmin';
+  const passwordPlano = process.env.SEED_ADMIN_PASSWORD || 'admin123';
+  const nombre = process.env.SEED_ADMIN_NOMBRE || 'SUPERADMIN SISTEMA';
 
   const password = await bcrypt.hash(passwordPlano, 10);
   await prisma.usuario.create({
@@ -173,12 +176,19 @@ async function sembrarSuperAdmin() {
  * asi el orden del array no importa.
  */
 async function sembrarUnidades() {
-  // Paso 1: crear/actualizar todas (grupo MOF), sin padre todavia.
-  for (const u of UNIDADES_INIAF) {
-    await prisma.unidad.upsert({
-      where: { sigla: u.sigla },
-      create: { nombre: u.nombre, sigla: u.sigla, grupo: 'MOF' },
-      update: { nombre: u.nombre, grupo: 'MOF', activo: true },
+  // Paso 1: crear las que FALTAN (grupo MOF), sin padre todavia. Las que ya
+  // existen no se tocan (2026-11-18): antes volver a correr el seed reactivaba
+  // las dadas de baja y les reponia el nombre y el padre originales, pisando
+  // lo que el super_admin habia cambiado desde la pantalla.
+  const existentes = new Set(
+    (await prisma.unidad.findMany({ select: { sigla: true } })).map(
+      (u) => u.sigla,
+    ),
+  );
+  const nuevas = UNIDADES_INIAF.filter((u) => !existentes.has(u.sigla));
+  for (const u of nuevas) {
+    await prisma.unidad.create({
+      data: { nombre: u.nombre, sigla: u.sigla, grupo: 'MOF' },
     });
   }
 
@@ -188,7 +198,8 @@ async function sembrarUnidades() {
   });
   const idPorSigla = new Map(filas.map((f) => [f.sigla, f.id]));
 
-  for (const u of UNIDADES_INIAF) {
+  // Solo a las recien creadas.
+  for (const u of nuevas) {
     await prisma.unidad.update({
       where: { sigla: u.sigla },
       data: { padreId: u.padre ? (idPorSigla.get(u.padre) ?? null) : null },
@@ -196,7 +207,7 @@ async function sembrarUnidades() {
   }
 
   console.log(
-    `✅ ${UNIDADES_INIAF.length} unidades del organigrama (grupo MOF) sembradas.`,
+    `✅ Unidades del organigrama (grupo MOF): ${nuevas.length} creadas, ${UNIDADES_INIAF.length - nuevas.length} ya existían (no se tocan).`,
   );
 }
 

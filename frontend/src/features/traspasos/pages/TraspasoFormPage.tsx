@@ -55,6 +55,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api"
 import {
   cantidad,
+  completarDecimales,
   conDecimalesMinimos,
   decimalesEscritos,
   moneda,
@@ -457,7 +458,7 @@ function NuevoTraspaso() {
                               }
                               onBlur={() => {
                                 const texto = aTraspasar(lote)
-                                const completo = conDecimalesMinimos(texto, 2)
+                                const completo = completarDecimales(texto, 2)
                                 if (completo !== texto)
                                   setCantidades((c) => ({
                                     ...c,

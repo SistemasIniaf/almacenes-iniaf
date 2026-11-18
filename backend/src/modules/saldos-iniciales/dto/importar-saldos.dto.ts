@@ -1,11 +1,15 @@
+import {
+  EsDecimal,
+  EsDia,
+  MAX_CANTIDAD,
+  MAX_PRECIO,
+} from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
-  IsDateString,
   IsInt,
-  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
@@ -45,17 +49,17 @@ export class FilaSaldoDto {
   @MaxLength(50)
   itemCodigo?: string;
 
-  @IsNumber(
-    { maxDecimalPlaces: 2 },
-    { message: 'La cantidad admite hasta 2 decimales' },
-  )
+  @EsDecimal(2, {
+    max: MAX_CANTIDAD,
+    message: 'La cantidad admite hasta 2 decimales (maximo 9.999.999.999,99)',
+  })
   @IsPositive({ message: 'La cantidad debe ser mayor a 0' })
   cantidad!: number;
 
-  @IsNumber(
-    { maxDecimalPlaces: 5 },
-    { message: 'El precio admite hasta 5 decimales' },
-  )
+  @EsDecimal(5, {
+    max: MAX_PRECIO,
+    message: 'El precio admite hasta 5 decimales (maximo 9.999.999,99999)',
+  })
   @Min(0, { message: 'El precio no puede ser negativo' })
   precioUnitario!: number;
 
@@ -78,7 +82,7 @@ export class ImportarSaldosDto {
    * fechado en su ultimo instante, asi la gestion siguiente lo ve como saldo
    * de apertura. Ej.: `2026-12-31` → saldo inicial de la gestion 2027.
    */
-  @IsDateString({}, { message: 'La fecha de corte no es válida' })
+  @EsDia('La fecha de corte no es válida')
   fechaCorte!: string;
 
   @IsArray()

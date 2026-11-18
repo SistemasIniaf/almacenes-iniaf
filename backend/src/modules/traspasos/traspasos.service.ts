@@ -10,7 +10,7 @@ import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import { paginated } from '../../common/dto/paginated-result';
 import { gestionDe } from '../../common/fechas/zona-horaria';
 import { almacenesPermitidos } from '../../common/scope/almacenes-permitidos';
-import { reservadoPorLote } from '../../common/stock/reserva';
+import { disponibleDe, reservadoPorLote } from '../../common/stock/reserva';
 import type { Prisma } from '../../generated/prisma/client';
 import { EstadoIngreso, TipoMovimiento } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -209,7 +209,7 @@ export class TraspasosService {
       return {
         ...l,
         reservado: enReserva,
-        disponible: Number(l.saldoCantidad) - enReserva,
+        disponible: disponibleDe(l.saldoCantidad, enReserva),
       };
     });
   }
@@ -313,8 +313,10 @@ export class TraspasosService {
             );
             continue;
           }
-          const disponible =
-            Number(lote.saldoCantidad) - (reservado.get(lote.id) ?? 0);
+          const disponible = disponibleDe(
+            lote.saldoCantidad,
+            reservado.get(lote.id) ?? 0,
+          );
           if (d.cantidad > disponible) {
             problemas.push(
               `${lote.item.codigo} ${lote.item.descripcion}: pide ${d.cantidad} y hay ${disponible} disponible`,

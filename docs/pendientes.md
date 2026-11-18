@@ -73,8 +73,8 @@ Después del corte:
 
 El usuario quiere ajustar lo que carga `pnpm seed` (super_admin → 54 unidades → 40 fuentes →
 505 partidas). Falta que diga qué cambiar. Puntos detectados:
-- Re-correr el seed **reactiva unidades** dadas de baja (las fuentes no).
-- Sin `SEED_ADMIN_PASSWORD` en el `.env`, el super_admin nace con `admin123`.
+- ~~Re-correr el seed reactiva unidades dadas de baja~~ — corregido 2026-11-18: las que ya existen no se tocan.
+- Sin `SEED_ADMIN_PASSWORD` en el `.env` (o vacía), el super_admin nace con `admin123`.
 - ~~Las partidas entran los 9 grupos activos~~ — hecho 2026-11-16: solo 20000 y 30000 nacen
   activos; el super_admin pasó a llamarse `superadmin`.
 - No siembra almacenes reales ni la relación almacén ↔ unidades.
@@ -96,3 +96,10 @@ kardex) conservando almacenes, usuarios, unidades, fuentes, partidas y proveedor
   quien conozca la inicial.
 - Cambiar la contraseña no cierra las otras sesiones abiertas (el refresh token vale 7 días).
 - Las mayúsculas automáticas son solo del frontend salvo en nombre y cargo del usuario.
+
+## 7. Revisión general del 2026-11-18
+
+Corregido todo lo encontrado (detalle en `CLAUDE.md`, «Revisión general del 2026-11-18»). Quedó sin
+hacer, a propósito: contenedor del backend sin usuario root (el volumen de uploads existente es de
+root), quitar el nombre de quien cambió el logo del `GET /logos` público, y probar en el navegador
+los formularios y los PDF/Excel (las pruebas fueron por la API).

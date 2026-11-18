@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -8,12 +9,14 @@ import {
 
 export class CreateProveedorDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre es requerido' })
   @MaxLength(200)
   nombre!: string;
 
   @IsOptional()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El NIT no puede estar vacio' })
   @MaxLength(20)
   nit?: string;

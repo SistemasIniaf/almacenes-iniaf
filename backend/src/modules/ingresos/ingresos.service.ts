@@ -10,9 +10,12 @@ import { paginated } from '../../common/dto/paginated-result';
 import { bloquearSerie } from '../../common/correlativo/bloquear-serie';
 import { exigirGestionAbierta } from '../../common/cierre/gestion-cerrada';
 import {
+  diaDe,
+  fechaDeReversion,
   fechaHoraBolivia,
   gestionDe,
   inicioDelDia,
+  moverAlDia,
 } from '../../common/fechas/zona-horaria';
 import { formatearNumero } from '../../common/formato/numero-documento';
 import {
@@ -81,15 +84,22 @@ function totalDeLineas(
 }
 
 /** Cadena vacia o solo espacios -> null; recorta el resto. */
-function normalizar(valor?: string): string | null | undefined {
+function normalizar(valor?: string | null): string | null | undefined {
   if (valor === undefined) return undefined;
+  if (valor === null) return null;
   const limpio = valor.trim();
   return limpio === '' ? null : limpio;
 }
 
-function aFecha(valor?: string): Date | null | undefined {
+/**
+ * Fecha de SOLO DIA (remision, informe): se guarda como el inicio de ese dia en
+ * Bolivia. Con `new Date('2026-03-15')` quedaba la medianoche UTC —las 20:00
+ * del 14 en Bolivia—, y el listado y la nota impresa mostraban un dia menos
+ * (2026-11-18).
+ */
+function aFecha(valor?: string | null): Date | null | undefined {
   if (valor === undefined) return undefined;
-  return valor ? new Date(valor) : null;
+  return valor ? inicioDelDia(valor) : null;
 }
 
 /** Campos de cabecera comunes a crear y editar (todos opcionales). */
@@ -447,6 +457,7 @@ export class IngresosService {
       );
     }
 
+    this.validarNoVaciarObligatorios(dto);
     const nuevaFecha = this.resolverCorreccionDeFecha(dto, existente, user);
 
     await this.prisma.$transaction(async (tx) => {
@@ -465,6 +476,26 @@ export class IngresosService {
       });
 
       if (!nuevaFecha) return;
+
+      // La entrada no puede quedar DESPUES de una salida de sus lotes (una
+      // entrega o un traspaso): el kardex mostraria saldo negativo y, si
+      // cruza de gestion, el cierre abriria con saldo inicial negativo.
+      const primeraSalida = await tx.movimientoKardex.findFirst({
+        where: {
+          ingresoDetalle: { ingresoId: id },
+          OR: [{ ingresoId: null }, { ingresoId: { not: id } }],
+        },
+        orderBy: { fecha: 'asc' },
+        select: { fecha: true },
+      });
+      if (
+        primeraSalida &&
+        nuevaFecha.getTime() > primeraSalida.fecha.getTime()
+      ) {
+        throw new ConflictException(
+          `La fecha no puede ser posterior al ${fechaHoraBolivia(primeraSalida.fecha)}: ese día ya salió material de este ingreso`,
+        );
+      }
 
       // El Kardex se ordena por la fecha del movimiento, no por la del ingreso:
       // si no se mueven, el libro queda contando la entrada en el dia viejo.
@@ -515,7 +546,14 @@ export class IngresosService {
       );
     }
 
-    const fecha = new Date(dto.fechaIngreso);
+    // Del formulario llega SOLO EL DIA. Si es el mismo dia (de Bolivia) que ya
+    // tiene, no hay correccion: antes se comparaba contra la medianoche UTC,
+    // que nunca coincide, y cada guardado del super_admin —aunque solo tocara
+    // la factura— corria la fecha contable y el kardex un dia atras
+    // (2026-11-18). Si cambia, se conserva la hora del registro.
+    const dia = dto.fechaIngreso.slice(0, 10);
+    if (dia === diaDe(existente.fechaIngreso)) return null;
+    const fecha = moverAlDia(existente.fechaIngreso, dia);
     if (Number.isNaN(fecha.getTime())) {
       throw new BadRequestException('La fecha de ingreso no es valida');
     }
@@ -525,9 +563,6 @@ export class IngresosService {
         'La fecha de ingreso no puede ser posterior a hoy',
       );
     }
-    // Sin cambio real no se toca nada (evita reescribir el Kardex al pedo).
-    if (fecha.getTime() === existente.fechaIngreso.getTime()) return null;
-
     return fecha;
   }
 
@@ -557,12 +592,15 @@ export class IngresosService {
         'Estos lotes llegaron por un traspaso: no se anulan como un ingreso',
       );
     }
+    // Hoy, salvo que el ingreso sea de una gestion anterior sin cerrar: ver
+    // `fechaDeReversion`.
+    const fechaReversion = fechaDeReversion(ingreso.fechaIngreso);
     await this.prisma.$transaction(async (tx) => {
-      // Ni el ingreso de una gestion cerrada se anula, ni la REVERSION (fechada
-      // hoy) puede caer en una gestion ya cerrada.
+      // Ni el ingreso de una gestion cerrada se anula, ni la REVERSION puede
+      // caer en una gestion ya cerrada.
       await exigirGestionAbierta(tx, ingreso.almacenId, [
         gestionDe(ingreso.fechaIngreso),
-        gestionDe(new Date()),
+        gestionDe(fechaReversion),
       ]);
       // Lo PRIMERO: pasar a ANULADO solo si sigue confirmado. Dos anulaciones
       // simultaneas (doble clic) duplicaban las REVERSIONES del Kardex; la
@@ -597,7 +635,7 @@ export class IngresosService {
             precioUnitario: d.precioUnitario,
             ingresoId: id,
             ingresoDetalleId: d.id,
-            fecha: new Date(),
+            fecha: fechaReversion,
             motivo: dto.motivo.trim(),
           },
         });
@@ -879,6 +917,35 @@ export class IngresosService {
     if (faltan.length > 0) {
       throw new BadRequestException(
         `Faltan datos para registrar el ingreso: ${faltan.join(', ')}`,
+      );
+    }
+  }
+
+  /**
+   * Al EDITAR no se puede vaciar un respaldo obligatorio. Solo mira lo que
+   * vino en el PATCH: un ingreso viejo al que le falta un dato se puede seguir
+   * editando mientras no se lo mande en blanco. La regla vive aca y no solo en
+   * el formulario (2026-11-18): la API aceptaba `procesoC31: ""`.
+   */
+  private validarNoVaciarObligatorios(dto: UpdateIngresoDto) {
+    const vacio = (v: unknown) =>
+      v === null || (typeof v === 'string' && v.trim() === '');
+    const campos: [unknown, string][] = [
+      [dto.fechaRemision, 'fecha de remisión'],
+      [dto.notaRemision, 'nota de remisión'],
+      [dto.procesoC31, 'proceso Nº / C31'],
+      [dto.certificacion, 'certificación'],
+      [dto.informeConformidad, 'informe/acta de conformidad'],
+      [dto.fechaInformeConformidad, 'fecha del informe/acta'],
+      [dto.proveedorId, 'proveedor'],
+      [dto.responsableConformidadId, 'responsable / comisión de recepción'],
+      [dto.unidadSolicitanteId, 'unidad solicitante'],
+      [dto.observacion, 'observación'],
+    ];
+    const faltan = campos.filter(([v]) => vacio(v)).map(([, n]) => n);
+    if (faltan.length > 0) {
+      throw new BadRequestException(
+        `No se pueden dejar vacíos: ${faltan.join(', ')}`,
       );
     }
   }

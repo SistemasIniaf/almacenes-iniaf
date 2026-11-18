@@ -1,10 +1,14 @@
+import {
+  EsDecimal,
+  MAX_CANTIDAD,
+  Recortar,
+} from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
   IsInt,
   IsNotEmpty,
-  IsNumber,
   IsPositive,
   IsString,
   MaxLength,
@@ -20,10 +24,10 @@ export class EgresoDetalleDto {
   @IsInt({ message: 'Cada linea debe apuntar a un lote' })
   ingresoDetalleId!: number;
 
-  @IsNumber(
-    { maxDecimalPlaces: 2 },
-    { message: 'La cantidad admite hasta 2 decimales' },
-  )
+  @EsDecimal(2, {
+    max: MAX_CANTIDAD,
+    message: 'La cantidad admite hasta 2 decimales (maximo 9.999.999.999,99)',
+  })
   @IsPositive({ message: 'La cantidad debe ser mayor a cero' })
   cantidadSolicitada!: number;
 }
@@ -34,6 +38,7 @@ export class EgresoDetalleDto {
  */
 export class CreateEgresoDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La justificacion es requerida' })
   @MaxLength(300, {
     message: 'La justificacion no puede superar los 300 caracteres',

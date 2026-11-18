@@ -1,3 +1,4 @@
+import { aIsoLocal, diaLocal } from "@/lib/fechas"
 import {
   BORDE_TABLA,
   cargarExcelJs,
@@ -32,7 +33,7 @@ import type { DatosReporteIngresos } from "@/features/ingresos/lib/reporte-ingre
 
 /** `YYYY-MM-DD` a Date local, sin que la zona horaria corra el día. */
 const fechaIso = (iso: string) => {
-  const [anio, mes, dia] = iso.slice(0, 10).split("-").map(Number)
+  const [anio, mes, dia] = diaLocal(iso).split("-").map(Number)
   return new Date(anio, mes - 1, dia)
 }
 
@@ -42,7 +43,7 @@ const FORMATO_MONEDA = "#,##0.00;[Red]-#,##0.00"
 export function nombreArchivoExcelIngresos(
   datos: DatosReporteIngresos
 ): string {
-  const periodo = datos.desde ?? datos.emitidoEn.toISOString().slice(0, 10)
+  const periodo = datos.desde ?? aIsoLocal(datos.emitidoEn)
   return `registro-ingresos-${periodo}.xlsx`
 }
 

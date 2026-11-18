@@ -242,7 +242,27 @@ export class UsuariosService {
     });
     const cargo = this.resolverCargo(rolFinal, dto.cargo, existente.cargo);
 
-    await this.validarReferencias(campos);
+    // Las referencias se validan SOLO si cambian (o si la cuenta se esta
+    // reactivando): reenviar la unidad que ya tenia se acepta aunque hoy este
+    // inactiva. Si no, a un usuario cuya unidad se dio de baja no se le podia
+    // corregir ni el nombre (2026-11-18). Misma regla que los ingresos.
+    const reactivando = activoFinal && !existente.activo;
+    const yaObservados = new Set(
+      existente.almacenesObservados.map((o) => o.almacenId),
+    );
+    await this.validarReferencias({
+      unidadId:
+        reactivando || campos.unidadId !== existente.unidadId
+          ? campos.unidadId
+          : null,
+      almacenId:
+        reactivando || campos.almacenId !== existente.almacenId
+          ? campos.almacenId
+          : null,
+      observados: campos.observados.filter(
+        (a) => reactivando || !yaObservados.has(a),
+      ),
+    });
     await this.validarUnicidadRol(rolFinal, campos, activoFinal, id);
 
     const password = dto.password
@@ -328,6 +348,14 @@ export class UsuariosService {
       throw new NotFoundException(`No existe el usuario con id ${id}`);
     }
     if (!existente.activo) {
+      // Su unidad o su almacen pudieron darse de baja mientras tanto: un
+      // almacen solo se cierra sin usuarios activos, y reactivar a uno de los
+      // suyos le saltaba esa regla (2026-11-18).
+      await this.validarReferencias({
+        unidadId: existente.unidadId,
+        almacenId: existente.almacenId,
+        observados: [],
+      });
       // El cupo de rol unico (aprobador por unidad, responsable por almacen)
       // pudo haberse ocupado mientras esta cuenta estaba inactiva.
       await this.validarUnicidadRol(

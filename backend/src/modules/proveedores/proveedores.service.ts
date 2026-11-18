@@ -12,8 +12,9 @@ import { QueryProveedoresDto } from './dto/query-proveedores.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
 
 /** Convierte cadena vacia o solo espacios en null; recorta el resto. */
-function normalizar(valor?: string): string | null | undefined {
+function normalizar(valor?: string | null): string | null | undefined {
   if (valor === undefined) return undefined;
+  if (valor === null) return null;
   const limpio = valor.trim();
   return limpio === '' ? null : limpio;
 }

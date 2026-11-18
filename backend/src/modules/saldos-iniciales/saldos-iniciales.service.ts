@@ -115,8 +115,12 @@ export class SaldosInicialesService {
     const errorFecha = this.errorFecha(dto.fechaCorte);
     if (errorFecha) throw new BadRequestException(errorFecha);
 
-    // El ultimo instante del dia de corte, en Bolivia.
-    const fecha = new Date(inicioDelDia(dto.fechaCorte, 1).getTime() - 1);
+    // El ultimo instante del dia de corte, en Bolivia. Si el corte es HOY ese
+    // instante todavia no llego: se usa AHORA, o la entrada quedaba fechada a
+    // las 23:59 de esta noche y una entrega del mismo dia salia antes que ella.
+    const finDelDia = new Date(inicioDelDia(dto.fechaCorte, 1).getTime() - 1);
+    const ahora = new Date();
+    const fecha = finDelDia > ahora ? ahora : finDelDia;
     const gestion = gestionDe(fecha);
 
     return this.prisma.$transaction(

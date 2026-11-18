@@ -1,3 +1,4 @@
+import { OpcionalNoNulo, Recortar } from '../../../common/dto/validadores';
 import {
   IsBoolean,
   IsInt,
@@ -9,19 +10,21 @@ import {
 
 /** Campos opcionales (definido explicito, no con PartialType — ver CLAUDE.md). */
 export class UpdateUnidadDto {
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre no puede estar vacio' })
   @MaxLength(150)
   nombre?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La sigla no puede estar vacia' })
   @MaxLength(20)
   sigla?: string;
 
-  @IsOptional()
+  @OpcionalNoNulo()
   @IsBoolean()
   activo?: boolean;
 

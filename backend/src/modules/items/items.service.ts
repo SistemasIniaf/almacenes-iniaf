@@ -273,7 +273,13 @@ export class ItemsService {
       subdir: ITEMS_IMAGE_SUBDIR,
       nombreBase: id,
     });
-    await this.prisma.item.update({ where: { id }, data: { imagenUrl } });
+    try {
+      await this.prisma.item.update({ where: { id }, data: { imagenUrl } });
+    } catch (error) {
+      // Si la base no la registra, el archivo recien escrito quedaria huerfano.
+      await borrarImagen(ITEMS_IMAGE_DIR, imagenUrl);
+      throw error;
+    }
 
     // Borra la imagen anterior despues de commitear la nueva (best-effort).
     await borrarImagen(ITEMS_IMAGE_DIR, item.imagenUrl);

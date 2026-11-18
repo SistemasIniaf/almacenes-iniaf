@@ -1,3 +1,4 @@
+import { aIsoLocal, diaLocal } from "@/lib/fechas"
 import {
   ALTO_MEMBRETE,
   ANCHO_UTIL_APAISADO,
@@ -39,7 +40,7 @@ export interface DatosReporteIngresos extends DatosReporte {
 
 /** `YYYY-MM-DD` → 01/01/2026, sin que la zona horaria corra el día. */
 const fechaIso = (iso: string) => {
-  const [anio, mes, dia] = iso.slice(0, 10).split("-")
+  const [anio, mes, dia] = diaLocal(iso).split("-")
   return `${dia}/${mes}/${anio}`
 }
 
@@ -57,7 +58,7 @@ export function leyendaPeriodo(desde?: string, hasta?: string) {
 export function nombreArchivoReporteIngresos(
   datos: DatosReporteIngresos
 ): string {
-  const periodo = datos.desde ?? datos.emitidoEn.toISOString().slice(0, 10)
+  const periodo = datos.desde ?? aIsoLocal(datos.emitidoEn)
   return `registro-ingresos-${periodo}.pdf`
 }
 

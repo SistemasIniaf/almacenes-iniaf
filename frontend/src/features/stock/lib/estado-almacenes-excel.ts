@@ -1,3 +1,4 @@
+import { aIsoLocal } from "@/lib/fechas"
 import {
   cargarExcelJs,
   crearTabla,
@@ -36,7 +37,7 @@ const descripcion = (fila: FilaReporteStock) =>
 export function nombreArchivoExcelEstadoAlmacenes(
   datos: DatosReporteStock
 ): string {
-  return `estado-almacenes-por-item-${datos.emitidoEn.toISOString().slice(0, 10)}.xlsx`
+  return `estado-almacenes-por-item-${aIsoLocal(datos.emitidoEn)}.xlsx`
 }
 
 export async function crearEstadoAlmacenesExcel(datos: DatosReporteStock) {

@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -12,11 +13,13 @@ import {
 /** El codigo NO se recibe: se autogenera a partir de la partida (ver ItemsService.create). */
 export class CreateItemDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La descripcion es requerida' })
   @MaxLength(300)
   descripcion!: string;
 
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'La unidad de medida es requerida' })
   @MaxLength(50)
   unidadMedida!: string;

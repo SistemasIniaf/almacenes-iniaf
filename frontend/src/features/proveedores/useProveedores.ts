@@ -22,8 +22,7 @@ import type {
 
 export const proveedoresKeys = {
   all: ["proveedores"] as const,
-  lista: (query: QueryProveedores) =>
-    ["proveedores", "lista", query] as const,
+  lista: (query: QueryProveedores) => ["proveedores", "lista", query] as const,
 }
 
 export function useProveedores(query: QueryProveedores) {
@@ -35,7 +34,7 @@ export function useProveedores(query: QueryProveedores) {
 }
 
 /** Proveedores activos para los selectores (ordenados por nombre en el backend). */
-export function useProveedoresActivos() {
+export function useProveedoresActivos({ enabled = true } = {}) {
   const query = {
     page: 1,
     pageSize: 100,
@@ -47,6 +46,7 @@ export function useProveedoresActivos() {
     queryFn: () => listarProveedores(query),
     select: (resultado) => resultado.data,
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 

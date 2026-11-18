@@ -1,7 +1,7 @@
+import { EsDia } from '../../../common/dto/validadores';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
-  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -60,10 +60,10 @@ export class QueryEgresosDto extends PaginationQueryDto {
    * borrador, la de creacion. Ambos extremos inclusivos, en UTC.
    */
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "desde" no es valida' })
+  @EsDia('La fecha "desde" no es valida')
   desde?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: 'La fecha "hasta" no es valida' })
+  @EsDia('La fecha "hasta" no es valida')
   hasta?: string;
 }

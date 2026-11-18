@@ -1,3 +1,4 @@
+import { Recortar } from '../../../common/dto/validadores';
 import {
   ArrayUnique,
   IsArray,
@@ -11,6 +12,7 @@ import {
 
 export class CreateAlmacenDto {
   @IsString()
+  @Recortar()
   @IsNotEmpty({ message: 'El nombre es requerido' })
   @MaxLength(150)
   nombre!: string;

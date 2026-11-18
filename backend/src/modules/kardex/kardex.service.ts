@@ -392,7 +392,10 @@ export class KardexService {
     const filas = [...bloques.values()]
       // Un bloque sin movimientos en la gestion y sin saldo de apertura no
       // aporta nada al papel.
-      .filter((b) => b.movimientos.length > 0 || b.saldoInicial !== 0)
+      // (con tolerancia: el saldo es una suma de floats y puede dar 1e-15)
+      .filter(
+        (b) => b.movimientos.length > 0 || Math.abs(b.saldoInicial) >= 0.005,
+      )
       .map((bloque) => {
         let saldo = bloque.saldoInicial;
         let valor = bloque.valorInicial;

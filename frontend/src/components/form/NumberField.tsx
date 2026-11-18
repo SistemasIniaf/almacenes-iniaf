@@ -1,7 +1,7 @@
 import { Controller } from "react-hook-form"
 
 import {
-  conDecimalesMinimos,
+  completarDecimales,
   numeroAInterno,
   numeroAPantalla,
 } from "@/lib/formato"
@@ -78,7 +78,7 @@ export function NumberField<T extends FieldValues>({
             aria-label={hideLabel ? label : undefined}
             onBlur={() => {
               if (decimalesMinimos != null && typeof field.value === "string") {
-                const completo = conDecimalesMinimos(
+                const completo = completarDecimales(
                   field.value,
                   decimalesMinimos
                 )

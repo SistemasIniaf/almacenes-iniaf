@@ -46,9 +46,20 @@ export function useIngreso(id: number | undefined) {
   })
 }
 
+/**
+ * Registrar, corregir o anular un ingreso mueve el STOCK y el KARDEX, y cambia
+ * si un ítem «tiene movimientos» (lo que decide si se le puede corregir la
+ * partida). Hasta el 2026-11-18 solo se refrescaban los ingresos: volver a
+ * stock antes de un minuto mostraba el saldo viejo.
+ */
 function useInvalidarIngresos() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: ingresosKeys.all })
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: ["stock"] })
+    void queryClient.invalidateQueries({ queryKey: ["kardex"] })
+    void queryClient.invalidateQueries({ queryKey: ["items"] })
+    return queryClient.invalidateQueries({ queryKey: ingresosKeys.all })
+  }
 }
 
 export function useCrearIngreso() {
@@ -91,11 +102,12 @@ export function useAnularIngreso() {
 }
 
 /** Solicitadores activos (para el selector de responsable / comisión de recepción). */
-export function useSolicitadores() {
+export function useSolicitadores({ enabled = true } = {}) {
   return useQuery({
     queryKey: ["usuarios", "solicitadores"],
     queryFn: listarSolicitadores,
     staleTime: 5 * 60_000,
+    enabled,
   })
 }
 

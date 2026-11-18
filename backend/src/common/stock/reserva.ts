@@ -144,3 +144,17 @@ export async function reservadoPorLote(
     ]),
   );
 }
+
+/**
+ * `disponible = saldo − reservado`, redondeado a los 2 decimales de la columna.
+ *
+ * La resta se hace con floats de JS: 0,30 − 0,10 da 0,19999999999999998, y
+ * comparar contra eso rechazaba pedir 0,20 (2026-11-18). TODO calculo de
+ * disponible pasa por aca, asi la pantalla y la validacion dicen lo mismo.
+ */
+export function disponibleDe(
+  saldo: { toString(): string } | number,
+  reservado: number,
+): number {
+  return Math.round((Number(saldo) - reservado) * 100) / 100;
+}
