@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Controller } from "react-hook-form"
 import { Eye, EyeOff } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
@@ -18,6 +19,11 @@ interface InputPasswordFieldProps<T extends FieldValues> {
   readOnly?: boolean
   description?: string
   required?: boolean
+  /**
+   * Ícono DENTRO del campo, a la izquierda (2026-11-18, pedido del usuario para
+   * el login). Es decorativo: el rótulo sigue siendo el que nombra el campo.
+   */
+  icono?: LucideIcon
 }
 
 export function InputPasswordField<T extends FieldValues>({
@@ -31,6 +37,7 @@ export function InputPasswordField<T extends FieldValues>({
   readOnly = false,
   description,
   required = true,
+  icono: Icono,
 }: InputPasswordFieldProps<T>) {
   const [showPassword, setShowPassword] = useState(false)
   const fieldId = id || `field-${name}`
@@ -47,6 +54,12 @@ export function InputPasswordField<T extends FieldValues>({
           </FieldLabel>
 
           <div className="relative">
+            {Icono && (
+              <Icono
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+            )}
             <Input
               {...field}
               id={fieldId}
@@ -57,7 +70,7 @@ export function InputPasswordField<T extends FieldValues>({
               disabled={disabled}
               readOnly={readOnly}
               value={field.value ?? ""}
-              className="pr-10"
+              className={Icono ? "pr-10 pl-9" : "pr-10"}
             />
 
             <button

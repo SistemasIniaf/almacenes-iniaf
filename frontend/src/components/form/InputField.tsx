@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 
+import type { LucideIcon } from "lucide-react"
 import type { Control, FieldValues, Path } from "react-hook-form"
 
 interface InputFieldProps<T extends FieldValues> {
@@ -40,6 +41,11 @@ interface InputFieldProps<T extends FieldValues> {
    * descripción quedan debajo del input, alineados con él.
    */
   rotuloAlCostado?: boolean
+  /**
+   * Ícono DENTRO del campo, a la izquierda (2026-11-18, pedido del usuario para
+   * el login). Es decorativo: el rótulo sigue siendo el que nombra el campo.
+   */
+  icono?: LucideIcon
   /** Clases extra para el contenedor (ej. `sm:col-span-2` en formularios en grid). */
   className?: string
 }
@@ -58,6 +64,7 @@ export function InputField<T extends FieldValues>({
   required = true,
   mayusculas,
   rotuloAlCostado = false,
+  icono: Icono,
   className,
 }: InputFieldProps<T>) {
   const fieldId = id || `field-${name}`
@@ -86,23 +93,32 @@ export function InputField<T extends FieldValues>({
             {label}
             {required && <span className="text-red-500">*</span>}
           </FieldLabel>
-          <Input
-            {...field}
-            id={fieldId}
-            type={type}
-            aria-invalid={fieldState.invalid}
-            placeholder={placeholder}
-            autoComplete={autoComplete}
-            disabled={disabled}
-            readOnly={readOnly}
-            value={field.value ?? ""}
-            onChange={
-              enMayusculas
-                ? (evento) =>
-                    field.onChange(evento.target.value.toLocaleUpperCase())
-                : field.onChange
-            }
-          />
+          <div className="relative">
+            {Icono && (
+              <Icono
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+            )}
+            <Input
+              {...field}
+              id={fieldId}
+              type={type}
+              aria-invalid={fieldState.invalid}
+              placeholder={placeholder}
+              autoComplete={autoComplete}
+              disabled={disabled}
+              readOnly={readOnly}
+              value={field.value ?? ""}
+              onChange={
+                enMayusculas
+                  ? (evento) =>
+                      field.onChange(evento.target.value.toLocaleUpperCase())
+                  : field.onChange
+              }
+              className={cn(Icono && "pl-9")}
+            />
+          </div>
           {description && (
             <p
               className={cn(

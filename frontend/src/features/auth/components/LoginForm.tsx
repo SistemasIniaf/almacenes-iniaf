@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { useLocation, useNavigate } from "react-router-dom"
 import { loginSchema } from "../lib/login.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { Loader2, LockKeyhole, UserRound } from "lucide-react"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { Button } from "@/components/ui/button"
@@ -109,6 +109,7 @@ export function LoginForm({
                 autoComplete="username"
                 disabled={isPending}
                 mayusculas={false}
+                icono={UserRound}
               />
 
               <InputPasswordField
@@ -116,6 +117,7 @@ export function LoginForm({
                 label="Contraseña"
                 control={control}
                 disabled={isPending}
+                icono={LockKeyhole}
               />
 
               <Field className="mt-4">
