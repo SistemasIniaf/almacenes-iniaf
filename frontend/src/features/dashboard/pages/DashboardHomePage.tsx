@@ -162,6 +162,7 @@ export function DashboardHomePage() {
             a: "/egresos?estado=BORRADOR",
             icono: FileEdit,
             urgente: true,
+            tono: "gris" as const,
           },
           {
             titulo: "Devueltos",
@@ -171,6 +172,7 @@ export function DashboardHomePage() {
             a: "/egresos?estado=DEVUELTO",
             icono: Undo2,
             urgente: true,
+            tono: "rojo" as const,
           },
         ]
       : []),
@@ -184,6 +186,7 @@ export function DashboardHomePage() {
       a: "/egresos?estado=PENDIENTE_APROBADOR",
       icono: Inbox,
       urgente: esAprobador,
+      tono: "ambar" as const,
     },
     {
       titulo: "Pendientes de entrega",
@@ -195,6 +198,7 @@ export function DashboardHomePage() {
       a: "/egresos?estado=PENDIENTE_RESPONSABLE_ALMACEN",
       icono: ArrowUpFromLine,
       urgente: esResponsable,
+      tono: "azul" as const,
     },
     {
       titulo: "Entregados",
@@ -203,6 +207,7 @@ export function DashboardHomePage() {
       detalle: `Pedidos entregados en la gestión ${gestion}`,
       a: "/egresos?estado=ENTREGADO",
       icono: CheckCircle2,
+      tono: "verde" as const,
     },
     ...(veIngresos
       ? [
@@ -213,6 +218,7 @@ export function DashboardHomePage() {
             detalle: `Registrados en la gestión ${gestion}`,
             a: "/ingresos",
             icono: ArrowDownToLine,
+            tono: "violeta" as const,
           },
         ]
       : []),
